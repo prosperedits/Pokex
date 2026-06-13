@@ -40,4 +40,13 @@ only if you edit tokens.)
 ## Deploy
 - **`main` is production.** Pushing to `main` auto-deploys to Cloudflare Pages
   (`pokex.pages.dev`). Just `git add -A && git commit && git push`.
-- Two-device rule: `git pull` before you start, `git push` when you finish.
+
+## Two-device sync (PC ⇄ Mac) — IMPORTANT
+This repo is edited from two machines; **GitHub is the sync**. Claude MUST keep it
+flowing automatically so the user never has to think about it:
+- **At the START of any editing session:** `git pull --rebase --autostash` first,
+  so you're working on the other machine's latest. Do this before reading/editing.
+- **After committing work:** `git push` immediately, so the other machine can get it.
+- One-shot manual sync (either machine, anytime): **`npm run sync`** (pull + push).
+- The user runs a background auto-pull on the PC, so the PC also refreshes on its own.
+- Never auto-commit unrelated/untracked cruft; `graphify-out/` is gitignored.

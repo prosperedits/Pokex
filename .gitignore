@@ -9,6 +9,9 @@ dist/
 *.log
 data/refresh-report-*.json
 
+# knowledge-graph tooling output (graphify) — not part of the app
+graphify-out/
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db
