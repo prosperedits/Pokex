@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phantasmal Flames — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--stage); color: var(--text); font-family: var(--font-ui); line-height: 1.55; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: var(--s-8) var(--s-5); }
+  section { margin-bottom: var(--s-9); }
+  h2 { font-family: var(--font-display); font-size: 15px; font-weight: 600; letter-spacing: var(--tracking-wide);
+       text-transform: uppercase; color: var(--text-dim); border-bottom: 1px solid var(--stage-line);
+       padding-bottom: var(--s-3); margin-bottom: var(--s-5); }
+  .note { color: var(--text-dim); font-size: var(--type-small); max-width: 640px; }
+
+  header.hero { padding: var(--s-9) 0 var(--s-8); text-align: center; }
+  header.hero img { max-width: 420px; width: 80%; filter: drop-shadow(0 0 40px rgba(108,46,166,.5)); }
+  header.hero p { color: var(--text-dim); margin-top: var(--s-5); font-size: var(--type-small);
+                  letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+
+  .grid { display: grid; gap: var(--s-4); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g5 { grid-template-columns: repeat(5, 1fr); }
+  .g6 { grid-template-columns: repeat(6, 1fr); }
+
+  .swatch { border: 1px solid var(--stage-line); border-radius: 10px; overflow: hidden; background: var(--stage-raise); }
+  .swatch .chip { height: 92px; }
+  .swatch .meta { padding: var(--s-3) var(--s-4); }
+  .swatch .meta b { display: block; font-size: var(--type-small); font-weight: 600; }
+  .swatch .meta code { font-family: var(--font-mono); font-size: var(--type-micro); color: var(--text-dim); }
+  .swatch .meta span { display: block; font-size: var(--type-micro); color: var(--text-faint); margin-top: 2px; }
+
+  .type-row { border-bottom: 1px solid var(--stage-line); padding: var(--s-5) 0; display: flex; align-items: baseline; gap: var(--s-6); }
+  .type-row .label { width: 200px; flex-shrink: 0; font-size: var(--type-micro); color: var(--text-faint);
+                     font-family: var(--font-mono); }
+  .t-hero { font-family: var(--font-display); font-size: var(--type-hero); font-weight: 800;
+            background: linear-gradient(100deg, var(--phantom-bright), var(--phantom-deep) 45%, var(--spectral-bright));
+            -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .t-card { font-family: var(--font-display); font-size: var(--type-card); font-weight: 600; }
+  .t-body { font-size: var(--type-body); font-weight: 400; color: var(--text); }
+  .t-mono { font-family: var(--font-mono); font-size: var(--type-body); color: var(--spectral-bright); }
+
+  .principle { border: 1px solid var(--stage-line); border-radius: 10px; padding: var(--s-5); background: var(--stage-raise); }
+  .principle b { font-family: var(--font-display); font-size: 13px; font-weight: 600; display: block; margin-bottom: var(--s-2); }
+  .principle p { font-size: var(--type-small); color: var(--text-dim); }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+
+  /* Components */
+  .comp { display: flex; flex-wrap: wrap; gap: var(--s-5); align-items: center; }
+  .price-chip { font-family: var(--font-mono); font-weight: 600; font-size: var(--type-small);
+                padding: 4px 12px; border-radius: 999px; background: rgba(255,90,31,.12);
+                color: var(--tier-5); border: 1px solid rgba(255,90,31,.4); box-shadow: var(--glow-ember); }
+  .price-chip.t3 { background: rgba(61,155,224,.12); color: var(--tier-3); border-color: rgba(61,155,224,.4); box-shadow: none; }
+  .price-chip.eur { background: rgba(75,72,90,.18); color: var(--text-dim); border-color: var(--stage-line); box-shadow: none; }
+  .minimap-demo { display: flex; gap: 2px; align-items: flex-end; height: 26px; padding: var(--s-3);
+                  background: var(--stage-raise); border: 1px solid var(--stage-line); border-radius: 8px; flex: 1; min-width: 320px; }
+  .minimap-demo i { flex: 1; height: 12px; border-radius: 1px; }
+  .minimap-demo i.cur { height: 22px; box-shadow: 0 0 10px currentColor; }
+  .btn { font-family: var(--font-ui); font-weight: 500; font-size: var(--type-small); color: var(--text);
+         background: transparent; border: 1px solid var(--stage-line); padding: 10px 20px; border-radius: 999px;
+         cursor: pointer; transition: border-color var(--dur-fast) var(--ease-snap), box-shadow var(--dur-fast) var(--ease-snap); }
+  .btn:hover { border-color: var(--phantom); box-shadow: var(--glow-phantom); }
+  .caption-demo { text-align: center; padding: var(--s-5); background: var(--stage-raise);
+                  border: 1px solid var(--stage-line); border-radius: 10px; flex: 1; min-width: 280px; }
+  .caption-demo .nm { font-family: var(--font-display); font-weight: 600; font-size: 22px; }
+  .caption-demo .mt { font-family: var(--font-mono); font-size: var(--type-micro); color: var(--text-dim); margin-top: 6px;
+                      letter-spacing: 0.08em; }
+
+  /* Motion */
+  .motion-row { display: flex; gap: var(--s-4); }
+  .motion-card { flex: 1; border: 1px solid var(--stage-line); border-radius: 10px; padding: var(--s-4); background: var(--stage-raise); }
+  .motion-card code { font-family: var(--font-mono); font-size: var(--type-micro); color: var(--spectral-bright); display: block; margin-top: var(--s-2); }
+  .motion-card b { font-size: var(--type-small); }
+  .lane { height: 6px; background: var(--stage); border-radius: 3px; margin-top: var(--s-3); position: relative; overflow: hidden; }
+  .lane i { position: absolute; top: 0; left: 0; width: 28%; height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--phantom), var(--spectral)); animation: 2.4s infinite; }
+  .lane.glide i { animation-name: glide; animation-timing-function: cubic-bezier(0.22,1,0.36,1); }
+  .lane.snap i  { animation-name: glide; animation-timing-function: cubic-bezier(0.16,1,0.3,1); }
+  .lane.pop i   { animation-name: glide; animation-timing-function: cubic-bezier(0.34,1.4,0.64,1); }
+  @keyframes glide { 0%,12% { left: 0; } 70%, 100% { left: 72%; } }
+
+  .lockups { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); }
+  .lockup { border: 1px solid var(--stage-line); border-radius: 10px; padding: var(--s-7) var(--s-4);
+            text-align: center; background: var(--stage-raise); font-family: var(--font-display); }
+  .lk-1 b { font-weight: 800; } .lk-1 span { font-weight: 400; color: var(--text-dim); }
+  .lk-2 { background: linear-gradient(100deg, var(--phantom-bright), var(--spectral-bright));
+          -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 800; }
+  .lk-3 b { color: var(--ember); font-weight: 800; } .lk-3 span { font-weight: 600; }
+  .lockup small { display: block; font-family: var(--font-mono); font-size: 10px; color: var(--text-faint);
+                  margin-top: var(--s-4); letter-spacing: 0.08em; }
+
+  footer { border-top: 1px solid var(--stage-line); padding-top: var(--s-5); color: var(--text-faint);
+           font-family: var(--font-mono); font-size: var(--type-micro); display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img src="refs/logo.png" alt="Mega Evolution — Phantasmal Flames set logo">
+    <p>Card Showcase · Design System · v1.0 · 2026-06-10</p>
+  </header>
+
+  <section>
+    <h2>Color Hierarchy</h2>
+    <div class="grid g3">
+      <div class="swatch"><div class="chip" style="background:var(--stage)"></div>
+        <div class="meta"><b>Stage</b><code>#0B0A10</code><span>The dark — everything floats on it</span></div></div>
+      <div class="swatch"><div class="chip" style="background:linear-gradient(120deg,#E763C6,#7B3FA8)"></div>
+        <div class="meta"><b>Phantom</b><code>#E763C6 → #7B3FA8</code><span>From “PHANTASMAL” chrome — primary accent</span></div></div>
+      <div class="swatch"><div class="chip" style="background:linear-gradient(120deg,#F9C940,#F08C1E,#E0451F)"></div>
+        <div class="meta"><b>Ember</b><code>#F9C940 → #E0451F</code><span>From “MEGA EVOLUTION” banner — heat &amp; value</span></div></div>
+    </div>
+    <div class="grid g3" style="margin-top:var(--s-4)">
+      <div class="swatch"><div class="chip" style="background:linear-gradient(120deg,#7FD4F4,#2C5BB4)"></div>
+        <div class="meta"><b>Spectral</b><code>#7FD4F4 → #2C5BB4</code><span>From “FLAMES” ice lettering — data, links</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#6C2EA6"></div>
+        <div class="meta"><b>Ghostflame</b><code>#6C2EA6</code><span>From flame silhouettes — ambient glow only</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#14121D;border-bottom:1px solid var(--stage-line)"></div>
+        <div class="meta"><b>Stage · raised</b><code>#14121D</code><span>Caption strip, zoom sheet, panels</span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Price Tiers — the heatmap palette</h2>
+    <p class="note" style="margin-bottom:var(--s-5)">One tick per card in the top minimap. Thresholds are absolute TCGplayer USD market price. Tuned to stay legible at 4px wide on the stage.</p>
+    <div class="grid g6">
+      <div class="swatch"><div class="chip" style="background:var(--tier-1);height:64px"></div>
+        <div class="meta"><b>T1 · &lt;$1</b><code>#4B485A</code><span>commons (93 cards)</span></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--tier-2);height:64px"></div>
+        <div class="meta"><b>T2 · $1–5</b><code>#56C271</code><span>grass (22)</span></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--tier-3);height:64px"></div>
+        <div class="meta"><b>T3 · $5–20</b><code>#3D9BE0</code><span>water (6)</span></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--tier-4);height:64px"></div>
+        <div class="meta"><b>T4 · $20–75</b><code>#A85FE0</code><span>psychic (5)</span></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--tier-5);height:64px"></div>
+        <div class="meta"><b>T5 · ≥$75</b><code>#FF5A1F</code><span>ember (2)</span></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--tier-none);height:64px"></div>
+        <div class="meta"><b>Unpriced</b><code>#2E2B3A</code><span>no TCGplayer data (2)</span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Typography</h2>
+    <div class="type-row"><div class="label">Unbounded 800<br>display / hero</div>
+      <div class="t-hero">Phantasmal Flames</div></div>
+    <div class="type-row"><div class="label">Unbounded 600<br>card names</div>
+      <div class="t-card">Mega Charizard X ex</div></div>
+    <div class="type-row"><div class="label">Outfit 400<br>UI / body</div>
+      <div class="t-body">Scroll, drag, or use arrow keys to spin through all 130 cards of the set.</div></div>
+    <div class="type-row"><div class="label">JetBrains Mono<br>prices / numbers</div>
+      <div class="t-mono">$365.43 · 130/094 · refreshed 2026-06-10</div></div>
+  </section>
+
+  <section>
+    <h2>Principles <span style="text-transform:none;letter-spacing:0;font-family:var(--font-ui)">— from the locked plan</span></h2>
+    <div class="grid g2">
+      <div class="principle"><b>Gallery in the dark</b><p>Card art is the only saturated thing at rest. UI recedes to gray-violet; brand color appears at moments of meaning (value, selection, heat).</p></div>
+      <div class="principle"><b>The wheel is the site</b><p>One interaction, made luxurious: momentum you can feel, a snap you can trust. Nothing competes with the spin.</p></div>
+      <div class="principle"><b>Price is light</b><p>Market value renders as heat — ember glow marks the chase cards. The minimap is a heatmap before it is a navigator.</p></div>
+      <div class="principle"><b>Honest data</b><p>It is a snapshot, labeled as such, timestamped, sourced. EUR never wears a USD tier.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Components</h2>
+    <div class="comp" style="margin-bottom:var(--s-4)">
+      <span class="price-chip">$874.01</span>
+      <span class="price-chip t3">$12.40</span>
+      <span class="price-chip eur">€1.50 · Cardmarket</span>
+      <button class="btn">View card</button>
+    </div>
+    <div class="comp">
+      <div class="minimap-demo" aria-hidden="true">
+        <i style="background:var(--tier-1)"></i><i style="background:var(--tier-1)"></i><i style="background:var(--tier-2)"></i><i style="background:var(--tier-1)"></i><i style="background:var(--tier-1)"></i><i style="background:var(--tier-3)"></i><i style="background:var(--tier-1)"></i><i style="background:var(--tier-2)"></i><i style="background:var(--tier-1)"></i><i style="background:var(--tier-1)"></i><i style="background:var(--tier-4)"></i><i style="background:var(--tier-1)"></i><i style="background:var(--tier-2)"></i><i style="background:var(--tier-1)"></i><i class="cur" style="background:var(--tier-5);color:var(--tier-5)"></i><i style="background:var(--tier-1)"></i><i style="background:var(--tier-2)"></i><i style="background:var(--tier-1)"></i><i style="background:var(--tier-1)"></i><i style="background:var(--tier-4)"></i>
+      </div>
+      <div class="caption-demo">
+        <div class="nm">Mega Charizard X ex</div>
+        <div class="mt">130/094 · MEGA HYPER RARE · <span style="color:var(--tier-5)">$365.43</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Motion</h2>
+    <div class="motion-row">
+      <div class="motion-card"><b>Glide</b><code>cubic-bezier(.22,1,.36,1)</code><div class="lane glide"><i></i></div>
+        <code>momentum decay · friction .92/frame</code></div>
+      <div class="motion-card"><b>Snap · 450ms</b><code>cubic-bezier(.16,1,.3,1)</code><div class="lane snap"><i></i></div>
+        <code>magnetic settle, arrow-key step</code></div>
+      <div class="motion-card"><b>Pop · 550ms</b><code>cubic-bezier(.34,1.4,.64,1)</code><div class="lane pop"><i></i></div>
+        <code>zoom open — slight overshoot</code></div>
+    </div>
+    <p class="note" style="margin-top:var(--s-4)">prefers-reduced-motion: physics collapse to instant steps; tilt &amp; holo-shine disabled.</p>
+  </section>
+
+  <section>
+    <h2>Wordmarks · Lockups</h2>
+    <div class="lockups">
+      <div class="lockup lk-1"><b>PHANTASMAL</b> <span>FLAMES</span><small>split-weight · UI header</small></div>
+      <div class="lockup"><span class="lk-2">PHANTASMAL FLAMES</span><small>phantom→spectral gradient · hero</small></div>
+      <div class="lockup lk-3"><b>PF</b><span>L</span><small>set-code mark · favicon, footer</small></div>
+    </div>
+    <p class="note" style="margin-top:var(--s-4)">The official set logo (header above) is the only full-color mark — used as-is, never redrawn. Lockups are typographic treatments for site chrome.</p>
+  </section>
+
+  <footer>
+    <span>phantasmal/brand/design-system.html · v1.0</span>
+    <span>tokens → tokens.css · brand book → brand-book-a4.pdf</span>
+  </footer>
+
+</div>
+</body>
+</html>

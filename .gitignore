@@ -1,0 +1,19 @@
+# dependencies (none today — vendored libs are committed on purpose)
+node_modules/
+
+# wrangler local cache (may hold account identifiers — never commit)
+.wrangler/
+dist/
+
+# logs & generated reports
+*.log
+data/refresh-report-*.json
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# scratch / temp screenshots
+_*.png
+*.tmp

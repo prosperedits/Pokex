@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 734 1024">
+  <!-- Phantasmal Flames brand card back: void stage, ghostflame swirls,
+       ember-on-void ball mark (same mark as the site header). 734:1024. -->
+  <defs>
+    <clipPath id="card"><rect width="734" height="1024" rx="33" ry="46"/></clipPath>
+    <radialGradient id="bg" cx="0.5" cy="0.45" r="0.9">
+      <stop offset="0" stop-color="#231434"/>
+      <stop offset="0.55" stop-color="#140E20"/>
+      <stop offset="1" stop-color="#0B0A10"/>
+    </radialGradient>
+    <linearGradient id="ember" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F9C940"/>
+      <stop offset="0.55" stop-color="#F08C1E"/>
+      <stop offset="1" stop-color="#E0451F"/>
+    </linearGradient>
+    <linearGradient id="ghost" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E763C6"/>
+      <stop offset="1" stop-color="#7FD4F4"/>
+    </linearGradient>
+    <filter id="haze" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.015" numOctaves="3" seed="21" result="n"/>
+      <feColorMatrix in="n" type="matrix"
+        values="0 0 0 0 0.42
+                0 0 0 0 0.18
+                0 0 0 0 0.65
+                0 0 0 0.4 0"/>
+      <feComposite operator="in" in2="SourceGraphic"/>
+    </filter>
+    <path id="wisp" d="M 367 512
+                       C 295 425, 262 295, 352 158
+                       C 358 300, 392 402, 462 462 Z"/>
+  </defs>
+
+  <g clip-path="url(#card)">
+    <rect width="734" height="1024" fill="url(#bg)"/>
+    <rect width="734" height="1024" filter="url(#haze)" opacity="0.35"/>
+
+    <!-- ghostflame wisps -->
+    <g fill="url(#ghost)" opacity="0.13">
+      <use href="#wisp"/>
+      <use href="#wisp" transform="rotate(72 367 512)"/>
+      <use href="#wisp" transform="rotate(144 367 512)"/>
+      <use href="#wisp" transform="rotate(216 367 512)"/>
+      <use href="#wisp" transform="rotate(288 367 512)"/>
+    </g>
+    <g fill="#6C2EA6" opacity="0.2">
+      <use href="#wisp" transform="rotate(36 367 512) scale(1.22) translate(-65 -90)"/>
+      <use href="#wisp" transform="rotate(156 367 512) scale(1.22) translate(-65 -90)"/>
+      <use href="#wisp" transform="rotate(276 367 512) scale(1.22) translate(-65 -90)"/>
+    </g>
+
+    <!-- ember-on-void ball mark, centered (geometry = brand mark, 120 -> 440 units) -->
+    <g transform="translate(147 292) scale(3.6667)">
+      <path fill="url(#ember)" fill-rule="evenodd" transform="rotate(18 60 60)"
+            d="M 60 6 A 54 54 0 1 1 59.9 6 Z M 52 2 A 50 50 0 1 0 52.1 2 Z"/>
+      <circle cx="60" cy="62" r="40" fill="#221539" stroke="#6C2EA6" stroke-opacity="0.55" stroke-width="2.5"/>
+      <path d="M 20.6 68.9 Q 58 92 97.6 48.3" fill="none" stroke="#EDEAF4" stroke-width="6.5" stroke-linecap="round"/>
+      <circle cx="73" cy="66" r="14.5" fill="#EDEAF4"/>
+      <circle cx="73" cy="66" r="9" fill="#1A0F2E"/>
+      <circle cx="76" cy="63" r="8" fill="#EDEAF4"/>
+    </g>
+
+    <!-- ember floor glow -->
+    <ellipse cx="367" cy="1010" rx="430" ry="150" fill="#E0451F" opacity="0.1"/>
+
+    <!-- edge vignette -->
+    <rect width="734" height="1024" rx="33" ry="46" fill="none" stroke="#05040A" stroke-opacity="0.7" stroke-width="26"/>
+  </g>
+</svg>

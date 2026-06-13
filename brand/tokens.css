@@ -1,0 +1,90 @@
+/* Licensed fonts (sources: ~/Downloads/*-font-*.zip). Paths are relative to THIS
+   file (css url() resolves against the stylesheet), so they work both served at
+   the site root and mounted under a prefix like /pokex/ on the share tunnel —
+   absolute /assets/ paths 404'd through the tunnel and broke the logo + type. */
+@font-face { font-family: 'Rolide'; src: url('../assets/fonts/Rolide-Regular.otf') format('opentype'); font-display: swap; }
+@font-face { font-family: 'Rolide'; font-style: italic; src: url('../assets/fonts/Rolide-Italic.otf') format('opentype'); font-display: swap; }
+@font-face { font-family: 'Soge'; src: url('../assets/fonts/Soge.woff') format('woff'); font-display: swap; }
+@font-face { font-family: 'Lust'; src: url('../assets/fonts/Lust.woff') format('woff'); font-display: swap; }
+@font-face { font-family: 'Epic Pro'; src: url('../assets/fonts/EpicPro.woff2') format('woff2'), url('../assets/fonts/EpicPro.woff') format('woff'); font-display: swap; }
+
+/* ============================================================
+   PHANTASMAL FLAMES — design tokens
+   Extracted from set me02 assets (logo + card art), 2026-06-10.
+   Direction: dark cinematic ember — gallery in the dark.
+   Consumed by ../style.css. Single source of truth for the brand.
+   ============================================================ */
+:root {
+  /* --- Stage (surfaces) --- */
+  --stage:        #0B0A10;  /* near-black, faint violet undertone */
+  --stage-raise:  #14121D;  /* raised panels: caption, zoom sheet */
+  --stage-line:   #262333;  /* hairline borders */
+  --stage-glow:   #1A0F2E;  /* ambient violet wash behind center card */
+
+  /* --- Brand accents (from set logo) --- */
+  --phantom:        #C44BAD; /* PHANTASMAL chrome mid */
+  --phantom-bright: #E763C6; /* PHANTASMAL chrome highlight */
+  --phantom-deep:   #7B3FA8; /* chrome shadow */
+  --spectral:       #3D9BE0; /* FLAMES ice-blue mid */
+  --spectral-bright:#7FD4F4; /* FLAMES highlight */
+  --ember:          #F08C1E; /* MEGA EVOLUTION banner orange */
+  --ember-hot:      #E0451F; /* banner red-orange */
+  --ember-glint:    #F9C940; /* banner yellow */
+  --ghostflame:     #6C2EA6; /* flame silhouettes around logo */
+
+  /* --- Text --- */
+  --text:        #EDEAF4;
+  --text-dim:    #9B95AB;
+  --text-faint:  #5E5870;
+
+  /* --- Price tiers (tuned to read as 4px ticks on --stage) --- */
+  --tier-1: #4B485A;  /* < $1   · muted gray-violet, recessive */
+  --tier-2: #56C271;  /* $1–5   · grass green */
+  --tier-3: #3D9BE0;  /* $5–20  · water blue (= spectral) */
+  --tier-4: #A85FE0;  /* $20–75 · psychic violet */
+  --tier-5: #FF5A1F;  /* ≥ $75  · ember red-orange, the chase glow */
+  --tier-none: #2E2B3A; /* unpriced (Cardmarket-only) — neutral */
+  --money:     #62D98A; /* every price reads in money green (P's call, 2026-06-11) */
+
+  /* --- Type ---
+     Display: Rolide (licensed expanded sans — card titles, counters, poster)
+     Logo:    Soge (handwriting) + Lust (cyber brush) — the POKEX lockup only
+     UI/body: Outfit (clean geometric, recedes behind card art)
+     Data:    JetBrains Mono (prices, set numbers, tabular) */
+  --font-display: 'Rolide', 'Outfit', sans-serif;
+  --font-hero:    'Bricolage Grotesque', 'Outfit', sans-serif; /* editorial inspect type */
+  --font-epic:    'Epic Pro', 'Bricolage Grotesque', sans-serif; /* extended display — card name */
+  --font-logo:    'Soge', cursive;
+  --font-logo-x:  'Lust', cursive;
+  --font-ui:      'Outfit', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  --type-hero:    clamp(28px, 4vw, 44px);  /* set title */
+  --type-card:    clamp(20px, 2.6vw, 30px);/* card name in caption */
+  --type-body:    16px;
+  --type-small:   13px;
+  --type-micro:   11px;                    /* footer, source label */
+  --tracking-wide: 0.14em;                 /* micro labels, uppercase */
+
+  /* --- Spacing (4-base) --- */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px;
+
+  /* --- Motion ---
+     Carousel physics live in JS; these align UI transitions with them. */
+  --ease-glide: cubic-bezier(0.22, 1, 0.36, 1);  /* momentum decay feel */
+  --ease-snap:  cubic-bezier(0.16, 1, 0.3, 1);   /* magnetic settle */
+  --ease-pop:   cubic-bezier(0.34, 1.4, 0.64, 1);/* zoom open, slight over */
+  --dur-fast:   180ms;   /* hovers, caption swap */
+  --dur-step:   450ms;   /* arrow-key single step */
+  --dur-zoom:   550ms;   /* zoom open/close */
+  /* JS physics constants (documented here, used in app.js):
+     friction 0.92/frame · snap threshold 0.18 card/s · wheel gain 0.0045 */
+
+  /* --- Effects --- */
+  --glow-ember:   0 0 24px rgba(240, 140, 30, 0.35);
+  --glow-phantom: 0 0 24px rgba(196, 75, 173, 0.30);
+  --card-radius:  4.5% / 3.2%;  /* matches physical TCG corner ratio */
+  --vignette: radial-gradient(120% 90% at 50% 42%,
+              rgba(26, 15, 46, 0.55) 0%, rgba(11, 10, 16, 0) 55%);
+}

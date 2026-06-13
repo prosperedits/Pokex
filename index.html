@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POKEX — Phantasmal Flames</title>
+<meta name="description" content="Every card of the Pokémon TCG Phantasmal Flames set, on one wheel. Market-price heatmap included.">
+<link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="brand/tokens.css?v=25">
+<link rel="stylesheet" href="style.css?v=36">
+</head>
+<body>
+  <!-- background layers driven by the rAF loop in app.js (CSS animation
+       timelines freeze on this machine; the physics loop never does).
+       The wrapper isolates blending so layers composite against its own
+       solid base, never against the live page (kills repaint flicker). -->
+  <div class="bg-stage" aria-hidden="true">
+    <div id="bgGrain" class="bg-grain"></div>
+    <div id="bgGlass" class="bg-glass"></div>
+    <div id="bgLight" class="bg-light"></div>
+  </div>
+
+  <header class="chrome">
+    <div class="lockup">
+      <span class="logo-pokex"><span class="lx" aria-label="POKEX">X</span></span>
+    </div>
+
+    <!-- set selector: current set logo opens an era-grouped menu (built by app.js) -->
+    <div class="set-dropdown">
+      <button id="setBtn" class="set-btn" aria-haspopup="true" aria-expanded="false" aria-label="Switch set">
+        <img id="setBtnLogo" alt="">
+        <span class="caret" aria-hidden="true">▾</span>
+      </button>
+      <div id="setMenu" class="set-menu" hidden></div>
+    </div>
+
+    <div class="chrome-right">
+      <a id="listCounts" class="list-counts" href="collection.html" title="Open your collection" aria-label="Wishlist and collection sizes — open collection page">
+        <span id="wishCount">♥ 0</span>
+        <span id="collCount">◆ 0</span>
+      </a>
+      <input id="search" class="search" type="search" list="cardNames" placeholder="search cards" aria-label="Search cards">
+      <datalist id="cardNames"></datalist>
+      <button type="button" id="sealedBtn" class="sealed-btn" aria-haspopup="dialog">sealed</button>
+      <div id="sortCtl" class="sortctl" role="group" aria-label="Card order">
+        <button type="button" data-sort="value-desc" aria-pressed="true">$ high</button>
+        <button type="button" data-sort="value-asc" aria-pressed="false">$ low</button>
+        <button type="button" data-sort="set" aria-pressed="false">set №</button>
+      </div>
+      <div id="counter" class="counter" aria-hidden="true">001<span>/130</span></div>
+    </div>
+  </header>
+
+  <main>
+    <div id="stageGlow" class="stage-glow" aria-hidden="true"></div>
+    <p id="capRarity" class="cap-rarity-top" aria-hidden="true">&nbsp;</p>
+    <section id="wheel" class="wheel" aria-label="Card carousel" aria-roledescription="carousel">
+      <div id="track" class="track"></div>
+    </section>
+
+    <section class="caption" aria-live="polite">
+      <h1 id="capName" class="cap-name">&nbsp;</h1>
+      <p id="capMeta" class="cap-meta"></p>
+      <div id="capPrice" class="cap-price"></div>
+      <p class="hint" aria-hidden="true">scroll · drag · arrow keys · enter to inspect</p>
+    </section>
+  </main>
+
+  <!-- Bottom minimap: one ARIA slider rail; ticks are decorative, thumb is the dial -->
+  <nav class="minimap" aria-label="Set navigator">
+    <div id="rail" class="rail" role="slider" tabindex="0"
+         aria-label="Card position" aria-valuemin="1" aria-valuemax="130" aria-valuenow="1">
+      <div id="ticks" class="ticks" aria-hidden="true"></div>
+      <div id="railThumb" class="rail-thumb" aria-hidden="true"></div>
+    </div>
+  </nav>
+
+  <dialog id="zoom" class="zoom" aria-labelledby="zTitle">
+    <canvas id="holoBg" class="holo-bg" aria-hidden="true"></canvas>
+    <div id="zoomBg" class="zoom-bg" aria-hidden="true">
+      <img id="zoomBgArt" alt="">
+      <video id="zoomVideo" class="zoom-video" muted loop playsinline preload="auto"></video>
+      <div class="zoom-grain"></div>
+    </div>
+    <button id="zoomClose" class="zoom-close" aria-label="Close card detail">×</button>
+    <div class="zoom-body">
+      <div class="z-title-wrap"><h2 id="zTitle" class="z-title"></h2></div>
+      <div class="z-stage">
+        <div id="cardCol" class="card-col">
+          <div class="card-row">
+            <aside id="sirBadge" class="sir-badge" aria-hidden="true"></aside>
+            <div id="tiltZone" class="tilt-zone">
+              <div id="tiltCard" class="tilt-card">
+                <div id="cardFaces" class="card-faces">
+                  <div class="face face-front">
+                    <img id="zoomImg" alt="">
+                    <div id="shine" class="shine" aria-hidden="true"></div>
+                  </div>
+                  <div class="face face-back" aria-hidden="true"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="cardActions" class="card-actions">
+            <button type="button" id="wishBtn" aria-pressed="false" aria-label="Toggle wishlist">
+              <span class="ic">♡</span><span class="lb">Wishlist</span></button>
+            <button type="button" id="collBtn" aria-pressed="false" aria-label="Toggle collection">
+              <span class="ic">◇</span><span class="lb">Collection</span></button>
+            <a id="shareBtn" href="#" aria-label="Copy a link to this card">
+              <span class="ic">⤴</span><span class="lb">Share</span></a>
+          </div>
+        </div>
+        <div id="zoomPanel" class="zoom-panel">
+          <div id="zPrice" class="z-price"></div>
+          <div id="zQuick" class="z-quick"></div>
+          <figure id="zCharts" class="z-charts"></figure>
+          <div id="zTable" class="z-table"></div>
+          <div id="zPulls" class="z-pulls"></div>
+          <div id="zFamily" class="z-family"></div>
+          <p id="zCredit" class="z-credit"></p>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="sealedDlg" class="sealed-dlg" aria-labelledby="sealedTitle">
+    <div class="sealed-head">
+      <span id="sealedTitle" class="sealed-title">Sealed · <span id="sealedSet"></span></span>
+      <button type="button" id="sealedClose" class="zoom-close sealed-x" aria-label="Close sealed prices">×</button>
+    </div>
+    <div id="sealedGrid" class="sealed-grid"></div>
+    <p id="sealedEmpty" class="sealed-empty" hidden>No sealed-price data tracked for this set yet.</p>
+    <p class="sealed-cap">Verified snapshots only — each price carries its source and check date.</p>
+  </dialog>
+
+  <footer class="site-foot">
+    <div class="foot-right">
+      <span id="snapshotLabel" class="snapshot"></span>
+      <span id="staleNotice" class="stale" hidden>snapshot is over a week old — re-run scripts/refresh-data.mjs</span>
+    </div>
+  </footer>
+
+  <script src="vendor/three.min.js"></script>
+  <script src="vendor/gsap.min.js"></script>
+  <script src="data/cards-sv01.js"></script>
+  <script src="data/cards-sv02.js"></script>
+  <script src="data/cards-sv03.js"></script>
+  <script src="data/cards-sv03.5.js"></script>
+  <script src="data/cards-sv04.js"></script>
+  <script src="data/cards-sv04.5.js"></script>
+  <script src="data/cards-sv05.js"></script>
+  <script src="data/cards-sv06.js"></script>
+  <script src="data/cards-sv06.5.js"></script>
+  <script src="data/cards-sv07.js"></script>
+  <script src="data/cards-sv08.js"></script>
+  <script src="data/cards-sv08.5.js"></script>
+  <script src="data/cards-sv09.js"></script>
+  <script src="data/cards-sv10.js"></script>
+  <script src="data/cards-sv10.5b.js"></script>
+  <script src="data/cards-sv10.5w.js"></script>
+  <script src="data/cards-me01.js"></script>
+  <script src="data/cards-me02.js"></script>
+  <script src="data/cards-me02.5.js"></script>
+  <script src="data/cards-me03.js"></script>
+  <script src="data/cards-me04.js"></script>
+  <script src="data/sealed.js"></script>
+  <script src="app.js?v=36"></script>
+</body>
+</html>

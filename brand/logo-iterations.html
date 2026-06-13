@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phantasmal Flames — Logo Iterations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Outfit:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--stage); color: var(--text); font-family: var(--font-ui); padding: var(--s-7) var(--s-5); }
+  h1 { font-family: var(--font-display); font-size: 18px; font-weight: 800; margin-bottom: var(--s-2); }
+  .sub { color: var(--text-dim); font-size: var(--type-small); margin-bottom: var(--s-6); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--s-4); max-width: 1100px; }
+  .v { border: 1px solid var(--stage-line); border-radius: 12px; background: var(--stage-raise); padding: var(--s-5); text-align: center; }
+  .v .big { height: 170px; display: flex; align-items: center; justify-content: center; }
+  .v .big svg { height: 150px; }
+  .v .row { display: flex; align-items: center; justify-content: center; gap: var(--s-3); margin-top: var(--s-3);
+            padding-top: var(--s-3); border-top: 1px solid var(--stage-line); }
+  .v .row svg { height: 26px; }
+  .v b { display: block; font-family: var(--font-display); font-size: 12px; font-weight: 600; margin-top: var(--s-3); }
+  .v code { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
+  .pick { outline: 2px solid var(--ember); outline-offset: 4px; position: relative; }
+  .pick::after { content: 'integrated'; position: absolute; top: 8px; right: 10px; font-family: var(--font-mono);
+                 font-size: 9px; color: var(--ember); letter-spacing: 0.1em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<h1>Logo iterations — sticker Pokéball mark</h1>
+<p class="sub">Geometry held constant from your reference; color systems from the extracted set palette. Each shown large and at header size (26px).</p>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <!-- The mark, geometry only; colors via CSS vars set per-instance -->
+    <g id="pokemark">
+      <!-- outer swoosh: crescent, pointed tips, open top-left -->
+      <path fill="var(--swoosh)" fill-rule="evenodd" d="
+        M 60 6 A 54 54 0 1 1 59.9 6 Z
+        M 52 2 A 50 50 0 1 0 52.1 2 Z" transform="rotate(18 60 60)"/>
+      <!-- ball -->
+      <circle cx="60" cy="62" r="40" fill="var(--ball)"/>
+      <!-- band across ball: endpoints sit exactly on the ball's circumference -->
+      <path d="M 20.6 68.9 Q 58 92 97.6 48.3" fill="none" stroke="var(--band)" stroke-width="6.5" stroke-linecap="round"/>
+      <!-- button -->
+      <circle cx="73" cy="66" r="14.5" fill="var(--band)"/>
+      <circle cx="73" cy="66" r="9" fill="var(--ball)"/>
+      <circle cx="76" cy="63" r="8" fill="var(--band)"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="grid">
+
+  <div class="v pick">
+    <div class="big">
+      <svg viewBox="-10 -10 140 140">
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#F9C940"/><stop offset=".55" stop-color="#F08C1E"/><stop offset="1" stop-color="#E0451F"/>
+          </linearGradient>
+          <filter id="s1" x="-25%" y="-25%" width="150%" height="150%">
+            <feMorphology in="SourceAlpha" operator="dilate" radius="4" result="d"/>
+            <feFlood flood-color="#EDEAF4" result="f"/>
+            <feComposite in="f" in2="d" operator="in" result="o"/>
+            <feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <use href="#pokemark" filter="url(#s1)" style="--ball:#1A0F2E; --swoosh:url(#g1); --band:#EDEAF4"/>
+      </svg>
+    </div>
+    <b>01 · Ember on void</b>
+    <code>ball #1A0F2E · swoosh ember gradient · sticker #EDEAF4</code>
+    <div class="row">
+      <svg viewBox="-10 -10 140 140"><use href="#pokemark" filter="url(#s1)" style="--ball:#1A0F2E; --swoosh:url(#g1); --band:#EDEAF4"/></svg>
+      <code>header / favicon scale</code>
+    </div>
+  </div>
+
+  <div class="v">
+    <div class="big">
+      <svg viewBox="-10 -10 140 140">
+        <defs>
+          <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#E763C6"/><stop offset="1" stop-color="#7B3FA8"/>
+          </linearGradient>
+          <filter id="s2" x="-25%" y="-25%" width="150%" height="150%">
+            <feMorphology in="SourceAlpha" operator="dilate" radius="4" result="d"/>
+            <feFlood flood-color="#EDEAF4" result="f"/>
+            <feComposite in="f" in2="d" operator="in" result="o"/>
+            <feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <use href="#pokemark" filter="url(#s2)" style="--ball:#2A1240; --swoosh:url(#g2); --band:#EDEAF4"/>
+      </svg>
+    </div>
+    <b>02 · Phantom chrome</b>
+    <code>ball #2A1240 · swoosh phantom gradient · sticker #EDEAF4</code>
+    <div class="row">
+      <svg viewBox="-10 -10 140 140"><use href="#pokemark" filter="url(#s2)" style="--ball:#2A1240; --swoosh:url(#g2); --band:#EDEAF4"/></svg>
+      <code>header / favicon scale</code>
+    </div>
+  </div>
+
+  <div class="v">
+    <div class="big">
+      <svg viewBox="-10 -10 140 140">
+        <defs>
+          <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#7FD4F4"/><stop offset="1" stop-color="#2C5BB4"/>
+          </linearGradient>
+          <filter id="s3" x="-25%" y="-25%" width="150%" height="150%">
+            <feMorphology in="SourceAlpha" operator="dilate" radius="4" result="d"/>
+            <feFlood flood-color="#EDEAF4" result="f"/>
+            <feComposite in="f" in2="d" operator="in" result="o"/>
+            <feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <use href="#pokemark" filter="url(#s3)" style="--ball:#131A33; --swoosh:url(#g3); --band:#EDEAF4"/>
+      </svg>
+    </div>
+    <b>03 · Spectral ice</b>
+    <code>ball #131A33 · swoosh spectral gradient · sticker #EDEAF4</code>
+    <div class="row">
+      <svg viewBox="-10 -10 140 140"><use href="#pokemark" filter="url(#s3)" style="--ball:#131A33; --swoosh:url(#g3); --band:#EDEAF4"/></svg>
+      <code>header / favicon scale</code>
+    </div>
+  </div>
+
+  <div class="v">
+    <div class="big">
+      <svg viewBox="-10 -10 140 140">
+        <defs>
+          <linearGradient id="g4" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#E763C6"/><stop offset="1" stop-color="#7FD4F4"/>
+          </linearGradient>
+          <filter id="s4" x="-25%" y="-25%" width="150%" height="150%">
+            <feMorphology in="SourceAlpha" operator="dilate" radius="4" result="d"/>
+            <feFlood flood-color="#262333" result="f"/>
+            <feComposite in="f" in2="d" operator="in" result="o"/>
+            <feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <use href="#pokemark" filter="url(#s4)" style="--ball:#0B0A10; --swoosh:url(#g4); --band:#EDEAF4"/>
+      </svg>
+    </div>
+    <b>04 · Ghost duotone</b>
+    <code>ball #0B0A10 · swoosh phantom→spectral · sticker #262333 (shadow)</code>
+    <div class="row">
+      <svg viewBox="-10 -10 140 140"><use href="#pokemark" filter="url(#s4)" style="--ball:#0B0A10; --swoosh:url(#g4); --band:#EDEAF4"/></svg>
+      <code>header / favicon scale</code>
+    </div>
+  </div>
+
+  <div class="v">
+    <div class="big">
+      <svg viewBox="-10 -10 140 140">
+        <defs>
+          <linearGradient id="g5" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#F9C940"/><stop offset="1" stop-color="#E0451F"/>
+          </linearGradient>
+          <filter id="s5" x="-25%" y="-25%" width="150%" height="150%">
+            <feMorphology in="SourceAlpha" operator="dilate" radius="4" result="d"/>
+            <feFlood flood-color="#EDEAF4" result="f"/>
+            <feComposite in="f" in2="d" operator="in" result="o"/>
+            <feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <use href="#pokemark" filter="url(#s5)" style="--ball:url(#g5); --swoosh:#3D0F5E; --band:#0B0A10"/>
+      </svg>
+    </div>
+    <b>05 · Inverse flame</b>
+    <code>ball ember gradient · swoosh #3D0F5E · band #0B0A10</code>
+    <div class="row">
+      <svg viewBox="-10 -10 140 140"><use href="#pokemark" filter="url(#s5)" style="--ball:url(#g5); --swoosh:#3D0F5E; --band:#0B0A10"/></svg>
+      <code>header / favicon scale</code>
+    </div>
+  </div>
+
+  <div class="v">
+    <div class="big">
+      <svg viewBox="-10 -10 140 140">
+        <use href="#pokemark" style="--ball:#6C2EA6; --swoosh:#F08C1E; --band:#EDEAF4"/>
+      </svg>
+    </div>
+    <b>06 · Flat ghostflame (no sticker)</b>
+    <code>ball #6C2EA6 · swoosh #F08C1E · for tiny sizes / favicon</code>
+    <div class="row">
+      <svg viewBox="-10 -10 140 140"><use href="#pokemark" style="--ball:#6C2EA6; --swoosh:#F08C1E; --band:#EDEAF4"/></svg>
+      <code>header / favicon scale</code>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

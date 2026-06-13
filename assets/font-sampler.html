@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>POKEX font sampler</title>
+<style>
+  @font-face { font-family: 'Lust'; src: url('fonts/Lust.woff') format('woff'); }
+  @font-face { font-family: 'Soge'; src: url('fonts/Soge.woff') format('woff'); }
+  @font-face { font-family: 'Rolide'; src: url('fonts/Rolide-Regular.otf') format('opentype'); }
+  @font-face { font-family: 'Rolide'; font-style: italic; src: url('fonts/Rolide-Italic.otf') format('opentype'); }
+  body { background: #0B0A10; color: #EDEAF4; margin: 0; padding: 40px; font-family: sans-serif; }
+  .row { display: flex; align-items: baseline; gap: 28px; border-bottom: 1px solid #262333; padding: 18px 0; }
+  .row small { width: 240px; color: #9B95AB; font-size: 12px; flex: none; }
+  .lust { font-family: 'Lust'; font-size: 92px; }
+  .soge { font-family: 'Soge'; font-size: 92px; }
+  .rolide { font-family: 'Rolide'; font-size: 40px; letter-spacing: 0.04em; }
+  .rolide.i { font-style: italic; }
+  .ember { background: linear-gradient(120deg, #F9C940, #F08C1E 55%, #E0451F); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .phantom { color: #C44BAD; }
+  .mixA .x, .mixB .x { color: #F08C1E; }
+  .mixA { font-family: 'Lust'; font-size: 92px; }
+  .mixA .x { font-family: 'Soge'; font-size: 110px; }
+  .mixB { font-family: 'Soge'; font-size: 92px; }
+  .mixB .x { font-family: 'Lust'; font-size: 110px; }
+</style>
+</head>
+<body>
+  <div class="row"><small>Lust (cyber brush)</small><div class="lust">POKEX pokex</div></div>
+  <div class="row"><small>Soge (freestyle handwriting)</small><div class="soge">POKEX pokex</div></div>
+  <div class="row"><small>Lust + Soge X (ember)</small><div class="mixA">POKE<span class="x">X</span></div></div>
+  <div class="row"><small>Soge + Lust X (ember)</small><div class="mixB">POKE<span class="x">X</span></div></div>
+  <div class="row"><small>Lust ember gradient</small><div class="lust ember">POKEX</div></div>
+  <div class="row"><small>Soge phantom</small><div class="soge phantom">POKEX</div></div>
+  <div class="row"><small>Rolide regular — card titles</small><div class="rolide">Mega Charizard X ex · PHANTASMAL FLAMES 130/094</div></div>
+  <div class="row"><small>Rolide italic</small><div class="rolide i">Mega Charizard X ex · $874.01</div></div>
+</body>
+</html>

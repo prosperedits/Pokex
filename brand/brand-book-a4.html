@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Phantasmal Flames — Brand Book A4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  @page { size: A4; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: var(--stage); color: var(--text); font-family: var(--font-ui); }
+  .page { width: 210mm; height: 297mm; padding: 14mm 14mm 10mm; display: flex; flex-direction: column; gap: 6mm; }
+
+  h2 { font-family: var(--font-display); font-size: 8.5pt; font-weight: 600; letter-spacing: 0.14em;
+       text-transform: uppercase; color: var(--text-dim); margin-bottom: 3mm; }
+
+  .head { display: flex; align-items: center; justify-content: space-between; }
+  .head img { height: 30mm; }
+  .head .v { text-align: right; font-family: var(--font-mono); font-size: 7.5pt; color: var(--text-dim); line-height: 1.7; }
+  .head .v b { color: var(--text); font-family: var(--font-ui); font-size: 9.5pt; display: block; }
+
+  .swatches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+  .sw { border: 1px solid var(--stage-line); border-radius: 3mm; overflow: hidden; background: var(--stage-raise); }
+  .sw .c { height: 17mm; }
+  .sw .m { padding: 2.5mm 3.5mm; font-size: 8pt; }
+  .sw .m b { display: block; font-size: 8.5pt; }
+  .sw .m code { font-family: var(--font-mono); font-size: 7pt; color: var(--text-dim); }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; flex: 1; min-height: 0; }
+  .card { border: 1px solid var(--stage-line); border-radius: 3mm; background: var(--stage-raise); padding: 5mm; }
+  .ty .t1 { font-family: var(--font-display); font-weight: 800; font-size: 16pt;
+            background: linear-gradient(100deg, var(--phantom-bright), var(--phantom-deep) 45%, var(--spectral-bright));
+            -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .ty .t2 { font-family: var(--font-display); font-weight: 600; font-size: 11pt; margin-top: 3mm; }
+  .ty .t3 { font-size: 9pt; color: var(--text); margin-top: 3mm; }
+  .ty .t4 { font-family: var(--font-mono); font-size: 8.5pt; color: var(--spectral-bright); margin-top: 3mm; }
+  .ty .lbl { font-family: var(--font-mono); font-size: 6.5pt; color: var(--text-faint); margin-top: 1mm; }
+  .pr li { list-style: none; font-size: 8.5pt; color: var(--text-dim); margin-bottom: 2.5mm; line-height: 1.45; }
+  .pr li b { color: var(--text); font-family: var(--font-display); font-size: 8pt; font-weight: 600; display: block; }
+
+  .tiers { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3mm; }
+  .tier { border: 1px solid var(--stage-line); border-radius: 2.5mm; overflow: hidden; background: var(--stage-raise); }
+  .tier .c { height: 8mm; }
+  .tier .m { padding: 1.8mm 2.5mm; font-size: 7pt; }
+  .tier .m b { display: block; font-size: 7.5pt; }
+  .tier .m code { font-family: var(--font-mono); font-size: 6.5pt; color: var(--text-dim); }
+
+  .locks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+  .lock { border: 1px solid var(--stage-line); border-radius: 3mm; background: var(--stage-raise);
+          padding: 7mm 3mm; text-align: center; font-family: var(--font-display); font-size: 10.5pt; }
+  .lock small { display: block; font-family: var(--font-mono); font-size: 6pt; color: var(--text-faint); margin-top: 3mm; letter-spacing: 0.08em; }
+  .lk1 b { font-weight: 800; } .lk1 span { font-weight: 400; color: var(--text-dim); }
+  .lk2 { background: linear-gradient(100deg, var(--phantom-bright), var(--spectral-bright));
+         -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 800; }
+  .lk3 b { color: var(--ember); font-weight: 800; } .lk3 span { font-weight: 600; }
+
+  .mo { display: flex; gap: 4mm; }
+  .mo div { flex: 1; border: 1px solid var(--stage-line); border-radius: 2.5mm; background: var(--stage-raise);
+            padding: 3mm; font-size: 7.5pt; }
+  .mo code { font-family: var(--font-mono); font-size: 6.5pt; color: var(--spectral-bright); display: block; margin-top: 1mm; }
+
+  footer { border-top: 1px solid var(--stage-line); padding-top: 2.5mm; display: flex; justify-content: space-between;
+           font-family: var(--font-mono); font-size: 6.5pt; color: var(--text-faint); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="head">
+    <img src="refs/logo.png" alt="Phantasmal Flames set logo">
+    <div class="v"><b>Card Showcase — Brand Book</b>v1.0 · 2026-06-10<br>dark cinematic ember · gallery in the dark</div>
+  </div>
+
+  <div>
+    <h2>Color Hierarchy</h2>
+    <div class="swatches">
+      <div class="sw"><div class="c" style="background:linear-gradient(120deg,#E763C6,#7B3FA8)"></div>
+        <div class="m"><b>Phantom</b><code>#E763C6 → #7B3FA8</code></div></div>
+      <div class="sw"><div class="c" style="background:linear-gradient(120deg,#F9C940,#F08C1E,#E0451F)"></div>
+        <div class="m"><b>Ember</b><code>#F9C940 → #E0451F</code></div></div>
+      <div class="sw"><div class="c" style="background:linear-gradient(120deg,#7FD4F4,#2C5BB4)"></div>
+        <div class="m"><b>Spectral</b><code>#7FD4F4 → #2C5BB4</code></div></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="card ty">
+      <h2>Typography</h2>
+      <div class="t1">Phantasmal Flames</div><div class="lbl">Unbounded 800 · hero</div>
+      <div class="t2">Mega Charizard X ex</div><div class="lbl">Unbounded 600 · card names</div>
+      <div class="t3">Scroll, drag, or use arrow keys to spin through the set.</div><div class="lbl">Outfit 400 · UI / body</div>
+      <div class="t4">$365.43 · 130/094 · refreshed 2026-06-10</div><div class="lbl">JetBrains Mono · prices / numbers</div>
+    </div>
+    <div class="card pr">
+      <h2>Principles</h2>
+      <ul>
+        <li><b>Gallery in the dark</b>Card art is the only saturated thing at rest; UI recedes.</li>
+        <li><b>The wheel is the site</b>One interaction made luxurious — momentum you can feel, a snap you can trust.</li>
+        <li><b>Price is light</b>Value renders as heat; ember glow marks the chase cards.</li>
+        <li><b>Honest data</b>A timestamped, sourced snapshot. EUR never wears a USD tier.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div>
+    <h2>Price Tiers — TCGplayer USD market</h2>
+    <div class="tiers">
+      <div class="tier"><div class="c" style="background:var(--tier-1)"></div><div class="m"><b>T1 &lt;$1</b><code>#4B485A</code></div></div>
+      <div class="tier"><div class="c" style="background:var(--tier-2)"></div><div class="m"><b>T2 $1–5</b><code>#56C271</code></div></div>
+      <div class="tier"><div class="c" style="background:var(--tier-3)"></div><div class="m"><b>T3 $5–20</b><code>#3D9BE0</code></div></div>
+      <div class="tier"><div class="c" style="background:var(--tier-4)"></div><div class="m"><b>T4 $20–75</b><code>#A85FE0</code></div></div>
+      <div class="tier"><div class="c" style="background:var(--tier-5)"></div><div class="m"><b>T5 ≥$75</b><code>#FF5A1F</code></div></div>
+      <div class="tier"><div class="c" style="background:var(--tier-none)"></div><div class="m"><b>Unpriced</b><code>#2E2B3A</code></div></div>
+    </div>
+  </div>
+
+  <div>
+    <h2>Motion</h2>
+    <div class="mo">
+      <div><b>Glide</b><code>cubic-bezier(.22,1,.36,1) · friction .92/frame</code></div>
+      <div><b>Snap · 450ms</b><code>cubic-bezier(.16,1,.3,1) · magnetic settle</code></div>
+      <div><b>Pop · 550ms</b><code>cubic-bezier(.34,1.4,.64,1) · zoom overshoot</code></div>
+    </div>
+  </div>
+
+  <div>
+    <h2>Wordmarks · Lockups</h2>
+    <div class="locks">
+      <div class="lock lk1"><b>PHANTASMAL</b> <span>FLAMES</span><small>split-weight · header</small></div>
+      <div class="lock"><span class="lk2">PHANTASMAL FLAMES</span><small>gradient · hero</small></div>
+      <div class="lock lk3"><b>PF</b><span>L</span><small>set code · favicon</small></div>
+    </div>
+  </div>
+
+  <footer>
+    <span>phantasmal/brand/brand-book-a4.pdf · v1.0</span>
+    <span>tokens.css = source of truth · full reference: design-system.html</span>
+  </footer>
+
+</div>
+</body>
+</html>
