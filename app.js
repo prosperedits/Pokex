@@ -7,6 +7,14 @@
   'use strict';
 
   const SETS = window.CARD_SETS;
+  // Immutable layout + transition blueprint (loaded before this file). Falls back
+  // to literals only if layout-constants.js failed to load, so nothing breaks.
+  const L = window.LAYOUT || {
+    WHEEL_CARD_HEIGHT_FACTOR: 0.70, OPEN_DURATION: 520, CLOSE_DURATION: 380,
+    EASE_PREMIUM: 'cubic-bezier(0.16, 1, 0.3, 1)', BACKDROP_FADE_DURATION: 440,
+    STAGGER_BASE_DELAY: 260, STAGGER_STEP: 45, STAGGER_CHILD_DURATION: 360,
+    STAGGER_TRANSLATE_Y: 12, CLOSE_INSURANCE_TIMEOUT: 650,
+  };
   const HOME_SET = 'me02';
   if (!SETS || !SETS[HOME_SET]?.cards?.length) {
     document.getElementById('capName').textContent = 'No data — run scripts/refresh-data.mjs';
@@ -277,7 +285,7 @@
 
   // --- Layout ------------------------------------------------------------------
   function measure() {
-    const h = wheel.clientHeight * 0.70;
+    const h = wheel.clientHeight * L.WHEEL_CARD_HEIGHT_FACTOR; // pinned in layout-constants.js
     cardW = h * (734 / 1024);
     spacing = cardW; // base unit; the focus-pocket curve shapes actual gaps
   }
@@ -1304,17 +1312,21 @@
     // quietly afterward only to feed the loupe (no visible flash; same image).
     const ig = ++imgGen;
     tiltCard.classList.toggle('sealed', !!card.sealed); // floats the render, no frame
+    // SHARED-ELEMENT CONTINUITY: open the featured card on the EXACT bytes the
+    // wheel card is already painting, so frame 1 of the morph is pixel-identical
+    // (no decode flash, no blur-up). Then sharpen on the SAME element with NO
+    // opacity fade — it's the same picture at higher resolution.
+    const wheelImg = els[view[i]].img;
+    const liveSrc = wheelImg && (wheelImg.currentSrc || wheelImg.src);
     if (card.sealed) {
       zoomImg.src = card.image; // local transparent product render
     } else {
-      zoomImg.src = safeImg(card.image + '/low.webp');
+      zoomImg.src = liveSrc || safeImg(card.image + '/low.webp');
       if (card.imageOk !== false) {
         const webp = new Image();
         webp.onload = () => {
           if (ig !== imgGen) return; // a newer card took over
-          zoomImg.src = webp.src;
-          if (!REDUCED) reg(zoomImg.animate(
-            [{ opacity: 0.55 }, { opacity: 1 }], { duration: 200, easing: 'ease-out' }));
+          zoomImg.src = webp.src; // same picture, higher res — never fade the card
           const png = new Image();
           png.onload = () => { if (ig === imgGen) zoomImg.src = png.src; };
           png.src = safeImg(card.image + '/high.png');
@@ -1411,65 +1423,65 @@
     tiltCard.style.transform = '';
     resetFaces(); // always present face-front on a fresh open / card switch
 
-    // Choreography: card FLIPs in -> backdrop fades up -> panel slides from behind.
+    // Aristide-style SHARED-ELEMENT MORPH: the featured card flies + grows out of
+    // the wheel slot, transform-only — it never fades. Only the backdrop fades.
+    // Data blocks settle in after the card lands. (Timings pinned in layout-constants.js)
+    // Done SYNCHRONOUSLY after showModal (the dialog is laid out by then), so the
+    // animation's first painted frame is already the wheel slot — no rAF gap to
+    // flash through and no occluded-tab throttle to stall on.
     if (!wasOpen) { zoom.showModal(); zoomClose.focus(); }
     if (!REDUCED) {
       const gen = ++openGen;
-      requestAnimationFrame(() => {
-        if (gen !== openGen || zoomClosing || !zoom.open) return; // stale open, bail
-        const dst = tiltCard.getBoundingClientRect();
-        if (!dst.width) return;
-        const panel = $('zoomPanel');
-        const wide = matchMedia('(min-width: 1024px)').matches;
-        if (wasOpen) {
-          // in-place switch to another card of the same Pokémon: quick crossfade,
-          // no FLIP (the card is already centered) — reads as a smooth shuffle
-          reg(tiltCard.animate(
-            [{ opacity: 0.2, transform: 'scale(0.96)' }, { opacity: 1, transform: 'none' }],
-            { duration: 300, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }));
-          [...panel.children].forEach((el, idx) => reg(el.animate(
-            [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
-            { duration: 320, delay: idx * 34, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'backwards' })));
-        } else {
-          const dx = (flipSrc.left + flipSrc.width / 2) - (dst.left + dst.width / 2);
-          const dy = (flipSrc.top + flipSrc.height / 2) - (dst.top + dst.height / 2);
-          const s = flipSrc.width / dst.width;
-          reg(tiltCard.animate(
-            [{ transform: `translate(${dx}px, ${dy}px) scale(${s})` }, { transform: 'none' }],
-            { duration: 500, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }));
-          // the spec sheet starts tucked behind the card (it stacks below the
-          // tilt-zone) and slides out sideways once the card has landed
-          if (wide) {
-            const pr = panel.getBoundingClientRect();
-            const dxp = (dst.left + 24) - pr.left;
-            reg(panel.animate(
-              [{ transform: `translateX(${dxp}px)`, opacity: 0 },
-               { transform: `translateX(${dxp}px)`, opacity: 1, offset: 0.25 },
-               { transform: 'none', opacity: 1 }],
-              { duration: 560, delay: 110, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'backwards' }));
-          }
-          [...panel.children].forEach((el, idx) => reg(el.animate(
-            [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }],
-            { duration: 360, delay: 260 + idx * 42, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'backwards' })));
-          reg(document.querySelector('.zoom-bg').animate(
-            [{ opacity: 0 }, { opacity: 1 }], { duration: 440, easing: 'ease-out' }));
-        }
-        // the animation backdrop breathes in only once playback truly starts;
-        // play attempts retry as the buffer fills (occluded tabs power-save
-        // early attempts) — if autoplay never succeeds, the static art stays
-        if (vid.src) {
-          vid.addEventListener('playing', () => {
-            if (gen !== openGen) return;
-            reg(vid.animate([{ opacity: 0 }, { opacity: 1 }],
-              { duration: 1400, delay: 200, easing: 'ease-in-out', fill: 'forwards' }));
-          }, { once: true });
-          const tryPlay = () => { if (gen === openGen && vid.paused) vid.play().catch(() => {}); };
-          tryPlay();
-          vid.addEventListener('canplaythrough', tryPlay, { once: true });
-          setTimeout(tryPlay, 1200);
-          setTimeout(tryPlay, 3000);
-        }
-      });
+      const dst = tiltCard.getBoundingClientRect(); // forces layout — valid now
+      const panel = $('zoomPanel');
+      if (dst.width && wasOpen) {
+        // in-place switch to another card of the same Pokémon: quick crossfade,
+        // no FLIP (the card is already centered) — reads as a smooth shuffle
+        reg(tiltCard.animate(
+          [{ opacity: 0.2, transform: 'scale(0.96)' }, { opacity: 1, transform: 'none' }],
+          { duration: 300, easing: L.EASE_PREMIUM }));
+        [...panel.children].forEach((el, idx) => reg(el.animate(
+          [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
+          { duration: 320, delay: idx * 34, easing: L.EASE_PREMIUM, fill: 'backwards' })));
+      } else if (dst.width) {
+        const dx = (flipSrc.left + flipSrc.width / 2) - (dst.left + dst.width / 2);
+        const dy = (flipSrc.top + flipSrc.height / 2) - (dst.top + dst.height / 2);
+        const s = flipSrc.width / dst.width;
+        const from = `translate(${dx}px, ${dy}px) scale(${s})`;
+        // belt-and-suspenders: pin the card at the wheel slot for the very first
+        // paint (in case the animation's first sample lands a hair late)
+        tiltCard.style.transform = from;
+        // transform-only flight — the CARD never fades, only flies + grows
+        const morph = reg(tiltCard.animate(
+          [{ transform: from }, { transform: 'none' }],
+          { duration: L.OPEN_DURATION, easing: L.EASE_PREMIUM }));
+        if (zoomReturnEl) zoomReturnEl.style.visibility = 'hidden'; // no double image during the flight
+        morph.onfinish = () => {
+          tiltCard.style.transform = '';                            // resting state = CSS none (no end-snap)
+          if (gen === openGen && zoomReturnEl) zoomReturnEl.style.visibility = '';
+        };
+        // data settles in AFTER the card lands — slide+fade (data may move; the card may not)
+        [...panel.children].forEach((el, idx) => reg(el.animate(
+          [{ opacity: 0, transform: `translateY(${L.STAGGER_TRANSLATE_Y}px)` }, { opacity: 1, transform: 'none' }],
+          { duration: L.STAGGER_CHILD_DURATION, delay: L.STAGGER_BASE_DELAY + idx * L.STAGGER_STEP, easing: L.EASE_PREMIUM, fill: 'backwards' })));
+        // the backdrop is the ONLY layer that fades on open
+        reg(document.querySelector('.zoom-bg').animate(
+          [{ opacity: 0 }, { opacity: 1 }], { duration: L.BACKDROP_FADE_DURATION, easing: 'ease-out' }));
+      }
+      // the animation backdrop breathes in only once playback truly starts; play
+      // attempts retry as the buffer fills — if autoplay never succeeds, static stays
+      if (vid.src) {
+        vid.addEventListener('playing', () => {
+          if (gen !== openGen) return;
+          reg(vid.animate([{ opacity: 0 }, { opacity: 1 }],
+            { duration: 1400, delay: 200, easing: 'ease-in-out', fill: 'forwards' }));
+        }, { once: true });
+        const tryPlay = () => { if (gen === openGen && vid.paused) vid.play().catch(() => {}); };
+        tryPlay();
+        vid.addEventListener('canplaythrough', tryPlay, { once: true });
+        setTimeout(tryPlay, 1200);
+        setTimeout(tryPlay, 3000);
+      }
     }
   }
 
@@ -1487,30 +1499,36 @@
     const dx = (src.left + src.width / 2) - (dst.left + dst.width / 2);
     const dy = (src.top + src.height / 2) - (dst.top + dst.height / 2);
     const s = dst.width ? src.width / dst.width : 0.3;
+    // re-hide the wheel card so the reverse morph lands on a clean slot (no double
+    // image); reveal it the instant the morphing card arrives back in the slot
+    if (zoomReturnEl) zoomReturnEl.style.visibility = 'hidden';
+    // transform-only reverse morph — the card shrinks back into the slot, never fades
     const anim = reg(tiltCard.animate(
       [{ transform: 'none' }, { transform: `translate(${dx}px, ${dy}px) scale(${s})` }],
-      { duration: 380, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }));
+      { duration: L.CLOSE_DURATION, easing: L.EASE_PREMIUM }));
     const panel = $('zoomPanel');
-    if (matchMedia('(min-width: 1024px)').matches) {
-      // retreat back behind the card, mirroring the open
-      const pr = panel.getBoundingClientRect();
-      const dxp = (dst.left + 24) - pr.left;
-      reg(panel.animate(
-        [{ transform: 'none', opacity: 1 }, { transform: `translateX(${dxp}px)`, opacity: 0 }],
-        { duration: 300, easing: 'cubic-bezier(0.55, 0, 1, 0.45)', fill: 'forwards' }));
-    } else {
-      reg(panel.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, easing: 'ease-out', fill: 'forwards' }));
-    }
+    // panel + backdrop + title fade out (these are NOT the card — fading is fine)
+    reg(panel.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, easing: 'ease-out', fill: 'forwards' }));
     reg(document.querySelector('.zoom-bg').animate([{ opacity: 1 }, { opacity: 0 }], { duration: 320, fill: 'forwards' }));
     reg(zTitle.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease-out', fill: 'forwards' }));
-    anim.onfinish = () => { zoomClosing = false; zoom.close(); };
-    // insurance: WAAPI freezes in occluded tabs — never leave the dialog stuck
-    setTimeout(() => { if (zoomClosing) { zoomClosing = false; zoom.close(); } }, 650);
+    anim.onfinish = () => {
+      if (zoomReturnEl) zoomReturnEl.style.visibility = ''; // wheel card reappears as the inspect card lands
+      tiltCard.style.transform = '';
+      zoomClosing = false;
+      zoom.close();
+    };
+    // insurance: WAAPI freezes in occluded tabs — never leave the dialog (or the
+    // hidden wheel card) stuck
+    setTimeout(() => {
+      if (zoomClosing) { if (zoomReturnEl) zoomReturnEl.style.visibility = ''; zoomClosing = false; zoom.close(); }
+    }, L.CLOSE_INSURANCE_TIMEOUT);
   }
 
   zoom.addEventListener('close', () => {
     zoomClosing = false;
     tiltCard.style.transform = '';
+    tiltCard.style.visibility = '';                       // never leave the featured card hidden
+    if (zoomReturnEl) zoomReturnEl.style.visibility = ''; // any close path (Esc/backdrop) re-shows the wheel card
     resetFaces();
     resetZoomScene();
     cancelZoomAnims(); // drop filled exit animations so the next open starts clean

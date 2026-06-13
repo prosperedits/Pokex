@@ -291,8 +291,8 @@ main {
   position: absolute;
   left: 50%;
   top: 50%;
-  height: 70%; /* smaller cards = more on screen; the inspect is the close-up */
-  aspect-ratio: 734 / 1024;
+  height: var(--wheel-card-h); /* 70% — pinned in layout-constants.js */
+  aspect-ratio: var(--card-aspect); /* 734/1024 — pinned in layout-constants.js */
   will-change: transform, filter;
   border-radius: var(--card-radius);
   visibility: hidden;
@@ -574,7 +574,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: flex-end;       /* push the card+data right, name breathes left */
-  gap: clamp(22px, 4vw, 70px);
+  gap: var(--stage-gap); /* clamp(22px,4vw,70px) — pinned in layout-constants.js */
   padding-right: clamp(0px, 3vw, 60px);
 }
 .card-col { display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 2.4vh, 26px); flex: none; }
@@ -686,8 +686,8 @@ main {
 .tilt-zone { perspective: 1200px; }
 .tilt-card {
   position: relative;
-  height: min(58vh, 60vw);
-  aspect-ratio: 734 / 1024;
+  height: var(--tilt-card-h); /* min(58vh,60vw) — pinned in layout-constants.js */
+  aspect-ratio: var(--card-aspect); /* 734/1024 — pinned in layout-constants.js */
   border-radius: var(--card-radius);
   transform-style: preserve-3d;
   will-change: transform;
@@ -739,14 +739,14 @@ main {
 .zoom-panel {
   position: relative;
   z-index: 1;
-  flex: 0 1 440px;
-  min-width: 290px;
-  max-width: 500px;
-  max-height: 78vh;
+  flex: 0 1 var(--panel-basis); /* all four pinned in layout-constants.js */
+  min-width: var(--panel-min);
+  max-width: var(--panel-max);
+  max-height: var(--panel-max-h);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: clamp(12px, 2vh, 22px);
+  gap: var(--panel-gap);
   background: none;
   border: none;
   padding: 2px;
@@ -940,7 +940,7 @@ main {
 }
 .family-card img {
   width: 100%;
-  aspect-ratio: 734 / 1024;
+  aspect-ratio: var(--card-aspect); /* 734/1024 — pinned in layout-constants.js */
   object-fit: cover;
   border-radius: 6px;
   border: 1px solid rgba(237, 234, 244, 0.12);
@@ -1065,7 +1065,7 @@ main {
     justify-content: flex-start;
     padding-top: var(--s-8);
   }
-  .tilt-card { height: auto; width: min(78vw, 46vh); }
+  .tilt-card { height: auto; width: var(--tilt-card-w-narrow); } /* pinned in layout-constants.js */
   .zoom-panel {
     max-width: none;
     width: 100%;
