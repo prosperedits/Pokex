@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=25">
-<link rel="stylesheet" href="style.css?v=37">
+<link rel="stylesheet" href="style.css?v=38">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -85,22 +85,23 @@
       <video id="zoomVideo" class="zoom-video" muted loop playsinline preload="auto"></video>
       <div class="zoom-grain"></div>
     </div>
+    <div class="zoom-scrim" aria-hidden="true"></div>
     <button id="zoomClose" class="zoom-close" aria-label="Close card detail">×</button>
     <div class="zoom-body">
-      <div class="z-title-wrap"><h2 id="zTitle" class="z-title"></h2></div>
+      <header class="z-header">
+        <h2 id="zTitle" class="z-title"></h2>
+        <p id="zRarity" class="z-rarity-line" aria-hidden="true"></p>
+      </header>
       <div class="z-stage">
         <div id="cardCol" class="card-col">
-          <div class="card-row">
-            <aside id="sirBadge" class="sir-badge" aria-hidden="true"></aside>
-            <div id="tiltZone" class="tilt-zone">
-              <div id="tiltCard" class="tilt-card">
-                <div id="cardFaces" class="card-faces">
-                  <div class="face face-front">
-                    <img id="zoomImg" alt="">
-                    <div id="shine" class="shine" aria-hidden="true"></div>
-                  </div>
-                  <div class="face face-back" aria-hidden="true"></div>
+          <div id="tiltZone" class="tilt-zone">
+            <div id="tiltCard" class="tilt-card">
+              <div id="cardFaces" class="card-faces">
+                <div class="face face-front">
+                  <img id="zoomImg" alt="">
+                  <div id="shine" class="shine" aria-hidden="true"></div>
                 </div>
+                <div class="face face-back" aria-hidden="true"></div>
               </div>
             </div>
           </div>
@@ -112,6 +113,7 @@
             <a id="shareBtn" href="#" aria-label="Copy a link to this card">
               <span class="ic">⤴</span><span class="lb">Share</span></a>
           </div>
+          <button type="button" id="moreCardsBtn" class="more-cards-btn" hidden></button>
         </div>
         <div id="zoomPanel" class="zoom-panel">
           <div id="zPrice" class="z-price"></div>
@@ -119,8 +121,14 @@
           <figure id="zCharts" class="z-charts"></figure>
           <div id="zTable" class="z-table"></div>
           <div id="zPulls" class="z-pulls"></div>
-          <div id="zFamily" class="z-family"></div>
           <p id="zCredit" class="z-credit"></p>
+        </div>
+        <div id="zGallery" class="z-gallery" hidden aria-hidden="true">
+          <div class="gallery-head">
+            <button type="button" id="galleryBack" class="gallery-back">← Back to card</button>
+            <span id="galleryTitle" class="gallery-title"></span>
+          </div>
+          <div id="galleryGrid" class="gallery-grid"></div>
         </div>
       </div>
     </div>
@@ -143,7 +151,7 @@
     </div>
   </footer>
 
-  <script src="layout-constants.js?v=37"></script>
+  <script src="layout-constants.js?v=38"></script>
   <script src="vendor/three.min.js"></script>
   <script src="vendor/gsap.min.js"></script>
   <script src="data/cards-sv01.js"></script>
@@ -168,6 +176,6 @@
   <script src="data/cards-me03.js"></script>
   <script src="data/cards-me04.js"></script>
   <script src="data/sealed.js"></script>
-  <script src="app.js?v=37"></script>
+  <script src="app.js?v=38"></script>
 </body>
 </html>

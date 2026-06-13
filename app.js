@@ -300,7 +300,8 @@
     const next = new Set();
     for (let i = lo; i <= hi; i++) next.add(i);
     for (const i of painted) if (!next.has(i)) {
-      els[view[i]].el.style.visibility = 'hidden';
+      const el = els[view[i]].el;
+      if (el !== zoomReturnEl) el.style.visibility = 'hidden'; // never cull the open inspect's source card
     }
     for (let i = lo; i <= hi; i++) {
       const d = i - position;
@@ -909,6 +910,10 @@
     }).catch(() => { /* clipboard denied — the anchor still right-click-copies */ });
   });
 
+  // "more cards" gallery view (openGallery/closeGallery hoisted below)
+  $('moreCardsBtn').addEventListener('click', () => openGallery());
+  $('galleryBack').addEventListener('click', () => closeGallery());
+
   $('wishBtn').addEventListener('click', () => {
     const card = cardAt(current);
     wishlist.has(card.id) ? wishlist.delete(card.id) : wishlist.add(card.id);
@@ -947,23 +952,16 @@
     }
   }
 
-  // --- Inspect scene: editorial title + holo badge + animated holo backdrop ---
+  // --- Inspect scene: editorial title + rarity text + animated holo backdrop --
   const zTitle = $('zTitle');
-  const sirBadge = $('sirBadge');
-  const RARITY_CODE = {
-    'common': 'C', 'uncommon': 'U', 'rare': 'R', 'double rare': 'RR',
-    'ace spec rare': 'ACE', 'illustration rare': 'IR', 'ultra rare': 'UR',
-    'special illustration rare': 'SIR', 'hyper rare': 'HR',
-    'black white rare': 'BWR', 'mega hyper rare': 'MHR',
-  };
+  const zRarity = $('zRarity');
   let sceneTweens = [];
 
-  // the NAME — per-char spans that rise + sharpen on open (elegant, not glitchy)
+  // the NAME — a top header; per-char rise reveal (no clip — it's never masked)
   function buildTitle(card) {
     zTitle.replaceChildren();
-    zTitle.style.setProperty('--name-glow', rarityColor(card.rarity) + '99');
-    // words keep their letters together (inline-block per char would wrap mid-word)
-    for (const word of card.name.split(' ')) {
+    zTitle.style.setProperty('--name-glow', rarityColor(card.rarity) + '66');
+    for (const word of card.name.split(' ')) { // words intact (no mid-word wrap)
       const w = document.createElement('span');
       w.className = 'wd';
       for (const ch of word) {
@@ -975,48 +973,36 @@
       zTitle.append(w, ' ');
     }
     if (window.gsap && !REDUCED) {
-      // long smooth rise behind the mask (aristide); total stagger length CAPPED
       sceneTweens.push(gsap.fromTo(zTitle.querySelectorAll('.ch'),
-        { yPercent: 125, opacity: 0 },
-        { yPercent: 0, opacity: 1, duration: 1.05, ease: 'expo.out',
-          stagger: { amount: 0.5, from: 'start' }, delay: 0.05 }));
+        { yPercent: 60, opacity: 0 },
+        { yPercent: 0, opacity: 1, duration: 0.9, ease: 'expo.out',
+          stagger: { amount: 0.45, from: 'start' }, delay: 0.05 }));
     }
   }
 
-  // holographic rarity badge left of the card; iridescent sheen drifts (GSAP)
-  function buildBadge(card) {
-    const code = card.sealed ? 'BOX' : RARITY_CODE[(card.rarity || '').toLowerCase()];
-    if (!code) { sirBadge.hidden = true; return; }
-    sirBadge.hidden = false;
-    sirBadge.replaceChildren();
-    const c = document.createElement('div'); c.className = 'code'; c.textContent = code;
-    const f = document.createElement('div'); f.className = 'full';
-    f.textContent = card.sealed ? 'Sealed' : (card.rarity || '');
-    sirBadge.append(c, f);
+  // rarity as TEXT under the name (no badge), in its signature color
+  function buildRarity(card) {
+    const label = card.sealed ? 'Sealed Product' : (card.rarity || '');
+    zRarity.textContent = label.toUpperCase();
+    zRarity.style.setProperty('--rarity-color', card.sealed ? 'var(--ember-glint)' : rarityColor(card.rarity));
     if (window.gsap && !REDUCED) {
-      const proxy = { x: 0, streak: -80 };
-      sceneTweens.push(gsap.to(proxy, { x: 100, duration: 6.5, ease: 'sine.inOut', repeat: -1, yoyo: true,
-        onUpdate: () => sirBadge.style.setProperty('--holo-x', proxy.x + '%') }));
-      sceneTweens.push(gsap.fromTo(proxy, { streak: -80 }, { streak: 120, duration: 2.6, ease: 'power1.inOut',
-        repeat: -1, repeatDelay: 1.6, onUpdate: () => sirBadge.style.setProperty('--holo-streak', proxy.streak + '%') }));
-      sceneTweens.push(gsap.fromTo(sirBadge, { opacity: 0, x: -18, scale: 0.9 },
-        { opacity: 1, x: 0, scale: 1, duration: 0.5, ease: 'back.out(1.6)', delay: 0.15 }));
+      sceneTweens.push(gsap.fromTo(zRarity, { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.3 }));
     }
   }
 
   function paintZoomScene(card) {
     buildTitle(card);
-    buildBadge(card);
+    buildRarity(card);
     holoSetTint(rarityColor(card.rarity));
   }
   function resetZoomScene() {
     sceneTweens.forEach(t => t && t.kill());
     sceneTweens = [];
-    resetParallax();
-    if (window.gsap) gsap.set([zTitle, $('cardCol')], { clearProps: 'transform' });
+    if (window.gsap) gsap.set(zTitle, { clearProps: 'transform' });
     zTitle.replaceChildren();
-    sirBadge.replaceChildren();
-    sirBadge.hidden = true;
+    zRarity.textContent = '';
+    closeGallery(); // next open starts on the card, not the gallery
   }
 
   // --- three.js holographic animated backdrop --------------------------------
@@ -1026,15 +1012,16 @@
     void main(){
       vec2 uv = gl_FragCoord.xy / uRes.xy;
       vec2 p = uv - 0.5; p.x *= uRes.x / uRes.y;
-      float t = uTime * 0.05;
-      float w1 = sin((p.x + p.y) * 4.0 + t * 6.2831);
-      float w2 = sin((p.x - p.y) * 7.0 - t * 4.2 + sin(p.x * 3.0 + t * 2.0));
-      float m = (w1 + w2) * 0.25 + 0.5;
-      vec3 irid = 0.5 + 0.5 * cos(6.2831 * (vec3(0.0, 0.33, 0.66) + m * 1.3));
-      vec3 col = mix(uTint, irid, 0.62);
-      float vig = smoothstep(1.28, 0.12, length(p));
-      col *= 0.11 + 0.40 * vig;           // VIBRANT — lifts the whole screen
-      col += irid * 0.06;                 // iridescent bloom
+      float t = uTime * 0.12;             // clearly in motion
+      float w1 = sin((p.x + p.y) * 3.5 + t * 6.2831);
+      float w2 = sin((p.x - p.y) * 6.0 - t * 5.0 + sin(p.x * 4.0 + t * 3.0));
+      float w3 = sin(length(p) * 8.0 - t * 8.0); // radial ripple — visible flow
+      float m = (w1 + w2 + w3 * 0.6) * 0.2 + 0.5;
+      vec3 irid = 0.5 + 0.5 * cos(6.2831 * (vec3(0.0, 0.33, 0.66) + m * 1.4));
+      vec3 col = mix(uTint, irid, 0.66);
+      float vig = smoothstep(1.35, 0.10, length(p));
+      col *= 0.14 + 0.50 * vig;           // bright at the periphery so motion reads
+      col += irid * 0.07;                 // iridescent bloom
       gl_FragColor = vec4(col, 1.0);
     }`;
   let holo = null;
@@ -1067,27 +1054,22 @@
     holo.renderer.render(holo.scene, holo.camera);
   }
 
-  // --- aristide-style mouse parallax: name (far), backdrop (mid), card (near) -
+  // --- subtle BACKDROP-only parallax: the blurred art drifts with the cursor for
+  // depth, but the NAME and CARD never move (so the name can never clip/clash).
   let parallax = null;
   function initParallax() {
     if (!window.gsap || REDUCED) return;
     const q = (el, p, d) => gsap.quickTo(el, p, { duration: d, ease: 'power3' });
-    parallax = {
-      nx: q(zTitle, 'x', 1.0), ny: q(zTitle, 'y', 1.0),
-      bx: q($('zoomBg'), 'x', 1.25), by: q($('zoomBg'), 'y', 1.25),
-      cx: q($('cardCol'), 'x', 0.7), cy: q($('cardCol'), 'y', 0.7),
-    };
+    parallax = { bx: q($('zoomBg'), 'x', 1.2), by: q($('zoomBg'), 'y', 1.2) };
   }
   function applyParallax(e) {
     if (!parallax || !zoom.open) return;
     const nx = e.clientX / innerWidth - 0.5, ny = e.clientY / innerHeight - 0.5;
-    parallax.nx(nx * -58); parallax.ny(ny * -44); // name drifts most (far layer)
-    parallax.bx(nx * -30); parallax.by(ny * -26); // backdrop mid
-    parallax.cx(nx * 18); parallax.cy(ny * 18);   // card nearest, follows cursor
+    parallax.bx(nx * -26); parallax.by(ny * -22);
   }
   function resetParallax() {
     if (!parallax) return;
-    parallax.nx(0); parallax.ny(0); parallax.bx(0); parallax.by(0); parallax.cx(0); parallax.cy(0);
+    parallax.bx(0); parallax.by(0);
   }
 
   // Zoom animation lifecycle: every WAAPI animation registers here; open and
@@ -1165,6 +1147,7 @@
     });
     return svg;
   }
+  const SUB_LABEL = { '30d': '30 days ago', '7d': '7 days ago', '24h': 'today' };
   function buildCharts(card) {
     const box = $('zCharts');
     box.replaceChildren();
@@ -1177,15 +1160,54 @@
     ];
     const seriesList = [{ pts: toPts(cm), color: tierColor('--spectral') }];
     if (cm.holo) seriesList.push({ pts: toPts(cm.holo), color: tierColor('--phantom') });
+    const primary = seriesList[0].pts.filter(p => typeof p.v === 'number');
+    if (primary.length < 2) return;
     const sp = sparkline(seriesList);
     if (!sp) return;
     const wrap = document.createElement('figure');
     wrap.className = 'chart';
     const cap = document.createElement('figcaption');
-    cap.textContent = cm.holo ? 'Trend · normal / holo' : 'Price trend';
+    cap.textContent = cm.holo ? 'Price trend · normal / holo' : 'Price trend';
     sp.setAttribute('aria-label', 'Price trend in USD');
-    wrap.append(cap, sp);
+    const tip = document.createElement('div'); tip.className = 'spark-tip'; tip.hidden = true;
+    const tipVal = document.createElement('b'); tipVal.className = 'tip-val';
+    const tipSub = document.createElement('span'); tipSub.className = 'tip-sub';
+    tip.append(tipVal, tipSub);
+    wrap.append(cap, sp, tip);
     box.appendChild(wrap);
+
+    // --- interactivity: a crosshair + highlighted point + tooltip follow the cursor
+    const W = 320, H = 118, PX = 12, PT = 14, PB = 20; // must match sparkline()
+    const n = primary.length;
+    const vs = seriesList.flatMap(s => s.pts).filter(p => typeof p.v === 'number').map(p => p.v);
+    const mn = Math.min(...vs), mx = Math.max(...vs), span = (mx - mn) || mx * 0.1 || 1;
+    const lo = mn - span * 0.22, rng = (mx + span * 0.22) - lo;
+    const yOf = (v) => PT + (H - PT - PB) * (1 - (v - lo) / rng);
+    const xOf = (i) => PX + i * ((W - 2 * PX) / (n - 1));
+    const cross = svgEl('line', { class: 'spark-cross', y1: PT - 2, y2: H - PB, x1: 0, x2: 0, opacity: 0 });
+    const hot = svgEl('circle', { class: 'spark-hot', r: 4.5, cx: 0, cy: 0, opacity: 0, stroke: seriesList[0].color });
+    sp.append(cross, hot);
+    sp.style.touchAction = 'none';
+    const move = (e) => {
+      const r = sp.getBoundingClientRect();
+      if (!r.width) return;
+      const f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+      const idx = Math.round(f * (n - 1));
+      const p = primary[idx];
+      const px = xOf(idx), py = yOf(p.v);
+      cross.setAttribute('x1', px); cross.setAttribute('x2', px); cross.setAttribute('opacity', 0.4);
+      hot.setAttribute('cx', px); hot.setAttribute('cy', py); hot.setAttribute('opacity', 1);
+      tipVal.textContent = `$${p.v.toFixed(2)}`;
+      tipSub.textContent = SUB_LABEL[p.l] || p.l;
+      tip.hidden = false;
+      const wrapR = wrap.getBoundingClientRect();
+      tip.style.left = `${(px / W) * r.width + (r.left - wrapR.left)}px`;
+      tip.style.top = `${(py / H) * r.height + (r.top - wrapR.top)}px`;
+    };
+    sp.addEventListener('pointermove', move);
+    sp.addEventListener('pointerleave', () => {
+      tip.hidden = true; cross.setAttribute('opacity', 0); hot.setAttribute('opacity', 0);
+    });
   }
 
   // TCGplayer variant table — clean hairline rows (the "holofoil price" view)
@@ -1249,41 +1271,55 @@
     }
   }
 
-  // --- "Other <species> cards" — clickable strip, jumps to that card ---------
+  // --- "More <species> cards" — a button that opens a full gallery view -------
+  let familyGroup = [], familySpecies = '';
   function buildFamily(card) {
-    const box = $('zFamily');
-    box.replaceChildren();
-    const group = speciesGroup(card.name)
+    familyGroup = card.sealed ? [] : speciesGroup(card.name)
       .filter(e => e.card.id !== card.id)
       .sort((a, b) => (b.card.priceUsd ?? -1) - (a.card.priceUsd ?? -1));
-    if (!group.length) return;
-    const head = document.createElement('div');
-    head.className = 'z-hd';
-    const species = card.name.replace(/^Mega\s+/i, '').replace(/\s+(?:ex|gx|v|vmax|vstar)$/i, '');
-    head.textContent = `Other ${species}`;
-    box.appendChild(head);
-    const strip = document.createElement('div');
-    strip.className = 'family-strip';
-    for (const { setId, card: c } of group) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'family-card';
-      btn.title = `${c.name} — ${SETS[setId].set.name}`;
-      const img = document.createElement('img');
-      img.loading = 'lazy';
-      img.alt = c.name;
-      img.src = safeImg(c.image + '/low.webp');
-      img.addEventListener('error', () => { btn.classList.add('noimg'); });
-      const meta = document.createElement('span');
-      meta.className = 'family-meta';
-      const price = typeof c.priceUsd === 'number' ? `$${c.priceUsd.toFixed(2)}`
-        : (c.cardmarket?.trend != null ? `$${eurToUsd(c.cardmarket.trend).toFixed(2)}` : '—');
-      meta.textContent = price; // money green via CSS
-      btn.append(img, meta);
-      btn.addEventListener('click', () => inspectRef(setId, c.id));
-      strip.appendChild(btn);
+    familySpecies = card.name.replace(/^Mega\s+/i, '').replace(/\s+(?:ex|gx|v|vmax|vstar)$/i, '');
+    const btn = $('moreCardsBtn');
+    btn.hidden = !familyGroup.length;
+    if (familyGroup.length) {
+      btn.textContent = `▦  ${familyGroup.length} more ${familySpecies} card${familyGroup.length > 1 ? 's' : ''}`;
     }
-    box.appendChild(strip);
+  }
+  function openGallery() {
+    if (!familyGroup.length) return;
+    const grid = $('galleryGrid');
+    grid.replaceChildren();
+    $('galleryTitle').textContent = `${familySpecies} · ${familyGroup.length} cards`;
+    for (const { setId, card: c } of familyGroup) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'gallery-card';
+      b.title = `${c.name} — ${SETS[setId].set.name}`;
+      const img = document.createElement('img');
+      img.loading = 'lazy'; img.alt = c.name; img.src = safeImg(c.image + '/low.webp');
+      const meta = document.createElement('div'); meta.className = 'gc-meta';
+      const setS = document.createElement('span'); setS.className = 'gc-set'; setS.textContent = SETS[setId].set.name;
+      const priceS = document.createElement('span'); priceS.className = 'gc-price';
+      priceS.textContent = typeof c.priceUsd === 'number' ? `$${c.priceUsd.toFixed(2)}`
+        : (c.cardmarket?.trend != null ? `$${eurToUsd(c.cardmarket.trend).toFixed(2)}` : '—');
+      meta.append(setS, priceS);
+      b.append(img, meta);
+      b.addEventListener('click', () => { closeGallery(); inspectRef(setId, c.id); });
+      grid.appendChild(b);
+    }
+    $('cardCol').style.display = 'none';
+    $('zoomPanel').style.display = 'none';
+    const gal = $('zGallery');
+    gal.hidden = false; gal.setAttribute('aria-hidden', 'false');
+    if (window.gsap && !REDUCED) {
+      gsap.fromTo(gal, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' });
+      gsap.fromTo(grid.children, { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.45, stagger: 0.025, ease: 'power3.out' });
+    }
+  }
+  function closeGallery() {
+    const gal = $('zGallery');
+    gal.hidden = true; gal.setAttribute('aria-hidden', 'true');
+    $('cardCol').style.display = '';
+    $('zoomPanel').style.display = '';
   }
 
   // jump the open inspect to another card (loads its set if needed)
@@ -1296,15 +1332,31 @@
 
   const openZoom = () => openZoomFor(current);
 
+  // a subtle wind-gust when a card is inspected (user-gesture triggered; the
+  // browser blocks it on the non-gesture deep-link open, which we swallow)
+  const whoosh = new Audio('assets/sfx/whoosh.mp3');
+  whoosh.volume = 0.24;
+  function playWhoosh() { try { whoosh.currentTime = 0; whoosh.play().catch(() => {}); } catch { /* no audio */ } }
+
   function openZoomFor(i, srcEl) {
     const card = cardAt(i);
+    playWhoosh();
     const wasOpen = zoom.open; // already inspecting → in-place switch, not a fresh open
     cancelZoomAnims();
+    // a cancelled morph never fires its onfinish — so unconditionally restore any
+    // wheel card a previous (now-cancelled) morph left hidden, before we reassign
+    if (zoomReturnEl) zoomReturnEl.style.visibility = '';
     zoomClosing = false;
     // FLIP source = the card the user actually clicked, captured before any reposition
     const flipSrc = (srcEl ?? els[view[i]].el).getBoundingClientRect();
     if (i !== current) goTo(i, true); // reposition behind the modal; close returns here
     zoomReturnEl = els[view[i]].el;
+    // pin the featured card's width so the action row + "more cards" button can
+    // cap to it (computed from the CSS sizing formula — no layout needed yet)
+    const _cardW = innerWidth < 1024
+      ? Math.min(innerWidth * 0.78, innerHeight * 0.46)               // sized by width below 1024
+      : Math.min(innerHeight * 0.58, innerWidth * 0.60) * (734 / 1024); // height * aspect
+    $('cardCol').style.setProperty('--featured-card-w', `${_cardW.toFixed(1)}px`);
     zoomImg.alt = card.name;
     // blur-up: show THIS card's low scan instantly (already cached by the wheel),
     // then sharpen to high.webp — small and usually already warmed by the wheel's
@@ -1358,8 +1410,9 @@
     const zPrice = $('zPrice'), zQuick = $('zQuick'), zCredit = $('zCredit');
     zPrice.replaceChildren(); zQuick.replaceChildren(); zCredit.replaceChildren();
     const amt = document.createElement('div'); amt.className = 'amt';
-    const lbl = document.createElement('div'); lbl.className = 'lbl';
-    zPrice.append(amt, lbl);
+    const lbl = document.createElement('div'); lbl.className = 'lbl'; // the variant (e.g. Holofoil)
+    const src = document.createElement('div'); src.className = 'src'; // where it's from (subtle)
+    zPrice.append(amt, lbl, src);
     const qrow = (k, v, sub) => {
       const q = document.createElement('div'); q.className = 'q';
       const kk = document.createElement('span'); kk.className = 'k'; kk.textContent = k;
@@ -1373,11 +1426,12 @@
       const m = card.sealedMeta;
       amt.textContent = m.marketUsd != null ? `$${m.marketUsd.toFixed(2)}` : 'Tracking';
       amt.classList.toggle('none', m.marketUsd == null);
-      lbl.textContent = m.marketUsd != null ? `market · ${m.source} · ${m.checked}` : 'price not yet sourced';
+      lbl.textContent = 'Sealed product';
+      src.textContent = m.marketUsd != null ? `${m.source} · ${m.checked}` : 'price not yet sourced';
       if (m.detail) qrow('Contents', m.detail);
       $('zCharts').replaceChildren();
       $('zTable').replaceChildren();
-      $('zFamily').replaceChildren();
+      $('moreCardsBtn').hidden = true; // sealed products have no "other cards"
       buildPulls(card, pullLadderFor(DATA.set.id)); // what's inside: the set's odds
       zCredit.textContent = m.note || (m.marketUsd != null ? `verified ${m.source} · ${m.checked}` : 'price tracking pending');
     } else {
@@ -1385,9 +1439,13 @@
         : (card.cardmarket?.trend != null ? eurToUsd(card.cardmarket.trend) : null);
       amt.textContent = usd != null ? `$${usd.toFixed(2)}` : '—';
       amt.classList.toggle('none', usd == null);
+      // clear variant label (Holofoil / Normal / Reverse holo) + subtle source —
+      // spaced away from the price by CSS so it never reads as stuffed
       lbl.textContent = typeof card.priceUsd === 'number'
-        ? `market · ${VARIANT_LABEL[card.priceVariant] ?? card.priceVariant} · TCGplayer`
-        : (card.cardmarket?.trend != null ? 'trend · Cardmarket' : 'unpriced');
+        ? (VARIANT_LABEL[card.priceVariant] ?? card.priceVariant)
+        : (card.cardmarket?.trend != null ? 'Cardmarket trend' : 'Unpriced');
+      src.textContent = typeof card.priceUsd === 'number' ? 'TCGplayer · market price'
+        : (card.cardmarket?.trend != null ? 'converted from EUR' : '');
       if (card.cardmarket) {
         const cm = card.cardmarket;
         const v = document.createElement('span');
@@ -1435,11 +1493,11 @@
       const dst = tiltCard.getBoundingClientRect(); // forces layout — valid now
       const panel = $('zoomPanel');
       if (dst.width && wasOpen) {
-        // in-place switch to another card of the same Pokémon: quick crossfade,
-        // no FLIP (the card is already centered) — reads as a smooth shuffle
+        // in-place switch to another card of the same Pokémon: a quick scale settle.
+        // transform-only — the card never fades (the image just swaps underneath)
         reg(tiltCard.animate(
-          [{ opacity: 0.2, transform: 'scale(0.96)' }, { opacity: 1, transform: 'none' }],
-          { duration: 300, easing: L.EASE_PREMIUM }));
+          [{ transform: 'scale(0.965)' }, { transform: 'none' }],
+          { duration: 320, easing: L.EASE_PREMIUM }));
         [...panel.children].forEach((el, idx) => reg(el.animate(
           [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
           { duration: 320, delay: idx * 34, easing: L.EASE_PREMIUM, fill: 'backwards' })));
@@ -1457,9 +1515,14 @@
           { duration: L.OPEN_DURATION, easing: L.EASE_PREMIUM }));
         if (zoomReturnEl) zoomReturnEl.style.visibility = 'hidden'; // no double image during the flight
         morph.onfinish = () => {
-          tiltCard.style.transform = '';                            // resting state = CSS none (no end-snap)
-          if (gen === openGen && zoomReturnEl) zoomReturnEl.style.visibility = '';
+          tiltCard.style.transform = '';                  // resting state = CSS none (no end-snap)
+          if (zoomReturnEl) zoomReturnEl.style.visibility = ''; // cancelled morphs never fire this, so unconditional is safe
         };
+        // insurance: if the tab is occluded mid-flight the onfinish can stall —
+        // the wheel card must never stay hidden past the open while inspect shows
+        setTimeout(() => {
+          if (zoom.open && zoomReturnEl && zoomReturnEl.style.visibility === 'hidden') zoomReturnEl.style.visibility = '';
+        }, L.OPEN_DURATION + 140);
         // data settles in AFTER the card lands — slide+fade (data may move; the card may not)
         [...panel.children].forEach((el, idx) => reg(el.animate(
           [{ opacity: 0, transform: `translateY(${L.STAGGER_TRANSLATE_Y}px)` }, { opacity: 1, transform: 'none' }],
@@ -1487,7 +1550,9 @@
 
   let zoomClosing = false;
   function closeZoom() {
-    if (REDUCED) { zoom.close(); return; }
+    if (zoomReturnEl) zoomReturnEl.style.visibility = ''; // any close path re-shows the wheel card
+    // no card to fly back to (closed before any open) → just close, don't deref null
+    if (REDUCED || !zoomReturnEl) { zoomClosing = false; zoom.close(); return; }
     if (zoomClosing) return;
     zoomClosing = true;
     openGen++;            // invalidate any pending open choreography
