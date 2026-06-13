@@ -1344,7 +1344,7 @@
   // a subtle wind-gust when a card is inspected (user-gesture triggered; the
   // browser blocks it on the non-gesture deep-link open, which we swallow)
   const whoosh = new Audio('assets/sfx/swipe-whoosh.wav');
-  whoosh.volume = 0.316; // ≈ -10 dB (10^(-10/20)); tune this knob for loudness
+  whoosh.volume = 0.056; // ≈ -25 dB (10^(-25/20)); very subtle. tune this knob for loudness
   function playWhoosh() { try { whoosh.currentTime = 0; whoosh.play().catch(() => {}); } catch { /* no audio */ } }
 
   function openZoomFor(i, srcEl) {
