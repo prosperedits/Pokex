@@ -546,10 +546,13 @@ main {
   text-transform: uppercase;
   color: #fff;
   text-wrap: balance;
-  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.7), 0 0 50px var(--name-glow, rgba(127, 212, 244, 0.3));
+  text-shadow:
+    0 2px 28px rgba(0, 0, 0, 0.7),
+    0 0 calc(50px + var(--name-flare, 0) * 64px) var(--name-glow, rgba(127, 212, 244, 0.3));
+  perspective: 620px;         /* depth for the per-letter drop-in */
 }
-.z-title .wd { display: inline-block; white-space: nowrap; }
-.z-title .ch { display: inline-block; will-change: transform, opacity; }
+.z-title .wd { display: inline-block; white-space: nowrap; transform-style: preserve-3d; }
+.z-title .ch { display: inline-block; transform-origin: 50% 100%; will-change: transform, opacity, filter; }
 /* rarity as TEXT (no badge), in its signature color, under the name */
 .z-rarity-line {
   margin-top: clamp(4px, 0.8vh, 10px);
@@ -588,7 +591,7 @@ main {
   position: relative;
   z-index: 2;
   width: 100%;
-  flex: 0 1 auto;
+  flex: 1 1 auto;     /* fill the height so the absolute gallery has real room */
   min-height: 0;
   display: flex;
   align-items: center;
@@ -604,60 +607,69 @@ main {
 }
 
 /* elegant, simple action row — clean segmented control, capped to the card width */
+/* action row — three clean editorial buttons, capped to the card width */
 .card-actions {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   width: 100%;
   max-width: var(--featured-card-w, 360px); /* JS pins this = the card's width */
-  gap: 1px;
-  background: rgba(237, 234, 244, 0.12);
-  border: 1px solid rgba(237, 234, 244, 0.14);
-  border-radius: 12px;
-  overflow: hidden;
+  gap: 8px;
 }
 .card-actions button, .card-actions a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 9px;
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.01em;
-  color: var(--text-dim);
-  text-decoration: none;
-  background: rgba(14, 13, 19, 0.74);
-  border: none;
-  padding: 11px 6px;
-  cursor: pointer;
-  transition: color var(--dur-fast), background var(--dur-fast);
-}
-.card-actions .ic { font-size: 14px; line-height: 1; }
-.card-actions .lb { white-space: nowrap; }
-.card-actions button:hover, .card-actions a:hover { color: var(--text); background: rgba(32, 29, 42, 0.9); }
-.card-actions button:focus-visible, .card-actions a:focus-visible { outline: 1px solid var(--spectral); outline-offset: -2px; }
-.card-actions #wishBtn[aria-pressed="true"] { color: var(--phantom-bright); }
-.card-actions #collBtn[aria-pressed="true"] { color: var(--ember-glint); }
-.card-actions #shareBtn.copied { color: var(--money); }
-
-/* "More <species> cards" — clean, capped to the card width */
-.more-cards-btn {
-  width: 100%;
-  max-width: var(--featured-card-w, 360px);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.03em;
   color: var(--text);
-  background: rgba(237, 234, 244, 0.05);
-  border: 1px solid rgba(237, 234, 244, 0.16);
-  border-radius: 12px;
-  padding: 11px 14px;
+  text-decoration: none;
+  background: rgba(237, 234, 244, 0.04);
+  border: 1px solid rgba(237, 234, 244, 0.14);
+  border-radius: 11px;
+  padding: 13px 8px;
   cursor: pointer;
-  transition: background var(--dur-fast), border-color var(--dur-fast);
+  transition: color var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast);
 }
-.more-cards-btn:hover { background: rgba(237, 234, 244, 0.1); border-color: rgba(237, 234, 244, 0.42); }
-.more-cards-btn[hidden] { display: none; }
+.card-actions .ic { font-size: 17px; line-height: 1; }
+.card-actions .lb { white-space: nowrap; }
+.card-actions button:hover, .card-actions a:hover { background: rgba(237, 234, 244, 0.1); border-color: rgba(237, 234, 244, 0.32); }
+.card-actions button:focus-visible, .card-actions a:focus-visible { outline: 1px solid var(--spectral); outline-offset: 2px; }
+.card-actions #wishBtn[aria-pressed="true"] { color: var(--phantom-bright); border-color: color-mix(in srgb, var(--phantom) 60%, transparent); background: rgba(196, 75, 173, 0.12); }
+.card-actions #collBtn[aria-pressed="true"] { color: var(--ember-glint); border-color: color-mix(in srgb, var(--ember) 60%, transparent); background: rgba(240, 140, 30, 0.12); }
+.card-actions #shareBtn.copied { color: var(--money); border-color: color-mix(in srgb, var(--money) 60%, transparent); background: rgba(98, 217, 138, 0.12); }
+
+/* "More <species> cards" — an arrow link AT THE PANEL, not a chunky button */
+.more-cards-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  width: 100%;
+  margin-top: var(--s-2);
+  padding: 12px 4px 4px;
+  border: none;
+  border-top: 1px solid rgba(237, 234, 244, 0.12);
+  background: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color var(--dur-fast);
+}
+.more-cards-link::after {
+  content: '→';
+  font-size: 16px;
+  transition: transform var(--dur-fast) var(--ease-snap);
+}
+.more-cards-link:hover { color: var(--text); }
+.more-cards-link:hover::after { transform: translateX(5px); }
+.more-cards-link:focus-visible { outline: 1px solid var(--spectral); outline-offset: 3px; }
+.more-cards-link[hidden] { display: none; }
 
 /* the "more cards" GALLERY — replaces the stage with big card rows */
 .z-gallery {
@@ -822,6 +834,35 @@ main {
   text-transform: uppercase;
   color: var(--text);
   text-shadow: 0 1px 8px rgba(5, 4, 9, 0.85);
+}
+/* holofoil / reverse-holo variants read as the foil itself — iridescent text */
+.z-price .lbl.holo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-image: linear-gradient(
+    100deg,
+    #ff8fcf 0%, #c08bff 18%, #7ad7ff 36%,
+    #74f9c8 54%, #ffe98a 72%, #ff9ecb 90%, #c08bff 100%);
+  background-size: 220% 100%;
+  text-shadow: none;
+  filter: drop-shadow(0 1px 9px rgba(5, 4, 9, 0.9));
+}
+/* the foil chip — a little prism dot before the label */
+.z-price .lbl.holo::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: none;
+  background: conic-gradient(from 0deg, #ff8fcf, #7ad7ff, #74f9c8, #ffe98a, #ff8fcf);
+  box-shadow: 0 0 10px rgba(180, 160, 255, 0.55), inset 0 0 4px rgba(255, 255, 255, 0.6);
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
 }
 .z-price .src {
   margin-top: 3px;

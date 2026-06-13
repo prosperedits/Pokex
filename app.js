@@ -973,10 +973,18 @@
       zTitle.append(w, ' ');
     }
     if (window.gsap && !REDUCED) {
-      sceneTweens.push(gsap.fromTo(zTitle.querySelectorAll('.ch'),
-        { yPercent: 60, opacity: 0 },
-        { yPercent: 0, opacity: 1, duration: 0.9, ease: 'expo.out',
-          stagger: { amount: 0.45, from: 'start' }, delay: 0.05 }));
+      const chars = zTitle.querySelectorAll('.ch');
+      // each letter slams down out of depth — overshoot landing, blur clears as it settles
+      sceneTweens.push(gsap.fromTo(chars,
+        { yPercent: -130, z: -240, rotationX: 92, scale: 1.35, opacity: 0, filter: 'blur(14px)' },
+        { yPercent: 0, z: 0, rotationX: 0, scale: 1, opacity: 1, filter: 'blur(0px)',
+          duration: 0.86, ease: 'back.out(2.1)',
+          stagger: { each: 0.052, from: 'center' }, delay: 0.04 }));
+      // a glow flare that swells as the word lands, then settles
+      sceneTweens.push(gsap.fromTo(zTitle,
+        { '--name-flare': 0 },
+        { '--name-flare': 1, duration: 0.5, ease: 'power2.out', delay: 0.18,
+          yoyo: true, repeat: 1 }));
     }
   }
 
@@ -999,7 +1007,7 @@
   function resetZoomScene() {
     sceneTweens.forEach(t => t && t.kill());
     sceneTweens = [];
-    if (window.gsap) gsap.set(zTitle, { clearProps: 'transform' });
+    if (window.gsap) gsap.set(zTitle, { clearProps: 'transform,--name-flare' });
     zTitle.replaceChildren();
     zRarity.textContent = '';
     closeGallery(); // next open starts on the card, not the gallery
@@ -1281,7 +1289,8 @@
     const btn = $('moreCardsBtn');
     btn.hidden = !familyGroup.length;
     if (familyGroup.length) {
-      btn.textContent = `▦  ${familyGroup.length} more ${familySpecies} card${familyGroup.length > 1 ? 's' : ''}`;
+      // the → arrow is drawn by CSS (.more-cards-link::after); text only here
+      btn.textContent = `${familyGroup.length} more ${familySpecies} card${familyGroup.length > 1 ? 's' : ''}`;
     }
   }
   function openGallery() {
@@ -1334,8 +1343,8 @@
 
   // a subtle wind-gust when a card is inspected (user-gesture triggered; the
   // browser blocks it on the non-gesture deep-link open, which we swallow)
-  const whoosh = new Audio('assets/sfx/whoosh.mp3');
-  whoosh.volume = 0.24;
+  const whoosh = new Audio('assets/sfx/whoosh.wav');
+  whoosh.volume = 0.5;
   function playWhoosh() { try { whoosh.currentTime = 0; whoosh.play().catch(() => {}); } catch { /* no audio */ } }
 
   function openZoomFor(i, srcEl) {
@@ -1444,6 +1453,10 @@
       lbl.textContent = typeof card.priceUsd === 'number'
         ? (VARIANT_LABEL[card.priceVariant] ?? card.priceVariant)
         : (card.cardmarket?.trend != null ? 'Cardmarket trend' : 'Unpriced');
+      // foil variants read as the foil itself — iridescent label treatment
+      lbl.classList.toggle('holo',
+        typeof card.priceUsd === 'number' &&
+        (card.priceVariant === 'holofoil' || card.priceVariant === 'reverse-holofoil'));
       src.textContent = typeof card.priceUsd === 'number' ? 'TCGplayer · market price'
         : (card.cardmarket?.trend != null ? 'converted from EUR' : '');
       if (card.cardmarket) {

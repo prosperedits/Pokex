@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=25">
-<link rel="stylesheet" href="style.css?v=38">
+<link rel="stylesheet" href="style.css?v=39">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -113,7 +113,6 @@
             <a id="shareBtn" href="#" aria-label="Copy a link to this card">
               <span class="ic">⤴</span><span class="lb">Share</span></a>
           </div>
-          <button type="button" id="moreCardsBtn" class="more-cards-btn" hidden></button>
         </div>
         <div id="zoomPanel" class="zoom-panel">
           <div id="zPrice" class="z-price"></div>
@@ -122,6 +121,7 @@
           <div id="zTable" class="z-table"></div>
           <div id="zPulls" class="z-pulls"></div>
           <p id="zCredit" class="z-credit"></p>
+          <button type="button" id="moreCardsBtn" class="more-cards-link" hidden></button>
         </div>
         <div id="zGallery" class="z-gallery" hidden aria-hidden="true">
           <div class="gallery-head">
@@ -151,7 +151,7 @@
     </div>
   </footer>
 
-  <script src="layout-constants.js?v=38"></script>
+  <script src="layout-constants.js?v=39"></script>
   <script src="vendor/three.min.js"></script>
   <script src="vendor/gsap.min.js"></script>
   <script src="data/cards-sv01.js"></script>
@@ -176,6 +176,6 @@
   <script src="data/cards-me03.js"></script>
   <script src="data/cards-me04.js"></script>
   <script src="data/sealed.js"></script>
-  <script src="app.js?v=38"></script>
+  <script src="app.js?v=39"></script>
 </body>
 </html>
