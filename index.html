@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=25">
-<link rel="stylesheet" href="style.css?v=41">
+<link rel="stylesheet" href="style.css?v=42">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -100,6 +100,7 @@
                 <div class="face face-front">
                   <img id="zoomImg" alt="">
                   <div id="shine" class="shine" aria-hidden="true"></div>
+                  <div id="cardFx" class="card-fx" aria-hidden="true" hidden></div>
                 </div>
                 <div class="face face-back" aria-hidden="true"></div>
               </div>
@@ -151,7 +152,7 @@
     </div>
   </footer>
 
-  <script src="layout-constants.js?v=41"></script>
+  <script src="layout-constants.js?v=42"></script>
   <script src="vendor/three.min.js"></script>
   <script src="vendor/gsap.min.js"></script>
   <script src="data/cards-sv01.js"></script>
@@ -176,6 +177,6 @@
   <script src="data/cards-me03.js"></script>
   <script src="data/cards-me04.js"></script>
   <script src="data/sealed.js"></script>
-  <script src="app.js?v=41"></script>
+  <script src="app.js?v=42"></script>
 </body>
 </html>

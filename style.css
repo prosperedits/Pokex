@@ -766,6 +766,9 @@ main {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
+/* isolate so .card-fx's screen blend composites against the card, not the page
+   (otherwise the dark frame centre renders as a black hole over the art) */
+.face-front { isolation: isolate; }
 .face-back {
   transform: rotateY(180deg);
   background: var(--stage-raise) url('assets/card-back-phantasmal.svg') center / cover no-repeat;
@@ -788,6 +791,22 @@ main {
     rgba(127, 212, 244, calc(0.16 * var(--shine-k, 0))) 38%,
     transparent 70%);
 }
+/* per-card holographic energy frame (e.g. Froakie/Greninja). The art has a dark
+   centre, so `screen` drops the centre and composites only the glowing border
+   over the card. JS sets background-image + un-hides it for cards in CARD_FX. */
+.card-fx {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-position: center;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+  opacity: 0; /* faded in by JS once the card lands (or shown instantly if reduced-motion) */
+  z-index: 4; /* above the scan + the shine */
+}
+.card-fx[hidden] { display: none; }
 /* the data, EDITORIAL: no boxes — a clean typographic column beside the card.
    Hairline rules separate sections; the price is the hero. */
 .zoom-panel {

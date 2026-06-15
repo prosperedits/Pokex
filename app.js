@@ -999,9 +999,29 @@
     }
   }
 
+  // hand-made holographic energy frames for specific cards (keyed by card.id).
+  // Local PNGs with a dark centre → composited with mix-blend-mode:screen.
+  const CARD_FX = {
+    'me04-088': 'assets/card-fx/me04-088-froakie-fx.png',
+    'me04-116': 'assets/card-fx/me04-116-greninja-fx.png',
+  };
+  function applyCardFx(card) {
+    const fx = $('cardFx');
+    const src = card && !card.sealed ? CARD_FX[card.id] : null;
+    if (!src) { fx.hidden = true; fx.style.backgroundImage = ''; fx.style.opacity = '0'; return; }
+    fx.style.backgroundImage = `url('${src}')`;
+    fx.hidden = false;
+    if (window.gsap && !REDUCED) {
+      sceneTweens.push(gsap.fromTo(fx, { opacity: 0 },
+        { opacity: 1, duration: 0.8, ease: 'power2.out', delay: 0.35 })); // settles in as the card lands
+    } else {
+      fx.style.opacity = '1'; // reduced motion: just show it
+    }
+  }
   function paintZoomScene(card) {
     buildTitle(card);
     buildRarity(card);
+    applyCardFx(card);
     holoSetTint(rarityColor(card.rarity));
   }
   function resetZoomScene() {
@@ -1010,6 +1030,7 @@
     if (window.gsap) gsap.set(zTitle, { clearProps: 'transform,--name-flare' });
     zTitle.replaceChildren();
     zRarity.textContent = '';
+    const fx = $('cardFx'); fx.hidden = true; fx.style.opacity = '0'; fx.style.backgroundImage = '';
     closeGallery(); // next open starts on the card, not the gallery
   }
 
