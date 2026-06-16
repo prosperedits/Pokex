@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=25">
-<link rel="stylesheet" href="style.css?v=43">
+<link rel="stylesheet" href="style.css?v=44">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -46,11 +46,6 @@
       <input id="search" class="search" type="search" list="cardNames" placeholder="search cards" aria-label="Search cards">
       <datalist id="cardNames"></datalist>
       <button type="button" id="sealedBtn" class="sealed-btn" aria-haspopup="dialog">sealed</button>
-      <div id="sortCtl" class="sortctl" role="group" aria-label="Card order">
-        <button type="button" data-sort="value-desc" aria-pressed="true">$ high</button>
-        <button type="button" data-sort="value-asc" aria-pressed="false">$ low</button>
-        <button type="button" data-sort="set" aria-pressed="false">set №</button>
-      </div>
       <div id="counter" class="counter" aria-hidden="true">001<span>/130</span></div>
     </div>
   </header>
@@ -153,7 +148,7 @@
     </div>
   </footer>
 
-  <script src="layout-constants.js?v=43"></script>
+  <script src="layout-constants.js?v=44"></script>
   <script src="vendor/three.min.js"></script>
   <script src="vendor/gsap.min.js"></script>
   <script src="data/cards-sv01.js"></script>
@@ -178,6 +173,6 @@
   <script src="data/cards-me03.js"></script>
   <script src="data/cards-me04.js"></script>
   <script src="data/sealed.js"></script>
-  <script src="app.js?v=43"></script>
+  <script src="app.js?v=44"></script>
 </body>
 </html>

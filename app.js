@@ -547,16 +547,8 @@
     current = -1;
     render(true);
   }
-  let sortMode = 'value-desc';
-  $('sortCtl').addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-sort]');
-    if (!btn) return;
-    for (const b of $('sortCtl').querySelectorAll('button')) {
-      b.setAttribute('aria-pressed', String(b === btn));
-    }
-    sortMode = btn.dataset.sort;
-    applySort(sortMode);
-  });
+  // the wheel is fixed to value order (priciest first); the sort control was removed
+  const sortMode = 'value-desc';
 
   // --- Per-set ambience: the stage relights in the set logo's colors ----------
   // Same layers, same drift — only the light colors change. Multicolored logos
