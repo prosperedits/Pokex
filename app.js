@@ -880,6 +880,15 @@
   };
   const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : '');
   async function fetchJSON(url) { const r = await fetch(url); if (!r.ok) throw new Error(r.status); return r.json(); }
+  // premium variants (Enchanted, Iconic, serialized, borderless) are usually
+  // FOIL-ONLY: prices.usd is null but usd_foil/usd_etched holds their real (high)
+  // value. Use it so they're priced — and therefore sort to the FRONT of the
+  // wheel where they belong, instead of being buried, price-less, at the back.
+  const usdPrice = (p) => {
+    if (!p) return null;
+    const v = p.usd || p.usd_foil || p.usd_etched;
+    return v ? parseFloat(v) : null;
+  };
   async function fetchMagicSet(code) {
     // unique=prints = EVERY printing (showcase / borderless / extended / serialized
     // full-arts — the valuable variants), not collapsed to one per card
@@ -893,7 +902,7 @@
       id: `mtg-${code}-${c.collector_number}`, num: parseInt(c.collector_number, 10) || (i + 1), localId: c.collector_number,
       name: c.name, rarity: cap(c.rarity), category: 'Magic', types: magicTypes(c),
       image: img, fullImg: true,
-      priceUsd: c.prices && c.prices.usd ? parseFloat(c.prices.usd) : null,
+      priceUsd: usdPrice(c.prices),
       priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true, illustrator: c.artist || '',
       meta: [
         ['Type', c.type_line], ['Mana', c.mana_cost], ['Set', c.set_name],
@@ -912,7 +921,7 @@
       id: `lor-${code}-${c.collector_number}`, num: parseInt(c.collector_number, 10) || (i + 1), localId: c.collector_number,
       name: c.version ? `${c.name} — ${c.version}` : c.name, rarity: c.rarity || '', category: 'Lorcana', types: [c.ink || 'Colorless'],
       image: img, fullImg: true,
-      priceUsd: c.prices && c.prices.usd ? parseFloat(c.prices.usd) : null,
+      priceUsd: usdPrice(c.prices),
       priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true,
       illustrator: (c.illustrators || []).join(', '),
       meta: [
@@ -928,6 +937,12 @@
   // DATA is bundled (data/onepiece.js -> window.OP_CARDS); IMAGES load live from
   // dotgg's CDN (no CORS needed for <img>).
   const OP_RARITY = { C: 'Common', UC: 'Uncommon', R: 'Rare', SR: 'Super Rare', SEC: 'Secret Rare', L: 'Leader', P: 'Promo', SP: 'Special', TR: 'Treasure' };
+  // One Piece alt-arts (the valuable _p variants) carry price "0" but a real
+  // foilPrice — use the foil so they're valued, not sunk to $0 at the back.
+  const opPrice = (c) => {
+    const reg = parseFloat(c.price), foil = parseFloat(c.foilPrice);
+    return reg > 0 ? reg : (foil > 0 ? foil : null);
+  };
   // the One Piece bundle is 1.8 MB — load it ON DEMAND (only when a One Piece set
   // is opened) instead of on every page load, so the wheel boots fast.
   let opPromise = null;
@@ -947,7 +962,7 @@
       id: `op-${c.id}`, num: parseInt((c.id.split('-')[1] || '').replace(/\D/g, ''), 10) || (i + 1), localId: c.id,
       name: c.name, rarity: OP_RARITY[c.rarity] || c.rarity || '', category: 'One Piece', types: [c.Color || 'Colorless'],
       image: `https://static.dotgg.gg/onepiece/card/${c.id}.webp`, fullImg: true,
-      priceUsd: c.price ? parseFloat(c.price) : null,
+      priceUsd: opPrice(c),
       priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true, illustrator: '',
       meta: [
         ['Color', c.Color], ['Card', c.cardType], ['Cost', c.Cost], ['Power', c.Power], ['Counter', c.Counter],
