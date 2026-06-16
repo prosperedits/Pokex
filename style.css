@@ -683,6 +683,8 @@ main {
   width: 100%;
   max-width: var(--featured-card-w, 360px); /* JS pins this = the card's width */
   gap: 8px;
+  position: relative;
+  z-index: 3; /* ABOVE the card's drop-shadow (.tilt-zone is z2) so they never dim */
 }
 /* UIverse "milegelu" button — one hue each (pink / amber / teal) */
 .card-actions button, .card-actions a {
@@ -861,6 +863,11 @@ main {
   cursor: zoom-in;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
 }
+/* Magic/Lorcana scans are square-corner JPGs — round the frame so the corners
+   don't read as sharp (Pokemon PNGs already carry their own rounded corners) */
+.tilt-card.ext-card,
+.tilt-card.ext-card .face,
+.tilt-card.ext-card img { border-radius: clamp(15px, 4.6%, 30px); }
 .tilt-card.rotating { cursor: grabbing; }
 .tilt-card.mag { cursor: zoom-out; }
 .tilt-card.mag .shine { display: none; }

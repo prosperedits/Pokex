@@ -785,14 +785,30 @@
   // --- Other games: Magic (Scryfall) & Lorcana (Lorcast), fetched on demand ----
   const GAME_SETS = [
     { game: 'magic', label: 'Magic: The Gathering', sets: [
+      { id: 'mtg-tdm', code: 'tdm', name: 'Tarkir: Dragonstorm' },
+      { id: 'mtg-fin', code: 'fin', name: 'Final Fantasy' },
+      { id: 'mtg-eoe', code: 'eoe', name: 'Edge of Eternities' },
+      { id: 'mtg-tla', code: 'tla', name: 'Avatar: The Last Airbender' },
+      { id: 'mtg-spm', code: 'spm', name: "Marvel's Spider-Man" },
+      { id: 'mtg-dsk', code: 'dsk', name: 'Duskmourn: House of Horror' },
       { id: 'mtg-blb', code: 'blb', name: 'Bloomburrow' },
-      { id: 'mtg-otj', code: 'otj', name: 'Outlaws of Thunder Junction' },
       { id: 'mtg-mh3', code: 'mh3', name: 'Modern Horizons 3' },
+      { id: 'mtg-otj', code: 'otj', name: 'Outlaws of Thunder Junction' },
+      { id: 'mtg-mkm', code: 'mkm', name: 'Murders at Karlov Manor' },
     ] },
     { game: 'lorcana', label: 'Disney Lorcana', sets: [
-      { id: 'lor-1', code: '1', name: 'The First Chapter' },
-      { id: 'lor-2', code: '2', name: 'Rise of the Floodborn' },
+      { id: 'lor-12', code: '12', name: 'Wilds Unknown' },
+      { id: 'lor-11', code: '11', name: 'Winterspell' },
+      { id: 'lor-10', code: '10', name: 'Whispers in the Well' },
+      { id: 'lor-9', code: '9', name: 'Fabled' },
+      { id: 'lor-8', code: '8', name: 'Reign of Jafar' },
+      { id: 'lor-7', code: '7', name: "Archazia's Island" },
+      { id: 'lor-6', code: '6', name: 'Azurite Sea' },
       { id: 'lor-5', code: '5', name: 'Shimmering Skies' },
+      { id: 'lor-4', code: '4', name: "Ursula's Return" },
+      { id: 'lor-3', code: '3', name: 'Into the Inklands' },
+      { id: 'lor-2', code: '2', name: 'Rise of the Floodborn' },
+      { id: 'lor-1', code: '1', name: 'The First Chapter' },
     ] },
   ];
   const gameSetMeta = (id) => {
@@ -829,7 +845,12 @@
       name: c.name, rarity: cap(c.rarity), category: 'Magic', types: magicTypes(c),
       image: c.image_uris.large || c.image_uris.normal, fullImg: true,
       priceUsd: c.prices && c.prices.usd ? parseFloat(c.prices.usd) : null,
-      priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true,
+      priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true, illustrator: c.artist || '',
+      meta: [
+        ['Type', c.type_line], ['Mana', c.mana_cost], ['Set', c.set_name],
+        ['Foil', c.prices && c.prices.usd_foil ? `$${(+c.prices.usd_foil).toFixed(2)}` : null],
+      ],
+      flavor: c.oracle_text || '',
     }));
   }
   async function fetchLorcanaSet(code) {
@@ -844,6 +865,14 @@
       image: img, fullImg: true,
       priceUsd: c.prices && c.prices.usd ? parseFloat(c.prices.usd) : null,
       priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true,
+      illustrator: (c.illustrators || []).join(', '),
+      meta: [
+        ['Ink', c.ink], ['Cost', c.cost != null ? String(c.cost) : null],
+        ['Type', (c.type || []).join(' · ')],
+        ['Stats', (c.strength != null && c.willpower != null) ? `${c.strength}/${c.willpower}` : null],
+        ['Lore', c.lore != null ? String(c.lore) : null],
+      ],
+      flavor: c.text || '',
     }));
   }
   let loadingGame = false;
@@ -1562,6 +1591,7 @@
     // quietly afterward only to feed the loupe (no visible flash; same image).
     const ig = ++imgGen;
     tiltCard.classList.toggle('sealed', !!card.sealed); // floats the render, no frame
+    tiltCard.classList.toggle('ext-card', !!card.fullImg); // Magic/Lorcana = square-corner JPGs, round them more
     // SHARED-ELEMENT CONTINUITY: open the featured card on the EXACT bytes the
     // wheel card is already painting, so frame 1 of the morph is pixel-identical
     // (no decode flash, no blur-up). Then sharpen on the SAME element with NO
@@ -1646,26 +1676,35 @@
       lbl.classList.toggle('holo',
         typeof card.priceUsd === 'number' &&
         (card.priceVariant === 'holofoil' || card.priceVariant === 'reverse-holofoil'));
-      src.textContent = typeof card.priceUsd === 'number' ? 'TCGplayer · market price'
+      src.textContent = typeof card.priceUsd === 'number'
+        ? `${card.fullImg ? (DATA.source || 'market') : 'TCGplayer'} · market price`
         : (card.cardmarket?.trend != null ? 'converted from EUR' : '');
-      if (card.cardmarket) {
-        const cm = card.cardmarket;
-        const v = document.createElement('span');
-        v.append(`$${eurToUsd(cm.trend ?? cm.avg1).toFixed(2)}`);
-        if (typeof cm.avg30 === 'number' && typeof cm.avg1 === 'number' && cm.avg30 > 0) {
-          const d = (cm.avg1 - cm.avg30) / cm.avg30 * 100;
-          const dl = document.createElement('span');
-          dl.className = 'delta ' + (d >= 0 ? 'up' : 'down');
-          dl.textContent = `${d >= 0 ? '▲' : '▼'}${Math.abs(d).toFixed(1)}%`;
-          v.appendChild(dl);
+      if (card.fullImg) {
+        // external games (Magic/Lorcana): show their OWN data; skip Pokemon-only bits
+        if (Array.isArray(card.meta)) for (const [k, v] of card.meta) { if (v) qrow(k, v); }
+        $('zCharts').replaceChildren();
+        $('zTable').replaceChildren();
+        $('moreCardsBtn').hidden = true;
+      } else {
+        if (card.cardmarket) {
+          const cm = card.cardmarket;
+          const v = document.createElement('span');
+          v.append(`$${eurToUsd(cm.trend ?? cm.avg1).toFixed(2)}`);
+          if (typeof cm.avg30 === 'number' && typeof cm.avg1 === 'number' && cm.avg30 > 0) {
+            const d = (cm.avg1 - cm.avg30) / cm.avg30 * 100;
+            const dl = document.createElement('span');
+            dl.className = 'delta ' + (d >= 0 ? 'up' : 'down');
+            dl.textContent = `${d >= 0 ? '▲' : '▼'}${Math.abs(d).toFixed(1)}%`;
+            v.appendChild(dl);
+          }
+          qrow('30-day trend', v);
         }
-        qrow('30-day trend', v);
+        const pull = cardPullRate(card);
+        if (pull) qrow('Pull rate', pull.text, `1 of ${pull.pool} ${card.rarity}${pull.pool > 1 ? 's' : ''} in set`);
+        buildCharts(card);
+        buildVariantTable(card);
+        buildFamily(card);
       }
-      const pull = cardPullRate(card);
-      if (pull) qrow('Pull rate', pull.text, `1 of ${pull.pool} ${card.rarity}${pull.pool > 1 ? 's' : ''} in set`);
-      buildCharts(card);
-      buildVariantTable(card);
-      buildFamily(card);
       const bits = [];
       if (card.illustrator) bits.push(`illus. ${card.illustrator}`);
       bits.push(`№ ${card.localId}/${String(DATA.set.official).padStart(3, '0')}`);
