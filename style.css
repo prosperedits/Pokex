@@ -204,13 +204,17 @@ body {
 .sm-tabs { display: flex; gap: 4px; padding: 8px 8px 0; }
 .sm-tab {
   flex: 1;
-  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.03em; text-transform: uppercase;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.02em; text-transform: uppercase;
   color: var(--text-dim); background: transparent; border: 1px solid transparent; border-radius: 8px;
-  padding: 7px 3px; cursor: pointer; white-space: nowrap;
+  padding: 8px 3px; cursor: pointer; white-space: nowrap;
   transition: color var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast);
 }
+.sm-tab-ic { display: block; line-height: 0; opacity: 0.85; }
+.sm-tab-ic svg { width: 17px; height: 17px; display: block; }
 .sm-tab:hover { color: var(--text); }
 .sm-tab.active { color: #fff; background: rgba(127, 212, 244, 0.14); border-color: color-mix(in srgb, var(--spectral) 42%, transparent); }
+.sm-tab.active .sm-tab-ic { opacity: 1; color: var(--spectral); }
 .sm-search-wrap { padding: 8px; }
 .sm-search {
   width: 100%; box-sizing: border-box;
@@ -228,7 +232,15 @@ body {
   transition: background var(--dur-fast);
 }
 .sm-set:hover, .sm-set:focus-visible { background: rgba(38, 35, 51, 0.85); outline: none; }
-.sm-set-name { font-family: var(--font-display); font-size: 13px; color: var(--text); }
+.sm-set-mark {
+  flex: none; width: 34px; height: 26px; display: flex; align-items: center; justify-content: center;
+  color: var(--text-dim);
+}
+.sm-set-mark img.logo { max-width: 34px; max-height: 26px; object-fit: contain; }
+.sm-set-mark img.sym { width: 18px; height: 18px; object-fit: contain; filter: invert(1) brightness(1.15); opacity: 0.92; }
+.sm-set-mark svg { width: 18px; height: 18px; }
+.sm-set.active .sm-set-mark { color: var(--ember); }
+.sm-set-name { flex: 1; font-family: var(--font-display); font-size: 13px; color: var(--text); }
 .sm-set-count {
   font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); flex: none;
   background: rgba(255, 255, 255, 0.05); padding: 2px 8px; border-radius: 999px;

@@ -45,8 +45,9 @@
     if (typeof card.priceUsd !== 'number') return { var: '--tier-none', label: null };
     return TIERS.find(t => card.priceUsd < t.max);
   }
-  // image hosts we allow: tcgdex (Pokemon), Scryfall (Magic), Lorcast (Lorcana)
-  const IMG_HOSTS = ['https://assets.tcgdex.net/', 'https://cards.scryfall.io/', 'https://cards.lorcast.io/', 'https://static.dotgg.gg/'];
+  // image hosts we allow: tcgdex (Pokemon), Scryfall cards + set symbols (Magic),
+  // Lorcast (Lorcana), dotgg (One Piece), TCGplayer (sealed product photos)
+  const IMG_HOSTS = ['https://assets.tcgdex.net/', 'https://cards.scryfall.io/', 'https://svgs.scryfall.io/', 'https://cards.lorcast.io/', 'https://static.dotgg.gg/', 'https://tcgplayer-cdn.tcgplayer.com/'];
   const safeImg = (url) => (typeof url === 'string' && IMG_HOSTS.some((h) => url.startsWith(h))) ? url : '';
   // one chokepoint for every card image: sealed renders carry a local PNG path,
   // external-game cards (Magic/Lorcana) carry a COMPLETE url, and tcgdex cards
@@ -802,19 +803,47 @@
     for (const g of GAME_SETS) for (const s of g.sets) if (s.id === id) return { code: s.code, name: s.name, game: g.game };
     return null;
   };
+  // simple original game glyphs (ball / star / ink drop / straw hat) — generic
+  // icons drawn with currentColor, NOT trademarked wordmarks. Used on the picker
+  // tabs and as the per-set mark for games whose sets have no individual logo.
+  const GAME_GLYPH = {
+    pokemon: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h6M15 12h6" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.7" fill="currentColor"/></svg>',
+    magic: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.5 6.8L21 11l-6.5 2.2L12 20l-2.5-6.8L3 11l6.5-2.2z" fill="currentColor"/></svg>',
+    lorcana: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c1.6 2.7 4.2 3.4 4.2 6.3a4.2 4.2 0 11-8.4 0C7.8 6.4 10.4 5.7 12 3z" fill="currentColor"/></svg>',
+    onepiece: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 14.5C4.5 10.4 7.9 7 12 7s7.5 3.4 7.5 7.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 15.2h18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
+  };
+  // per-set mark: Pokémon = tcgdex set logo, Magic = Scryfall set symbol, else null
+  const setMarkSrc = (game, s) => {
+    if (game === 'pokemon') return setLogoPng({ id: s.id });
+    if (game === 'magic' && s.code) return safeImg(`https://svgs.scryfall.io/sets/${s.code}.svg`);
+    return null;
+  };
   // --- Categorised, searchable set picker: games as tabs, sets in a scroll list --
   function buildSetPicker() {
     const NAV = [{
       game: 'pokemon', label: 'Pokémon',
       sets: SET_GROUPS.flatMap((grp) => grp.ids.filter((id) => SETS[id]).map((id) => ({ id, name: SETS[id].set.name, count: SETS[id].set.total, external: false }))),
-    }, ...GAME_SETS.map((g) => ({ game: g.game, label: g.label, sets: g.sets.map((s) => ({ id: s.id, name: s.name, count: null, external: true })) }))];
+    }, ...GAME_SETS.map((g) => ({ game: g.game, label: g.label, sets: g.sets.map((s) => ({ id: s.id, name: s.name, code: s.code, count: null, external: true })) }))];
     let activeGame = 'pokemon', query = '';
     setMenu.innerHTML =
-      `<div class="sm-tabs" role="tablist">${NAV.map((n) => `<button type="button" class="sm-tab" data-game="${n.game}">${n.label}</button>`).join('')}</div>`
+      `<div class="sm-tabs" role="tablist">${NAV.map((n) => `<button type="button" class="sm-tab" data-game="${n.game}"><span class="sm-tab-ic">${GAME_GLYPH[n.game] || ''}</span><span>${({ pokemon: 'Pokémon', magic: 'Magic', lorcana: 'Lorcana', onepiece: 'One Piece' })[n.game] || n.label}</span></button>`).join('')}</div>`
       + `<div class="sm-search-wrap"><input class="sm-search" type="search" placeholder="Filter sets…" aria-label="Filter sets"></div>`
       + `<div class="sm-list" id="smList"></div>`;
     const listEl = setMenu.querySelector('#smList'), searchEl = setMenu.querySelector('.sm-search');
     function renderTabs() { setMenu.querySelectorAll('.sm-tab').forEach((t) => t.classList.toggle('active', t.dataset.game === activeGame)); }
+    function markEl(game, s) {
+      const mark = document.createElement('span');
+      mark.className = 'sm-set-mark';
+      const src = setMarkSrc(game, s);
+      if (src) {
+        const img = document.createElement('img');
+        img.className = game === 'magic' ? 'sym' : 'logo'; img.alt = ''; img.loading = 'lazy';
+        img.onerror = () => { mark.innerHTML = GAME_GLYPH[game] || ''; }; // tcgdex gap → glyph
+        img.src = src;
+        mark.appendChild(img);
+      } else { mark.innerHTML = GAME_GLYPH[game] || ''; }
+      return mark;
+    }
     function renderList() {
       const nav = NAV.find((n) => n.game === activeGame), q = query.trim().toLowerCase();
       const sets = nav.sets.filter((s) => !q || s.name.toLowerCase().includes(q));
@@ -824,6 +853,7 @@
         const item = document.createElement('button');
         item.type = 'button'; item.className = 'sm-set'; item.dataset.set = s.id;
         item.classList.toggle('active', DATA.set.id === s.id);
+        item.appendChild(markEl(nav.game, s));
         const nm = document.createElement('span'); nm.className = 'sm-set-name'; nm.textContent = s.name;
         item.appendChild(nm);
         if (s.count != null) { const c = document.createElement('span'); c.className = 'sm-set-count'; c.textContent = String(s.count); item.appendChild(c); }
