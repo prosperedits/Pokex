@@ -2074,28 +2074,85 @@
   }
   setTimeout(() => { prefetchChain(); prefetchChain(); prefetchChain(); }, 1500);
 
-  // --- HOME: the front door — a deck of game cards; pick one to enter its wheel ---
-  const homeEl = $('home');
-  function showHome() {
-    homeEl.hidden = false;
-    document.body.classList.add('home-open');
-    if (window.gsap && !REDUCED) {
-      gsap.fromTo('.home-head > *', { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out', stagger: 0.07 });
-      gsap.fromTo('#homeDeck .game-card', { y: 46, opacity: 0, rotateX: -12 },
-        { y: 0, opacity: 1, rotateX: 0, duration: 0.7, ease: 'power3.out', stagger: 0.08, delay: 0.1 });
-    }
+  // --- HOME: a scroll-driven cinematic front door (mimics award-winning scroll
+  // portfolios — hero blur-focuses in, each TCG materialises out of blur on scroll)
+  const homeEl = $('home'), homeScroll = $('homeScroll');
+  const HOME_GAMES = [
+    { game: 'pokemon', name: 'Pokémon', sets: '21 sets · thousands of cards', accent: '#ffcb05', grad: 'linear-gradient(158deg,#ff5a4d,#c0240f 58%,#5c0d05)' },
+    { game: 'magic', name: 'Magic: The Gathering', sets: '10 sets · every printing', accent: '#e8943b', grad: 'linear-gradient(158deg,#4a3768,#241a3e 55%,#0e0a1c)' },
+    { game: 'lorcana', name: 'Disney Lorcana', sets: '12 sets · enchanted & iconic', accent: '#7fd4f4', grad: 'linear-gradient(158deg,#2bbfa6,#5a4bd0 55%,#241a52)' },
+    { game: 'onepiece', name: 'One Piece', sets: '13 sets · alt-art chases', accent: '#ffd028', grad: 'linear-gradient(158deg,#ffae3d,#e0382f 52%,#5e0e20)' },
+  ];
+  let homeBuilt = false, homeScrollSetup = false;
+  function buildHome() {
+    if (homeBuilt) return; homeBuilt = true;
+    const hero = `<section class="hsec hsec-hero">
+        <div class="hero-glow" aria-hidden="true"></div>
+        <p class="hero-kicker">P&reg; Cards</p>
+        <h1 class="hero-title"><span class="ht1">Every card.</span><span class="ht2">One wheel.</span></h1>
+        <p class="hero-sub">Five universes &middot; every set &middot; one place</p>
+        <span class="scroll-cue" aria-hidden="true">scroll<i></i></span>
+      </section>`;
+    const games = HOME_GAMES.map((g) => `<section class="hsec hsec-game" data-game="${g.game}" style="--accent:${g.accent}">
+        <div class="hsec-glow" aria-hidden="true"></div>
+        <div class="gd" style="--grad:${g.grad}">
+          <div class="gd-cards" aria-hidden="true">${[0,1,2,3,4].map((i) => `<span class="gd-card gd-c${i}"></span>`).join('')}</div>
+          <div class="gd-body">
+            <p class="gd-kicker">${g.sets}</p>
+            <img class="gd-logo" src="assets/logos/${g.game}.png" alt="${g.name}">
+            <button type="button" class="gd-enter" data-game="${g.game}">Enter &rarr;</button>
+          </div>
+        </div>
+      </section>`).join('');
+    homeScroll.innerHTML = hero + games + `<footer class="hsec-foot"><span class="lx" aria-hidden="true">X</span><p>P&reg; Cards &mdash; every card, one wheel.</p></footer>`;
+    homeScroll.addEventListener('click', (e) => { const b = e.target.closest('[data-game]'); if (b) enterGame(b.dataset.game); });
+    setupHomeScroll();
   }
-  function hideHome() { homeEl.hidden = true; document.body.classList.remove('home-open'); }
-  $('homeDeck').addEventListener('click', (e) => {
-    const tile = e.target.closest('.game-card');
-    if (!tile || tile.disabled) return;
+  function enterGame(game) {
     hideHome();
-    const game = tile.dataset.game;
     if (game === 'pokemon') { if (DATA.set.external) loadSet(HOME_SET); }
     else if (game === 'magic') loadExternalSet('mtg-fin');
     else if (game === 'lorcana') loadExternalSet('lor-1');
     else if (game === 'onepiece') loadExternalSet('op-OP01');
-  });
+  }
+  function setupHomeScroll() {
+    if (homeScrollSetup || !window.gsap || !window.ScrollTrigger || REDUCED) return;
+    homeScrollSetup = true;
+    gsap.registerPlugin(ScrollTrigger);
+    homeScroll.querySelectorAll('.hsec-game').forEach((sec) => {
+      const logo = sec.querySelector('.gd-logo'), body = sec.querySelector('.gd-body');
+      gsap.fromTo([logo, body], { filter: 'blur(20px)', opacity: 0, y: 56, scale: 0.88 },
+        { filter: 'blur(0px)', opacity: 1, y: 0, scale: 1, ease: 'none', stagger: 0.04,
+          scrollTrigger: { scroller: homeScroll, trigger: sec, start: 'top 76%', end: 'center 58%', scrub: 0.6 } });
+      const fanX = innerWidth < 760 ? 92 : 156;
+      sec.querySelectorAll('.gd-card').forEach((c, i) => {
+        // fan position (x + rotate) is constant; the ENTRANCE (blur→focus, depth,
+        // lift) is what scrubs in. xPercent:-50 keeps the card centred on left:50%.
+        const base = { xPercent: -50, x: (i - 2) * fanX, rotate: (i - 2) * 6 };
+        gsap.fromTo(c,
+          { ...base, filter: 'blur(24px)', opacity: 0, yPercent: 72 - i * 12, z: -380, rotateY: (i - 2) * 18 },
+          { ...base, filter: 'blur(0px)', opacity: 1, yPercent: 0, z: 0, rotateY: (i - 2) * 7, ease: 'none',
+            scrollTrigger: { scroller: homeScroll, trigger: sec, start: 'top 88%', end: 'center 54%', scrub: 0.8 } });
+      });
+      gsap.fromTo(sec.querySelector('.hsec-glow'), { opacity: 0 }, { opacity: 1, ease: 'none',
+        scrollTrigger: { scroller: homeScroll, trigger: sec, start: 'top 82%', end: 'center 60%', scrub: true } });
+    });
+  }
+  function showHome() {
+    homeEl.hidden = false;                  // unhide FIRST so ScrollTrigger measures right
+    document.body.classList.add('home-open');
+    buildHome();
+    homeScroll.scrollTop = 0;
+    if (window.ScrollTrigger) requestAnimationFrame(() => ScrollTrigger.refresh());
+    if (window.gsap && !REDUCED) {
+      gsap.fromTo('.hsec-hero .hero-kicker', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out', delay: 0.1 });
+      gsap.fromTo('.hsec-hero .ht1, .hsec-hero .ht2', { opacity: 0, filter: 'blur(22px)', y: 30 },
+        { opacity: 1, filter: 'blur(0px)', y: 0, duration: 1.1, ease: 'power3.out', stagger: 0.15, delay: 0.18 });
+      gsap.fromTo('.hsec-hero .hero-sub, .hsec-hero .scroll-cue', { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out', stagger: 0.1, delay: 0.75 });
+    }
+  }
+  function hideHome() { homeEl.hidden = true; document.body.classList.remove('home-open'); }
   document.querySelector('.lockup').addEventListener('click', showHome); // brand mark → home
 
   // --- Boot --------------------------------------------------------------------------------

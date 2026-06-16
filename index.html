@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=48">
-<link rel="stylesheet" href="style.css?v=63">
+<link rel="stylesheet" href="style.css?v=64">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -57,48 +57,10 @@
     </div>
   </header>
 
-  <!-- HOME: the front door. A deck of game "cards"; pick a universe to enter its wheel. -->
+  <!-- HOME: a scroll-driven cinematic front door (built by app.js buildHome()).
+       Hero blur-focuses in, then each TCG materialises out of blur as you scroll. -->
   <div id="home" class="home" hidden>
-    <div class="home-aura" aria-hidden="true"></div>
-    <div class="home-inner">
-      <header class="home-head">
-        <p class="home-kicker">P® Cards</p>
-        <h1 class="home-title">Every card.<br><em>One wheel.</em></h1>
-        <p class="home-sub">Pick a universe.</p>
-      </header>
-      <div class="home-deck" id="homeDeck">
-        <button type="button" class="game-card gc-pokemon" data-game="pokemon">
-          <span class="gc-sheen" aria-hidden="true"></span>
-          <span class="gc-kicker">21 sets</span>
-          <img class="gc-logo" src="assets/logos/pokemon.png" alt="Pokémon">
-          <span class="gc-go">Enter →</span>
-        </button>
-        <button type="button" class="game-card gc-magic" data-game="magic">
-          <span class="gc-sheen" aria-hidden="true"></span>
-          <span class="gc-kicker">10 sets</span>
-          <img class="gc-logo" src="assets/logos/magic.png" alt="Magic: The Gathering">
-          <span class="gc-go">Enter →</span>
-        </button>
-        <button type="button" class="game-card gc-lorcana" data-game="lorcana">
-          <span class="gc-sheen" aria-hidden="true"></span>
-          <span class="gc-kicker">12 sets</span>
-          <img class="gc-logo" src="assets/logos/lorcana.png" alt="Disney Lorcana">
-          <span class="gc-go">Enter →</span>
-        </button>
-        <button type="button" class="game-card gc-onepiece" data-game="onepiece">
-          <span class="gc-sheen" aria-hidden="true"></span>
-          <span class="gc-kicker">13 sets</span>
-          <img class="gc-logo" src="assets/logos/onepiece.png" alt="One Piece">
-          <span class="gc-go">Enter →</span>
-        </button>
-        <button type="button" class="game-card gc-soon" data-game="soon" disabled>
-          <span class="gc-sheen" aria-hidden="true"></span>
-          <span class="gc-kicker">Yu-Gi-Oh</span>
-          <span class="gc-name">More<small>soon</small></span>
-          <span class="gc-go">Coming soon</span>
-        </button>
-      </div>
-    </div>
+    <div class="home-scroll" id="homeScroll" aria-label="Pick a universe"></div>
   </div>
 
   <main>
@@ -206,6 +168,7 @@
   <script src="layout-constants.js?v=50"></script>
   <script src="vendor/three.min.js"></script>
   <script src="vendor/gsap.min.js"></script>
+  <script src="vendor/ScrollTrigger.min.js"></script>
   <script src="data/cards-sv01.js"></script>
   <script src="data/cards-sv02.js"></script>
   <script src="data/cards-sv03.js"></script>
@@ -229,6 +192,6 @@
   <script src="data/cards-me04.js"></script>
   <script src="data/sealed.js?v=62"></script>
   <script src="data/set-colors.js?v=63"></script>
-  <script src="app.js?v=63"></script>
+  <script src="app.js?v=64"></script>
 </body>
 </html>
