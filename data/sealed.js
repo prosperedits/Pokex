@@ -1,6 +1,5 @@
-// Sealed-product prices (gen-sealed-tcgcsv.mjs) + images: authentic
-// official Pokémon renders where they exist, rembg cutouts otherwise
-// (merge-sealed-images.py).
+// Sealed: authentic Pokémon renders where they exist, cutouts otherwise;
+// single booster-pack images dropped (no clean render source). 
 window.SEALED_PRODUCTS = {
   "sv01": [
     {
@@ -58,14 +57,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 42.87,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/476451.webp?v=61",
-      "marketUsd": 8.8,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "sv02": [
@@ -114,14 +105,6 @@ window.SEALED_PRODUCTS = {
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/tcg/496929.webp?v=61",
       "marketUsd": 60.74,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/493976.webp?v=61",
-      "marketUsd": 15.06,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -174,14 +157,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 53.25,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/501256.webp?v=61",
-      "marketUsd": 12.67,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "sv03.5": [
@@ -214,14 +189,6 @@ window.SEALED_PRODUCTS = {
       "detail": "6 packs",
       "img": "assets/sealed/tcg/502000.webp?v=61",
       "marketUsd": 195.35,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/504467.webp?v=61",
-      "marketUsd": 26.51,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -274,14 +241,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 39.94,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/512822.webp?v=61",
-      "marketUsd": 9.32,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "sv04.5": [
@@ -306,14 +265,6 @@ window.SEALED_PRODUCTS = {
       "detail": "6 packs",
       "img": "assets/sealed/sv04_5-bundle.png",
       "marketUsd": 162.62,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/528038.webp?v=61",
-      "marketUsd": 25.77,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -366,14 +317,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 364.92,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/532841.webp?v=61",
-      "marketUsd": 10.11,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "sv06": [
@@ -416,14 +359,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 58.41,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/543843.webp?v=61",
-      "marketUsd": 8.45,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "sv06.5": [
@@ -448,14 +383,6 @@ window.SEALED_PRODUCTS = {
       "detail": "6 packs",
       "img": "assets/sealed/sv06_5-bundle.png",
       "marketUsd": 59.39,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/552997.webp?v=61",
-      "marketUsd": 12.86,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -498,14 +425,6 @@ window.SEALED_PRODUCTS = {
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/sv07-bnb.png",
       "marketUsd": 44.07,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/557331.webp?v=61",
-      "marketUsd": 9.4,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -558,14 +477,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 58.48,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/565602.webp?v=61",
-      "marketUsd": 10.61,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "sv08.5": [
@@ -590,14 +501,6 @@ window.SEALED_PRODUCTS = {
       "detail": "6 packs",
       "img": "assets/sealed/sv08_5-bundle.png",
       "marketUsd": 104.16,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/593294.webp?v=61",
-      "marketUsd": 17.75,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -642,14 +545,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 39.85,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/610934.webp?v=61",
-      "marketUsd": 8.41,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "sv10": [
@@ -692,14 +587,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 63.03,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/624683.webp?v=61",
-      "marketUsd": 10.31,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "sv10.5b": [
@@ -726,14 +613,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 88.02,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/630434.webp?v=61",
-      "marketUsd": 13.51,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "sv10.5w": [
@@ -758,14 +637,6 @@ window.SEALED_PRODUCTS = {
       "detail": "6 packs",
       "img": "assets/sealed/tcg/630696.webp?v=61",
       "marketUsd": 77.84,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/630699.webp?v=61",
-      "marketUsd": 13.78,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -810,14 +681,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 56.99,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/644352.webp?v=61",
-      "marketUsd": 7.67,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "me02": [
@@ -860,14 +723,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 435.18,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/654144.webp?v=61",
-      "marketUsd": 10.19,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "me02.5": [
@@ -900,14 +755,6 @@ window.SEALED_PRODUCTS = {
       "detail": "6 packs",
       "img": "assets/sealed/tcg/668541.webp?v=61",
       "marketUsd": 104.14,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/672434.webp?v=61",
-      "marketUsd": 16.53,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -952,14 +799,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 39.81,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/672398.webp?v=61",
-      "marketUsd": 6.4,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "me04": [
@@ -1002,14 +841,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 40.78,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/684446.webp?v=61",
-      "marketUsd": 7.33,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "mtg-tdm": [
@@ -1026,14 +857,6 @@ window.SEALED_PRODUCTS = {
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/619653.webp?v=61",
       "marketUsd": 86.79,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/619644.webp?v=61",
-      "marketUsd": 5.06,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1054,14 +877,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 108.4,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/618889.webp?v=61",
-      "marketUsd": 7.95,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "mtg-eoe": [
@@ -1078,14 +893,6 @@ window.SEALED_PRODUCTS = {
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/619673.webp?v=61",
       "marketUsd": 87.39,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/619696.webp?v=61",
-      "marketUsd": 59.88,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1106,14 +913,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 48.84,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/648640.webp?v=61",
-      "marketUsd": 5.38,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "mtg-spm": [
@@ -1130,14 +929,6 @@ window.SEALED_PRODUCTS = {
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/621115.webp?v=61",
       "marketUsd": 47.59,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/621106.webp?v=61",
-      "marketUsd": 4.89,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1158,14 +949,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 80.94,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/557240.webp?v=61",
-      "marketUsd": 5.07,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "mtg-blb": [
@@ -1182,14 +965,6 @@ window.SEALED_PRODUCTS = {
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/541241.webp?v=61",
       "marketUsd": 168.72,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/541234.webp?v=61",
-      "marketUsd": 6.32,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1210,14 +985,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 129.35,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/541163.webp?v=61",
-      "marketUsd": 8.07,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "mtg-otj": [
@@ -1234,14 +1001,6 @@ window.SEALED_PRODUCTS = {
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/541094.webp?v=61",
       "marketUsd": 90.39,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/541083.webp?v=61",
-      "marketUsd": 5.35,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1262,14 +1021,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 49.16,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/529962.webp?v=61",
-      "marketUsd": 4.92,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "lor-12": [
@@ -1288,14 +1039,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 89.97,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/678167.webp?v=61",
-      "marketUsd": 8.58,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "lor-11": [
@@ -1312,14 +1055,6 @@ window.SEALED_PRODUCTS = {
       "detail": "box + 8 packs",
       "img": "assets/sealed/tcg/664826.webp?v=61",
       "marketUsd": 57.84,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/664821.webp?v=61",
-      "marketUsd": 5.12,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1346,14 +1081,6 @@ window.SEALED_PRODUCTS = {
       "detail": "ready-to-play deck",
       "img": "assets/sealed/tcg/652706.webp?v=61",
       "marketUsd": 12.02,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/652701.webp?v=61",
-      "marketUsd": 6.1,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1390,14 +1117,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 23.32,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/649927.webp?v=61",
-      "marketUsd": 20.78,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "lor-8": [
@@ -1424,14 +1143,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 8.94,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/623062.webp?v=61",
-      "marketUsd": 7.56,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "lor-7": [
@@ -1456,14 +1167,6 @@ window.SEALED_PRODUCTS = {
       "detail": "ready-to-play deck",
       "img": "assets/sealed/tcg/607802.webp?v=61",
       "marketUsd": 8.42,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/607760.webp?v=61",
-      "marketUsd": 4.92,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1500,14 +1203,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 9.19,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/578095.webp?v=61",
-      "marketUsd": 4.92,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "lor-5": [
@@ -1534,14 +1229,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 13.02,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/555142.webp?v=61",
-      "marketUsd": 5.06,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "lor-4": [
@@ -1566,14 +1253,6 @@ window.SEALED_PRODUCTS = {
       "detail": "ready-to-play deck",
       "img": "assets/sealed/tcg/543863.webp?v=61",
       "marketUsd": 8.04,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/543860.webp?v=61",
-      "marketUsd": 4.7,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1618,14 +1297,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 25.77,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/531523.webp?v=61",
-      "marketUsd": 3.98,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "lor-2": [
@@ -1650,14 +1321,6 @@ window.SEALED_PRODUCTS = {
       "detail": "ready-to-play deck",
       "img": "assets/sealed/tcg/516290.webp?v=61",
       "marketUsd": 6.14,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/516297.webp?v=61",
-      "marketUsd": 5.04,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1702,14 +1365,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 16.88,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/482406.webp?v=61",
-      "marketUsd": 10.7,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "op-OP16": [
@@ -1718,14 +1373,6 @@ window.SEALED_PRODUCTS = {
       "detail": "36 packs",
       "img": "assets/sealed/tcg/689336.webp?v=61",
       "marketUsd": 222.29,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/689341.webp?v=61",
-      "marketUsd": 6.11,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1738,14 +1385,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 222.64,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/682056.webp?v=61",
-      "marketUsd": 6.32,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "op-OP14": [
@@ -1754,14 +1393,6 @@ window.SEALED_PRODUCTS = {
       "detail": "36 packs",
       "img": "assets/sealed/tcg/665598.webp?v=61",
       "marketUsd": 248.58,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/666576.webp?v=61",
-      "marketUsd": 9.81,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1774,14 +1405,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 458.84,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/628351.webp?v=61",
-      "marketUsd": 11.5,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "op-OP12": [
@@ -1790,14 +1413,6 @@ window.SEALED_PRODUCTS = {
       "detail": "36 packs",
       "img": "assets/sealed/tcg/628346.webp?v=61",
       "marketUsd": 265.09,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/628345.webp?v=61",
-      "marketUsd": 6.68,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1810,14 +1425,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 493.77,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/620179.webp?v=61",
-      "marketUsd": 9.22,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "op-OP10": [
@@ -1826,14 +1433,6 @@ window.SEALED_PRODUCTS = {
       "detail": "36 packs",
       "img": "assets/sealed/tcg/586671.webp?v=61",
       "marketUsd": 244.49,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/586670.webp?v=61",
-      "marketUsd": 7.77,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1846,14 +1445,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 662.03,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/563833.webp?v=61",
-      "marketUsd": 16.49,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "op-OP08": [
@@ -1862,14 +1453,6 @@ window.SEALED_PRODUCTS = {
       "detail": "36 packs",
       "img": "assets/sealed/tcg/542504.webp?v=61",
       "marketUsd": 229.01,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/542502.webp?v=61",
-      "marketUsd": 7.49,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1882,14 +1465,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 339.96,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/532104.webp?v=61",
-      "marketUsd": 7.56,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "op-OP06": [
@@ -1898,14 +1473,6 @@ window.SEALED_PRODUCTS = {
       "detail": "36 packs",
       "img": "assets/sealed/tcg/515080.webp?v=61",
       "marketUsd": 382.07,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/515077.webp?v=61",
-      "marketUsd": 11.25,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
@@ -1918,14 +1485,6 @@ window.SEALED_PRODUCTS = {
       "marketUsd": 1053.74,
       "source": "TCGplayer",
       "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/498733.webp?v=61",
-      "marketUsd": 29.71,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
     }
   ],
   "op-OP01": [
@@ -1934,14 +1493,6 @@ window.SEALED_PRODUCTS = {
       "detail": "36 packs",
       "img": "assets/sealed/tcg/450086.webp?v=61",
       "marketUsd": 5831.75,
-      "source": "TCGplayer",
-      "checked": "2026-06-16"
-    },
-    {
-      "name": "Booster Pack",
-      "detail": "single pack",
-      "img": "assets/sealed/tcg/450085.webp?v=61",
-      "marketUsd": 69.13,
       "source": "TCGplayer",
       "checked": "2026-06-16"
     }
