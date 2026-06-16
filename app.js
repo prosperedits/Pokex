@@ -928,7 +928,20 @@
   // DATA is bundled (data/onepiece.js -> window.OP_CARDS); IMAGES load live from
   // dotgg's CDN (no CORS needed for <img>).
   const OP_RARITY = { C: 'Common', UC: 'Uncommon', R: 'Rare', SR: 'Super Rare', SEC: 'Secret Rare', L: 'Leader', P: 'Promo', SP: 'Special', TR: 'Treasure' };
-  function fetchOnePieceSet(code) {
+  // the One Piece bundle is 1.8 MB — load it ON DEMAND (only when a One Piece set
+  // is opened) instead of on every page load, so the wheel boots fast.
+  let opPromise = null;
+  function ensureOnePiece() {
+    if (window.OP_CARDS) return Promise.resolve();
+    if (!opPromise) opPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'data/onepiece.js'; s.onload = resolve; s.onerror = () => reject(new Error('one piece data failed to load'));
+      document.head.appendChild(s);
+    });
+    return opPromise;
+  }
+  async function fetchOnePieceSet(code) {
+    await ensureOnePiece();
     const all = window.OP_CARDS || [];
     return all.filter((c) => c.set === code && c.id).map((c, i) => ({
       id: `op-${c.id}`, num: parseInt((c.id.split('-')[1] || '').replace(/\D/g, ''), 10) || (i + 1), localId: c.id,

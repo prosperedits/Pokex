@@ -361,31 +361,20 @@ main {
 .card .ph::after { content: ' · image unavailable'; color: var(--text-faint); }
 .card.noimg img { visibility: hidden; }
 .card.noimg .ph { display: flex; }
-/* sealed products are real TCGplayer product photos (white-bg) — frame each as
-   a premium light "product card" so the box/bundle photo reads as intentional,
-   distinct from the dark holographic singles around it. */
-.card.sealed {
-  background: linear-gradient(165deg, #faf7f2 0%, #e6e1e8 58%, #d2cdda 100%);
-  border-radius: 13px;
-  overflow: hidden;
-  box-shadow: 0 22px 46px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.45);
-}
+/* sealed products are transparent cut-out renders — float them frameless with a
+   soft drop-shadow, no white box behind them, like the holographic singles. */
+.card.sealed { background: none; box-shadow: none; overflow: visible; }
 .card.sealed img,
 .card.sealed:hover img,
 .card.sealed.center:hover img {
   object-fit: contain;
-  padding: 9%;
   background: none;
   box-shadow: none;
-  filter: none;
+  filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.6));
 }
-.card.sealed::after { border-radius: 13px; }
-.tilt-card.sealed {
-  background: linear-gradient(165deg, #faf7f2 0%, #e6e1e8 58%, #d2cdda 100%);
-  border-radius: 16px;
-  box-shadow: 0 30px 64px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-}
-.tilt-card.sealed .face-front img { object-fit: contain; padding: 8%; box-shadow: none; }
+.card.sealed::after { display: none; }  /* no plastic-frame sheen on a floating render */
+.tilt-card.sealed { background: none; box-shadow: none; }
+.tilt-card.sealed .face-front img { object-fit: contain; box-shadow: none; filter: drop-shadow(0 26px 44px rgba(0, 0, 0, 0.55)); }
 .tilt-card.sealed .face-back { display: none; }
 /* inspect affordance: a bracket UNDER the focused card, card-edge to
    card-edge, just tall enough for the word; clicks still hit the card */
