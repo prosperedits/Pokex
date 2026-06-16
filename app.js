@@ -244,7 +244,8 @@
   const $ = (id) => document.getElementById(id);
   const wheel = $('wheel'), track = $('track'), rail = $('rail'), ticksBox = $('ticks');
   const capName = $('capName'), capMeta = $('capMeta'), capPrice = $('capPrice'),
-    capRarity = $('capRarity'), counter = $('counter'), capTrend = $('capTrend');
+    capRarity = $('capRarity'), capNumber = $('capNumber'), counter = $('counter'), capTrend = $('capTrend');
+  let focusedCard = null;   // the card centred in the wheel (for the share button)
   const stageGlow = $('stageGlow');
   const zoom = $('zoom'), zoomImg = $('zoomImg'), zoomClose = $('zoomClose');
   const tiltZone = $('tiltZone'), tiltCard = $('tiltCard'), shine = $('shine'), cardFaces = $('cardFaces');
@@ -383,9 +384,10 @@
       // so the swipe reads as one fluid wave instead of stepped keyframes
       const pocket = Math.exp(-(d * d) / 1.1); // wide: smooth depth/tilt/light
       // scale rides a SHARP pocket so only the focused card grows — the field
-      // around it stays at its base size (P: focus decently bigger, rest same)
+      // around it stays smaller (P: focused ~12% bigger, the rest ~10% smaller,
+      // so the centre card clearly dominates)
       const sPocket = Math.exp(-(d * d) / 0.42);
-      const scale = 0.84 + 0.34 * sPocket;
+      const scale = 0.76 + 0.56 * sPocket;
       const bright = 0.58 + 0.42 * pocket;
       // spherical ring: side cards sink a touch, recede in Z, and turn away
       // around Y — one shared vanishing point (perspective lives on .track)
@@ -450,12 +452,12 @@
     else capRarity.style.color = rarityColor(card.rarity);
     const rarityLine = card.sealed ? 'SEALED PRODUCT' : (card.rarity ? card.rarity.toUpperCase() : ' ');
     glowSwap(capRarity, rarityLine);
-    capMeta.replaceChildren();
-    const num = document.createElement('span');
-    num.textContent = card.sealed
+    // the card number now rides the TOP, directly under the rarity (P)
+    capNumber.textContent = card.sealed
       ? (card.sealedMeta.detail || 'sealed product')
-      : `${card.localId}/${String(DATA.set.official).padStart(3, '0')}`;
-    capMeta.appendChild(num);
+      : `${card.localId} / ${String(DATA.set.official).padStart(3, '0')}`;
+    capMeta.replaceChildren();
+    focusedCard = card;
     refreshCapMarks(card);
 
     // the price — big, money-green, counting to its value (the dopamine hit)
@@ -1225,6 +1227,16 @@
         btn.querySelector('.lb').textContent = 'Share';
       }, 1400);
     }).catch(() => { /* clipboard denied — the anchor still right-click-copies */ });
+  });
+  // share the FOCUSED (not inspected) card straight from the caption
+  $('capShare').addEventListener('click', () => {
+    if (!focusedCard) return;
+    const btn = $('capShare'), lbl = btn.querySelector('span');
+    const url = `${location.origin}${location.pathname}?set=${encodeURIComponent(DATA.set.id)}&card=${focusedCard.num}`;
+    navigator.clipboard?.writeText(url).then(() => {
+      btn.classList.add('copied'); lbl.textContent = 'Copied';
+      setTimeout(() => { btn.classList.remove('copied'); lbl.textContent = 'Share'; }, 1400);
+    }).catch(() => {});
   });
 
   // "more cards" gallery view (openGallery/closeGallery hoisted below)

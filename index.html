@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=48">
-<link rel="stylesheet" href="style.css?v=66">
+<link rel="stylesheet" href="style.css?v=67">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -73,14 +73,22 @@
 
   <main>
     <div id="stageGlow" class="stage-glow" aria-hidden="true"></div>
+    <!-- the rarity, then the card number directly beneath it, ride the TOP line -->
     <p id="capRarity" class="cap-rarity-top" aria-hidden="true">&nbsp;</p>
+    <p id="capNumber" class="cap-number-top" aria-hidden="true"></p>
     <section id="wheel" class="wheel" aria-label="Card carousel" aria-roledescription="carousel">
       <div id="track" class="track"></div>
     </section>
 
     <section class="caption" aria-live="polite">
       <h1 id="capName" class="cap-name">&nbsp;</h1>
-      <p id="capMeta" class="cap-meta"></p>
+      <div class="cap-sub">
+        <button type="button" id="capShare" class="cap-share" aria-label="Copy a link to this card" title="Share this card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 14V4"/><path d="M8.5 7.5 12 4l3.5 3.5"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5"/></svg>
+          <span>Share</span>
+        </button>
+        <p id="capMeta" class="cap-meta"></p>
+      </div>
       <div class="cap-price-row">
         <div id="capPrice" class="cap-price"></div>
         <span id="capTrend" class="cap-trend" hidden></span>
@@ -200,6 +208,6 @@
   <script src="data/cards-me04.js"></script>
   <script src="data/sealed.js?v=62"></script>
   <script src="data/set-colors.js?v=63"></script>
-  <script src="app.js?v=65"></script>
+  <script src="app.js?v=67"></script>
 </body>
 </html>

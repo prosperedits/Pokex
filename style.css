@@ -457,22 +457,33 @@ main {
   color: var(--hot-color, var(--ember));
   text-shadow: 0 0 26px color-mix(in srgb, var(--hot-color, var(--ember)) 55%, transparent);
 }
+/* the sub-row under the name: a share button + your ♥◆ marks */
+.cap-sub { display: flex; align-items: center; justify-content: center; gap: var(--s-3); margin-top: var(--s-2); min-height: 24px; }
+.cap-share {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-dim); background: transparent; border: 1px solid transparent; border-radius: 8px;
+  padding: 4px 11px; cursor: pointer;
+  transition: color var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast);
+}
+.cap-share svg { width: 14px; height: 14px; }
+.cap-share:hover { color: var(--spectral-bright); background: rgba(255, 255, 255, 0.05); border-color: color-mix(in srgb, var(--spectral) 38%, transparent); }
+.cap-share.copied { color: var(--money); border-color: color-mix(in srgb, var(--money) 45%, transparent); }
+.cap-share:focus-visible { outline: none; border-color: var(--spectral); box-shadow: 0 0 0 1px color-mix(in srgb, var(--spectral) 40%, transparent); }
 .cap-meta {
-  margin-top: var(--s-2);
   font-family: var(--font-mono);
   font-size: var(--type-small);
   color: var(--text-dim);
   letter-spacing: 0.06em;
-  display: flex;
+  display: inline-flex;
   gap: var(--s-3);
-  justify-content: center;
   align-items: center;
-  flex-wrap: wrap;
 }
+.cap-meta:empty { display: none; }
 /* rarity headline above the wheel — colored per rarity by JS */
 .cap-rarity-top {
   text-align: center;
-  padding: 0 0 var(--s-2);
+  padding: 0 0 4px;
   font-family: var(--font-mono);
   font-size: var(--type-small);
   font-weight: 600;
@@ -480,6 +491,17 @@ main {
   text-transform: uppercase;
   min-height: 20px;
   text-shadow: 0 0 18px color-mix(in srgb, currentColor 45%, transparent);
+}
+/* card number, directly under the rarity — quiet, mono, tabular */
+.cap-number-top {
+  text-align: center;
+  padding: 0 0 var(--s-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  min-height: 14px;
 }
 /* the price — the dopamine hit: large, money-green, glowing on the chase tier */
 /* the money number — a living green: gradient sheen + glow (a little dopamine) */
@@ -680,7 +702,9 @@ main {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: clamp(14px, 3vh, 34px) clamp(20px, 4vw, 60px);
+  /* asymmetric padding (less top, more bottom) floats the whole stack up a touch
+     — P: the card, panel, rarity/number and buttons sat a little low */
+  padding: clamp(8px, 1.6vh, 20px) clamp(20px, 4vw, 60px) clamp(22px, 5.5vh, 60px);
 }
 /* soft dark scrim between the animated holo (edges) and the content (centre) —
    the backdrop stays visibly alive at the periphery, text reads over the middle */
