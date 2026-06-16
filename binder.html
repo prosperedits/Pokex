@@ -89,12 +89,12 @@ body.bank-open .bank-handle { opacity: 0; pointer-events: none; }
 .bank-close:hover { color: var(--text); }
 
 /* TCG chooser */
-.tcg-tabs { display: flex; gap: 5px; margin-bottom: var(--s-3); }
-.tcg-tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--text-dim); background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 8px 2px; cursor: pointer; transition: color .15s, background .15s, border-color .15s; }
-.tcg-tab svg { width: 17px; height: 17px; }
-.tcg-tab:hover { color: var(--text); }
-.tcg-tab.active { color: #fff; background: rgba(127,212,244,0.14); border-color: color-mix(in srgb, var(--spectral) 42%, transparent); }
-.tcg-tab.active svg { color: var(--spectral); }
+.tcg-tabs { display: flex; gap: 6px; margin-bottom: var(--s-3); }
+.tcg-tab { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 48px; background: rgba(255,255,255,0.02); border: 1px solid transparent; border-radius: 9px; padding: 9px 7px; cursor: pointer; opacity: 0.5; transition: opacity .15s, background .15s, border-color .15s; }
+.tcg-tab img { max-width: 100%; max-height: 30px; object-fit: contain; display: block; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
+.tcg-tab:hover { opacity: 0.85; }
+.tcg-tab.active { opacity: 1; background: rgba(127,212,244,0.12); border-color: color-mix(in srgb, var(--spectral) 38%, transparent); }
+.tcg-tab[data-game="onepiece"].active { background: rgba(255,210,40,0.12); border-color: rgba(255,210,40,0.45); }
 
 .bank-controls { display: flex; flex-direction: column; gap: 8px; margin-bottom: var(--s-2); }
 .bank select, .bank input { width: 100%; box-sizing: border-box; font-family: var(--font-mono); font-size: 12px; color: var(--text); background: rgba(20, 18, 29, 0.72); border: 1px solid var(--stage-line); border-radius: 8px; padding: 9px 11px; outline: none; }
@@ -189,12 +189,6 @@ body.bank-open .bank-handle { opacity: 0; pointer-events: none; }
     const usdPrice = (p) => { if (!p) return null; const v = p.usd || p.usd_foil || p.usd_etched; return v ? parseFloat(v) : null; };
     const fmt = (v) => v == null ? '' : (v >= 1000 ? '$' + Math.round(v) : '$' + v.toFixed(2));
 
-    const GLYPH = {
-      pokemon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h6M15 12h6" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.7" fill="currentColor"/></svg>',
-      magic: '<svg viewBox="0 0 24 24"><path d="M12 2l2.5 6.8L21 11l-6.5 2.2L12 20l-2.5-6.8L3 11l6.5-2.2z" fill="currentColor"/></svg>',
-      lorcana: '<svg viewBox="0 0 24 24"><path d="M12 3c1.6 2.7 4.2 3.4 4.2 6.3a4.2 4.2 0 11-8.4 0C7.8 6.4 10.4 5.7 12 3z" fill="currentColor"/></svg>',
-      onepiece: '<svg viewBox="0 0 24 24"><path d="M4.5 14.5C4.5 10.4 7.9 7 12 7s7.5 3.4 7.5 7.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 15.2h18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
-    };
     const POKE_ORDER = ['me04','me03','me02.5','me02','me01','sv10.5w','sv10.5b','sv10','sv09','sv08.5','sv08','sv07','sv06.5','sv06','sv05','sv04.5','sv04','sv03.5','sv03','sv02','sv01'];
     const GAMES = {
       pokemon: { label: 'Pokémon', sets: POKE_ORDER.filter((id) => SETS[id]).map((id) => ({ id, name: SETS[id].set.name })) },
@@ -273,10 +267,10 @@ body.bank-open .bank-handle { opacity: 0; pointer-events: none; }
     const tcgTabs = $('tcgTabs'), setSel = $('setSel'), rarityRow = $('rarityRow'), grid = $('bankGrid');
     const syncState = () => { perGame[game] = { setId: curSet ? curSet.id : '', rarity, query }; };
 
-    tcgTabs.innerHTML = Object.entries(GAMES).map(([g, v]) => `<button class="tcg-tab" data-game="${g}"><span>${GLYPH[g]}</span><span>${v.label}</span></button>`).join('');
+    tcgTabs.innerHTML = Object.entries(GAMES).map(([g, v]) => `<button class="tcg-tab" data-game="${g}" title="${v.label}"><img src="assets/logos/${g}.png" alt="${v.label}"></button>`).join('');
     function fillSets() {
       setSel.innerHTML = '<option value="">Select set…</option><option value="__all__">★ All sets (filter by rarity)</option>'
-        + GAMES[game].sets.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
+        + GAMES[game].sets.map((s) => `<option value="${s.id}">${game === 'onepiece' ? s.code + ' · ' + s.name : s.name}</option>`).join('');
       const st = perGame[game] || {};
       rarity = st.rarity || 'all'; query = st.query || ''; $('bankSearch').value = query;
       setSel.value = st.setId || '';
