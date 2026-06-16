@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=48">
-<link rel="stylesheet" href="style.css?v=65">
+<link rel="stylesheet" href="style.css?v=66">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -39,7 +39,10 @@
     </div>
 
     <div class="chrome-right">
-      <a id="listCounts" class="list-counts" href="collection.html" title="Open your collection" aria-label="Wishlist and collection sizes — open collection page">
+      <input id="search" class="search" type="search" list="cardNames" placeholder="Search" aria-label="Search cards">
+      <datalist id="cardNames"></datalist>
+      <span class="ctrl-div" aria-hidden="true"></span>
+      <a id="listCounts" class="ctrl list-counts" href="collection.html" title="Open your collection" aria-label="Wishlist and collection — open collection">
         <span class="lc-item lc-wish">
           <svg class="lc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20.3C7 16.9 4 13.9 4 10.2 4 7.9 5.8 6 8 6c1.5 0 2.9.8 3.6 2 .7-1.2 2.1-2 3.6-2 2.2 0 4 1.9 4 4.2 0 3.7-3 6.7-8 10.1z"/></svg>
           <span id="wishCount">0</span>
@@ -49,10 +52,15 @@
           <span id="collCount">0</span>
         </span>
       </a>
-      <input id="search" class="search" type="search" list="cardNames" placeholder="search cards" aria-label="Search cards">
-      <datalist id="cardNames"></datalist>
-      <button type="button" id="sealedBtn" class="sealed-btn" aria-haspopup="dialog">sealed</button>
-      <a id="binderBtn" class="sealed-btn" href="binder.html" title="Open your binder">binder</a>
+      <span class="ctrl-div" aria-hidden="true"></span>
+      <button type="button" id="sealedBtn" class="ctrl ctrl-btn" aria-haspopup="dialog">
+        <svg class="ctrl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="3" width="11" height="18" rx="1.6"/><path d="M6.5 7.5h11" stroke-linecap="round"/></svg>
+        <span>Sealed</span>
+      </button>
+      <a id="binderBtn" class="ctrl ctrl-btn" href="binder.html" title="Open your binder">
+        <svg class="ctrl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="1.5"/><path d="M9 3.5v17" stroke-linecap="round"/><path d="M6.6 8h1.1M6.6 12h1.1M6.6 16h1.1" stroke-linecap="round"/></svg>
+        <span>Binder</span>
+      </a>
       <div id="counter" class="counter" aria-hidden="true">001<span>/130</span></div>
     </div>
   </header>
