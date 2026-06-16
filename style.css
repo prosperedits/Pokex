@@ -56,24 +56,79 @@ body {
   will-change: transform, opacity;
 }
 
-/* ---------- Minimap (bottom rail, inset from the edges) ---------- */
-.minimap { flex: none; padding-inline: clamp(110px, 14vw, 210px); }
+/* ---------- Minimap (bottom arc dial, inset from the edges) ----------
+   The heat-bar strip is bent into a shallow concave-up arc that tapers to
+   nothing at both tips; a frosted dial rides the curve and tilts to its
+   tangent. The whole shape is pure CSS off two per-element numbers — a
+   tick's slot (--s) and the dial's 0..1 position (--td) — so it stays
+   responsive with zero resize math. */
+@property --td { syntax: '<number>'; inherits: false; initial-value: 0.5; }
+@property --pop { syntax: '<number>'; inherits: false; initial-value: 1; }
+
+.minimap {
+  flex: none;
+  padding-inline: clamp(110px, 14vw, 210px);
+  --arc-depth: 20px;   /* how far the tapered tips lift above the centre */
+  --arc-rot: 13deg;    /* fan angle of the outermost ticks */
+}
 .rail {
   position: relative;
-  padding: var(--s-2) var(--s-4) var(--s-3); /* >=44px hit area incl. ticks */
+  padding: calc(var(--arc-depth) + var(--s-3)) var(--s-4) var(--s-3); /* room for the lifted tips + >=44px hit area */
   cursor: grab;
   touch-action: none;
   outline: none;
 }
 .rail:active { cursor: grabbing; }
-/* the dial: a frosted-glass knob tracking the current card — big & obvious */
+
+/* the heat strip IS the rail: every bar sits on the arc and fades + shortens
+   toward the tips, so the control tapers to a point at both edges */
+.ticks {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+  height: 18px;
+  overflow: visible;
+  --n: 1;
+}
+.ticks i {
+  flex: 1 1 0;
+  min-width: 1px;
+  --t: calc(var(--s, 0) / max(var(--n) - 1, 1));   /* 0..1 along the strip */
+  --k: calc(2 * var(--t) - 1);                       /* -1 left .. +1 right */
+  --bow: calc(1 - var(--k) * var(--k));             /* 1 centre .. 0 at tips */
+  height: calc(7px + 7px * var(--bow));             /* shorter toward the tips */
+  border-radius: 1px;
+  transform-origin: bottom center;
+  transform:
+    translateY(calc(var(--arc-depth) * (var(--bow) - 1)))  /* tips ride up */
+    rotate(calc(var(--k) * var(--arc-rot)));               /* fan outward */
+  opacity: calc(0.32 + 0.5 * var(--bow));           /* fade -> tapered ends */
+  transition: height var(--dur-fast) var(--ease-snap), opacity var(--dur-fast) linear;
+}
+.ticks i.cur {
+  height: 18px;
+  opacity: 1;
+  box-shadow: 0 0 10px currentColor, 0 0 22px currentColor;
+}
+.rail:hover .ticks i { opacity: calc(0.55 + 0.45 * var(--bow)); }
+.rail:hover .ticks i.cur { opacity: 1; }
+.rail:focus-visible .ticks { outline: 1px solid var(--spectral); outline-offset: 6px; border-radius: 3px; }
+
+/* the dial: a frosted-glass knob that tracks the current card along the arc */
 .rail-thumb {
   position: absolute;
   top: 50%;
   left: 0;
   width: 30px;
   height: 42px;
-  transform: translate(-50%, -50%);
+  --k: calc(2 * var(--td) - 1);
+  --bow: calc(1 - var(--k) * var(--k));
+  --lift: calc(var(--arc-depth) * (1 - var(--bow)));   /* same arc as the ticks */
+  transform:
+    translate(-50%, calc(-50% - var(--lift)))
+    rotate(calc(var(--k) * var(--arc-rot) * 0.55))       /* gentle tangent tilt */
+    scale(var(--pop));
+  transform-origin: center bottom;
   border-radius: 9px;
   background: rgba(237, 234, 244, 0.12);
   backdrop-filter: blur(9px) saturate(1.5);
@@ -85,7 +140,9 @@ body {
     0 4px 18px rgba(0, 0, 0, 0.55),
     0 0 22px rgba(127, 212, 244, 0.4);
   pointer-events: none;
-  transition: left 120ms linear, box-shadow var(--dur-fast), transform var(--dur-fast);
+  transition: left 120ms linear, --td 120ms linear,
+              --pop var(--dur-fast) var(--ease-snap),
+              box-shadow var(--dur-fast);
 }
 /* grip lines so it reads as a physical, grabbable knob */
 .rail-thumb::after {
@@ -102,29 +159,13 @@ body {
   opacity: 0.8;
 }
 .rail:hover .rail-thumb {
+  --pop: 1.06;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.6),
     0 4px 22px rgba(0, 0, 0, 0.6),
     0 0 30px rgba(127, 212, 244, 0.65);
-  transform: translate(-50%, -50%) scale(1.06);
 }
-.rail:active .rail-thumb { transform: translate(-50%, -50%) scale(1.12); }
-.rail:focus-visible .ticks { outline: 1px solid var(--spectral); outline-offset: 4px; border-radius: 2px; }
-.ticks { display: flex; gap: 2px; align-items: flex-end; height: 18px; }
-.ticks i {
-  flex: 1 1 0;
-  min-width: 1px;
-  height: 10px;
-  border-radius: 1px;
-  opacity: 0.85;
-  transition: height var(--dur-fast) var(--ease-snap), opacity var(--dur-fast) linear;
-}
-.ticks i.cur {
-  height: 18px;
-  opacity: 1;
-  box-shadow: 0 0 10px currentColor, 0 0 22px currentColor;
-}
-.rail:hover .ticks i { opacity: 1; }
+.rail:active .rail-thumb { --pop: 1.12; }
 
 /* ---------- Header chrome ---------- */
 .chrome {
@@ -1360,7 +1401,7 @@ main {
 
 /* ---------- Narrow viewports: zoom becomes column + bottom sheet ---------- */
 @media (max-width: 1023px) {
-  .minimap { padding-inline: var(--s-5); }
+  .minimap { padding-inline: var(--s-5); --arc-depth: 13px; --arc-rot: 10deg; }
   .search { display: none; }
   .zoom-body {
     flex-direction: column;
@@ -1393,6 +1434,7 @@ main {
    Driven by html.motion-reduced / html.motion-full set in JS (one resolved
    state for CSS and JS; ?motion=full overrides the OS preference for both). */
 html.motion-reduced .ticks i,
+html.motion-reduced .rail-thumb,
 html.motion-reduced .zoom-close,
 html.motion-reduced .stage-glow,
 html.motion-reduced .card img { transition: none; }
@@ -1421,17 +1463,40 @@ body.home-open .chrome, body.home-open main, body.home-open .minimap, body.home-
 .get-started:hover { transform: translateY(-2px); box-shadow: 0 22px 52px rgba(127,212,244,0.46); }
 .get-started:hover span { transform: translateX(4px); }
 
-/* pick view */
-.pick-prompt { position: relative; font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 3vw, 40px); letter-spacing: 0.01em; color: #fff; margin-bottom: clamp(28px, 5vh, 58px); }
-.pick-cards { display: flex; gap: clamp(14px, 2.4vw, 42px); align-items: center; justify-content: center; perspective: 1400px; transform-style: preserve-3d; flex-wrap: wrap; }
-.pick-card { position: relative; width: clamp(150px, 16vw, 234px); aspect-ratio: 734/1024; border-radius: 16px; background: var(--grad); border: 1px solid rgba(255,255,255,0.18); cursor: pointer; overflow: hidden; padding: 0;
-  display: flex; align-items: center; justify-content: center; transform-style: preserve-3d; will-change: transform, filter, opacity;
-  box-shadow: 0 36px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.2); transition: transform 0.25s var(--ease-snap), box-shadow 0.25s; }
-.pick-card .pc-sheen { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen;
-  background: linear-gradient(125deg, rgba(255,255,255,0.32), transparent 30%, transparent 70%, rgba(255,255,255,0.14)); }
-.pick-card img { position: relative; z-index: 2; width: 78%; max-height: 46%; object-fit: contain; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.8)); }
-.pick-card:hover { transform: translateY(-14px) scale(1.05); box-shadow: 0 52px 92px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.4), 0 0 64px rgba(255,255,255,0.18); }
-.pick-card:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
-.pick-back { position: relative; margin-top: clamp(26px, 5vh, 54px); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); background: none; border: none; cursor: pointer; }
+/* pick a universe — bare logos floating in 3D (no cards) */
+.hv-pick { perspective: 1300px; }
+.pick-prompt { position: relative; font-family: var(--font-display); font-weight: 700; font-size: clamp(20px, 2.6vw, 36px); letter-spacing: 0.01em; color: #fff; margin-bottom: clamp(30px, 6vh, 72px); }
+.pick-logos { display: flex; gap: clamp(14px, 2.6vw, 66px); align-items: center; justify-content: center; flex-wrap: nowrap; transform-style: preserve-3d; }
+.pick-logo {
+  --z: 0px; position: relative; min-width: 0; background: none; border: none; cursor: pointer; padding: clamp(10px, 1.3vw, 24px);
+  display: flex; align-items: center; justify-content: center; transform-style: preserve-3d;
+  will-change: transform, filter, opacity; animation: logoFloat 6.5s ease-in-out infinite;
+}
+.pick-logo:nth-child(1) { --z: -38px; } .pick-logo:nth-child(2) { --z: 10px; animation-delay: -1.6s; }
+.pick-logo:nth-child(3) { --z: 10px; animation-delay: -3.2s; } .pick-logo:nth-child(4) { --z: -38px; animation-delay: -4.8s; }
+@keyframes logoFloat { 0%, 100% { transform: translateZ(var(--z)) translateY(0); } 50% { transform: translateZ(var(--z)) translateY(-10px); } }
+.pl-glow { position: absolute; inset: -22% -12%; border-radius: 50%; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 55%, transparent), transparent 68%); filter: blur(26px); }
+.pick-logo img { width: clamp(120px, 14vw, 292px); max-height: clamp(72px, 11vh, 152px); object-fit: contain;
+  filter: drop-shadow(0 12px 34px rgba(0,0,0,0.62)); transition: transform 0.32s var(--ease-snap), filter 0.32s; }
+.pick-logo:hover img { transform: translateZ(60px) scale(1.09); filter: drop-shadow(0 22px 48px rgba(0,0,0,0.7)) drop-shadow(0 0 28px color-mix(in srgb, var(--accent) 65%, transparent)); }
+.pick-logo:hover .pl-glow { opacity: 1; }
+.pick-logo:focus-visible { outline: none; }
+.pick-logo:focus-visible .pl-glow { opacity: 0.7; }
+
+/* set selector */
+.set-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(188px, 1fr)); gap: 12px; width: min(92vw, 1000px); max-height: 60vh; overflow-y: auto; padding: 4px; scrollbar-width: thin; }
+.set-pick { display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left;
+  padding: 15px 16px; border-radius: 12px; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--stage-line);
+  transition: background 0.16s, border-color 0.16s, transform 0.16s; }
+.set-pick:hover { background: rgba(255, 255, 255, 0.06); border-color: color-mix(in srgb, var(--accent, var(--spectral)) 50%, transparent); transform: translateY(-2px); }
+.sp-name { font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--text); }
+.set-pick:hover .sp-name { color: #fff; }
+.sp-count { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); background: rgba(255, 255, 255, 0.05); padding: 2px 8px; border-radius: 999px; flex: none; }
+.pick-back { position: relative; margin-top: clamp(22px, 4vh, 42px); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); background: none; border: none; cursor: pointer; }
 .pick-back:hover { color: var(--text); }
-@media (max-width: 720px) { .pick-card { width: 38vw; } }
+@media (max-width: 640px) {
+  .pick-logos { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 26px; }
+  .pick-logo img { width: 34vw; max-height: 15vh; }
+  .set-grid { grid-template-columns: 1fr 1fr; }
+}

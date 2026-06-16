@@ -2086,20 +2086,24 @@
   }
   setTimeout(() => { prefetchChain(); prefetchChain(); prefetchChain(); }, 1500);
 
-  // --- HOME: hero → "Get started" → a "Pick one" spread of game cards that fly
-  // in from 3D space (GSAP). Each card carries its game logo + colour; click to
-  // enter that universe.
+  // --- HOME: hero → "Get started" → pick a GAME (bare logos floating in 3D) →
+  // pick a SET → drop into that set on its first card. GSAP for every transition.
   const homeEl = $('home'), homeScroll = $('homeScroll');
   const HOME_GAMES = [
-    { game: 'pokemon', name: 'Pokémon', grad: 'linear-gradient(158deg,#ff6a4d,#c0240f 58%,#5c0d05)' },
-    { game: 'magic', name: 'Magic: The Gathering', grad: 'linear-gradient(158deg,#9a5cff,#4a1d8e 58%,#1f0b3e)' },
-    { game: 'lorcana', name: 'Disney Lorcana', grad: 'linear-gradient(158deg,#3aa6ff,#1c4fb0 56%,#0e2456)' },
-    { game: 'onepiece', name: 'One Piece', grad: 'linear-gradient(158deg,#ffb13d,#e0682f 52%,#6e1d10)' },
+    { game: 'pokemon', name: 'Pokémon', accent: '#ffcb05' },
+    { game: 'magic', name: 'Magic: The Gathering', accent: '#e8943b' },
+    { game: 'lorcana', name: 'Disney Lorcana', accent: '#7fd4f4' },
+    { game: 'onepiece', name: 'One Piece', accent: '#ff5b4d' },
   ];
-  let homeBuilt = false;
+  function setsForGame(game) {
+    if (game === 'pokemon') return SET_GROUPS.flatMap((grp) => grp.ids.filter((id) => SETS[id]).map((id) => ({ id, name: SETS[id].set.name, count: SETS[id].set.total })));
+    const g = GAME_SETS.find((x) => x.game === game);
+    return g ? g.sets.map((s) => ({ id: s.id, name: s.name, code: s.code })) : [];
+  }
+  let homeBuilt = false, pickGame = 'pokemon';
   function buildHome() {
     if (homeBuilt) return; homeBuilt = true;
-    homeScroll.innerHTML = `<div class="home-stage">
+    homeScroll.innerHTML = `<div class="home-stage" id="homeStageEl">
         <div class="hv hv-hero" id="hvHero">
           <div class="hero-glow" aria-hidden="true"></div>
           <p class="hero-kicker">P&reg; Cards</p>
@@ -2108,50 +2112,86 @@
           <button type="button" class="get-started" id="getStarted">Get started <span aria-hidden="true">&rarr;</span></button>
         </div>
         <div class="hv hv-pick" id="hvPick" hidden>
-          <p class="pick-prompt">Pick one</p>
-          <div class="pick-cards" id="pickCards">${HOME_GAMES.map((g) => `<button type="button" class="pick-card" data-game="${g.game}" style="--grad:${g.grad}" aria-label="Enter ${g.name}"><span class="pc-sheen" aria-hidden="true"></span><img src="assets/logos/${g.game}.png" alt="${g.name}"></button>`).join('')}</div>
-          <button type="button" class="pick-back" id="pickBack">&larr; back</button>
+          <p class="pick-prompt">Pick a universe</p>
+          <div class="pick-logos" id="pickLogos">${HOME_GAMES.map((g) => `<button type="button" class="pick-logo" data-game="${g.game}" style="--accent:${g.accent}" aria-label="${g.name}"><span class="pl-glow" aria-hidden="true"></span><img src="assets/logos/${g.game}.png?v=69" alt="${g.name}"></button>`).join('')}</div>
+        </div>
+        <div class="hv hv-sets" id="hvSets" hidden>
+          <p class="pick-prompt" id="setsTitle">Choose a set</p>
+          <div class="set-grid" id="setGrid"></div>
+          <button type="button" class="pick-back" id="setsBack">&larr; universes</button>
         </div>
       </div>`;
-    $('pickCards').addEventListener('click', (e) => { const b = e.target.closest('[data-game]'); if (b) enterGame(b.dataset.game); });
+    $('pickLogos').addEventListener('click', (e) => { const b = e.target.closest('[data-game]'); if (b) goSets(b.dataset.game); });
     $('getStarted').addEventListener('click', goPick);
-    $('pickBack').addEventListener('click', goHero);
+    $('setsBack').addEventListener('click', () => switchView('hvSets', 'hvPick'));
+    $('setGrid').addEventListener('click', (e) => { const b = e.target.closest('[data-set]'); if (b) enterSet(pickGame, b.dataset.set); });
+    initHomeParallax();
   }
-  function enterGame(game) {
-    hideHome();
-    if (game === 'pokemon') { if (DATA.set.external) loadSet(HOME_SET); }
-    else if (game === 'magic') loadExternalSet('mtg-fin');
-    else if (game === 'lorcana') loadExternalSet('lor-1');
-    else if (game === 'onepiece') loadExternalSet('op-OP01');
+  // generic crossfade/scale between two home views
+  function switchView(fromId, toId, build) {
+    const from = $(fromId), to = $(toId);
+    const reveal = () => { from.hidden = true; if (build) build(); to.hidden = false;
+      if (window.gsap && !REDUCED) gsap.fromTo(to, { opacity: 0, scale: 0.96, filter: 'blur(12px)' }, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.55, ease: 'power3.out', clearProps: 'filter' }); };
+    if (!window.gsap || REDUCED) { reveal(); return; }
+    gsap.to(from, { opacity: 0, scale: 0.94, filter: 'blur(14px)', duration: 0.34, ease: 'power2.in', onComplete: () => { gsap.set(from, { clearProps: 'opacity,scale,filter' }); reveal(); } });
   }
   function goPick() {
     const hero = $('hvHero'), pick = $('hvPick');
     if (!window.gsap || REDUCED) { hero.hidden = true; pick.hidden = false; return; }
     const tl = gsap.timeline();
     tl.to(hero, { opacity: 0, scale: 0.9, filter: 'blur(16px)', duration: 0.5, ease: 'power2.in' });
-    tl.add(() => { hero.hidden = true; pick.hidden = false; });
-    tl.fromTo('.pick-prompt', { opacity: 0, y: -18 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' });
-    const cards = pick.querySelectorAll('.pick-card');
-    cards.forEach((c, i) => {   // fly in from 3D, alternating sides
-      tl.fromTo(c, { z: -1500, x: (i % 2 ? 1 : -1) * 460, rotateY: (i % 2 ? 1 : -1) * 42, opacity: 0, filter: 'blur(22px)' },
-        { z: 0, x: 0, rotateY: 0, opacity: 1, filter: 'blur(0px)', duration: 0.9, ease: 'power3.out' }, i === 0 ? '<' : '<0.14');
+    tl.add(() => { hero.hidden = true; gsap.set(hero, { clearProps: 'opacity,scale,filter' }); pick.hidden = false; });
+    tl.fromTo('.hv-pick .pick-prompt', { opacity: 0, y: -18 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' });
+    const logos = pick.querySelectorAll('.pick-logo');
+    logos.forEach((c, i) => {   // each logo flies AT the camera from deep 3D, alternating sides
+      tl.fromTo(c, { z: -1600, x: (i % 2 ? 1 : -1) * 380, rotateY: (i % 2 ? 1 : -1) * 36, opacity: 0, filter: 'blur(20px)' },
+        { z: 0, x: 0, rotateY: 0, opacity: 1, filter: 'blur(0px)', duration: 0.85, ease: 'power3.out' }, i === 0 ? '<0.1' : '<0.13');
     });
-    tl.set(cards, { clearProps: 'transform,filter' });   // free the CSS :hover lift
-    tl.fromTo('.pick-back', { opacity: 0 }, { opacity: 1, duration: 0.45 }, '>-0.4');
+    tl.set(logos, { clearProps: 'transform,filter' });
   }
-  function goHero() {
-    const hero = $('hvHero'), pick = $('hvPick');
-    if (!window.gsap || REDUCED) { pick.hidden = true; hero.hidden = false; return; }
-    gsap.to(pick, { opacity: 0, duration: 0.32, ease: 'power2.in', onComplete: () => {
-      pick.hidden = true; gsap.set(pick, { clearProps: 'opacity' }); hero.hidden = false;
-      gsap.fromTo(hero, { opacity: 0, scale: 0.97, filter: 'blur(10px)' }, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.6, ease: 'power2.out' });
-    } });
+  function goSets(game) {
+    pickGame = game;
+    switchView('hvPick', 'hvSets', () => {
+      const sets = setsForGame(game);
+      $('setsTitle').textContent = (HOME_GAMES.find((g) => g.game === game)?.name || '') + ' — choose a set';
+      $('hvSets').style.setProperty('--accent', HOME_GAMES.find((g) => g.game === game)?.accent || '#7fd4f4');
+      $('setGrid').innerHTML = sets.map((s) => `<button type="button" class="set-pick" data-set="${s.id}"><span class="sp-name">${s.name}</span>${s.count ? `<span class="sp-count">${s.count}</span>` : ''}</button>`).join('');
+      if (window.gsap && !REDUCED) gsap.fromTo('#setGrid .set-pick', { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.025, delay: 0.1 });
+    });
+  }
+  function goHero() { switchView('hvPick', 'hvHero'); }
+  async function enterSet(game, setId) {
+    hideHome();
+    if (game === 'pokemon') { loadSet(setId); landOnFirstCard(); }
+    else { await loadExternalSet(setId); landOnFirstCard(); }
+  }
+  // drop the wheel on the set's FIRST card (lowest collector number), not the priciest
+  function landOnFirstCard() {
+    let bestCi = -1, bestNum = Infinity;
+    for (let i = 0; i < CARDS.length; i++) {
+      const c = CARDS[i]; if (c.sealed) continue;
+      const n = typeof c.num === 'number' ? c.num : parseInt(c.localId, 10);
+      if (n != null && !isNaN(n) && n < bestNum) { bestNum = n; bestCi = i; }
+    }
+    if (bestCi < 0 || slotOf[bestCi] == null) return;
+    position = target = slotOf[bestCi]; velocity = 0; mode = 'idle'; current = -1; render(true);
+  }
+  // mouse-parallax: the floating logos tilt with the cursor, giving real depth
+  let homeParallax = false;
+  function initHomeParallax() {
+    if (homeParallax) return; homeParallax = true;
+    const stage = $('pickLogos');
+    homeScroll.addEventListener('pointermove', (e) => {
+      if ($('hvPick').hidden || !window.gsap || REDUCED) return;
+      const rx = (e.clientY / innerHeight - 0.5) * -10, ry = (e.clientX / innerWidth - 0.5) * 14;
+      gsap.to(stage, { rotateX: rx, rotateY: ry, duration: 0.6, ease: 'power2.out' });
+    });
   }
   function showHome() {
     homeEl.hidden = false;
     document.body.classList.add('home-open');
     buildHome();
-    $('hvHero').hidden = false; $('hvPick').hidden = true;
+    $('hvHero').hidden = false; $('hvPick').hidden = true; $('hvSets').hidden = true;
     if (window.gsap && !REDUCED) {
       gsap.set('#hvHero', { clearProps: 'opacity,scale,filter' });
       gsap.fromTo('.hv-hero .hero-kicker', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out', delay: 0.1 });
