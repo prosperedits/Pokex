@@ -844,6 +844,51 @@ main {
   z-index: 4; /* above the scan + the shine */
 }
 .card-fx[hidden] { display: none; }
+
+/* ---- Inspect dossier: the left-popping half-wheel (Type/Trend/Set/Rarity) ---- */
+.dossier {
+  position: absolute;
+  left: clamp(8px, 2vw, 40px);
+  top: 50%;
+  width: min(58vw, 780px);
+  transform: translateY(-50%);
+  transform-origin: left center;
+  perspective: 1300px;
+  z-index: 6;
+  pointer-events: none;
+  filter: drop-shadow(0 26px 60px rgba(0, 0, 0, 0.55));
+}
+.dossier[hidden] { display: none; }
+.dossier-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.dos-wedge { stroke: rgba(255, 255, 255, 0.18); stroke-width: 1; }
+.dos-w0 { fill: rgba(127, 212, 244, 0.34); }
+.dos-w1 { fill: rgba(110, 170, 242, 0.46); }
+.dos-w2 { fill: rgba(104, 140, 236, 0.58); }
+.dos-w3 { fill: rgba(120, 104, 232, 0.70); }
+.dos-icon { color: rgba(255, 255, 255, 0.94); }
+.dos-conn { stroke: rgba(255, 255, 255, 0.30); stroke-width: 1; fill: none; stroke-dasharray: 2 3; }
+.dos-badge { fill: rgba(10, 9, 16, 0.6); stroke: var(--spectral); stroke-width: 1.3; }
+.dos-letter { fill: var(--spectral); font-family: var(--font-mono); font-size: 13px; font-weight: 700; text-anchor: middle; }
+.dos-title { fill: var(--text-faint); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; }
+.dos-value {
+  fill: #fff;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: rgba(5, 4, 9, 0.55);
+  stroke-width: 2.4px;
+}
+.dos-value[data-dir="up"] { fill: #ffd470; }
+.dos-value[data-dir="down"] { fill: var(--phantom-bright); }
+.dos-hub-ring { fill: rgba(8, 7, 14, 0.5); stroke: rgba(255, 255, 255, 0.4); stroke-width: 2; }
+/* when the dossier is up, slide the card + panel right so the wheel owns the left */
+.zoom.has-dossier .z-stage { padding-left: min(38vw, 500px); }
+/* not enough room for the wheel + card + panel below this width: drop the wheel */
+@media (max-width: 1000px) {
+  .dossier { display: none; }
+  .zoom.has-dossier .z-stage { padding-left: 0; }
+}
 /* the data, EDITORIAL: no boxes — a clean typographic column beside the card.
    Hairline rules separate sections; the price is the hero. */
 .zoom-panel {

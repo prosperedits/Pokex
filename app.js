@@ -1054,6 +1054,7 @@
     buildTitle(card);
     buildRarity(card);
     applyCardFx(card);
+    updateDossier(card);
     holoSetTint(rarityColor(card.rarity));
   }
   function resetZoomScene() {
@@ -1063,7 +1064,152 @@
     zTitle.replaceChildren();
     zRarity.textContent = '';
     const fx = $('cardFx'); fx.hidden = true; fx.style.opacity = '0'; fx.style.backgroundImage = '';
+    resetDossier();
     closeGallery(); // next open starts on the card, not the gallery
+  }
+
+  // --- Inspect DOSSIER: a half-wheel that fans out from the left with 4 facts
+  // (Type / Trend / Set / Rarity) and a DIFFERENT picture of the Pokemon in the
+  // hub — PokeAPI official artwork, not the card art. SVG for crisp wedges/text,
+  // GSAP for the pop-out, sitting inside the three.js holographic inspect.
+  const dossierEl = $('dossier');
+  const D2R = Math.PI / 180;
+  const DOS = { C: [112, 230], ri: 90, R: 222, hub: 98 };
+  const dosPt = (r, deg) => [DOS.C[0] + r * Math.cos(deg * D2R), DOS.C[1] - r * Math.sin(deg * D2R)];
+  function dosWedge(a1, a2) {
+    const [ox1, oy1] = dosPt(DOS.R, a1), [ox2, oy2] = dosPt(DOS.R, a2);
+    const [ix2, iy2] = dosPt(DOS.ri, a2), [ix1, iy1] = dosPt(DOS.ri, a1);
+    const f = (n) => n.toFixed(1);
+    return `M ${f(ix1)} ${f(iy1)} L ${f(ox1)} ${f(oy1)} A ${DOS.R} ${DOS.R} 0 0 0 ${f(ox2)} ${f(oy2)} `
+         + `L ${f(ix2)} ${f(iy2)} A ${DOS.ri} ${DOS.ri} 0 0 1 ${f(ix1)} ${f(iy1)} Z`;
+  }
+  const DOS_ICONS = {
+    magnifier: '<circle cx="11" cy="11" r="6"/><path d="m20 20-4.4-4.4"/>',
+    bulb: '<path d="M9.5 18h5M10.5 21h3M12 3a6 6 0 0 0-3.8 10.6c.7.6 1.3 1.4 1.3 2.4h5c0-1 .6-1.8 1.3-2.4A6 6 0 0 0 12 3z"/>',
+    doc: '<path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
+    chart: '<path d="M4 19h16M7 15l3-4 3 2 4-6"/>',
+  };
+  const DOS_SECTIONS = [
+    { key: 'type',   letter: 'A', mid: 67.5,  a1: 90,  a2: 45,  icon: 'magnifier', title: 'Type' },
+    { key: 'trend',  letter: 'B', mid: 22.5,  a1: 45,  a2: 0,   icon: 'bulb',      title: 'Trend' },
+    { key: 'set',    letter: 'C', mid: -22.5, a1: 0,   a2: -45, icon: 'doc',       title: 'Set' },
+    { key: 'rarity', letter: 'D', mid: -67.5, a1: -45, a2: -90, icon: 'chart',     title: 'Rarity' },
+  ];
+  const XLINK = 'http://www.w3.org/2000/svg';
+  let dosRefs = null, dosGen = 0;
+  function buildDossierShell() {
+    const svg = document.createElementNS(XLINK, 'svg');
+    svg.setAttribute('viewBox', '0 0 740 460');
+    svg.setAttribute('class', 'dossier-svg');
+    svg.innerHTML = `<defs><clipPath id="dosHubClip"><circle cx="${DOS.C[0]}" cy="${DOS.C[1]}" r="${DOS.hub - 9}"/></clipPath></defs>`;
+    const labelX = 392, labelY = [70, 180, 290, 400], refs = { values: {} };
+    DOS_SECTIONS.forEach((s, i) => {
+      const p = document.createElementNS(XLINK, 'path');
+      p.setAttribute('d', dosWedge(s.a1, s.a2));
+      p.setAttribute('class', `dos-wedge dos-w${i}`);
+      svg.appendChild(p);
+    });
+    DOS_SECTIONS.forEach((s, i) => {
+      const [ox, oy] = dosPt(DOS.R, s.mid), ly = labelY[i];
+      const line = document.createElementNS(XLINK, 'path');
+      line.setAttribute('d', `M ${ox.toFixed(1)} ${oy.toFixed(1)} L ${labelX - 18} ${ly}`);
+      line.setAttribute('class', 'dos-conn');
+      svg.appendChild(line);
+      const badge = document.createElementNS(XLINK, 'circle');
+      badge.setAttribute('cx', labelX); badge.setAttribute('cy', ly); badge.setAttribute('r', 13);
+      badge.setAttribute('class', 'dos-badge');
+      const letter = document.createElementNS(XLINK, 'text');
+      letter.setAttribute('x', labelX); letter.setAttribute('y', ly + 4.5);
+      letter.setAttribute('class', 'dos-letter'); letter.textContent = s.letter;
+      const title = document.createElementNS(XLINK, 'text');
+      title.setAttribute('x', labelX + 26); title.setAttribute('y', ly - 6);
+      title.setAttribute('class', 'dos-title'); title.textContent = s.title.toUpperCase();
+      const value = document.createElementNS(XLINK, 'text');
+      value.setAttribute('x', labelX + 26); value.setAttribute('y', ly + 15);
+      value.setAttribute('class', 'dos-value'); value.textContent = '—';
+      refs.values[s.key] = value;
+      svg.append(badge, letter, title, value);
+    });
+    DOS_SECTIONS.forEach((s) => {
+      const [ix, iy] = dosPt((DOS.ri + DOS.R) / 2, s.mid);
+      const g = document.createElementNS(XLINK, 'g');
+      g.setAttribute('class', 'dos-icon');
+      g.setAttribute('transform', `translate(${(ix - 12).toFixed(1)} ${(iy - 12).toFixed(1)})`);
+      g.innerHTML = `<g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${DOS_ICONS[s.icon]}</g>`;
+      svg.appendChild(g);
+    });
+    const ring = document.createElementNS(XLINK, 'circle');
+    ring.setAttribute('cx', DOS.C[0]); ring.setAttribute('cy', DOS.C[1]); ring.setAttribute('r', DOS.hub);
+    ring.setAttribute('class', 'dos-hub-ring');
+    const img = document.createElementNS(XLINK, 'image');
+    img.setAttribute('x', DOS.C[0] - (DOS.hub - 9)); img.setAttribute('y', DOS.C[1] - (DOS.hub - 9));
+    img.setAttribute('width', (DOS.hub - 9) * 2); img.setAttribute('height', (DOS.hub - 9) * 2);
+    img.setAttribute('clip-path', 'url(#dosHubClip)');
+    img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    img.setAttribute('class', 'dos-hub-img');
+    refs.hubImg = img;
+    svg.append(ring, img);
+    dossierEl.appendChild(svg);
+    return refs;
+  }
+  const setDosImg = (url) => {
+    if (!dosRefs || !url) return;
+    dosRefs.hubImg.setAttribute('href', url);
+    dosRefs.hubImg.setAttributeNS('http://www.w3.org/1999/xlink', 'href', url);
+  };
+  const pokeArtCache = new Map();
+  function speciesSlug(name) {
+    return name.replace(/^Mega\s+/i, '')
+      .replace(/\s+(?:ex|gx|v|vmax|vstar|v-?union|prime|break)$/i, '')
+      .replace(/\s+[XY]$/i, '')
+      .trim().toLowerCase().replace(/[.'’:]/g, '').replace(/\s+/g, '-');
+  }
+  function pokeArt(card) {
+    const slug = speciesSlug(card.name);
+    if (pokeArtCache.has(slug)) return Promise.resolve(pokeArtCache.get(slug));
+    return fetch(`https://pokeapi.co/api/v2/pokemon/${slug}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        const url = j?.sprites?.other?.['official-artwork']?.front_default || null;
+        pokeArtCache.set(slug, url);
+        return url;
+      })
+      .catch(() => { pokeArtCache.set(slug, null); return null; });
+  }
+  function updateDossier(card) {
+    if (!dosRefs) dosRefs = buildDossierShell();
+    const isPokemon = !card.sealed && Array.isArray(card.types) && card.types.length > 0;
+    if (!isPokemon) { resetDossier(); return; } // only Pokemon get a species dossier
+    dosRefs.values.type.textContent = card.types.join(' · ');
+    const tp = monthTrendPct(card), tv = dosRefs.values.trend;
+    if (tp == null) { tv.textContent = 'No data'; tv.removeAttribute('data-dir'); }
+    else {
+      tv.textContent = `${tp >= 0 ? '+' : ''}${Math.round(tp)}%`;
+      tv.setAttribute('data-dir', tp >= TREND_THRESHOLD ? 'up' : tp <= -5 ? 'down' : 'flat');
+    }
+    dosRefs.values.set.textContent = DATA.set.name;
+    dosRefs.values.rarity.textContent = card.rarity || '—';
+    setDosImg(card.image ? safeImg(card.image + '/low.webp') : ''); // placeholder = card art
+    const gen = ++dosGen;
+    pokeArt(card).then((url) => { if (gen === dosGen) setDosImg(url); }); // swap to the species render
+    dossierEl.hidden = false;
+    dossierEl.setAttribute('aria-hidden', 'false');
+    zoom.classList.add('has-dossier'); // shifts the card+panel right to clear the wheel
+    if (window.gsap && !REDUCED) {
+      gsap.killTweensOf(dossierEl);
+      sceneTweens.push(gsap.fromTo(dossierEl,
+        { xPercent: -55, opacity: 0, rotationY: 32 },
+        { xPercent: 0, opacity: 1, rotationY: 0, duration: 0.9, ease: 'power3.out', delay: 0.12 }));
+    } else { dossierEl.style.opacity = '1'; }
+  }
+  function resetDossier() {
+    dosGen++;
+    if (!dossierEl) return;
+    if (window.gsap) gsap.killTweensOf(dossierEl);
+    dossierEl.hidden = true;
+    dossierEl.style.opacity = '0';
+    dossierEl.setAttribute('aria-hidden', 'true');
+    zoom.classList.remove('has-dossier');
   }
 
   // --- three.js holographic animated backdrop --------------------------------
