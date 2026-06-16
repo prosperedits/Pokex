@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=25">
-<link rel="stylesheet" href="style.css?v=44">
+<link rel="stylesheet" href="style.css?v=45">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -40,8 +40,14 @@
 
     <div class="chrome-right">
       <a id="listCounts" class="list-counts" href="collection.html" title="Open your collection" aria-label="Wishlist and collection sizes — open collection page">
-        <span id="wishCount">♥ 0</span>
-        <span id="collCount">◆ 0</span>
+        <span class="lc-item lc-wish">
+          <svg class="lc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20.3C7 16.9 4 13.9 4 10.2 4 7.9 5.8 6 8 6c1.5 0 2.9.8 3.6 2 .7-1.2 2.1-2 3.6-2 2.2 0 4 1.9 4 4.2 0 3.7-3 6.7-8 10.1z"/></svg>
+          <span id="wishCount">0</span>
+        </span>
+        <span class="lc-item lc-coll">
+          <svg class="lc-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M12 4l8 4-8 4-8-4 8-4z"/><path d="M4 12l8 4 8-4M4 16l8 4 8-4"/></svg>
+          <span id="collCount">0</span>
+        </span>
       </a>
       <input id="search" class="search" type="search" list="cardNames" placeholder="search cards" aria-label="Search cards">
       <datalist id="cardNames"></datalist>
@@ -60,7 +66,10 @@
     <section class="caption" aria-live="polite">
       <h1 id="capName" class="cap-name">&nbsp;</h1>
       <p id="capMeta" class="cap-meta"></p>
-      <div id="capPrice" class="cap-price"></div>
+      <div class="cap-price-row">
+        <div id="capPrice" class="cap-price"></div>
+        <span id="capTrend" class="cap-trend" hidden></span>
+      </div>
       <p class="hint" aria-hidden="true">scroll · drag · arrow keys · enter to inspect</p>
     </section>
   </main>
@@ -148,7 +157,7 @@
     </div>
   </footer>
 
-  <script src="layout-constants.js?v=44"></script>
+  <script src="layout-constants.js?v=45"></script>
   <script src="vendor/three.min.js"></script>
   <script src="vendor/gsap.min.js"></script>
   <script src="data/cards-sv01.js"></script>
@@ -173,6 +182,6 @@
   <script src="data/cards-me03.js"></script>
   <script src="data/cards-me04.js"></script>
   <script src="data/sealed.js"></script>
-  <script src="app.js?v=44"></script>
+  <script src="app.js?v=45"></script>
 </body>
 </html>

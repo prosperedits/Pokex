@@ -57,6 +57,16 @@
              : safeImg((set && set.logo ? set.logo : '') + '.png');
   };
 
+  // month-over-month price move: how far the current (avg1) sits above the
+  // 30-day average. Drives the "TRENDING" stamp (>= +10% in the last month).
+  function monthTrendPct(card) {
+    const cm = card && card.cardmarket;
+    if (!cm || typeof cm.avg1 !== 'number' || typeof cm.avg30 !== 'number' || cm.avg30 <= 0) return null;
+    return (cm.avg1 - cm.avg30) / cm.avg30 * 100;
+  }
+  const TREND_THRESHOLD = 10; // percent
+  const isTrending = (card) => { const p = monthTrendPct(card); return p != null && p >= TREND_THRESHOLD; };
+
   // --- Glow swap: new text seeps in through a soft glow (P's pick over the
   // scramble). Text is set synchronously, so a frozen tab never shows garbage.
   function glowSwap(el, text) {
@@ -182,7 +192,7 @@
   const $ = (id) => document.getElementById(id);
   const wheel = $('wheel'), track = $('track'), rail = $('rail'), ticksBox = $('ticks');
   const capName = $('capName'), capMeta = $('capMeta'), capPrice = $('capPrice'),
-    capRarity = $('capRarity'), counter = $('counter');
+    capRarity = $('capRarity'), counter = $('counter'), capTrend = $('capTrend');
   const stageGlow = $('stageGlow');
   const zoom = $('zoom'), zoomImg = $('zoomImg'), zoomClose = $('zoomClose');
   const tiltZone = $('tiltZone'), tiltCard = $('tiltCard'), shine = $('shine'), cardFaces = $('cardFaces');
@@ -422,6 +432,15 @@
       if (window.gsap) gsap.killTweensOf(priceTween);
       priceTween.v = 0;
       capPrice.textContent = '—';
+    }
+
+    // TRENDING stamp — up >= +10% over the last month, sitting right by the price
+    const tPct = card.sealed ? null : monthTrendPct(card);
+    if (tPct != null && tPct >= TREND_THRESHOLD) {
+      capTrend.textContent = `▲ TRENDING +${Math.round(tPct)}%`;
+      capTrend.hidden = false;
+    } else {
+      capTrend.hidden = true;
     }
 
     counter.textContent = String(idx + 1).padStart(3, '0');
@@ -895,8 +914,8 @@
   const collection = loadList('pokex.collection');
   function saveList(key, set) { localStorage.setItem(key, JSON.stringify([...set])); }
   function updateListCounts() {
-    $('wishCount').textContent = `♥ ${wishlist.size}`;
-    $('collCount').textContent = `◆ ${collection.size}`;
+    $('wishCount').textContent = String(wishlist.size);
+    $('collCount').textContent = String(collection.size);
   }
   function updateListButtons(card) {
     const w = wishlist.has(card.id), c = collection.has(card.id);

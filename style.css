@@ -446,7 +446,6 @@ main {
 }
 /* the price — the dopamine hit: large, money-green, glowing on the chase tier */
 .cap-price {
-  margin-top: var(--s-2);
   font-family: var(--font-mono);
   font-weight: 600;
   font-size: clamp(26px, 3vw, 40px);
@@ -462,6 +461,33 @@ main {
     0 0 48px color-mix(in srgb, var(--money) 45%, transparent);
 }
 .cap-price.none { color: var(--text-faint); text-shadow: none; }
+/* price + trending stamp share one centered row */
+.cap-price-row {
+  margin-top: var(--s-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+}
+/* TRENDING stamp — a warm gold "hot streak" badge beside the price */
+.cap-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffd470;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, #ffd470 50%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, #ffd470 12%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, #ffd470 22%, transparent);
+  white-space: nowrap;
+}
+.cap-trend[hidden] { display: none; }
 /* tucked under the price — tiny, white, soft glow */
 .hint {
   margin-top: var(--s-2);
@@ -948,10 +974,9 @@ main {
 .list-counts {
   display: flex;
   gap: var(--s-3);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  align-items: center;
   text-decoration: none;
-  padding: 6px 10px;
+  padding: 6px 11px;
   border: 1px solid transparent;
   clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
   transition: border-color var(--dur-fast), background var(--dur-fast);
@@ -960,8 +985,19 @@ main {
   border-color: var(--stage-line);
   background: rgba(38, 35, 51, 0.55);
 }
-.list-counts #wishCount { color: var(--phantom); }
-.list-counts #collCount { color: var(--ember); }
+.lc-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.lc-ic { width: 14px; height: 14px; display: block; flex: none; }
+.lc-wish .lc-ic { color: var(--phantom); filter: drop-shadow(0 0 5px color-mix(in srgb, var(--phantom) 45%, transparent)); }
+.lc-coll .lc-ic { color: var(--ember); filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ember) 45%, transparent)); }
 .cap-marks { letter-spacing: 0.1em; }
 .cap-marks .mk-wish { color: var(--phantom-bright); }
 .cap-marks .mk-coll { color: var(--ember); }
