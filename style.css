@@ -123,13 +123,13 @@ body {
   left: 0;
   width: 30px;
   height: 42px;
-  --k: calc(2 * var(--td, 0.5) - 1);
-  --bow: calc(1 - var(--k) * var(--k));
-  --lift: calc(var(--arc-depth) * (1 - var(--bow)));   /* same arc as the ticks */
+  /* --lift (px) and --rot (deg) are computed in JS each frame and written as
+     already-resolved values, so the transform never leans on a deep calc()
+     chain. --pop is the hover/active scale. */
   transform:
-    translate(-50%, calc(-50% - var(--lift)))
-    rotate(calc(var(--k) * var(--arc-rot) * 0.55))       /* gentle tangent tilt */
-    scale(var(--pop));
+    translate(-50%, calc(-50% - var(--lift, 0px)))
+    rotate(var(--rot, 0deg))
+    scale(var(--pop, 1));
   transform-origin: center bottom;
   border-radius: 9px;
   background: rgba(237, 234, 244, 0.12);
@@ -548,11 +548,11 @@ main {
 /* the price — the dopamine hit: large, money-green, glowing on the chase tier */
 /* the money number — a living green: gradient sheen + glow (a little dopamine) */
 .cap-price {
-  font-family: var(--font-mono);
+  font-family: var(--font-price);
   font-weight: 600;
   font-size: clamp(26px, 3vw, 40px);
   line-height: 1;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
   background: linear-gradient(100deg, #45c97f 0%, #b9ffd0 48%, #45c97f 100%);
   background-size: 220% 100%;
@@ -1065,11 +1065,11 @@ main {
 /* HERO price — huge, no box, money green */
 .z-price { display: flex; flex-direction: column; }
 .z-price .amt {
-  font-family: var(--font-hero);
-  font-weight: 700;
+  font-family: var(--font-price);
+  font-weight: 600;
   font-size: clamp(42px, 7.6vh, 80px);
   line-height: 0.9;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.01em;
   color: var(--money);
   font-variant-numeric: tabular-nums;
   /* dark halo so money-green always reads over the animated holo backdrop */
@@ -1494,14 +1494,16 @@ body.home-open .chrome, body.home-open main, body.home-open .minimap, body.home-
 /* pick a universe — bare logos floating in 3D (no cards) */
 .hv-pick { perspective: 1300px; }
 .pick-prompt { position: relative; font-family: var(--font-display); font-weight: 700; font-size: clamp(20px, 2.6vw, 36px); letter-spacing: 0.01em; color: #fff; margin-bottom: clamp(30px, 6vh, 72px); }
-.pick-logos { display: flex; gap: clamp(14px, 2.6vw, 66px); align-items: center; justify-content: center; flex-wrap: nowrap; transform-style: preserve-3d; }
+.pick-logos { display: flex; gap: clamp(14px, 2.6vw, 66px); align-items: center; justify-content: center; flex-wrap: nowrap; transform-style: preserve-3d; pointer-events: none; }
 .pick-logo {
-  --z: 0px; position: relative; min-width: 0; background: none; border: none; cursor: pointer; padding: clamp(10px, 1.3vw, 24px);
+  --z: 0px; position: relative; min-width: 0; pointer-events: auto; background: none; border: none; cursor: pointer; padding: clamp(10px, 1.3vw, 24px);
   display: flex; align-items: center; justify-content: center; transform-style: preserve-3d;
   will-change: transform, filter, opacity; animation: logoFloat 6.5s ease-in-out infinite;
 }
-.pick-logo:nth-child(1) { --z: -38px; } .pick-logo:nth-child(2) { --z: 10px; animation-delay: -1.6s; }
-.pick-logo:nth-child(3) { --z: 10px; animation-delay: -3.2s; } .pick-logo:nth-child(4) { --z: -38px; animation-delay: -4.8s; }
+/* depth arc kept fully in FRONT of the z=0 container plane, else the receded
+   outer logos sit behind it and it eats their clicks (Pokémon/One Piece bug) */
+.pick-logo:nth-child(1) { --z: 6px; } .pick-logo:nth-child(2) { --z: 54px; animation-delay: -1.6s; }
+.pick-logo:nth-child(3) { --z: 54px; animation-delay: -3.2s; } .pick-logo:nth-child(4) { --z: 6px; animation-delay: -4.8s; }
 @keyframes logoFloat { 0%, 100% { transform: translateZ(var(--z)) translateY(0); } 50% { transform: translateZ(var(--z)) translateY(-10px); } }
 .pl-glow { position: absolute; inset: -22% -12%; border-radius: 50%; pointer-events: none; opacity: 0; transition: opacity 0.3s;
   background: radial-gradient(circle, color-mix(in srgb, var(--accent) 55%, transparent), transparent 68%); filter: blur(26px); }

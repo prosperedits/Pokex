@@ -62,8 +62,12 @@
   // alpha prefix (sv05 -> sv, me03 -> me). Derive it instead of trusting
   // set.logo — sv05 (Temporal Forces) shipped with a wrong /en/me/ path, which
   // 404s and leaves an empty, dark set button. Deriving fixes that whole class.
+  // tcgdex carries no set LOGO for a few sets (only a symbol) — supply the
+  // wordmark locally so the dropdown + selector never fall back to a glyph.
+  const SET_LOGO_OVERRIDE = { sv05: 'assets/setlogos/sv05.png' }; // Temporal Forces
   const setLogoPng = (set) => {
     const id = set && set.id ? String(set.id) : '';
+    if (SET_LOGO_OVERRIDE[id]) return SET_LOGO_OVERRIDE[id];
     const m = id.match(/^[a-z]+/);
     return m ? safeImg(`https://assets.tcgdex.net/en/${m[0]}/${id}/logo.png`)
              : safeImg((set && set.logo ? set.logo : '') + '.png');
@@ -243,6 +247,18 @@
   // --- DOM ---------------------------------------------------------------------
   const $ = (id) => document.getElementById(id);
   const wheel = $('wheel'), track = $('track'), rail = $('rail'), ticksBox = $('ticks');
+  // Arc-dial geometry. Single source of truth = the --arc-depth/--arc-rot CSS
+  // vars on .minimap (the media query shrinks them on small screens); read them
+  // once here and on resize so render() can place the dial without per-frame
+  // getComputedStyle.
+  const minimapEl = document.querySelector('.minimap');
+  let ARC_DEPTH = 20, ARC_ROT = 13;
+  const syncArc = () => {
+    const cs = getComputedStyle(minimapEl);
+    ARC_DEPTH = parseFloat(cs.getPropertyValue('--arc-depth')) || ARC_DEPTH;
+    ARC_ROT = parseFloat(cs.getPropertyValue('--arc-rot')) || ARC_ROT;
+  };
+  syncArc();
   const capName = $('capName'), capMeta = $('capMeta'), capPrice = $('capPrice'),
     capRarity = $('capRarity'), capNumber = $('capNumber'), counter = $('counter'), capTrend = $('capTrend');
   let focusedCard = null;   // the card centred in the wheel (for the share button)
@@ -362,7 +378,7 @@
     cardW = h * (734 / 1024);
     spacing = cardW; // base unit; the focus-pocket curve shapes actual gaps
   }
-  addEventListener('resize', () => { measure(); render(true); });
+  addEventListener('resize', () => { syncArc(); measure(); render(true); });
 
   // --- Render ------------------------------------------------------------------
   const WINDOW = 10; // paint ±10 around position (smaller cards pack more in view)
@@ -504,12 +520,16 @@
     span.textContent = `/${N}`;
     counter.appendChild(span);
 
-    // dial rides the arc: --td (0..1) drives lift + tangent tilt in CSS; left places it
+    // dial rides the arc: lift (px) + tangent tilt (deg) computed here and
+    // written resolved, so CSS never needs a deep calc() chain; left places X.
     const railFrac = N > 1 ? idx / (N - 1) : 0.5;
+    const railK = 2 * railFrac - 1;                 // -1 left .. +1 right
+    const railBow = 1 - railK * railK;              // 1 centre .. 0 at the tips
     const railThumbEl = $('railThumb');
     railThumbEl.style.left =
       `${(ticksBox.offsetLeft + railFrac * ticksBox.offsetWidth).toFixed(1)}px`;
-    railThumbEl.style.setProperty('--td', railFrac.toFixed(4));
+    railThumbEl.style.setProperty('--lift', `${(ARC_DEPTH * (1 - railBow)).toFixed(2)}px`);
+    railThumbEl.style.setProperty('--rot', `${(railK * ARC_ROT * 0.55).toFixed(3)}deg`);
 
     // valuable cards (>= $20) get the hot title treatment
     const hot = typeof card.priceUsd === 'number' && card.priceUsd >= 20;
@@ -2166,12 +2186,14 @@
     initHomeParallax();
   }
   // generic crossfade/scale between two home views
+  // clean opacity crossfade — NO container scale/blur (that made the whole grid
+  // appear to "reframe"); the directional motion belongs to the grid items only.
   function switchView(fromId, toId, build) {
     const from = $(fromId), to = $(toId);
     const reveal = () => { from.hidden = true; if (build) build(); to.hidden = false;
-      if (window.gsap && !REDUCED) gsap.fromTo(to, { opacity: 0, scale: 0.96, filter: 'blur(12px)' }, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.55, ease: 'power3.out', clearProps: 'filter' }); };
+      if (window.gsap && !REDUCED) gsap.fromTo(to, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'power2.out' }); };
     if (!window.gsap || REDUCED) { reveal(); return; }
-    gsap.to(from, { opacity: 0, scale: 0.94, filter: 'blur(14px)', duration: 0.34, ease: 'power2.in', onComplete: () => { gsap.set(from, { clearProps: 'opacity,scale,filter' }); reveal(); } });
+    gsap.to(from, { opacity: 0, duration: 0.24, ease: 'power2.in', onComplete: () => { gsap.set(from, { clearProps: 'opacity' }); reveal(); } });
   }
   function goPick() {
     const hero = $('hvHero'), pick = $('hvPick');
@@ -2194,7 +2216,8 @@
       $('setsTitle').textContent = (HOME_GAMES.find((g) => g.game === game)?.name || '') + ' — choose a set';
       $('hvSets').style.setProperty('--accent', HOME_GAMES.find((g) => g.game === game)?.accent || '#7fd4f4');
       $('setGrid').innerHTML = sets.map((s) => `<button type="button" class="set-pick" data-set="${s.id}"><span class="sp-name">${s.name}</span>${s.count ? `<span class="sp-count">${s.count}</span>` : ''}</button>`).join('');
-      if (window.gsap && !REDUCED) gsap.fromTo('#setGrid .set-pick', { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.025, delay: 0.1 });
+      // clearProps:transform so the leftover inline transform can't block :hover lift
+      if (window.gsap && !REDUCED) gsap.fromTo('#setGrid .set-pick', { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.022, delay: 0.06, clearProps: 'transform' });
     });
   }
   function goHero() { switchView('hvPick', 'hvHero'); }

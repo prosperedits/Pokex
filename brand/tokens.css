@@ -7,6 +7,7 @@
 @font-face { font-family: 'Soge'; src: url('../assets/fonts/Soge.woff') format('woff'); font-display: swap; }
 @font-face { font-family: 'Lust'; src: url('../assets/fonts/Lust.woff') format('woff'); font-display: swap; }
 @font-face { font-family: 'Epic Pro'; src: url('../assets/fonts/EpicPro.woff2') format('woff2'), url('../assets/fonts/EpicPro.woff') format('woff'); font-display: swap; }
+@font-face { font-family: 'Montech'; src: url('../assets/fonts/Montech-SemiBold.otf') format('opentype'); font-weight: 600; font-style: normal; font-display: swap; } /* pricing */
 
 /* ============================================================
    PHANTASMAL FLAMES — design tokens
@@ -58,6 +59,7 @@
   --font-logo-x:  'Lust', cursive;
   --font-ui:      'Outfit', sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
+  --font-price:   'Montech', 'JetBrains Mono', monospace; /* SemiBold — the money numbers */
 
   --type-hero:    clamp(28px, 4vw, 44px);  /* set title */
   --type-card:    clamp(20px, 2.6vw, 30px);/* card name in caption */
