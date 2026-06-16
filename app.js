@@ -46,7 +46,7 @@
     return TIERS.find(t => card.priceUsd < t.max);
   }
   // image hosts we allow: tcgdex (Pokemon), Scryfall (Magic), Lorcast (Lorcana)
-  const IMG_HOSTS = ['https://assets.tcgdex.net/', 'https://cards.scryfall.io/', 'https://cards.lorcast.io/'];
+  const IMG_HOSTS = ['https://assets.tcgdex.net/', 'https://cards.scryfall.io/', 'https://cards.lorcast.io/', 'https://static.dotgg.gg/'];
   const safeImg = (url) => (typeof url === 'string' && IMG_HOSTS.some((h) => url.startsWith(h))) ? url : '';
   // one chokepoint for every card image: sealed renders carry a local PNG path,
   // external-game cards (Magic/Lorcana) carry a COMPLETE url, and tcgdex cards
@@ -88,6 +88,8 @@
     White: '#f0e9c8', Blue: '#3f8fe0', Black: '#5b5f74', Red: '#ff6347', Green: '#4fbf6a', Gold: '#d8a93e',
     // Lorcana inks
     Amber: '#f0a830', Amethyst: '#a766d6', Emerald: '#3fbf7f', Ruby: '#e0556a', Sapphire: '#4f8fe0', Steel: '#9fb0c0',
+    // One Piece colours
+    Purple: '#a766d6', Yellow: '#f6cf3b',
   };
   function cardTintColor(card) {
     if (card && Array.isArray(card.types) && card.types.length && TYPE_COLORS[card.types[0]]) {
@@ -810,6 +812,21 @@
       { id: 'lor-2', code: '2', name: 'Rise of the Floodborn' },
       { id: 'lor-1', code: '1', name: 'The First Chapter' },
     ] },
+    { game: 'onepiece', label: 'One Piece', sets: [
+      { id: 'op-OP16', code: 'OP16', name: 'OP16' },
+      { id: 'op-OP15', code: 'OP15', name: 'OP15' },
+      { id: 'op-OP14', code: 'OP14', name: 'OP14' },
+      { id: 'op-OP13', code: 'OP13', name: 'OP13' },
+      { id: 'op-OP12', code: 'OP12', name: 'OP12' },
+      { id: 'op-OP11', code: 'OP11', name: 'A Fist of Divine Speed' },
+      { id: 'op-OP10', code: 'OP10', name: 'Royal Blood' },
+      { id: 'op-OP09', code: 'OP09', name: 'Emperors in the New World' },
+      { id: 'op-OP08', code: 'OP08', name: 'Two Legends' },
+      { id: 'op-OP07', code: 'OP07', name: '500 Years in the Future' },
+      { id: 'op-OP06', code: 'OP06', name: 'Wings of the Captain' },
+      { id: 'op-OP05', code: 'OP05', name: 'Awakening of the New Era' },
+      { id: 'op-OP01', code: 'OP01', name: 'Romance Dawn' },
+    ] },
   ];
   const gameSetMeta = (id) => {
     for (const g of GAME_SETS) for (const s of g.sets) if (s.id === id) return { code: s.code, name: s.name, game: g.game };
@@ -838,12 +855,18 @@
   const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : '');
   async function fetchJSON(url) { const r = await fetch(url); if (!r.ok) throw new Error(r.status); return r.json(); }
   async function fetchMagicSet(code) {
-    let out = [], url = `https://api.scryfall.com/cards/search?q=set%3A${code}+game%3Apaper&unique=cards&order=set`;
-    for (let p = 0; url && p < 4; p++) { const j = await fetchJSON(url); out.push(...(j.data || [])); url = j.has_more ? j.next_page : null; }
-    return out.filter((c) => c.image_uris && c.image_uris.normal).map((c, i) => ({
+    // unique=prints = EVERY printing (showcase / borderless / extended / serialized
+    // full-arts — the valuable variants), not collapsed to one per card
+    let out = [], url = `https://api.scryfall.com/cards/search?q=set%3A${code}+game%3Apaper&unique=prints&order=set`;
+    for (let p = 0; url && p < 16 && out.length < 2600; p++) { const j = await fetchJSON(url); out.push(...(j.data || [])); url = j.has_more ? j.next_page : null; }
+    return out.map((c, i) => {
+      // double-faced cards keep their image under card_faces[0], not top-level
+      const u = c.image_uris || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris) || {};
+      return { c, i, img: u.large || u.normal };
+    }).filter((x) => x.img).map(({ c, i, img }) => ({
       id: `mtg-${code}-${c.collector_number}`, num: parseInt(c.collector_number, 10) || (i + 1), localId: c.collector_number,
       name: c.name, rarity: cap(c.rarity), category: 'Magic', types: magicTypes(c),
-      image: c.image_uris.large || c.image_uris.normal, fullImg: true,
+      image: img, fullImg: true,
       priceUsd: c.prices && c.prices.usd ? parseFloat(c.prices.usd) : null,
       priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true, illustrator: c.artist || '',
       meta: [
@@ -875,6 +898,25 @@
       flavor: c.text || '',
     }));
   }
+  // One Piece: dotgg blocks browser CORS + is too big for proxies, so the card
+  // DATA is bundled (data/onepiece.js -> window.OP_CARDS); IMAGES load live from
+  // dotgg's CDN (no CORS needed for <img>).
+  const OP_RARITY = { C: 'Common', UC: 'Uncommon', R: 'Rare', SR: 'Super Rare', SEC: 'Secret Rare', L: 'Leader', P: 'Promo', SP: 'Special', TR: 'Treasure' };
+  function fetchOnePieceSet(code) {
+    const all = window.OP_CARDS || [];
+    return all.filter((c) => c.set === code && c.id).map((c, i) => ({
+      id: `op-${c.id}`, num: parseInt((c.id.split('-')[1] || '').replace(/\D/g, ''), 10) || (i + 1), localId: c.id,
+      name: c.name, rarity: OP_RARITY[c.rarity] || c.rarity || '', category: 'One Piece', types: [c.Color || 'Colorless'],
+      image: `https://static.dotgg.gg/onepiece/card/${c.id}.webp`, fullImg: true,
+      priceUsd: c.price ? parseFloat(c.price) : null,
+      priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true, illustrator: '',
+      meta: [
+        ['Color', c.Color], ['Card', c.cardType], ['Cost', c.Cost], ['Power', c.Power], ['Counter', c.Counter],
+        ['Foil', c.foilPrice ? `$${(+c.foilPrice).toFixed(2)}` : null],
+      ],
+      flavor: c.Effect || '',
+    }));
+  }
   let loadingGame = false;
   async function loadExternalSet(id) {
     if (SETS[id]) { loadSet(id); return; }
@@ -884,11 +926,14 @@
     const btnLogo = $('setBtnLogo'), btnName = $('setBtnName');
     btnLogo.hidden = true; btnName.hidden = false; btnName.textContent = `Loading ${meta.name}…`;
     try {
-      const cards = meta.game === 'magic' ? await fetchMagicSet(meta.code) : await fetchLorcanaSet(meta.code);
+      const cards = meta.game === 'magic' ? await fetchMagicSet(meta.code)
+        : meta.game === 'lorcana' ? await fetchLorcanaSet(meta.code)
+        : await fetchOnePieceSet(meta.code);
       if (!cards.length) throw new Error('empty');
+      const SOURCE = { magic: 'Scryfall', lorcana: 'Lorcast', onepiece: 'dotgg' };
       SETS[id] = {
         set: { id, name: meta.name, total: cards.length, official: cards.length, logo: '', external: true },
-        cards, snapshotAt: new Date().toISOString(), source: meta.game === 'magic' ? 'Scryfall' : 'Lorcast',
+        cards, snapshotAt: new Date().toISOString(), source: SOURCE[meta.game] || 'market',
       };
       loadSet(id);
     } catch (e) {
@@ -1978,6 +2023,7 @@
     if (game === 'pokemon') { if (DATA.set.external) loadSet(HOME_SET); }
     else if (game === 'magic') loadExternalSet('mtg-fin');
     else if (game === 'lorcana') loadExternalSet('lor-1');
+    else if (game === 'onepiece') loadExternalSet('op-OP01');
   });
   document.querySelector('.lockup').addEventListener('click', showHome); // brand mark → home
 

@@ -1432,16 +1432,17 @@ body.home-open .chrome, body.home-open main, body.home-open .minimap { visibilit
   transition: transform 0.3s var(--ease-snap), box-shadow 0.3s, border-color 0.3s;
   transform: rotateY(0deg);
 }
-.gc-pokemon { background: linear-gradient(160deg, #ff5a4d 0%, #c0240f 46%, #6b0f06 100%); }
-.gc-magic   { background: linear-gradient(160deg, #3a2a52 0%, #1b1430 50%, #0c0918 100%); }
-.gc-lorcana { background: linear-gradient(160deg, #2bbfa6 0%, #5a4bd0 55%, #2a1f5e 100%); }
-.gc-soon    { background: linear-gradient(160deg, #3a3a44 0%, #222229 100%); cursor: default; }
+.gc-pokemon  { background: linear-gradient(160deg, #ff5a4d 0%, #c0240f 46%, #6b0f06 100%); }
+.gc-magic    { background: linear-gradient(160deg, #3a2a52 0%, #1b1430 50%, #0c0918 100%); }
+.gc-lorcana  { background: linear-gradient(160deg, #2bbfa6 0%, #5a4bd0 55%, #2a1f5e 100%); }
+.gc-onepiece { background: linear-gradient(160deg, #ffae3d 0%, #e0382f 48%, #6a1024 100%); }
+.gc-soon     { background: linear-gradient(160deg, #3a3a44 0%, #222229 100%); cursor: default; }
 .game-card .gc-sheen {
   position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(125deg, rgba(255,255,255,0.28) 0%, transparent 30%, transparent 72%, rgba(255,255,255,0.10) 100%);
   mix-blend-mode: screen; opacity: 0.7;
 }
-.gc-magic::after, .gc-pokemon::after, .gc-lorcana::after {
+.gc-magic::after, .gc-pokemon::after, .gc-lorcana::after, .gc-onepiece::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(120% 80% at 50% -10%, rgba(255,255,255,0.22), transparent 55%);
 }

@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=48">
-<link rel="stylesheet" href="style.css?v=53">
+<link rel="stylesheet" href="style.css?v=54">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -85,9 +85,15 @@
           <span class="gc-name">Lorcana<small>Disney</small></span>
           <span class="gc-go">Enter →</span>
         </button>
+        <button type="button" class="game-card gc-onepiece" data-game="onepiece">
+          <span class="gc-sheen" aria-hidden="true"></span>
+          <span class="gc-kicker">13 sets</span>
+          <span class="gc-name">One Piece</span>
+          <span class="gc-go">Enter →</span>
+        </button>
         <button type="button" class="game-card gc-soon" data-game="soon" disabled>
           <span class="gc-sheen" aria-hidden="true"></span>
-          <span class="gc-kicker">Yu-Gi-Oh · One Piece</span>
+          <span class="gc-kicker">Yu-Gi-Oh</span>
           <span class="gc-name">More<small>soon</small></span>
           <span class="gc-go">Coming soon</span>
         </button>
@@ -222,6 +228,7 @@
   <script src="data/cards-me03.js"></script>
   <script src="data/cards-me04.js"></script>
   <script src="data/sealed.js"></script>
-  <script src="app.js?v=53"></script>
+  <script src="data/onepiece.js"></script>
+  <script src="app.js?v=54"></script>
 </body>
 </html>
