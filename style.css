@@ -1070,12 +1070,18 @@ main {
   font-size: clamp(42px, 7.6vh, 80px);
   line-height: 0.9;
   letter-spacing: -0.01em;
-  color: var(--money);
   font-variant-numeric: tabular-nums;
-  /* dark halo so money-green always reads over the animated holo backdrop */
-  text-shadow: 0 2px 16px rgba(5, 4, 9, 0.92), 0 0 30px color-mix(in srgb, var(--money) 22%, transparent);
+  /* really-subtle lighter→darker green fade, top to bottom (P's ask) */
+  background: linear-gradient(180deg, #7adf9f 0%, #4bc07e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--money); /* fallback where background-clip:text is unsupported */
+  /* dark halo (legibility over the holo backdrop) + faint green glow */
+  filter: drop-shadow(0 2px 14px rgba(5, 4, 9, 0.92)) drop-shadow(0 0 26px color-mix(in srgb, var(--money) 20%, transparent));
 }
-.z-price .amt.none { color: var(--text-faint); text-shadow: 0 2px 12px rgba(5, 4, 9, 0.9); }
+.z-price .amt.none { background: none; -webkit-text-fill-color: var(--text-faint); color: var(--text-faint);
+  filter: drop-shadow(0 2px 12px rgba(5, 4, 9, 0.9)); }
 /* the variant (Holofoil) — clear, with breathing room from the price */
 .z-price .lbl {
   margin-top: clamp(8px, 1.4vh, 14px);
