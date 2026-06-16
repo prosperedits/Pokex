@@ -67,6 +67,40 @@
   const TREND_THRESHOLD = 10; // percent
   const isTrending = (card) => { const p = monthTrendPct(card); return p != null && p >= TREND_THRESHOLD; };
 
+  // the inspect backdrop is tinted by the POKEMON's colour (its type), not a
+  // generic prismatic wash — a Fire card glows warm, Water blue, Grass green.
+  const TYPE_COLORS = {
+    Grass: '#5dc264', Fire: '#ff7a3d', Water: '#4aa6ee', Lightning: '#f6cf3b',
+    Psychic: '#d164c8', Fighting: '#d2683f', Darkness: '#6b6f86', Metal: '#9fb0c0',
+    Dragon: '#d8a93e', Fairy: '#f48cc6', Colorless: '#cdc6ba',
+  };
+  function cardTintColor(card) {
+    if (card && Array.isArray(card.types) && card.types.length && TYPE_COLORS[card.types[0]]) {
+      return TYPE_COLORS[card.types[0]];
+    }
+    return rarityColor(card && card.rarity); // typeless cards fall back to rarity colour
+  }
+
+  // Trending tiers: a flame for UP (3 tiers by how hard it's rising — orange,
+  // then purple, then green for the hottest), a snowflake for DOWN. One glyph.
+  const FLAME_PATH = 'M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z';
+  const SNOW_PATH = 'M12 2v20M4 7l16 10M20 7 4 17M12 2.5 9.8 4.4M12 2.5l2.2 1.9M12 21.5l-2.2-1.9M12 21.5l2.2-1.9M4.3 7.2l.2 2.8M4.3 7.2 7 6.7M19.7 16.8l-.2-2.8M19.7 16.8 17 17.3M19.7 7.2l-.2 2.8M19.7 7.2 17 6.7M4.3 16.8l.2-2.8M4.3 16.8 7 17.3';
+  function trendTier(pct) {
+    if (pct == null) return null;
+    if (pct >= 50) return { kind: 'fire', tier: 3, color: '#43e3a3' }; // green — really, really high
+    if (pct >= 25) return { kind: 'fire', tier: 2, color: '#b072ff' }; // purple — higher
+    if (pct >= TREND_THRESHOLD) return { kind: 'fire', tier: 1, color: '#ff7a3d' }; // orange — trending
+    if (pct <= -10) return { kind: 'snow', tier: 0, color: '#6ec6ff' }; // snowflake — cooling off
+    return null;
+  }
+  // an <svg> string for a tier glyph (flame filled, snowflake stroked)
+  function trendGlyphSVG(t, px) {
+    if (!t) return '';
+    return t.kind === 'fire'
+      ? `<svg viewBox="0 0 24 24" width="${px}" height="${px}" style="color:${t.color}"><path fill="currentColor" d="${FLAME_PATH}"/></svg>`
+      : `<svg viewBox="0 0 24 24" width="${px}" height="${px}" style="color:${t.color}"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="${SNOW_PATH}"/></svg>`;
+  }
+
   // --- Glow swap: new text seeps in through a soft glow (P's pick over the
   // scramble). Text is set synchronously, so a frozen tab never shows garbage.
   function glowSwap(el, text) {
@@ -434,10 +468,12 @@
       capPrice.textContent = '—';
     }
 
-    // TRENDING stamp — up >= +10% over the last month, sitting right by the price
+    // trending stamp by the price — flame tiers for up, snowflake for down
     const tPct = card.sealed ? null : monthTrendPct(card);
-    if (tPct != null && tPct >= TREND_THRESHOLD) {
-      capTrend.textContent = `▲ TRENDING +${Math.round(tPct)}%`;
+    const capTier = trendTier(tPct);
+    if (capTier) {
+      capTrend.innerHTML = `${trendGlyphSVG(capTier, 19)}<span class="cap-trend-pct">${tPct >= 0 ? '+' : ''}${Math.round(tPct)}%</span>`;
+      capTrend.style.color = capTier.color;
       capTrend.hidden = false;
     } else {
       capTrend.hidden = true;
@@ -1005,18 +1041,12 @@
       zTitle.append(w, ' ');
     }
     if (window.gsap && !REDUCED) {
+      // subtle: a quiet fade + small lift, gentle stagger — no 3D slam, no flare
       const chars = zTitle.querySelectorAll('.ch');
-      // each letter slams down out of depth — overshoot landing, blur clears as it settles
       sceneTweens.push(gsap.fromTo(chars,
-        { yPercent: -130, z: -240, rotationX: 92, scale: 1.35, opacity: 0, filter: 'blur(14px)' },
-        { yPercent: 0, z: 0, rotationX: 0, scale: 1, opacity: 1, filter: 'blur(0px)',
-          duration: 0.86, ease: 'back.out(2.1)',
-          stagger: { each: 0.052, from: 'center' }, delay: 0.04 }));
-      // a glow flare that swells as the word lands, then settles
-      sceneTweens.push(gsap.fromTo(zTitle,
-        { '--name-flare': 0 },
-        { '--name-flare': 1, duration: 0.5, ease: 'power2.out', delay: 0.18,
-          yoyo: true, repeat: 1 }));
+        { yPercent: 24, opacity: 0 },
+        { yPercent: 0, opacity: 1, duration: 0.5, ease: 'power2.out',
+          stagger: { each: 0.018, from: 'start' }, delay: 0.05 }));
     }
   }
 
@@ -1055,7 +1085,7 @@
     buildRarity(card);
     applyCardFx(card);
     updateDossier(card);
-    holoSetTint(rarityColor(card.rarity));
+    holoSetTint(cardTintColor(card)); // backdrop takes the card's own colour
   }
   function resetZoomScene() {
     sceneTweens.forEach(t => t && t.kill());
@@ -1074,7 +1104,7 @@
   // GSAP for the pop-out, sitting inside the three.js holographic inspect.
   const dossierEl = $('dossier');
   const D2R = Math.PI / 180;
-  const DOS = { C: [112, 230], ri: 90, R: 222, hub: 98 };
+  const DOS = { C: [172, 460], ri: 156, R: 700, hub: 172, cellR: 286 };
   const dosPt = (r, deg) => [DOS.C[0] + r * Math.cos(deg * D2R), DOS.C[1] - r * Math.sin(deg * D2R)];
   function dosWedge(a1, a2) {
     const [ox1, oy1] = dosPt(DOS.R, a1), [ox2, oy2] = dosPt(DOS.R, a2);
@@ -1098,57 +1128,53 @@
   const XLINK = 'http://www.w3.org/2000/svg';
   let dosRefs = null, dosGen = 0;
   function buildDossierShell() {
+    const r = DOS.ri - 2;
     const svg = document.createElementNS(XLINK, 'svg');
-    svg.setAttribute('viewBox', '0 0 740 460');
+    svg.setAttribute('viewBox', '0 0 760 920');
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid slice'); // fill the left, bleed off the edges
     svg.setAttribute('class', 'dossier-svg');
-    svg.innerHTML = `<defs><clipPath id="dosHubClip"><circle cx="${DOS.C[0]}" cy="${DOS.C[1]}" r="${DOS.hub - 9}"/></clipPath></defs>`;
-    const labelX = 392, labelY = [70, 180, 290, 400], refs = { values: {} };
+    svg.innerHTML = `<defs><clipPath id="dosHubClip"><circle cx="${DOS.C[0]}" cy="${DOS.C[1]}" r="${r}"/></clipPath></defs>`;
+    const refs = { values: {}, cells: {} };
+    // solid, distinctly-coloured wedges — no thin strokes/lines (no "spider web")
     DOS_SECTIONS.forEach((s, i) => {
       const p = document.createElementNS(XLINK, 'path');
       p.setAttribute('d', dosWedge(s.a1, s.a2));
       p.setAttribute('class', `dos-wedge dos-w${i}`);
       svg.appendChild(p);
     });
-    DOS_SECTIONS.forEach((s, i) => {
-      const [ox, oy] = dosPt(DOS.R, s.mid), ly = labelY[i];
-      const line = document.createElementNS(XLINK, 'path');
-      line.setAttribute('d', `M ${ox.toFixed(1)} ${oy.toFixed(1)} L ${labelX - 18} ${ly}`);
-      line.setAttribute('class', 'dos-conn');
-      svg.appendChild(line);
-      const badge = document.createElementNS(XLINK, 'circle');
-      badge.setAttribute('cx', labelX); badge.setAttribute('cy', ly); badge.setAttribute('r', 13);
-      badge.setAttribute('class', 'dos-badge');
-      const letter = document.createElementNS(XLINK, 'text');
-      letter.setAttribute('x', labelX); letter.setAttribute('y', ly + 4.5);
-      letter.setAttribute('class', 'dos-letter'); letter.textContent = s.letter;
-      const title = document.createElementNS(XLINK, 'text');
-      title.setAttribute('x', labelX + 26); title.setAttribute('y', ly - 6);
-      title.setAttribute('class', 'dos-title'); title.textContent = s.title.toUpperCase();
-      const value = document.createElementNS(XLINK, 'text');
-      value.setAttribute('x', labelX + 26); value.setAttribute('y', ly + 15);
-      value.setAttribute('class', 'dos-value'); value.textContent = '—';
-      refs.values[s.key] = value;
-      svg.append(badge, letter, title, value);
-    });
-    DOS_SECTIONS.forEach((s) => {
-      const [ix, iy] = dosPt((DOS.ri + DOS.R) / 2, s.mid);
-      const g = document.createElementNS(XLINK, 'g');
-      g.setAttribute('class', 'dos-icon');
-      g.setAttribute('transform', `translate(${(ix - 12).toFixed(1)} ${(iy - 12).toFixed(1)})`);
-      g.innerHTML = `<g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${DOS_ICONS[s.icon]}</g>`;
-      svg.appendChild(g);
-    });
+    // hub: a halo ring + the hi-res species image (drawn before the cells)
     const ring = document.createElementNS(XLINK, 'circle');
     ring.setAttribute('cx', DOS.C[0]); ring.setAttribute('cy', DOS.C[1]); ring.setAttribute('r', DOS.hub);
     ring.setAttribute('class', 'dos-hub-ring');
     const img = document.createElementNS(XLINK, 'image');
-    img.setAttribute('x', DOS.C[0] - (DOS.hub - 9)); img.setAttribute('y', DOS.C[1] - (DOS.hub - 9));
-    img.setAttribute('width', (DOS.hub - 9) * 2); img.setAttribute('height', (DOS.hub - 9) * 2);
+    img.setAttribute('x', DOS.C[0] - r); img.setAttribute('y', DOS.C[1] - r);
+    img.setAttribute('width', r * 2); img.setAttribute('height', r * 2);
     img.setAttribute('clip-path', 'url(#dosHubClip)');
     img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     img.setAttribute('class', 'dos-hub-img');
     refs.hubImg = img;
     svg.append(ring, img);
+    // the info lives INSIDE each wedge: icon + title + value, no callout lines
+    DOS_SECTIONS.forEach((s) => {
+      const [px, py] = dosPt(DOS.cellR, s.mid);
+      const g = document.createElementNS(XLINK, 'g');
+      g.setAttribute('class', `dos-cell dos-cell-${s.key}`);
+      g.setAttribute('transform', `translate(${px.toFixed(1)} ${py.toFixed(1)})`);
+      const icon = document.createElementNS(XLINK, 'g');
+      icon.setAttribute('class', 'dos-ic');
+      icon.setAttribute('transform', 'translate(-13 -58) scale(1.1)');
+      icon.innerHTML = `<g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${DOS_ICONS[s.icon]}</g>`;
+      const title = document.createElementNS(XLINK, 'text');
+      title.setAttribute('class', 'dos-title'); title.setAttribute('text-anchor', 'middle'); title.setAttribute('y', -16);
+      title.textContent = s.title.toUpperCase();
+      const value = document.createElementNS(XLINK, 'text');
+      value.setAttribute('class', 'dos-value'); value.setAttribute('text-anchor', 'middle'); value.setAttribute('y', 14);
+      value.textContent = '—';
+      g.append(icon, title, value);
+      svg.appendChild(g);
+      refs.values[s.key] = value;
+      refs.cells[s.key] = { g, icon };
+    });
     dossierEl.appendChild(svg);
     return refs;
   }
@@ -1181,17 +1207,25 @@
     const isPokemon = !card.sealed && Array.isArray(card.types) && card.types.length > 0;
     if (!isPokemon) { resetDossier(); return; } // only Pokemon get a species dossier
     dosRefs.values.type.textContent = card.types.join(' · ');
-    const tp = monthTrendPct(card), tv = dosRefs.values.trend;
-    if (tp == null) { tv.textContent = 'No data'; tv.removeAttribute('data-dir'); }
-    else {
+    // trend: a flame (tiered) or snowflake glyph swaps into the trend cell
+    const tp = monthTrendPct(card), tv = dosRefs.values.trend, tier = trendTier(tp);
+    const trendIcon = dosRefs.cells.trend.icon;
+    if (tier) {
+      trendIcon.innerHTML = tier.kind === 'fire'
+        ? `<path fill="${tier.color}" d="${FLAME_PATH}"/>`
+        : `<path fill="none" stroke="${tier.color}" stroke-width="1.7" stroke-linecap="round" d="${SNOW_PATH}"/>`;
       tv.textContent = `${tp >= 0 ? '+' : ''}${Math.round(tp)}%`;
-      tv.setAttribute('data-dir', tp >= TREND_THRESHOLD ? 'up' : tp <= -5 ? 'down' : 'flat');
+      tv.style.fill = tier.color;
+    } else {
+      trendIcon.innerHTML = `<g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${DOS_ICONS.bulb}</g>`;
+      tv.textContent = tp == null ? 'No data' : 'Stable';
+      tv.style.fill = '';
     }
     dosRefs.values.set.textContent = DATA.set.name;
     dosRefs.values.rarity.textContent = card.rarity || '—';
     setDosImg(card.image ? safeImg(card.image + '/low.webp') : ''); // placeholder = card art
     const gen = ++dosGen;
-    pokeArt(card).then((url) => { if (gen === dosGen) setDosImg(url); }); // swap to the species render
+    pokeArt(card).then((url) => { if (gen === dosGen) setDosImg(url); }); // swap to the hi-res species render
     dossierEl.hidden = false;
     dossierEl.setAttribute('aria-hidden', 'false');
     zoom.classList.add('has-dossier'); // shifts the card+panel right to clear the wheel
@@ -1225,10 +1259,10 @@
       float w3 = sin(length(p) * 8.0 - t * 8.0); // radial ripple — visible flow
       float m = (w1 + w2 + w3 * 0.6) * 0.2 + 0.5;
       vec3 irid = 0.5 + 0.5 * cos(6.2831 * (vec3(0.0, 0.33, 0.66) + m * 1.4));
-      vec3 col = mix(uTint, irid, 0.66);
+      vec3 col = mix(uTint, irid, 0.30);  // the card's colour dominates, iridescence is the shimmer
       float vig = smoothstep(1.35, 0.10, length(p));
-      col *= 0.14 + 0.50 * vig;           // bright at the periphery so motion reads
-      col += irid * 0.07;                 // iridescent bloom
+      col *= 0.16 + 0.52 * vig;           // bright at the periphery so motion reads
+      col += irid * 0.05;                 // faint iridescent bloom
       gl_FragColor = vec4(col, 1.0);
     }`;
   let holo = null;

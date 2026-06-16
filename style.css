@@ -469,25 +469,23 @@ main {
   justify-content: center;
   gap: var(--s-3);
 }
-/* TRENDING stamp — a warm gold "hot streak" badge beside the price */
+/* trending stamp by the price — a flame (tiered) or snowflake glyph + the % */
 .cap-trend {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #ffd470;
-  padding: 4px 10px;
-  border: 1px solid color-mix(in srgb, #ffd470 50%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, #ffd470 12%, transparent);
-  box-shadow: 0 0 16px color-mix(in srgb, #ffd470 22%, transparent);
+  gap: 4px;
   white-space: nowrap;
 }
 .cap-trend[hidden] { display: none; }
+.cap-trend svg { filter: drop-shadow(0 0 9px currentColor); }
+.cap-trend .cap-trend-pct {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: currentColor;
+  text-shadow: 0 0 12px color-mix(in srgb, currentColor 45%, transparent);
+}
 /* tucked under the price — tiny, white, soft glow */
 .hint {
   margin-top: var(--s-2);
@@ -519,7 +517,8 @@ main {
 .zoom::backdrop { background: transparent; }
 .zoom-bg {
   position: fixed;
-  inset: 0;
+  inset: -56px; /* oversized past the ±26px parallax drift so the grain/vignette
+                   edges never slide into view (the layer moves, not the viewport) */
   overflow: hidden;
   pointer-events: none;
   z-index: 0; /* over the holo canvas (also z0, earlier in DOM) but transparent */
@@ -845,47 +844,54 @@ main {
 }
 .card-fx[hidden] { display: none; }
 
-/* ---- Inspect dossier: the left-popping half-wheel (Type/Trend/Set/Rarity) ---- */
+/* ---- Inspect dossier: a big round wheel that fills the left and bleeds to the
+   screen edges. Pokemon in the hub, four boldly-coloured sections, info inside. */
 .dossier {
   position: absolute;
-  left: clamp(8px, 2vw, 40px);
-  top: 50%;
-  width: min(58vw, 780px);
-  transform: translateY(-50%);
+  left: 0;
+  top: 0;
+  width: min(48vw, 880px);
+  height: 100%;
   transform-origin: left center;
-  perspective: 1300px;
+  perspective: 1400px;
   z-index: 6;
   pointer-events: none;
-  filter: drop-shadow(0 26px 60px rgba(0, 0, 0, 0.55));
+  overflow: hidden; /* the wheel bleeds off the edges, no dead space */
 }
 .dossier[hidden] { display: none; }
-.dossier-svg { width: 100%; height: auto; display: block; overflow: visible; }
-.dos-wedge { stroke: rgba(255, 255, 255, 0.18); stroke-width: 1; }
-.dos-w0 { fill: rgba(127, 212, 244, 0.34); }
-.dos-w1 { fill: rgba(110, 170, 242, 0.46); }
-.dos-w2 { fill: rgba(104, 140, 236, 0.58); }
-.dos-w3 { fill: rgba(120, 104, 232, 0.70); }
-.dos-icon { color: rgba(255, 255, 255, 0.94); }
-.dos-conn { stroke: rgba(255, 255, 255, 0.30); stroke-width: 1; fill: none; stroke-dasharray: 2 3; }
-.dos-badge { fill: rgba(10, 9, 16, 0.6); stroke: var(--spectral); stroke-width: 1.3; }
-.dos-letter { fill: var(--spectral); font-family: var(--font-mono); font-size: 13px; font-weight: 700; text-anchor: middle; }
-.dos-title { fill: var(--text-faint); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; }
+.dossier-svg { width: 100%; height: 100%; display: block; }
+.dos-wedge { stroke: rgba(8, 7, 14, 0.5); stroke-width: 2; }
+.dos-w0 { fill: rgba(46, 230, 192, 0.52); }   /* A · Type   — teal   */
+.dos-w1 { fill: rgba(255, 150, 60, 0.52); }   /* B · Trend  — amber  */
+.dos-w2 { fill: rgba(96, 140, 255, 0.55); }   /* C · Set    — blue   */
+.dos-w3 { fill: rgba(226, 92, 208, 0.55); }   /* D · Rarity — magenta*/
+.dos-cell { color: #fff; }
+.dos-ic { color: rgba(255, 255, 255, 0.96); }
+.dos-title {
+  fill: rgba(255, 255, 255, 0.78);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  paint-order: stroke; stroke: rgba(5, 4, 9, 0.55); stroke-width: 2.6px;
+}
 .dos-value {
   fill: #fff;
   font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 600;
-  paint-order: stroke;
-  stroke: rgba(5, 4, 9, 0.55);
-  stroke-width: 2.4px;
+  font-size: 21px;
+  font-weight: 700;
+  paint-order: stroke; stroke: rgba(5, 4, 9, 0.6); stroke-width: 3px;
 }
-.dos-value[data-dir="up"] { fill: #ffd470; }
-.dos-value[data-dir="down"] { fill: var(--phantom-bright); }
-.dos-hub-ring { fill: rgba(8, 7, 14, 0.5); stroke: rgba(255, 255, 255, 0.4); stroke-width: 2; }
+.dos-hub-ring {
+  fill: rgba(8, 7, 14, 0.46);
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 3;
+  filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.28));
+}
+.dos-hub-img { filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.6)); }
 /* when the dossier is up, slide the card + panel right so the wheel owns the left */
-.zoom.has-dossier .z-stage { padding-left: min(38vw, 500px); }
+.zoom.has-dossier .z-stage { padding-left: min(40vw, 620px); }
 /* not enough room for the wheel + card + panel below this width: drop the wheel */
-@media (max-width: 1000px) {
+@media (max-width: 1080px) {
   .dossier { display: none; }
   .zoom.has-dossier .z-stage { padding-left: 0; }
 }
@@ -968,7 +974,7 @@ main {
 .z-price .src {
   margin-top: 3px;
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-faint);
@@ -1008,7 +1014,7 @@ main {
   display: block;
   font-family: var(--font-mono);
   font-weight: 400;
-  font-size: 8.5px;
+  font-size: 10px;
   letter-spacing: 0.06em;
   color: var(--text-faint);
   text-transform: uppercase;
@@ -1117,7 +1123,7 @@ main {
   font-size: var(--type-small);
   align-items: baseline;
 }
-.z-table .row.head { color: var(--text-dim); font-size: 9px; text-transform: uppercase; letter-spacing: 0.16em; border-top: none; }
+.z-table .row.head { color: var(--text-dim); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.14em; border-top: none; }
 .z-table .row span { font-family: var(--font-mono); text-align: right; min-width: 52px; font-variant-numeric: tabular-nums; color: var(--text-dim); }
 .z-table .row .vname { font-family: var(--font-ui); color: var(--text); text-align: left; }
 .z-table .row .mkt { font-weight: 600; color: var(--money); }

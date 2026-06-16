@@ -34,8 +34,8 @@
 
   /* --- Text --- */
   --text:        #EDEAF4;
-  --text-dim:    #9B95AB;
-  --text-faint:  #5E5870;
+  --text-dim:    #B6B1C6;  /* brightened for legibility (grey text was too dim) */
+  --text-faint:  #8C86A1;  /* brightened a lot — this was the worst offender */
 
   /* --- Price tiers (tuned to read as 4px ticks on --stage) --- */
   --tier-1: #4B485A;  /* < $1   · muted gray-violet, recessive */
