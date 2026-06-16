@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=48">
-<link rel="stylesheet" href="style.css?v=48">
+<link rel="stylesheet" href="style.css?v=49">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -70,7 +70,6 @@
         <div id="capPrice" class="cap-price"></div>
         <span id="capTrend" class="cap-trend" hidden></span>
       </div>
-      <p class="hint" aria-hidden="true">scroll · drag · arrow keys · enter to inspect</p>
     </section>
   </main>
 
@@ -92,10 +91,12 @@
     </div>
     <div class="zoom-scrim" aria-hidden="true"></div>
     <button id="zoomClose" class="zoom-close" aria-label="Close card detail">×</button>
+    <button type="button" id="zoomBack" class="zoom-back">← Back</button>
     <div class="zoom-body">
       <header class="z-header">
         <h2 id="zTitle" class="z-title"></h2>
         <p id="zRarity" class="z-rarity-line" aria-hidden="true"></p>
+        <p id="zNumber" class="z-number" aria-hidden="true"></p>
       </header>
       <div class="z-stage">
         <div id="cardCol" class="card-col">
@@ -158,7 +159,7 @@
     </div>
   </footer>
 
-  <script src="layout-constants.js?v=48"></script>
+  <script src="layout-constants.js?v=49"></script>
   <script src="vendor/three.min.js"></script>
   <script src="vendor/gsap.min.js"></script>
   <script src="data/cards-sv01.js"></script>
@@ -183,6 +184,6 @@
   <script src="data/cards-me03.js"></script>
   <script src="data/cards-me04.js"></script>
   <script src="data/sealed.js"></script>
-  <script src="app.js?v=48"></script>
+  <script src="app.js?v=49"></script>
 </body>
 </html>

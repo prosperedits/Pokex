@@ -1022,7 +1022,7 @@
 
   // --- Inspect scene: editorial title + rarity text + animated holo backdrop --
   const zTitle = $('zTitle');
-  const zRarity = $('zRarity');
+  const zRarity = $('zRarity'), zNumber = $('zNumber');
   let sceneTweens = [];
 
   // the NAME — a top header; per-char rise reveal (no clip — it's never masked)
@@ -1055,8 +1055,10 @@
     const label = card.sealed ? 'Sealed Product' : (card.rarity || '');
     zRarity.textContent = label.toUpperCase();
     zRarity.style.setProperty('--rarity-color', card.sealed ? 'var(--ember-glint)' : rarityColor(card.rarity));
+    // card number under the rarity — big, pitch white (e.g. 116/086)
+    zNumber.textContent = card.sealed ? '' : `${card.localId}/${String(DATA.set.official).padStart(3, '0')}`;
     if (window.gsap && !REDUCED) {
-      sceneTweens.push(gsap.fromTo(zRarity, { opacity: 0, y: 8 },
+      sceneTweens.push(gsap.fromTo([zRarity, zNumber], { opacity: 0, y: 8 },
         { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.3 }));
     }
   }
@@ -1104,7 +1106,7 @@
   // GSAP for the pop-out, sitting inside the three.js holographic inspect.
   const dossierEl = $('dossier');
   const D2R = Math.PI / 180;
-  const DOS = { C: [172, 460], ri: 156, R: 700, hub: 172, cellR: 286 };
+  const DOS = { C: [232, 460], ri: 182, R: 720, hub: 196, cellR: 320 };
   const dosPt = (r, deg) => [DOS.C[0] + r * Math.cos(deg * D2R), DOS.C[1] - r * Math.sin(deg * D2R)];
   function dosWedge(a1, a2) {
     const [ox1, oy1] = dosPt(DOS.R, a1), [ox2, oy2] = dosPt(DOS.R, a2);
@@ -1142,14 +1144,15 @@
       p.setAttribute('class', `dos-wedge dos-w${i}`);
       svg.appendChild(p);
     });
-    // hub: a halo ring + the hi-res species image (drawn before the cells)
+    // hub: an opaque soft circle + the species image ON TOP, NOT clipped (so the
+    // Pokemon is never cut off by the circle), sized a touch bigger than the disc
     const ring = document.createElementNS(XLINK, 'circle');
     ring.setAttribute('cx', DOS.C[0]); ring.setAttribute('cy', DOS.C[1]); ring.setAttribute('r', DOS.hub);
     ring.setAttribute('class', 'dos-hub-ring');
     const img = document.createElementNS(XLINK, 'image');
-    img.setAttribute('x', DOS.C[0] - r); img.setAttribute('y', DOS.C[1] - r);
-    img.setAttribute('width', r * 2); img.setAttribute('height', r * 2);
-    img.setAttribute('clip-path', 'url(#dosHubClip)');
+    const ir = DOS.hub + 10;
+    img.setAttribute('x', DOS.C[0] - ir); img.setAttribute('y', DOS.C[1] - ir);
+    img.setAttribute('width', ir * 2); img.setAttribute('height', ir * 2);
     img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     img.setAttribute('class', 'dos-hub-img');
     refs.hubImg = img;
@@ -1853,6 +1856,7 @@
   // img only ever receives URLs that already decoded, so it can't error-flash)
   zoom.addEventListener('cancel', (e) => { e.preventDefault(); closeZoom(); });
   zoomClose.addEventListener('click', closeZoom);
+  $('zoomBack').addEventListener('click', closeZoom);
   // .zoom-body fills the dialog, so empty-area clicks land on it, never on the dialog itself
   zoom.addEventListener('click', (e) => {
     if (e.target === zoom || e.target.classList?.contains('zoom-body')) closeZoom();

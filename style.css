@@ -445,6 +445,7 @@ main {
   text-shadow: 0 0 18px color-mix(in srgb, currentColor 45%, transparent);
 }
 /* the price — the dopamine hit: large, money-green, glowing on the chase tier */
+/* the money number — a living green: gradient sheen + glow (a little dopamine) */
 .cap-price {
   font-family: var(--font-mono);
   font-weight: 600;
@@ -452,40 +453,60 @@ main {
   line-height: 1;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
-  color: var(--money);
-  text-shadow: 0 0 18px color-mix(in srgb, var(--money) 35%, transparent);
+  background: linear-gradient(100deg, #45c97f 0%, #b9ffd0 48%, #45c97f 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--money) 45%, transparent));
+  animation: moneySheen 4.5s linear infinite;
 }
+@keyframes moneySheen { to { background-position: 220% 0; } }
 .cap-price.t5 {
-  text-shadow:
-    0 0 20px color-mix(in srgb, var(--money) 75%, transparent),
-    0 0 48px color-mix(in srgb, var(--money) 45%, transparent);
+  filter: drop-shadow(0 0 22px color-mix(in srgb, var(--money) 70%, transparent))
+          drop-shadow(0 0 46px color-mix(in srgb, var(--money) 32%, transparent));
 }
-.cap-price.none { color: var(--text-faint); text-shadow: none; }
-/* price + trending stamp share one centered row */
+.cap-price.none {
+  background: none;
+  -webkit-text-fill-color: var(--text-faint);
+  color: var(--text-faint);
+  filter: none;
+  animation: none;
+}
+/* price centred on its own line; the trend stamp sits BELOW so it never shifts it */
 .cap-price-row {
   margin-top: var(--s-2);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--s-3);
+  gap: 6px;
 }
-/* trending stamp by the price — a flame (tiered) or snowflake glyph + the % */
+/* trending stamp — a flame (tiered) or snowflake glyph + the %, no harsh glow */
 .cap-trend {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   white-space: nowrap;
 }
 .cap-trend[hidden] { display: none; }
-.cap-trend svg { filter: drop-shadow(0 0 9px currentColor); }
 .cap-trend .cap-trend-pct {
   font-family: var(--font-mono);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.01em;
   color: currentColor;
-  text-shadow: 0 0 12px color-mix(in srgb, currentColor 45%, transparent);
 }
+/* legibility: the small grey text in the inspect panel now reads near-white */
+.zoom .zoom-panel .z-credit,
+.zoom .zoom-panel .z-price .src,
+.zoom .zoom-panel .z-quick .q .v .sub,
+.zoom .zoom-panel .z-quick .q .k,
+.zoom .zoom-panel .z-table .row span,
+.zoom .zoom-panel .z-table .row.head { color: #d8d4e4; }
+.zoom .zoom-panel .z-table .row .vname { color: #fff; }
+.zoom .zoom-panel .z-table .row .mkt { color: var(--money); }
+
 /* tucked under the price — tiny, white, soft glow */
 .hint {
   margin-top: var(--s-2);
@@ -600,6 +621,18 @@ main {
   color: var(--rarity-color, var(--text-dim));
   text-shadow: 0 0 20px color-mix(in srgb, var(--rarity-color, transparent) 55%, transparent), 0 1px 6px rgba(0, 0, 0, 0.8);
 }
+/* card number under the rarity — big, pitch white */
+.z-number {
+  margin-top: clamp(5px, 1vh, 12px);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(18px, 2.6vh, 28px);
+  letter-spacing: 0.06em;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85);
+}
+.z-number:empty { display: none; }
 
 .zoom-body {
   position: relative;
@@ -651,31 +684,52 @@ main {
   max-width: var(--featured-card-w, 360px); /* JS pins this = the card's width */
   gap: 8px;
 }
+/* UIverse "milegelu" button — one hue each (pink / amber / teal) */
 .card-actions button, .card-actions a {
-  display: inline-flex;
+  --bezier: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --edge-light: hsla(0, 0%, 62%, 0.85);
+  --text-light: rgba(255, 255, 255, 0.5);
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 0.5em;
+  padding: 0.9em 0.6em;
+  border-radius: 0.55em;
   font-family: var(--font-ui);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
   text-decoration: none;
-  background: rgba(237, 234, 244, 0.04);
-  border: 1px solid rgba(237, 234, 244, 0.14);
-  border-radius: 11px;
-  padding: 13px 8px;
+  color: hsla(0, 0%, 96%, 1);
+  border: 0;
+  background: linear-gradient(140deg,
+    hsla(var(--back-color), 56%, 1) min(2em, 22%),
+    hsla(var(--back-color), 46%, 0.92) min(8em, 100%));
+  box-shadow: inset 0.4px 1px 4px var(--edge-light);
   cursor: pointer;
-  transition: color var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast);
+  transition: all 0.12s var(--bezier);
 }
-.card-actions .ic { font-size: 17px; line-height: 1; }
+.card-actions #wishBtn  { --back-color: 322, 62%; } /* pink  */
+.card-actions #collBtn  { --back-color: 34, 72%; }  /* amber */
+.card-actions #shareBtn { --back-color: 162, 50%; } /* teal  */
+.card-actions .ic { font-size: 18px; line-height: 1; }
 .card-actions .lb { white-space: nowrap; }
-.card-actions button:hover, .card-actions a:hover { background: rgba(237, 234, 244, 0.1); border-color: rgba(237, 234, 244, 0.32); }
-.card-actions button:focus-visible, .card-actions a:focus-visible { outline: 1px solid var(--spectral); outline-offset: 2px; }
-.card-actions #wishBtn[aria-pressed="true"] { color: var(--phantom-bright); border-color: color-mix(in srgb, var(--phantom) 60%, transparent); background: rgba(196, 75, 173, 0.12); }
-.card-actions #collBtn[aria-pressed="true"] { color: var(--ember-glint); border-color: color-mix(in srgb, var(--ember) 60%, transparent); background: rgba(240, 140, 30, 0.12); }
-.card-actions #shareBtn.copied { color: var(--money); border-color: color-mix(in srgb, var(--money) 60%, transparent); background: rgba(98, 217, 138, 0.12); }
+.card-actions button:hover, .card-actions a:hover {
+  --edge-light: hsla(0, 0%, 72%, 1);
+  text-shadow: 0 0 10px var(--text-light);
+  box-shadow: inset 0.4px 1px 4px var(--edge-light), 2px 4px 10px hsla(0, 0%, 0%, 0.35);
+  transform: translateY(-1px) scale(1.04);
+}
+.card-actions button:active, .card-actions a:active {
+  --text-light: rgba(255, 255, 255, 1);
+  box-shadow: inset 0.4px 1px 8px var(--edge-light), 0 0 9px hsla(var(--back-color), 50%, 0.6);
+  color: #fff; letter-spacing: 0.08em; transform: scale(1);
+}
+.card-actions button:focus-visible, .card-actions a:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.card-actions #wishBtn[aria-pressed="true"] { --back-color: 322, 82%; box-shadow: inset 0.4px 1px 6px var(--edge-light), 0 0 15px hsla(322, 72%, 55%, 0.65); }
+.card-actions #collBtn[aria-pressed="true"] { --back-color: 34, 90%; box-shadow: inset 0.4px 1px 6px var(--edge-light), 0 0 15px hsla(34, 82%, 55%, 0.65); }
+.card-actions #shareBtn.copied { --back-color: 150, 72%; box-shadow: inset 0.4px 1px 6px var(--edge-light), 0 0 15px hsla(150, 72%, 50%, 0.65); }
 
 /* "More <species> cards" — an arrow link AT THE PANEL, not a chunky button */
 .more-cards-link {
@@ -773,6 +827,29 @@ main {
   transition: border-color var(--dur-fast) var(--ease-snap), box-shadow var(--dur-fast) var(--ease-snap);
 }
 .zoom-close:hover, .zoom-close:focus-visible { border-color: var(--phantom); box-shadow: var(--glow-phantom); }
+/* a real Back button (besides the X) — top-left */
+.zoom-back {
+  position: fixed;
+  top: var(--s-4);
+  left: var(--s-5);
+  z-index: 7;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--stage-line);
+  background: var(--stage-raise);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-snap), box-shadow var(--dur-fast) var(--ease-snap), transform var(--dur-fast) var(--ease-snap);
+}
+.zoom-back:hover, .zoom-back:focus-visible { border-color: var(--spectral); box-shadow: 0 0 0 1px var(--spectral), 0 6px 18px rgba(0,0,0,0.4); transform: translateX(-2px); }
 .tilt-zone { perspective: 1200px; }
 .tilt-card {
   position: relative;
@@ -850,47 +927,43 @@ main {
   position: absolute;
   left: 0;
   top: 0;
-  width: min(48vw, 880px);
+  width: min(40vw, 640px);
   height: 100%;
-  transform-origin: left center;
-  perspective: 1400px;
   z-index: 6;
   pointer-events: none;
-  overflow: hidden; /* the wheel bleeds off the edges, no dead space */
+  overflow: hidden; /* the wheel touches the left/top/bottom edges, no dead space */
 }
 .dossier[hidden] { display: none; }
 .dossier-svg { width: 100%; height: 100%; display: block; }
-.dos-wedge { stroke: rgba(8, 7, 14, 0.5); stroke-width: 2; }
-.dos-w0 { fill: rgba(46, 230, 192, 0.52); }   /* A · Type   — teal   */
-.dos-w1 { fill: rgba(255, 150, 60, 0.52); }   /* B · Trend  — amber  */
-.dos-w2 { fill: rgba(96, 140, 255, 0.55); }   /* C · Set    — blue   */
-.dos-w3 { fill: rgba(226, 92, 208, 0.55); }   /* D · Rarity — magenta*/
-.dos-cell { color: #fff; }
-.dos-ic { color: rgba(255, 255, 255, 0.96); }
+/* primarily-WHITE, opaque sections with a soft per-section tint + thin light seams */
+.dos-wedge { stroke: rgba(255, 255, 255, 0.55); stroke-width: 1.5; }
+.dos-w0 { fill: rgba(207, 244, 236, 0.93); }  /* A · Type   — pale teal    */
+.dos-w1 { fill: rgba(250, 232, 207, 0.93); }  /* B · Trend  — pale amber   */
+.dos-w2 { fill: rgba(216, 226, 250, 0.94); }  /* C · Set    — pale blue    */
+.dos-w3 { fill: rgba(246, 217, 240, 0.94); }  /* D · Rarity — pale magenta */
+.dos-ic { color: #2c2738; }                   /* dark icons read on the light wheel */
 .dos-title {
-  fill: rgba(255, 255, 255, 0.78);
+  fill: #6a6480;
   font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.18em;
-  paint-order: stroke; stroke: rgba(5, 4, 9, 0.55); stroke-width: 2.6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
 }
 .dos-value {
-  fill: #fff;
+  fill: #1b1825;
   font-family: var(--font-display);
-  font-size: 21px;
-  font-weight: 700;
-  paint-order: stroke; stroke: rgba(5, 4, 9, 0.6); stroke-width: 3px;
+  font-size: 22px;
+  font-weight: 800;
 }
+/* hub: an opaque soft white circle, NO harsh outline; the Pokemon sits on top, uncut */
 .dos-hub-ring {
-  fill: rgba(8, 7, 14, 0.46);
-  stroke: rgba(255, 255, 255, 0.5);
-  stroke-width: 3;
-  filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.28));
+  fill: #f5f2fb;
+  stroke: none;
+  filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.55)) drop-shadow(0 12px 30px rgba(0, 0, 0, 0.4));
 }
-.dos-hub-img { filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.6)); }
-/* when the dossier is up, slide the card + panel right so the wheel owns the left */
-.zoom.has-dossier .z-stage { padding-left: min(40vw, 620px); }
-/* not enough room for the wheel + card + panel below this width: drop the wheel */
+.dos-hub-img { filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.32)); }
+/* keep the card as centred as we can while the wheel owns the left */
+.zoom.has-dossier .z-stage { padding-left: min(22vw, 320px); }
 @media (max-width: 1080px) {
   .dossier { display: none; }
   .zoom.has-dossier .z-stage { padding-left: 0; }
