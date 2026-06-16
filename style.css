@@ -921,53 +921,6 @@ main {
 }
 .card-fx[hidden] { display: none; }
 
-/* ---- Inspect dossier: a big round wheel that fills the left and bleeds to the
-   screen edges. Pokemon in the hub, four boldly-coloured sections, info inside. */
-.dossier {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: min(40vw, 640px);
-  height: 100%;
-  z-index: 6;
-  pointer-events: none;
-  overflow: hidden; /* the wheel touches the left/top/bottom edges, no dead space */
-}
-.dossier[hidden] { display: none; }
-.dossier-svg { width: 100%; height: 100%; display: block; }
-/* primarily-WHITE, opaque sections with a soft per-section tint + thin light seams */
-.dos-wedge { stroke: rgba(255, 255, 255, 0.55); stroke-width: 1.5; }
-.dos-w0 { fill: rgba(207, 244, 236, 0.93); }  /* A · Type   — pale teal    */
-.dos-w1 { fill: rgba(250, 232, 207, 0.93); }  /* B · Trend  — pale amber   */
-.dos-w2 { fill: rgba(216, 226, 250, 0.94); }  /* C · Set    — pale blue    */
-.dos-w3 { fill: rgba(246, 217, 240, 0.94); }  /* D · Rarity — pale magenta */
-.dos-ic { color: #2c2738; }                   /* dark icons read on the light wheel */
-.dos-title {
-  fill: #6a6480;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-}
-.dos-value {
-  fill: #1b1825;
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 800;
-}
-/* hub: an opaque soft white circle, NO harsh outline; the Pokemon sits on top, uncut */
-.dos-hub-ring {
-  fill: #f5f2fb;
-  stroke: none;
-  filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.55)) drop-shadow(0 12px 30px rgba(0, 0, 0, 0.4));
-}
-.dos-hub-img { filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.32)); }
-/* keep the card as centred as we can while the wheel owns the left */
-.zoom.has-dossier .z-stage { padding-left: min(22vw, 320px); }
-@media (max-width: 1080px) {
-  .dossier { display: none; }
-  .zoom.has-dossier .z-stage { padding-left: 0; }
-}
 /* the data, EDITORIAL: no boxes — a clean typographic column beside the card.
    Hairline rules separate sections; the price is the hero. */
 .zoom-panel {
