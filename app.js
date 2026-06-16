@@ -727,7 +727,7 @@
       btnLogo.src = setLogoPng(DATA.set);
     }
     $('setBtn').setAttribute('aria-label', `${DATA.set.name} — switch set`);
-    setMenu.querySelectorAll('.set-item').forEach((b) => {
+    setMenu.querySelectorAll('.sm-set').forEach((b) => {
       b.classList.toggle('active', b.dataset.set === id);
     });
     pfNext = 0; // restart idle prefetch for this set
@@ -750,37 +750,7 @@
   function toggleSetMenu(open) {
     setMenu.hidden = !open;
     setBtn.setAttribute('aria-expanded', String(open));
-  }
-  for (const group of SET_GROUPS) {
-    const ids = group.ids.filter(id => SETS[id]);
-    if (!ids.length) continue;
-    const head = document.createElement('div');
-    head.className = 'set-group';
-    head.textContent = group.series;
-    setMenu.appendChild(head);
-    for (const id of ids) {
-      const s = SETS[id].set;
-      const item = document.createElement('button');
-      item.type = 'button';
-      item.className = 'set-item';
-      item.dataset.set = id;
-      const img = document.createElement('img');
-      img.src = setLogoPng(s);
-      img.alt = '';
-      img.addEventListener('error', () => { img.style.display = 'none'; }); // name still shows
-      const name = document.createElement('span');
-      name.className = 'si-name';
-      name.textContent = s.name;
-      const count = document.createElement('span');
-      count.className = 'si-count';
-      count.textContent = String(s.total);
-      item.append(img, name, count);
-      item.addEventListener('click', () => {
-        toggleSetMenu(false);
-        if (DATA.set.id !== id) loadSet(id);
-      });
-      setMenu.appendChild(item);
-    }
+    if (open && setMenu._sync) setMenu._sync(); // categorised picker built below
   }
   setBtn.addEventListener('click', () => toggleSetMenu(setMenu.hidden));
 
@@ -832,20 +802,46 @@
     for (const g of GAME_SETS) for (const s of g.sets) if (s.id === id) return { code: s.code, name: s.name, game: g.game };
     return null;
   };
-  for (const g of GAME_SETS) {
-    const head = document.createElement('div');
-    head.className = 'set-group'; head.textContent = g.label;
-    setMenu.appendChild(head);
-    for (const s of g.sets) {
-      const item = document.createElement('button');
-      item.type = 'button'; item.className = 'set-item set-item-game'; item.dataset.set = s.id;
-      const name = document.createElement('span');
-      name.className = 'si-name'; name.textContent = s.name;
-      item.appendChild(name);
-      item.addEventListener('click', () => { toggleSetMenu(false); if (DATA.set.id !== s.id) loadExternalSet(s.id); });
-      setMenu.appendChild(item);
+  // --- Categorised, searchable set picker: games as tabs, sets in a scroll list --
+  function buildSetPicker() {
+    const NAV = [{
+      game: 'pokemon', label: 'Pokémon',
+      sets: SET_GROUPS.flatMap((grp) => grp.ids.filter((id) => SETS[id]).map((id) => ({ id, name: SETS[id].set.name, count: SETS[id].set.total, external: false }))),
+    }, ...GAME_SETS.map((g) => ({ game: g.game, label: g.label, sets: g.sets.map((s) => ({ id: s.id, name: s.name, count: null, external: true })) }))];
+    let activeGame = 'pokemon', query = '';
+    setMenu.innerHTML =
+      `<div class="sm-tabs" role="tablist">${NAV.map((n) => `<button type="button" class="sm-tab" data-game="${n.game}">${n.label}</button>`).join('')}</div>`
+      + `<div class="sm-search-wrap"><input class="sm-search" type="search" placeholder="Filter sets…" aria-label="Filter sets"></div>`
+      + `<div class="sm-list" id="smList"></div>`;
+    const listEl = setMenu.querySelector('#smList'), searchEl = setMenu.querySelector('.sm-search');
+    function renderTabs() { setMenu.querySelectorAll('.sm-tab').forEach((t) => t.classList.toggle('active', t.dataset.game === activeGame)); }
+    function renderList() {
+      const nav = NAV.find((n) => n.game === activeGame), q = query.trim().toLowerCase();
+      const sets = nav.sets.filter((s) => !q || s.name.toLowerCase().includes(q));
+      listEl.replaceChildren();
+      if (!sets.length) { const e = document.createElement('div'); e.className = 'sm-empty'; e.textContent = 'No sets match.'; listEl.appendChild(e); return; }
+      for (const s of sets) {
+        const item = document.createElement('button');
+        item.type = 'button'; item.className = 'sm-set'; item.dataset.set = s.id;
+        item.classList.toggle('active', DATA.set.id === s.id);
+        const nm = document.createElement('span'); nm.className = 'sm-set-name'; nm.textContent = s.name;
+        item.appendChild(nm);
+        if (s.count != null) { const c = document.createElement('span'); c.className = 'sm-set-count'; c.textContent = String(s.count); item.appendChild(c); }
+        item.addEventListener('click', () => { toggleSetMenu(false); if (DATA.set.id === s.id) return; s.external ? loadExternalSet(s.id) : loadSet(s.id); });
+        listEl.appendChild(item);
+      }
     }
+    setMenu.querySelectorAll('.sm-tab').forEach((t) => t.addEventListener('click', () => { activeGame = t.dataset.game; renderTabs(); renderList(); searchEl.focus(); }));
+    searchEl.addEventListener('input', () => { query = searchEl.value; renderList(); });
+    setMenu._sync = () => { // on open: jump to the current set's game, clear the filter
+      const cur = DATA && DATA.set && DATA.set.id;
+      const found = NAV.find((n) => n.sets.some((s) => s.id === cur));
+      activeGame = found ? found.game : 'pokemon'; query = ''; searchEl.value = '';
+      renderTabs(); renderList();
+    };
+    renderTabs(); renderList();
   }
+  buildSetPicker();
   const MTG_COLOR = { W: 'White', U: 'Blue', B: 'Black', R: 'Red', G: 'Green' };
   const magicTypes = (c) => {
     const cols = c.colors && c.colors.length ? c.colors : (c.color_identity || []);
