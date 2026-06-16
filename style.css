@@ -62,8 +62,10 @@ body {
    tangent. The whole shape is pure CSS off two per-element numbers — a
    tick's slot (--s) and the dial's 0..1 position (--td) — so it stays
    responsive with zero resize math. */
-@property --td { syntax: '<number>'; inherits: false; initial-value: 0.5; }
-@property --pop { syntax: '<number>'; inherits: false; initial-value: 1; }
+/* --td / --pop are plain custom props, NOT @property-registered: a registered
+   <number> pins to its initial-value in this engine and ignores the inline
+   updates JS writes each frame. Plain props resolve through calc() fine (the
+   ticks prove it), so the dial reads its live --td correctly. */
 
 .minimap {
   flex: none;
@@ -121,7 +123,7 @@ body {
   left: 0;
   width: 30px;
   height: 42px;
-  --k: calc(2 * var(--td) - 1);
+  --k: calc(2 * var(--td, 0.5) - 1);
   --bow: calc(1 - var(--k) * var(--k));
   --lift: calc(var(--arc-depth) * (1 - var(--bow)));   /* same arc as the ticks */
   transform:
@@ -140,8 +142,7 @@ body {
     0 4px 18px rgba(0, 0, 0, 0.55),
     0 0 22px rgba(127, 212, 244, 0.4);
   pointer-events: none;
-  transition: left 120ms linear, --td 120ms linear,
-              --pop var(--dur-fast) var(--ease-snap),
+  transition: left 120ms linear, transform 120ms linear,
               box-shadow var(--dur-fast);
 }
 /* grip lines so it reads as a physical, grabbable knob */
@@ -839,7 +840,6 @@ main {
 .more-cards-link {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--s-3);
   width: 100%;
   margin-top: var(--s-2);
@@ -847,21 +847,31 @@ main {
   border: none;
   border-top: 1px solid rgba(237, 234, 244, 0.12);
   background: none;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-dim);
+  text-align: left;
   cursor: pointer;
-  transition: color var(--dur-fast);
 }
-.more-cards-link::after {
-  content: '→';
-  font-size: 16px;
+/* three overlapping card thumbnails preview the gallery */
+.mc-thumbs { display: inline-flex; flex: none; }
+.mc-thumbs img {
+  width: 34px; aspect-ratio: 734 / 1024; object-fit: cover;
+  border-radius: 4px; border: 1px solid rgba(237, 234, 244, 0.18);
+  background: #14121d; box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
   transition: transform var(--dur-fast) var(--ease-snap);
 }
-.more-cards-link:hover { color: var(--text); }
-.more-cards-link:hover::after { transform: translateX(5px); }
+.mc-thumbs img + img { margin-left: -14px; }
+.more-cards-link:hover .mc-thumbs img:nth-child(1) { transform: translateX(-3px) rotate(-3deg); }
+.more-cards-link:hover .mc-thumbs img:nth-child(3) { transform: translateX(3px) rotate(3deg); }
+.mc-label {
+  flex: 1; min-width: 0;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-dim);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: color var(--dur-fast);
+}
+.mc-arrow { flex: none; font-size: 16px; color: var(--text-dim);
+  transition: transform var(--dur-fast) var(--ease-snap), color var(--dur-fast); }
+.more-cards-link:hover .mc-label { color: var(--text); }
+.more-cards-link:hover .mc-arrow { color: var(--text); transform: translateX(5px); }
 .more-cards-link:focus-visible { outline: 1px solid var(--spectral); outline-offset: 3px; }
 .more-cards-link[hidden] { display: none; }
 
@@ -1196,6 +1206,7 @@ main {
 /* interactive crosshair + highlighted point that track the cursor */
 .spark-cross { stroke: var(--text); stroke-width: 1; stroke-dasharray: 2 3; transition: opacity 0.12s; pointer-events: none; }
 .spark-hot { fill: var(--stage); stroke-width: 2.5; transition: opacity 0.12s; pointer-events: none; }
+.spark-grid { stroke: rgba(237, 234, 244, 0.07); stroke-width: 1; pointer-events: none; } /* weekly time marks */
 .chart { position: relative; }
 .spark-tip {
   position: absolute;
@@ -1259,7 +1270,24 @@ main {
   margin-bottom: 6px;
 }
 
-/* pull-rate ladder (sealed view) — clean hairline rows, current rarity lit */
+/* pull rates live behind a disclosure so they're never out in the open */
+.z-disclosure { margin-top: var(--s-2); }
+.z-disclosure[hidden] { display: none; }
+.disc-sum {
+  list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 4px 9px; border-top: 1px solid rgba(237, 234, 244, 0.12);
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-dim); transition: color var(--dur-fast);
+}
+.disc-sum::-webkit-details-marker { display: none; }
+.disc-sum:hover { color: var(--text); }
+.z-disclosure:focus-within .disc-sum { color: var(--text); }
+.disc-caret { font-size: 12px; transition: transform var(--dur-fast) var(--ease-snap); }
+.z-disclosure[open] .disc-caret { transform: rotate(180deg); }
+.z-disclosure[open] .disc-sum { color: var(--text); }
+.z-pulls { padding-top: 2px; }
+
+/* pull-rate ladder — clean hairline rows, current rarity lit */
 .z-pulls:empty { display: none; }
 .pull-row {
   display: flex;

@@ -504,9 +504,12 @@
     span.textContent = `/${N}`;
     counter.appendChild(span);
 
-    // dial tracks the current slot along the tick strip
-    $('railThumb').style.left =
-      `${(ticksBox.offsetLeft + (idx / (N - 1)) * ticksBox.offsetWidth).toFixed(1)}px`;
+    // dial rides the arc: --td (0..1) drives lift + tangent tilt in CSS; left places it
+    const railFrac = N > 1 ? idx / (N - 1) : 0.5;
+    const railThumbEl = $('railThumb');
+    railThumbEl.style.left =
+      `${(ticksBox.offsetLeft + railFrac * ticksBox.offsetWidth).toFixed(1)}px`;
+    railThumbEl.style.setProperty('--td', railFrac.toFixed(4));
 
     // valuable cards (>= $20) get the hot title treatment
     const hot = typeof card.priceUsd === 'number' && card.priceUsd >= 20;
@@ -610,7 +613,11 @@
     view.forEach((ci, s) => { slotOf[ci] = s; });
     tickByCard.forEach(t => t.classList.remove('cur'));
     tickEls = view.map(ci => tickByCard[ci]);
-    tickEls.forEach(t => ticksBox.appendChild(t)); // reorder existing nodes
+    ticksBox.style.setProperty('--n', N);          // arc geometry: total bars
+    tickEls.forEach((t, s) => {                     // reorder + seat each bar on the arc
+      t.style.setProperty('--s', s);
+      ticksBox.appendChild(t);
+    });
     els.forEach(e => { e.el.style.visibility = 'hidden'; });
     painted = new Set();
     position = order === 'value-desc' ? N - 1   // $ high -> the expensive end
@@ -1456,17 +1463,33 @@
     for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
     return el;
   }
-  // editorial line+area chart: smooth primary line over a fading area fill,
-  // a haloed endpoint, faint x labels. Holo printing rides a dashed overlay.
+  // editorial line+area chart. Points sit on a TRUE elapsed-time x-axis (p.t =
+  // 0..1 across the 30-day window) — NOT evenly spaced — so the 30→7→1-day
+  // samples read as real time. A smooth Catmull-Rom curve joins them; holo
+  // printing rides a dashed overlay; faint week gridlines anchor the span.
   let sparkSeq = 0;
+  // smooth cubic path through [{x,y}] (Catmull-Rom → bezier)
+  function smoothPath(p) {
+    if (p.length < 2) return '';
+    let d = `M${p[0].x.toFixed(1)},${p[0].y.toFixed(1)}`;
+    for (let i = 0; i < p.length - 1; i++) {
+      const a = p[i - 1] || p[i], b = p[i], c = p[i + 1], e = p[i + 2] || c;
+      const c1x = b.x + (c.x - a.x) / 6, c1y = b.y + (c.y - a.y) / 6;
+      const c2x = c.x - (e.x - b.x) / 6, c2y = c.y - (e.y - b.y) / 6;
+      d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${c.x.toFixed(1)},${c.y.toFixed(1)}`;
+    }
+    return d;
+  }
+  const SPARK = { W: 344, H: 128, PX: 14, PT: 16, PB: 24 };
   function sparkline(seriesList) {
     const all = seriesList.map(s => s.pts.filter(p => typeof p.v === 'number'));
     if (!all[0] || all[0].length < 2) return null;
-    const W = 320, H = 118, PX = 12, PT = 14, PB = 20;
+    const { W, H, PX, PT, PB } = SPARK;
     const vs = all.flat().map(p => p.v);
     const mn = Math.min(...vs), mx = Math.max(...vs), span = (mx - mn) || mx * 0.1 || 1;
     const lo = mn - span * 0.22, hi = mx + span * 0.22, rng = hi - lo;
     const y = (v) => PT + (H - PT - PB) * (1 - (v - lo) / rng);
+    const x = (t) => PX + t * (W - 2 * PX); // x by elapsed-time fraction, not index
     const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, class: 'spark', role: 'img', preserveAspectRatio: 'none' });
     const gid = `sf${++sparkSeq}`;
     const defs = svgEl('defs', {});
@@ -1475,25 +1498,29 @@
       svgEl('stop', { offset: '0%', 'stop-color': seriesList[0].color, 'stop-opacity': 0.34 }),
       svgEl('stop', { offset: '100%', 'stop-color': seriesList[0].color, 'stop-opacity': 0 }));
     defs.append(grad); svg.append(defs);
+    // weekly gridlines (3wk / 2wk / 1wk ago) so the 30-day span reads as time
+    for (const t of [7 / 30, 14 / 30, 23 / 30]) {
+      svg.append(svgEl('line', { class: 'spark-grid', x1: x(t).toFixed(1), x2: x(t).toFixed(1), y1: PT, y2: H - PB }));
+    }
     all.forEach((pts, si) => {
       if (pts.length < 2) return;
       const color = seriesList[si].color;
-      const x = (i) => PX + i * ((W - 2 * PX) / (pts.length - 1));
-      const line = pts.map((p, i) => `${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+      const xy = pts.map(p => ({ x: x(p.t), y: y(p.v) }));
+      const path = smoothPath(xy);
       if (si === 0) {
-        svg.append(svgEl('polygon', { points: `${PX},${H - PB} ${line} ${(W - PX).toFixed(1)},${H - PB}`, fill: `url(#${gid})`, stroke: 'none' }));
+        svg.append(svgEl('path', { d: `${path} L${xy[xy.length - 1].x.toFixed(1)},${H - PB} L${xy[0].x.toFixed(1)},${H - PB} Z`, fill: `url(#${gid})`, stroke: 'none' }));
       }
-      svg.append(svgEl('polyline', {
-        points: line, fill: 'none', stroke: color,
+      svg.append(svgEl('path', {
+        d: path, fill: 'none', stroke: color,
         'stroke-width': si > 0 ? 1.5 : 2.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
         ...(si > 0 ? { 'stroke-dasharray': '4 4', opacity: 0.65 } : {}),
       }));
       if (si === 0) {
-        const lx = x(pts.length - 1), ly = y(pts[pts.length - 1].v);
+        const lx = xy[xy.length - 1].x, ly = xy[xy.length - 1].y;
         svg.append(svgEl('circle', { cx: lx, cy: ly, r: 6.5, fill: 'none', stroke: color, 'stroke-opacity': 0.35 }));
         svg.append(svgEl('circle', { cx: lx, cy: ly, r: 3.4, fill: color }));
         pts.forEach((p, i) => {
-          const lab = svgEl('text', { x: x(i).toFixed(1), y: H - 5, class: 'spark-lab',
+          const lab = svgEl('text', { x: x(p.t).toFixed(1), y: H - 7, class: 'spark-lab',
             'text-anchor': i === 0 ? 'start' : (i === pts.length - 1 ? 'end' : 'middle') });
           lab.textContent = p.l; svg.append(lab);
         });
@@ -1501,16 +1528,18 @@
     });
     return svg;
   }
-  const SUB_LABEL = { '30d': '30 days ago', '7d': '7 days ago', '24h': 'today' };
+  const SUB_LABEL = { '30d': '30 days ago', '7d': '7 days ago', 'now': 'today' };
   function buildCharts(card) {
     const box = $('zCharts');
     box.replaceChildren();
     const cm = card.cardmarket;
     if (!cm) return;
+    // three real samples placed on a true 30-day timeline: the 30-day average
+    // anchors the far left, the 7-day average sits ~3/4 across, latest = today.
     const toPts = (src) => [
-      { l: '30d', v: eurToUsd(src.avg30) },
-      { l: '7d', v: eurToUsd(src.avg7) },
-      { l: '24h', v: eurToUsd(src.avg1) },
+      { l: '30d', t: 0, v: eurToUsd(src.avg30) },
+      { l: '7d', t: 23 / 30, v: eurToUsd(src.avg7) },
+      { l: 'now', t: 1, v: eurToUsd(src.avg1) },
     ];
     const seriesList = [{ pts: toPts(cm), color: tierColor('--spectral') }];
     if (cm.holo) seriesList.push({ pts: toPts(cm.holo), color: tierColor('--phantom') });
@@ -1521,8 +1550,8 @@
     const wrap = document.createElement('figure');
     wrap.className = 'chart';
     const cap = document.createElement('figcaption');
-    cap.textContent = cm.holo ? 'Price trend · normal / holo' : 'Price trend';
-    sp.setAttribute('aria-label', 'Price trend in USD');
+    cap.textContent = cm.holo ? 'Price · last 30 days (normal / holo)' : 'Price · last 30 days';
+    sp.setAttribute('aria-label', 'Price over the last 30 days, in USD');
     const tip = document.createElement('div'); tip.className = 'spark-tip'; tip.hidden = true;
     const tipVal = document.createElement('b'); tipVal.className = 'tip-val';
     const tipSub = document.createElement('span'); tipSub.className = 'tip-sub';
@@ -1531,13 +1560,12 @@
     box.appendChild(wrap);
 
     // --- interactivity: a crosshair + highlighted point + tooltip follow the cursor
-    const W = 320, H = 118, PX = 12, PT = 14, PB = 20; // must match sparkline()
-    const n = primary.length;
+    const { W, H, PX, PT, PB } = SPARK; // must match sparkline()
     const vs = seriesList.flatMap(s => s.pts).filter(p => typeof p.v === 'number').map(p => p.v);
     const mn = Math.min(...vs), mx = Math.max(...vs), span = (mx - mn) || mx * 0.1 || 1;
     const lo = mn - span * 0.22, rng = (mx + span * 0.22) - lo;
     const yOf = (v) => PT + (H - PT - PB) * (1 - (v - lo) / rng);
-    const xOf = (i) => PX + i * ((W - 2 * PX) / (n - 1));
+    const xOf = (t) => PX + t * (W - 2 * PX);
     const cross = svgEl('line', { class: 'spark-cross', y1: PT - 2, y2: H - PB, x1: 0, x2: 0, opacity: 0 });
     const hot = svgEl('circle', { class: 'spark-hot', r: 4.5, cx: 0, cy: 0, opacity: 0, stroke: seriesList[0].color });
     sp.append(cross, hot);
@@ -1546,9 +1574,10 @@
       const r = sp.getBoundingClientRect();
       if (!r.width) return;
       const f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
-      const idx = Math.round(f * (n - 1));
-      const p = primary[idx];
-      const px = xOf(idx), py = yOf(p.v);
+      // snap to the nearest real sample by TIME position, not even index
+      let p = primary[0], best = Infinity;
+      for (const cand of primary) { const dd = Math.abs(cand.t - f); if (dd < best) { best = dd; p = cand; } }
+      const px = xOf(p.t), py = yOf(p.v);
       cross.setAttribute('x1', px); cross.setAttribute('x2', px); cross.setAttribute('opacity', 0.4);
       hot.setAttribute('cx', px); hot.setAttribute('cy', py); hot.setAttribute('opacity', 1);
       tipVal.textContent = `$${p.v.toFixed(2)}`;
@@ -1600,15 +1629,14 @@
     }
   }
 
-  // pull-rate ladder as clean hairline rows (sealed view = "what's in the box")
+  // pull-rate ladder as clean hairline rows, tucked inside a disclosure so it's
+  // never "out in the open": collapsed for cards, expanded for sealed products.
   function buildPulls(card, ladder) {
     const box = $('zPulls');
     box.replaceChildren();
-    if (!ladder) return;
-    const hd = document.createElement('div');
-    hd.className = 'z-hd';
-    hd.textContent = `Pull rates · ${DATA.set.name}`;
-    box.appendChild(hd);
+    const disc = $('pullsBox');
+    if (!ladder) { if (disc) disc.hidden = true; return; }
+    if (disc) { disc.hidden = false; disc.open = !!card.sealed; }
     for (const [rar, rate] of Object.entries(ladder.rates)) {
       const row = document.createElement('div');
       row.className = 'pull-row' + (rar === card.rarity ? ' cur' : '');
@@ -1633,11 +1661,21 @@
       .sort((a, b) => (b.card.priceUsd ?? -1) - (a.card.priceUsd ?? -1));
     familySpecies = card.name.replace(/^Mega\s+/i, '').replace(/\s+(?:ex|gx|v|vmax|vstar)$/i, '');
     const btn = $('moreCardsBtn');
+    btn.replaceChildren();
     btn.hidden = !familyGroup.length;
-    if (familyGroup.length) {
-      // the → arrow is drawn by CSS (.more-cards-link::after); text only here
-      btn.textContent = `${familyGroup.length} more ${familySpecies} card${familyGroup.length > 1 ? 's' : ''}`;
+    if (!familyGroup.length) return;
+    // preview: up to three overlapping card thumbnails, a label, then a → arrow
+    const thumbs = document.createElement('span'); thumbs.className = 'mc-thumbs';
+    for (const { card: c } of familyGroup.slice(0, 3)) {
+      const im = document.createElement('img');
+      im.loading = 'lazy'; im.alt = ''; im.src = cardImg(c, 'low.webp');
+      thumbs.appendChild(im);
     }
+    const lab = document.createElement('span'); lab.className = 'mc-label';
+    lab.textContent = `${familyGroup.length} more ${familySpecies} card${familyGroup.length > 1 ? 's' : ''}`;
+    const arr = document.createElement('span'); arr.className = 'mc-arrow'; arr.setAttribute('aria-hidden', 'true');
+    arr.textContent = '→';
+    btn.append(thumbs, lab, arr);
   }
   function openGallery() {
     if (!familyGroup.length) return;
@@ -1813,6 +1851,7 @@
         $('zCharts').replaceChildren();
         $('zTable').replaceChildren();
         $('moreCardsBtn').hidden = true;
+        buildPulls(card, null); // no Pokemon pull ladder for external games — hide it
       } else {
         if (card.cardmarket) {
           const cm = card.cardmarket;
@@ -1827,10 +1866,9 @@
           }
           qrow('30-day trend', v);
         }
-        const pull = cardPullRate(card);
-        if (pull) qrow('Pull rate', pull.text, `1 of ${pull.pool} ${card.rarity}${pull.pool > 1 ? 's' : ''} in set`);
         buildCharts(card);
         buildVariantTable(card);
+        buildPulls(card, pullLadderFor(DATA.set.id)); // full odds, collapsed behind a disclosure
         buildFamily(card);
       }
       const bits = [];
