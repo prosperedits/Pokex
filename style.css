@@ -169,6 +169,20 @@ body {
 }
 .set-btn:hover, .set-btn:focus-visible { background: rgba(38, 35, 51, 0.55); }
 .set-btn img { height: 42px; filter: drop-shadow(0 0 14px rgba(108, 46, 166, 0.55)); }
+/* shown in place of the logo when a set has no logo asset (e.g. Temporal Forces) */
+.set-btn-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  white-space: nowrap;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 14px rgba(108, 46, 166, 0.55);
+}
+.set-btn-name[hidden] { display: none; }
 .set-btn .caret { color: var(--text-dim); font-size: 11px; }
 .set-menu {
   position: absolute;

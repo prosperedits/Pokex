@@ -46,6 +46,16 @@
     return TIERS.find(t => card.priceUsd < t.max);
   }
   const safeImg = (url) => (typeof url === 'string' && url.startsWith('https://assets.tcgdex.net/')) ? url : '';
+  // tcgdex set logos live at /en/<series>/<id>/logo; the series is the set id's
+  // alpha prefix (sv05 -> sv, me03 -> me). Derive it instead of trusting
+  // set.logo — sv05 (Temporal Forces) shipped with a wrong /en/me/ path, which
+  // 404s and leaves an empty, dark set button. Deriving fixes that whole class.
+  const setLogoPng = (set) => {
+    const id = set && set.id ? String(set.id) : '';
+    const m = id.match(/^[a-z]+/);
+    return m ? safeImg(`https://assets.tcgdex.net/en/${m[0]}/${id}/logo.png`)
+             : safeImg((set && set.logo ? set.logo : '') + '.png');
+  };
 
   // --- Glow swap: new text seeps in through a soft glow (P's pick over the
   // scramble). Text is set synchronously, so a frozen tab never shows garbage.
@@ -577,6 +587,12 @@
   }
   function extractLogoColors(url, cb) {
     if (!url) return cb(null);
+    // tcgdex logos carry no CORS headers, so a crossOrigin canvas read always
+    // throws (every set already falls back to the default ambience) — and the
+    // failed crossOrigin request poisons the display <img>'s cache, breaking
+    // the logo. Skip extraction for cross-origin URLs; only same-origin images
+    // can actually be read into a canvas.
+    if (!url.startsWith(location.origin)) return cb(null);
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
@@ -633,10 +649,15 @@
     $('snapshotLabel').textContent =
       `${DATA.set.name} · ${DATA.set.total} cards · market snapshot via TCGdex · refreshed ${new Date(DATA.snapshotAt).toLocaleString()}`;
     $('staleNotice').hidden = Date.now() - Date.parse(DATA.snapshotAt) <= 7 * 864e5;
-    // selector reflects the active set
-    const btnLogo = $('setBtnLogo');
-    btnLogo.src = safeImg(DATA.set.logo + '.png');
+    // selector reflects the active set — fall back to the set name as text when
+    // the logo asset is missing (some sets, e.g. Temporal Forces, have none)
+    const btnLogo = $('setBtnLogo'), btnName = $('setBtnName');
+    btnName.textContent = DATA.set.name;
     btnLogo.alt = DATA.set.name;
+    btnLogo.hidden = false; btnName.hidden = true;
+    btnLogo.onload = () => { btnLogo.hidden = false; btnName.hidden = true; };
+    btnLogo.onerror = () => { btnLogo.hidden = true; btnName.hidden = false; };
+    btnLogo.src = setLogoPng(DATA.set);
     $('setBtn').setAttribute('aria-label', `${DATA.set.name} — switch set`);
     setMenu.querySelectorAll('.set-item').forEach((b) => {
       b.classList.toggle('active', b.dataset.set === id);
@@ -646,7 +667,7 @@
     painted = new Set();
     applySort(sortMode); // rebuilds view/ticks order and lands per mode
     // relight the stage in this set's colors (async; guard against re-switch)
-    extractLogoColors(safeImg(DATA.set.logo + '.png'), (cols) => {
+    extractLogoColors(setLogoPng(DATA.set), (cols) => {
       if (DATA.set.id !== id) return;
       applyAmbience(cols || AMB_DEFAULT);
     });
@@ -676,9 +697,9 @@
       item.className = 'set-item';
       item.dataset.set = id;
       const img = document.createElement('img');
-      img.src = safeImg(s.logo + '.png');
+      img.src = setLogoPng(s);
       img.alt = '';
-      img.addEventListener('error', () => { img.style.visibility = 'hidden'; });
+      img.addEventListener('error', () => { img.style.display = 'none'; }); // name still shows
       const name = document.createElement('span');
       name.className = 'si-name';
       name.textContent = s.name;
