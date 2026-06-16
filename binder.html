@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>POKEX — Binder</title>
-<meta name="description" content="Build your own POKEX binder — drag cards into the pockets, page by page.">
+<meta name="description" content="Build your own binder — slide out the bank, pick a TCG and set, drag cards into the pockets.">
 <link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
@@ -14,12 +14,11 @@
 * { margin: 0; padding: 0; box-sizing: border-box; font-synthesis: none; }
 html { background: #0B0A10; }
 body {
-  min-height: 100vh; color: var(--text); font-family: var(--font-ui);
+  min-height: 100vh; color: var(--text); font-family: var(--font-ui); overflow-x: hidden;
   background:
     radial-gradient(80% 55% at 50% -10%, rgba(127, 212, 244, 0.10) 0%, transparent 60%),
     radial-gradient(70% 80% at 110% 100%, rgba(196, 75, 173, 0.08) 0%, transparent 55%),
     #0B0A10;
-  overflow-x: hidden;
 }
 .chrome { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: var(--s-3) var(--s-5); min-height: 64px; }
 .chrome .back { justify-self: end; }
@@ -30,134 +29,93 @@ body {
   -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 0 20px rgba(61, 155, 224, 0.5));
 }
-.page-title {
-  font-family: var(--font-display); font-size: clamp(18px, 2.2vw, 26px);
-  letter-spacing: 0.2em; text-transform: uppercase; color: var(--spectral-bright);
-  text-shadow: 0 0 22px rgba(127, 212, 244, 0.35);
-}
-.back {
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--text-dim); text-decoration: none; border: 1px solid var(--stage-line);
-  padding: 8px 16px; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
-}
+.page-title { font-family: var(--font-display); font-size: clamp(18px, 2.2vw, 26px); letter-spacing: 0.2em; text-transform: uppercase; color: var(--spectral-bright); text-shadow: 0 0 22px rgba(127, 212, 244, 0.35); }
+.back { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); text-decoration: none; border: 1px solid var(--stage-line); padding: 8px 16px; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%); }
 .back:hover { color: var(--text); border-color: var(--text-faint); }
 
-main { max-width: 1600px; margin: 0 auto; padding: var(--s-3) var(--s-5) var(--s-8); }
-.layout { display: grid; grid-template-columns: clamp(300px, 27vw, 380px) 1fr; gap: clamp(16px, 2vw, 34px); align-items: start; }
-
-/* ------- the bank ------- */
-.bank {
-  position: sticky; top: 14px;
-  background: linear-gradient(170deg, rgba(255,255,255,0.045), rgba(255,255,255,0.02));
-  border: 1px solid rgba(255,255,255,0.07); border-radius: 14px;
-  padding: var(--s-4); box-shadow: 0 24px 60px rgba(0,0,0,0.45);
-  display: flex; flex-direction: column; max-height: calc(100vh - 30px);
-}
-.bank h2 {
-  font-family: var(--font-display); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--text); margin-bottom: 2px;
-}
-.bank .hint { font-family: var(--font-mono); font-size: 10px; color: var(--text-faint); margin-bottom: var(--s-3); }
-.bank-controls { display: flex; flex-direction: column; gap: 8px; margin-bottom: var(--s-3); }
-.bank select, .bank input {
-  width: 100%; box-sizing: border-box; font-family: var(--font-mono); font-size: 12px; color: var(--text);
-  background: rgba(20, 18, 29, 0.72); border: 1px solid var(--stage-line); border-radius: 8px; padding: 8px 11px; outline: none;
-}
-.bank select:focus, .bank input:focus { border-color: var(--spectral); }
-.chips { display: flex; gap: 6px; }
-.chip {
-  flex: 1; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em;
-  color: var(--text-dim); background: transparent; border: 1px solid var(--stage-line); border-radius: 999px;
-  padding: 6px 4px; cursor: pointer; transition: color var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast);
-}
-.chip:hover { color: var(--text); }
-.chip.active { color: #06121a; background: var(--spectral); border-color: var(--spectral); font-weight: 600; }
-.bank-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow-y: auto; padding: 2px 4px 2px 0; scrollbar-width: thin; }
-.bank-card {
-  position: relative; aspect-ratio: 734 / 1024; border-radius: 6px; overflow: hidden; cursor: grab;
-  background: rgba(8,7,12,0.5); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-.bank-card:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1px rgba(127,212,244,0.55), 0 10px 22px rgba(0,0,0,0.5); z-index: 2; }
-.bank-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
-.bank-card.dragging { opacity: 0.4; }
-.bank-card .badge { position: absolute; top: 3px; right: 3px; font-size: 9px; line-height: 1; padding: 2px 3px; border-radius: 4px; background: rgba(0,0,0,0.6); }
-.bank-card .badge.wish { color: #ff7eb6; } .bank-card .badge.coll { color: var(--spectral-bright); }
-.bank-empty { grid-column: 1 / -1; font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); text-align: center; padding: 30px 10px; line-height: 1.6; }
-.bank-foot { margin-top: var(--s-3); font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); display: flex; justify-content: space-between; }
-.bank-foot button {
-  font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim);
-  background: transparent; border: none; cursor: pointer; padding: 0;
-}
-.bank-foot button:hover { color: var(--ember); }
-
-/* ------- the binder ------- */
-.binder-stage { display: flex; flex-direction: column; align-items: center; }
-.binder-meta {
-  display: flex; align-items: baseline; justify-content: center; gap: var(--s-3);
-  font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); margin-bottom: var(--s-3);
-}
+/* ---------- the stage: binder centered ---------- */
+.stage { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: var(--s-4) var(--s-5) var(--s-8); min-height: calc(100vh - 64px); }
+.binder-meta { display: flex; align-items: baseline; justify-content: center; gap: var(--s-3); font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); margin-bottom: var(--s-3); }
 .binder-meta .total { color: var(--money); font-weight: 600; }
-.binder {
-  width: 100%; max-width: 760px; border-radius: 16px;
-  background: linear-gradient(160deg, #1a1726, #141019);
-  padding: clamp(16px, 2.4vw, 32px); perspective: 2200px;
-  box-shadow: 0 40px 90px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.07);
-}
-.page {
-  background: linear-gradient(170deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-  border-radius: 10px; padding: clamp(12px, 1.7vw, 22px); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
-  transform-origin: left center;
-}
+.binder { width: 100%; max-width: 720px; border-radius: 16px; background: linear-gradient(160deg, #1a1726, #141019); padding: clamp(16px, 2.4vw, 32px); perspective: 2200px; box-shadow: 0 40px 90px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07); }
+.page { background: linear-gradient(170deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); border-radius: 10px; padding: clamp(12px, 1.7vw, 22px); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); transform-origin: left center; }
 .page.flip-next { animation: flipNext 0.5s cubic-bezier(0.16,1,0.3,1); }
 .page.flip-prev { animation: flipPrev 0.5s cubic-bezier(0.16,1,0.3,1); }
 @keyframes flipNext { from { transform: rotateY(-78deg); opacity: 0.25; } to { transform: rotateY(0); opacity: 1; } }
 @keyframes flipPrev { from { transform: rotateY(78deg); opacity: 0.25; } to { transform: rotateY(0); opacity: 1; } }
 .page-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: clamp(8px, 1vw, 15px); }
-.pocket {
-  position: relative; aspect-ratio: 734 / 1024; border-radius: 7px; overflow: hidden;
-  background: rgba(8, 7, 12, 0.55);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.07), inset 0 2px 10px rgba(0,0,0,0.5);
-  transition: box-shadow 0.16s, transform 0.16s;
-}
-.pocket::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
-  background: linear-gradient(135deg, rgba(255,255,255,0.16) 0%, transparent 24%, transparent 70%, rgba(255,255,255,0.06) 100%); }
+.pocket { position: relative; aspect-ratio: 734 / 1024; border-radius: 7px; overflow: hidden; background: rgba(8,7,12,0.55); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.07), inset 0 2px 10px rgba(0,0,0,0.5); transition: box-shadow 0.16s, transform 0.16s; }
+.pocket::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3; background: linear-gradient(135deg, rgba(255,255,255,0.16) 0%, transparent 24%, transparent 70%, rgba(255,255,255,0.06) 100%); }
 .pocket.empty { background: repeating-linear-gradient(45deg, rgba(255,255,255,0.018) 0 10px, rgba(255,255,255,0.04) 10px 20px); }
 .pocket.empty::before { content: ''; position: absolute; inset: 38%; border-radius: 50%; border: 1px dashed rgba(255,255,255,0.12); }
 .pocket.over { box-shadow: inset 0 0 0 2px var(--spectral-bright), 0 0 22px rgba(127,212,244,0.45); transform: scale(1.03); }
 .pocket.filled { cursor: grab; }
 .pocket.filled.dragging { opacity: 0.4; }
 .pocket img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
-.pocket .pk-pr {
-  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: 12px 8px 5px;
-  font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: #fff; text-align: center;
-  background: linear-gradient(0deg, rgba(0,0,0,0.8), transparent); text-shadow: 0 1px 4px #000;
-}
-.pocket .pk-x {
-  position: absolute; top: 4px; right: 4px; z-index: 4; width: 20px; height: 20px; border-radius: 50%;
-  border: none; background: rgba(8,6,12,0.75); color: #fff; font-size: 13px; line-height: 20px; cursor: pointer;
-  opacity: 0; transition: opacity 0.15s; padding: 0;
-}
+.pocket .pk-pr { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: 12px 8px 5px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: #fff; text-align: center; background: linear-gradient(0deg, rgba(0,0,0,0.8), transparent); text-shadow: 0 1px 4px #000; }
+.pocket .pk-x { position: absolute; top: 4px; right: 4px; z-index: 4; width: 20px; height: 20px; border-radius: 50%; border: none; background: rgba(8,6,12,0.75); color: #fff; font-size: 13px; line-height: 20px; cursor: pointer; opacity: 0; transition: opacity 0.15s; padding: 0; }
 .pocket.filled:hover .pk-x { opacity: 1; }
 .pocket .pk-x:hover { background: var(--ember); }
-
 .nav { display: flex; align-items: center; justify-content: center; gap: var(--s-4); margin-top: var(--s-5); }
-.nav button {
-  font-family: var(--font-ui); font-weight: 600; font-size: 14px; color: var(--text);
-  background: rgba(255,255,255,0.05); border: 1px solid var(--stage-line); border-radius: 999px;
-  padding: 10px 22px; cursor: pointer; transition: border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast);
-}
+.nav button { font-family: var(--font-ui); font-weight: 600; font-size: 14px; color: var(--text); background: rgba(255,255,255,0.05); border: 1px solid var(--stage-line); border-radius: 999px; padding: 10px 22px; cursor: pointer; transition: border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast); }
 .nav button:hover:not(:disabled) { border-color: var(--spectral); background: rgba(255,255,255,0.1); transform: translateY(-1px); }
 .nav button:disabled { opacity: 0.3; cursor: default; }
 .nav .pageno { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); min-width: 120px; text-align: center; }
 .nav .add { color: var(--spectral-bright); }
 
-@media (max-width: 880px) {
-  .layout { grid-template-columns: 1fr; }
-  .bank { position: static; max-height: none; }
-  .bank-grid { grid-template-columns: repeat(5, 1fr); max-height: 40vh; }
+/* ---------- the bank: a panel that slides out of the left edge ---------- */
+.bank-handle {
+  position: fixed; left: 0; top: 50%; transform: translateY(-50%); z-index: 40;
+  writing-mode: vertical-rl; text-orientation: mixed;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #06121a; font-weight: 600;
+  background: linear-gradient(180deg, var(--spectral-bright), var(--spectral)); border: none; cursor: pointer;
+  padding: 18px 9px; border-radius: 0 12px 12px 0; box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  transition: transform 0.2s;
 }
+.bank-handle:hover { transform: translateY(-50%) translateX(2px); }
+.bank {
+  position: fixed; left: 0; top: 0; z-index: 45; height: 100vh; width: clamp(300px, 30vw, 392px);
+  display: flex; flex-direction: column;
+  background: linear-gradient(170deg, #18151f, #110f17); border-right: 1px solid rgba(255,255,255,0.09);
+  box-shadow: 18px 0 60px rgba(0,0,0,0.6);
+  transform: translateX(-100%); transition: transform 0.42s cubic-bezier(0.16,1,0.3,1);
+  padding: var(--s-4) var(--s-4) var(--s-3);
+}
+body.bank-open .bank { transform: translateX(0); }
+body.bank-open .bank-handle { opacity: 0; pointer-events: none; }
+.bank-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s-3); }
+.bank-top h2 { font-family: var(--font-display); font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; }
+.bank-close { background: none; border: none; color: var(--text-dim); font-size: 22px; cursor: pointer; line-height: 1; }
+.bank-close:hover { color: var(--text); }
+
+/* TCG chooser */
+.tcg-tabs { display: flex; gap: 5px; margin-bottom: var(--s-3); }
+.tcg-tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--text-dim); background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 8px 2px; cursor: pointer; transition: color .15s, background .15s, border-color .15s; }
+.tcg-tab svg { width: 17px; height: 17px; }
+.tcg-tab:hover { color: var(--text); }
+.tcg-tab.active { color: #fff; background: rgba(127,212,244,0.14); border-color: color-mix(in srgb, var(--spectral) 42%, transparent); }
+.tcg-tab.active svg { color: var(--spectral); }
+
+.bank-controls { display: flex; flex-direction: column; gap: 8px; margin-bottom: var(--s-2); }
+.bank select, .bank input { width: 100%; box-sizing: border-box; font-family: var(--font-mono); font-size: 12px; color: var(--text); background: rgba(20, 18, 29, 0.72); border: 1px solid var(--stage-line); border-radius: 8px; padding: 9px 11px; outline: none; }
+.bank select:focus, .bank input:focus { border-color: var(--spectral); }
+.rarity-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: var(--s-2); max-height: 84px; overflow-y: auto; }
+.rarity-chip { font-family: var(--font-mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-dim); background: transparent; border: 1px solid var(--stage-line); border-radius: 999px; padding: 4px 9px; cursor: pointer; white-space: nowrap; }
+.rarity-chip:hover { color: var(--text); }
+.rarity-chip.active { color: #06121a; background: var(--spectral); border-color: var(--spectral); font-weight: 600; }
+
+.bank-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow-y: auto; padding: 2px 4px 2px 0; scrollbar-width: thin; flex: 1; align-content: start; }
+.bank-card { position: relative; aspect-ratio: 734 / 1024; border-radius: 6px; overflow: hidden; cursor: grab; background: rgba(8,7,12,0.5); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); transition: transform 0.15s, box-shadow 0.15s; }
+.bank-card:hover { transform: translateY(-2px) scale(1.03); box-shadow: inset 0 0 0 1px rgba(127,212,244,0.55), 0 10px 22px rgba(0,0,0,0.5); z-index: 2; }
+.bank-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.bank-card.dragging { opacity: 0.4; }
+.bank-card .pr { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 4px 3px; font-family: var(--font-mono); font-size: 9px; font-weight: 600; color: #fff; text-align: center; background: linear-gradient(0deg, rgba(0,0,0,0.82), transparent); }
+.bank-msg { grid-column: 1 / -1; font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); text-align: center; padding: 30px 14px; line-height: 1.7; }
+.bank-foot { margin-top: var(--s-2); padding-top: var(--s-2); border-top: 1px solid rgba(255,255,255,0.06); font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); display: flex; justify-content: space-between; align-items: center; }
+.bank-foot button { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); background: transparent; border: none; cursor: pointer; padding: 0; }
+.bank-foot button:hover { color: var(--ember); }
+
+@media (max-width: 560px) { .bank { width: 86vw; } }
 </style>
 </head>
 <body>
@@ -167,41 +125,35 @@ main { max-width: 1600px; margin: 0 auto; padding: var(--s-3) var(--s-5) var(--s
     <a class="back" href="index.html">← back to the wheel</a>
   </header>
 
-  <main>
-    <div class="layout">
-      <!-- the bank: browse / search any card, drag into the binder -->
-      <aside class="bank">
-        <h2>Card Bank</h2>
-        <p class="hint">Drag a card into a pocket →</p>
-        <div class="bank-controls">
-          <select id="setSel" aria-label="Filter bank by set"></select>
-          <input id="bankSearch" type="search" placeholder="Search cards…" aria-label="Search the bank">
-          <div class="chips">
-            <button class="chip active" data-filter="all" type="button">All</button>
-            <button class="chip" data-filter="collection" type="button">◇ Collected</button>
-            <button class="chip" data-filter="wishlist" type="button">♡ Wishlist</button>
-          </div>
-        </div>
-        <div id="bankGrid" class="bank-grid"></div>
-        <div class="bank-foot">
-          <span id="bankCount">0 cards</span>
-          <button id="autofill" type="button">Auto-fill from collection</button>
-        </div>
-      </aside>
+  <!-- the bank slides out of the left edge -->
+  <button id="bankHandle" class="bank-handle" type="button" aria-label="Open the card bank">Card Bank ▸</button>
+  <aside id="bank" class="bank" aria-label="Card bank">
+    <div class="bank-top">
+      <h2>Card Bank</h2>
+      <button id="bankClose" class="bank-close" type="button" aria-label="Close bank">×</button>
+    </div>
+    <div id="tcgTabs" class="tcg-tabs" role="tablist"></div>
+    <div class="bank-controls">
+      <select id="setSel" aria-label="Select a set"></select>
+      <input id="bankSearch" type="search" placeholder="Search this set…" aria-label="Search cards in this set">
+    </div>
+    <div id="rarityRow" class="rarity-row"></div>
+    <div id="bankGrid" class="bank-grid"></div>
+    <div class="bank-foot">
+      <span id="bankCount">pick a set</span>
+      <button id="autofill" type="button">Auto-fill from collection</button>
+    </div>
+  </aside>
 
-      <!-- the binder: 9-pocket pages, drag to fill, flip to turn -->
-      <section class="binder-stage">
-        <div class="binder-meta"><span><span id="placed">0</span> cards placed</span><span>·</span><span class="total" id="total">$0.00</span></div>
-        <div class="binder">
-          <div id="page" class="page"><div id="pageGrid" class="page-grid"></div></div>
-        </div>
-        <div class="nav">
-          <button id="prev" type="button">← Prev</button>
-          <span class="pageno" id="pageno"></span>
-          <button id="next" type="button">Next →</button>
-          <button id="addPage" class="add" type="button">+ Page</button>
-        </div>
-      </section>
+  <!-- the binder, centered -->
+  <main class="stage">
+    <div class="binder-meta"><span><span id="placed">0</span> cards placed</span><span>·</span><span class="total" id="total">$0.00</span></div>
+    <div class="binder"><div id="page" class="page"><div id="pageGrid" class="page-grid"></div></div></div>
+    <div class="nav">
+      <button id="prev" type="button">← Prev</button>
+      <span class="pageno" id="pageno"></span>
+      <button id="next" type="button">Next →</button>
+      <button id="addPage" class="add" type="button">+ Page</button>
     </div>
   </main>
 
@@ -229,183 +181,195 @@ main { max-width: 1600px; margin: 0 auto; padding: var(--s-3) var(--s-5) var(--s
   <script>
   (() => {
     'use strict';
+    const $ = (id) => document.getElementById(id);
     const SETS = window.CARD_SETS || {};
-    const EUR_USD = 1.10;
-    const safeImg = (u) => (typeof u === 'string' && u.startsWith('https://assets.tcgdex.net/')) ? u : '';
-    const usd = (c) => typeof c.priceUsd === 'number' ? c.priceUsd
-      : (c.cardmarket && c.cardmarket.trend != null ? c.cardmarket.trend * EUR_USD : null);
-    const imgOf = (c) => safeImg(c.image + '/high.webp');
+    const safeTcgdex = (u) => (typeof u === 'string' && u.startsWith('https://assets.tcgdex.net/')) ? u : '';
+    const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : '');
+    // premium variants are foil-only — fall back to the foil price so they're valued
+    const usdPrice = (p) => { if (!p) return null; const v = p.usd || p.usd_foil || p.usd_etched; return v ? parseFloat(v) : null; };
+    const fmt = (v) => v == null ? '' : (v >= 1000 ? '$' + Math.round(v) : '$' + v.toFixed(2));
 
-    // newest-era-first set order (matches the wheel's sense of "latest")
-    const SET_ORDER = ['me04','me03','me02.5','me02','me01','sv10.5w','sv10.5b','sv10','sv09','sv08.5','sv08','sv07','sv06.5','sv06','sv05','sv04.5','sv04','sv03.5','sv03','sv02','sv01'];
-    const orderedSets = SET_ORDER.filter((id) => SETS[id]);
+    const GLYPH = {
+      pokemon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h6M15 12h6" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.7" fill="currentColor"/></svg>',
+      magic: '<svg viewBox="0 0 24 24"><path d="M12 2l2.5 6.8L21 11l-6.5 2.2L12 20l-2.5-6.8L3 11l6.5-2.2z" fill="currentColor"/></svg>',
+      lorcana: '<svg viewBox="0 0 24 24"><path d="M12 3c1.6 2.7 4.2 3.4 4.2 6.3a4.2 4.2 0 11-8.4 0C7.8 6.4 10.4 5.7 12 3z" fill="currentColor"/></svg>',
+      onepiece: '<svg viewBox="0 0 24 24"><path d="M4.5 14.5C4.5 10.4 7.9 7 12 7s7.5 3.4 7.5 7.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 15.2h18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
+    };
+    const POKE_ORDER = ['me04','me03','me02.5','me02','me01','sv10.5w','sv10.5b','sv10','sv09','sv08.5','sv08','sv07','sv06.5','sv06','sv05','sv04.5','sv04','sv03.5','sv03','sv02','sv01'];
+    const GAMES = {
+      pokemon: { label: 'Pokémon', sets: POKE_ORDER.filter((id) => SETS[id]).map((id) => ({ id, name: SETS[id].set.name })) },
+      magic: { label: 'Magic', sets: [['tdm','Tarkir: Dragonstorm'],['fin','Final Fantasy'],['eoe','Edge of Eternities'],['tla','Avatar: The Last Airbender'],['spm',"Marvel's Spider-Man"],['dsk','Duskmourn'],['blb','Bloomburrow'],['mh3','Modern Horizons 3'],['otj','Outlaws of Thunder Junction'],['mkm','Murders at Karlov Manor']].map(([code,name]) => ({ id: 'mtg-' + code, code, name })) },
+      lorcana: { label: 'Lorcana', sets: [['12','Wilds Unknown'],['11','Winterspell'],['10','Whispers in the Well'],['9','Fabled'],['8','Reign of Jafar'],['7',"Archazia's Island"],['6','Azurite Sea'],['5','Shimmering Skies'],['4',"Ursula's Return"],['3','Into the Inklands'],['2','Rise of the Floodborn'],['1','The First Chapter']].map(([code,name]) => ({ id: 'lor-' + code, code, name })) },
+      onepiece: { label: 'One Piece', sets: [['OP16','The Time of Battle'],['OP15',"Adventure on Kami's Island"],['OP14',"The Azure Sea's Seven"],['OP13','Carrying On His Will'],['OP12','Legacy of the Master'],['OP11','A Fist of Divine Speed'],['OP10','Royal Blood'],['OP09','Emperors in the New World'],['OP08','Two Legends'],['OP07','500 Years in the Future'],['OP06','Wings of the Captain'],['OP05','Awakening of the New Era'],['OP01','Romance Dawn']].map(([code,name]) => ({ id: 'op-' + code, code, name })) },
+    };
 
-    const byId = new Map();
-    for (const sid of orderedSets) for (const c of SETS[sid].cards) byId.set(c.id, { setId: sid, setName: SETS[sid].set.name, card: c });
+    // ---- per-set card loaders → normalized {id,name,image,rarity,priceUsd} ----
+    const fetchJSON = async (u) => { const r = await fetch(u); if (!r.ok) throw new Error(r.status); return r.json(); };
+    let opPromise = null;
+    const ensureOP = () => window.OP_CARDS ? Promise.resolve() : (opPromise = opPromise || new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'data/onepiece.js'; s.onload = res; s.onerror = rej; document.head.appendChild(s); }));
+    const cache = {};
+    async function loadSet(game, set) {
+      const key = game + ':' + set.id;
+      if (cache[key]) return cache[key];
+      let cards = [];
+      if (game === 'pokemon') {
+        cards = (SETS[set.id]?.cards || []).map((c) => ({ id: c.id, name: c.name, image: safeTcgdex(c.image + '/high.webp'), rarity: c.rarity || '—', priceUsd: typeof c.priceUsd === 'number' ? c.priceUsd : (c.cardmarket?.trend ?? null) })).filter((c) => c.image);
+      } else if (game === 'magic') {
+        let out = [], url = `https://api.scryfall.com/cards/search?q=set%3A${set.code}+game%3Apaper&unique=prints&order=set`;
+        for (let p = 0; url && p < 16 && out.length < 2200; p++) { const j = await fetchJSON(url); out.push(...(j.data || [])); url = j.has_more ? j.next_page : null; }
+        cards = out.map((c) => { const u = c.image_uris || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris) || {}; return { c, img: u.normal || u.large }; }).filter((x) => x.img).map(({ c, img }) => ({ id: `mtg-${set.code}-${c.collector_number}`, name: c.name, image: img, rarity: cap(c.rarity), priceUsd: usdPrice(c.prices) }));
+      } else if (game === 'lorcana') {
+        const j = await fetchJSON(`https://api.lorcast.com/v0/sets/${set.code}/cards`);
+        const arr = Array.isArray(j) ? j : (j.results || j.cards || []);
+        cards = arr.map((c) => { const u = (c.image_uris && c.image_uris.digital) || {}; return { c, img: u.normal || u.large }; }).filter((x) => x.img).map(({ c, img }) => ({ id: `lor-${set.code}-${c.collector_number}`, name: c.version ? `${c.name} — ${c.version}` : c.name, image: img, rarity: (c.rarity || '—').replace('_', ' '), priceUsd: usdPrice(c.prices) }));
+      } else if (game === 'onepiece') {
+        await ensureOP();
+        const OPR = { C: 'Common', UC: 'Uncommon', R: 'Rare', SR: 'Super Rare', SEC: 'Secret Rare', L: 'Leader', P: 'Promo', SP: 'Special', TR: 'Treasure' };
+        cards = (window.OP_CARDS || []).filter((c) => c.set === set.code && c.id).map((c) => { const reg = parseFloat(c.price), foil = parseFloat(c.foilPrice); return { id: `op-${c.id}`, name: c.name, image: `https://static.dotgg.gg/onepiece/card/${c.id}.webp`, rarity: OPR[c.rarity] || c.rarity || '—', priceUsd: reg > 0 ? reg : (foil > 0 ? foil : null) }; });
+      }
+      cards.sort((a, b) => (b.priceUsd ?? -1) - (a.priceUsd ?? -1));
+      cache[key] = cards;
+      return cards;
+    }
 
+    // ---------- binder state: pages of card SNAPSHOTS (cross-game) ----------
     const load = (k, fb) => { try { return JSON.parse(localStorage.getItem(k)) ?? fb; } catch { return fb; } };
     const collection = new Set(load('pokex.collection', []));
-    const wishlist = new Set(load('pokex.wishlist', []));
-
-    // binder state: { pages: [ [id|null × 9], ... ] }
     let binder = load('pokex.binder', null);
-    if (!binder || !Array.isArray(binder.pages) || !binder.pages.length) binder = { pages: [Array(9).fill(null)] };
-    const save = () => localStorage.setItem('pokex.binder', JSON.stringify(binder));
-    const placedIds = () => new Set(binder.pages.flat().filter(Boolean));
-
-    let pageIdx = 0, setFilter = 'all', chip = 'all', query = '';
-
-    // ---------- bank ----------
-    const setSel = document.getElementById('setSel');
-    setSel.appendChild(new Option('All sets', 'all'));
-    for (const sid of orderedSets) setSel.appendChild(new Option(SETS[sid].set.name, sid));
-
-    function bankList() {
-      const placed = placedIds();
-      let list = [];
-      for (const sid of orderedSets) {
-        if (setFilter !== 'all' && sid !== setFilter) continue;
-        for (const c of SETS[sid].cards) {
-          if (placed.has(c.id)) continue;                         // already in the binder
-          if (chip === 'collection' && !collection.has(c.id)) continue;
-          if (chip === 'wishlist' && !wishlist.has(c.id)) continue;
-          if (query && !c.name.toLowerCase().includes(query)) continue;
-          if (!imgOf(c)) continue;
-          list.push({ setId: sid, card: c });
-        }
-      }
-      // most valuable first — the cards you'd actually showcase
-      return list.sort((a, b) => (usd(b.card) ?? -1) - (usd(a.card) ?? -1));
+    function migrate(b) { // accept the old [id,…] format (Pokémon ids) too
+      if (!b || !Array.isArray(b.pages) || !b.pages.length) return { pages: [Array(9).fill(null)] };
+      const byId = {}; for (const sid of Object.keys(SETS)) for (const c of SETS[sid].cards) byId[c.id] = c;
+      b.pages = b.pages.map((pg) => (pg || Array(9).fill(null)).map((s) => {
+        if (!s) return null;
+        if (typeof s === 'object') return s;
+        const c = byId[s]; return c ? { id: c.id, name: c.name, image: safeTcgdex(c.image + '/high.webp'), priceUsd: c.priceUsd ?? null } : null;
+      }));
+      return b;
     }
-    function renderBank() {
-      const grid = document.getElementById('bankGrid');
-      const list = bankList();
+    binder = migrate(binder);
+    const save = () => localStorage.setItem('pokex.binder', JSON.stringify(binder));
+    const placedIds = () => new Set(binder.pages.flat().filter(Boolean).map((s) => s.id));
+    let pageIdx = 0;
+
+    // ---------- bank browser ----------
+    let game = 'pokemon', curSet = null, rarity = 'all', query = '', loaded = [];
+    const tcgTabs = $('tcgTabs'), setSel = $('setSel'), rarityRow = $('rarityRow'), grid = $('bankGrid');
+
+    tcgTabs.innerHTML = Object.entries(GAMES).map(([g, v]) => `<button class="tcg-tab" data-game="${g}"><span>${GLYPH[g]}</span><span>${v.label}</span></button>`).join('');
+    function fillSets() {
+      setSel.innerHTML = '<option value="">Select set…</option>' + GAMES[game].sets.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
+      curSet = null; loaded = []; rarity = 'all'; query = ''; $('bankSearch').value = '';
+      renderRarity(); renderGrid();
+    }
+    function renderTabs() { tcgTabs.querySelectorAll('.tcg-tab').forEach((t) => t.classList.toggle('active', t.dataset.game === game)); }
+    function renderRarity() {
+      rarityRow.replaceChildren();
+      if (!loaded.length) return;
+      const order = ['Common','Uncommon','Rare','Double Rare','Holo Rare','Ultra Rare','Illustration Rare','Special Illustration Rare','Hyper Rare','Mythic','Super rare','Epic','Legendary','Enchanted','Iconic','Super Rare','Secret Rare','Leader'];
+      const rares = [...new Set(loaded.map((c) => c.rarity).filter(Boolean))].sort((a, b) => { const ia = order.indexOf(a), ib = order.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
+      const mk = (val, label) => { const b = document.createElement('button'); b.className = 'rarity-chip' + (rarity === val ? ' active' : ''); b.textContent = label; b.onclick = () => { rarity = val; renderRarity(); renderGrid(); }; return b; };
+      rarityRow.appendChild(mk('all', 'All rarities'));
+      for (const r of rares) rarityRow.appendChild(mk(r, r));
+    }
+    function renderGrid() {
       grid.replaceChildren();
-      document.getElementById('bankCount').textContent = `${list.length} card${list.length === 1 ? '' : 's'}`;
-      if (!list.length) {
-        const e = document.createElement('div'); e.className = 'bank-empty';
-        e.textContent = chip === 'all' ? 'No cards match.' : `Nothing in your ${chip} yet — collect or wishlist cards on the wheel, or switch to “All”.`;
-        grid.appendChild(e); return;
-      }
-      for (const { card } of list.slice(0, 240)) {
-        const t = document.createElement('div');
-        t.className = 'bank-card'; t.draggable = true; t.title = card.name; t.dataset.id = card.id;
-        const img = document.createElement('img'); img.loading = 'lazy'; img.alt = card.name; img.src = imgOf(card);
-        t.appendChild(img);
-        if (wishlist.has(card.id)) { const b = document.createElement('span'); b.className = 'badge wish'; b.textContent = '♡'; t.appendChild(b); }
-        else if (collection.has(card.id)) { const b = document.createElement('span'); b.className = 'badge coll'; b.textContent = '◇'; t.appendChild(b); }
-        t.addEventListener('dragstart', (ev) => {
-          ev.dataTransfer.setData('text/plain', JSON.stringify({ id: card.id, from: 'bank' }));
-          ev.dataTransfer.effectAllowed = 'move'; t.classList.add('dragging');
-        });
+      if (!curSet) { const m = document.createElement('div'); m.className = 'bank-msg'; m.textContent = 'Pick a TCG and a set above to browse its cards, then drag them into the binder.'; grid.appendChild(m); $('bankCount').textContent = 'pick a set'; return; }
+      if (!loaded.length) { const m = document.createElement('div'); m.className = 'bank-msg'; m.textContent = 'Loading…'; grid.appendChild(m); return; }
+      const placed = placedIds(), q = query.trim().toLowerCase();
+      let list = loaded.filter((c) => !placed.has(c.id) && (rarity === 'all' || c.rarity === rarity) && (!q || c.name.toLowerCase().includes(q)));
+      $('bankCount').textContent = `${list.length} card${list.length === 1 ? '' : 's'}`;
+      const CAP = 250, show = list.slice(0, CAP);
+      if (!show.length) { const m = document.createElement('div'); m.className = 'bank-msg'; m.textContent = 'No cards match this filter.'; grid.appendChild(m); return; }
+      for (const c of show) {
+        const t = document.createElement('div'); t.className = 'bank-card'; t.draggable = true; t.title = `${c.name}${c.priceUsd != null ? ' · ' + fmt(c.priceUsd) : ''}`;
+        const img = document.createElement('img'); img.loading = 'lazy'; img.alt = c.name; img.src = c.image; t.appendChild(img);
+        if (c.priceUsd != null) { const pr = document.createElement('span'); pr.className = 'pr'; pr.textContent = fmt(c.priceUsd); t.appendChild(pr); }
+        t.addEventListener('dragstart', (ev) => { ev.dataTransfer.setData('text/plain', JSON.stringify({ from: 'bank', snap: { id: c.id, name: c.name, image: c.image, priceUsd: c.priceUsd } })); ev.dataTransfer.effectAllowed = 'move'; t.classList.add('dragging'); });
         t.addEventListener('dragend', () => t.classList.remove('dragging'));
         grid.appendChild(t);
       }
+      if (list.length > CAP) { const m = document.createElement('div'); m.className = 'bank-msg'; m.textContent = `+${list.length - CAP} more — filter by rarity or search to narrow.`; grid.appendChild(m); }
     }
+    async function pickSet(id) {
+      curSet = GAMES[game].sets.find((s) => s.id === id) || null;
+      loaded = []; rarity = 'all'; renderRarity(); renderGrid();
+      if (!curSet) return;
+      try { loaded = await loadSet(game, curSet); } catch (e) { loaded = []; grid.replaceChildren(Object.assign(document.createElement('div'), { className: 'bank-msg', textContent: "Couldn't load this set." })); return; }
+      renderRarity(); renderGrid();
+    }
+    tcgTabs.querySelectorAll('.tcg-tab').forEach((t) => t.addEventListener('click', () => { game = t.dataset.game; renderTabs(); fillSets(); }));
+    setSel.addEventListener('change', () => pickSet(setSel.value));
+    $('bankSearch').addEventListener('input', (e) => { query = e.target.value; renderGrid(); });
 
-    // ---------- binder page ----------
+    // ---------- binder page render + drag/drop ----------
     function pageMeta() {
-      const all = binder.pages.flat().filter(Boolean).map((id) => byId.get(id)).filter(Boolean);
-      document.getElementById('placed').textContent = String(all.length);
-      document.getElementById('total').textContent = '$' + all.reduce((s, e) => s + (usd(e.card) || 0), 0).toFixed(2);
+      const all = binder.pages.flat().filter(Boolean);
+      $('placed').textContent = String(all.length);
+      $('total').textContent = '$' + all.reduce((s, c) => s + (c.priceUsd || 0), 0).toFixed(2);
     }
     function placeCard(slot, payload) {
       const here = binder.pages[pageIdx];
       if (payload.from === 'pocket') {
-        const src = payload.slot;
-        if (src === slot) return;
-        const oldTarget = here[slot] ?? null; // swap the two pockets
-        here[slot] = payload.id;
-        here[src] = oldTarget;
+        if (payload.slot === slot) return;
+        const tmp = here[slot]; here[slot] = here[payload.slot]; here[payload.slot] = tmp;
       } else {
-        // from bank: if a different copy somewhere, remove it first (ids are unique)
-        for (const pg of binder.pages) { const k = pg.indexOf(payload.id); if (k >= 0) pg[k] = null; }
-        here[slot] = payload.id;
+        for (const pg of binder.pages) { const k = pg.findIndex((s) => s && s.id === payload.snap.id); if (k >= 0) pg[k] = null; }
+        here[slot] = payload.snap;
       }
-      save(); renderPage(); renderBank(); pageMeta();
+      save(); renderPage(); renderGrid(); pageMeta();
     }
-    function removeSlot(slot) { binder.pages[pageIdx][slot] = null; save(); renderPage(); renderBank(); pageMeta(); }
-
+    function removeSlot(slot) { binder.pages[pageIdx][slot] = null; save(); renderPage(); renderGrid(); pageMeta(); }
     function pocketEl(slot) {
-      const id = binder.pages[pageIdx][slot];
-      const entry = id ? byId.get(id) : null;
-      const pk = document.createElement('div');
-      pk.className = entry ? 'pocket filled' : 'pocket empty';
-      pk.dataset.slot = slot;
-      if (entry) {
+      const snap = binder.pages[pageIdx][slot];
+      const pk = document.createElement('div'); pk.className = snap ? 'pocket filled' : 'pocket empty'; pk.dataset.slot = slot;
+      if (snap) {
         pk.draggable = true;
-        const img = document.createElement('img'); img.loading = 'lazy'; img.alt = entry.card.name; img.src = imgOf(entry.card);
-        const pr = document.createElement('span'); pr.className = 'pk-pr';
-        const v = usd(entry.card); pr.textContent = v != null ? `$${v.toFixed(2)}` : entry.card.localId;
+        const img = document.createElement('img'); img.loading = 'lazy'; img.alt = snap.name; img.src = snap.image;
+        const pr = document.createElement('span'); pr.className = 'pk-pr'; pr.textContent = snap.priceUsd != null ? fmt(snap.priceUsd) : '';
         const x = document.createElement('button'); x.className = 'pk-x'; x.type = 'button'; x.textContent = '×'; x.title = 'Remove';
         x.addEventListener('click', (ev) => { ev.stopPropagation(); removeSlot(slot); });
         pk.append(img, pr, x);
-        pk.addEventListener('dragstart', (ev) => {
-          ev.dataTransfer.setData('text/plain', JSON.stringify({ id, from: 'pocket', slot }));
-          ev.dataTransfer.effectAllowed = 'move'; pk.classList.add('dragging');
-        });
+        pk.addEventListener('dragstart', (ev) => { ev.dataTransfer.setData('text/plain', JSON.stringify({ from: 'pocket', slot })); ev.dataTransfer.effectAllowed = 'move'; pk.classList.add('dragging'); });
         pk.addEventListener('dragend', () => pk.classList.remove('dragging'));
       }
       pk.addEventListener('dragover', (ev) => { ev.preventDefault(); pk.classList.add('over'); });
       pk.addEventListener('dragleave', () => pk.classList.remove('over'));
-      pk.addEventListener('drop', (ev) => {
-        ev.preventDefault(); pk.classList.remove('over');
-        try { placeCard(slot, JSON.parse(ev.dataTransfer.getData('text/plain'))); } catch {}
-      });
+      pk.addEventListener('drop', (ev) => { ev.preventDefault(); pk.classList.remove('over'); try { placeCard(slot, JSON.parse(ev.dataTransfer.getData('text/plain'))); } catch {} });
       return pk;
     }
-    function renderPage(flipDir) {
-      const grid = document.getElementById('pageGrid');
-      grid.replaceChildren();
-      for (let i = 0; i < 9; i++) grid.appendChild(pocketEl(i));
-      const page = document.getElementById('page');
-      if (flipDir) {
-        page.classList.remove('flip-next', 'flip-prev');
-        void page.offsetWidth;                       // restart the animation
-        page.classList.add(flipDir === 1 ? 'flip-next' : 'flip-prev');
-      }
-      document.getElementById('pageno').textContent = `Page ${pageIdx + 1} of ${binder.pages.length}`;
-      document.getElementById('prev').disabled = pageIdx === 0;
-      document.getElementById('next').disabled = pageIdx >= binder.pages.length - 1;
+    function renderPage(flip) {
+      const g = $('pageGrid'); g.replaceChildren();
+      for (let i = 0; i < 9; i++) g.appendChild(pocketEl(i));
+      const page = $('page');
+      if (flip) { page.classList.remove('flip-next', 'flip-prev'); void page.offsetWidth; page.classList.add(flip === 1 ? 'flip-next' : 'flip-prev'); }
+      $('pageno').textContent = `Page ${pageIdx + 1} of ${binder.pages.length}`;
+      $('prev').disabled = pageIdx === 0; $('next').disabled = pageIdx >= binder.pages.length - 1;
     }
+    // drop on the bank pulls a card out of its pocket
+    $('bank').addEventListener('dragover', (ev) => ev.preventDefault());
+    $('bank').addEventListener('drop', (ev) => { ev.preventDefault(); try { const p = JSON.parse(ev.dataTransfer.getData('text/plain')); if (p.from === 'pocket') removeSlot(p.slot); } catch {} });
 
-    // dropping onto the bank pulls a card out of its pocket
-    const bankGrid = document.getElementById('bankGrid');
-    bankGrid.addEventListener('dragover', (ev) => ev.preventDefault());
-    bankGrid.addEventListener('drop', (ev) => {
-      ev.preventDefault();
-      try { const p = JSON.parse(ev.dataTransfer.getData('text/plain')); if (p.from === 'pocket') removeSlot(p.slot); } catch {}
-    });
-
-    // ---------- controls ----------
-    setSel.addEventListener('change', () => { setFilter = setSel.value; renderBank(); });
-    document.getElementById('bankSearch').addEventListener('input', (e) => { query = e.target.value.trim().toLowerCase(); renderBank(); });
-    document.querySelectorAll('.chip').forEach((c) => c.addEventListener('click', () => {
-      document.querySelectorAll('.chip').forEach((x) => x.classList.toggle('active', x === c));
-      chip = c.dataset.filter; renderBank();
-    }));
-    document.getElementById('prev').addEventListener('click', () => { if (pageIdx > 0) { pageIdx--; renderPage(-1); } });
-    document.getElementById('next').addEventListener('click', () => { if (pageIdx < binder.pages.length - 1) { pageIdx++; renderPage(1); } });
-    document.getElementById('addPage').addEventListener('click', () => {
-      binder.pages.push(Array(9).fill(null)); save(); pageIdx = binder.pages.length - 1; renderPage(1);
-    });
-    document.getElementById('autofill').addEventListener('click', () => {
+    $('prev').addEventListener('click', () => { if (pageIdx > 0) { pageIdx--; renderPage(-1); } });
+    $('next').addEventListener('click', () => { if (pageIdx < binder.pages.length - 1) { pageIdx++; renderPage(1); } });
+    $('addPage').addEventListener('click', () => { binder.pages.push(Array(9).fill(null)); save(); pageIdx = binder.pages.length - 1; renderPage(1); });
+    $('autofill').addEventListener('click', () => {
+      const byId = {}; for (const sid of Object.keys(SETS)) for (const c of SETS[sid].cards) byId[c.id] = c;
       const placed = placedIds();
-      const pool = [...collection].filter((id) => byId.has(id) && !placed.has(id));
-      if (!pool.length) return;
-      // fill empty slots across pages, adding pages as needed
+      const pool = [...collection].filter((id) => byId[id] && !placed.has(id));
       let pi = 0, si = 0;
-      for (const id of pool) {
-        while (true) {
-          if (pi >= binder.pages.length) binder.pages.push(Array(9).fill(null));
-          if (binder.pages[pi][si] == null) { binder.pages[pi][si] = id; break; }
-          si++; if (si >= 9) { si = 0; pi++; }
-        }
-      }
-      save(); pageIdx = 0; renderPage(); renderBank(); pageMeta();
+      for (const id of pool) { const c = byId[id]; const snap = { id: c.id, name: c.name, image: safeTcgdex(c.image + '/high.webp'), priceUsd: c.priceUsd ?? null };
+        while (true) { if (pi >= binder.pages.length) binder.pages.push(Array(9).fill(null)); if (binder.pages[pi][si] == null) { binder.pages[pi][si] = snap; break; } si++; if (si >= 9) { si = 0; pi++; } } }
+      save(); pageIdx = 0; renderPage(); renderGrid(); pageMeta();
     });
 
-    renderBank(); renderPage(); pageMeta();
+    // ---------- slide-out open/close ----------
+    const open = (o) => document.body.classList.toggle('bank-open', o);
+    $('bankHandle').addEventListener('click', () => open(true));
+    $('bankClose').addEventListener('click', () => open(false));
+
+    // boot
+    renderTabs(); fillSets(); renderPage(); pageMeta();
+    setTimeout(() => open(true), 260);   // animate the bank out on arrival
   })();
   </script>
 </body>
