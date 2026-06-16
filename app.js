@@ -2150,10 +2150,10 @@
   // pick a SET → drop into that set on its first card. GSAP for every transition.
   const homeEl = $('home'), homeScroll = $('homeScroll');
   const HOME_GAMES = [
-    { game: 'pokemon', name: 'Pokémon', accent: '#ffcb05' },
-    { game: 'magic', name: 'Magic: The Gathering', accent: '#e8943b' },
-    { game: 'lorcana', name: 'Disney Lorcana', accent: '#7fd4f4' },
-    { game: 'onepiece', name: 'One Piece', accent: '#ff5b4d' },
+    { game: 'pokemon', name: 'Pokémon', accent: '#ffcb05', card: 'assets/hallway/pokemon.webp' },
+    { game: 'magic', name: 'Magic: The Gathering', accent: '#e8943b', card: 'assets/hallway/magic.jpg' },
+    { game: 'lorcana', name: 'Disney Lorcana', accent: '#7fd4f4', card: 'assets/hallway/lorcana.avif' },
+    { game: 'onepiece', name: 'One Piece', accent: '#ff5b4d', card: 'assets/hallway/onepiece.webp' },
   ];
   function setsForGame(game) {
     if (game === 'pokemon') return SET_GROUPS.flatMap((grp) => grp.ids.filter((id) => SETS[id]).map((id) => ({ id, name: SETS[id].set.name, count: SETS[id].set.total })));
@@ -2186,6 +2186,7 @@
     $('setsBack').addEventListener('click', () => switchView('hvSets', 'hvPick'));
     $('setGrid').addEventListener('click', (e) => { const b = e.target.closest('[data-set]'); if (b) enterSet(pickGame, b.dataset.set); });
     initHomeParallax();
+    HOME_GAMES.forEach((g) => { const im = new Image(); im.src = g.card; }); // preload hallway cards
   }
   // generic crossfade/scale between two home views
   // clean opacity crossfade — NO container scale/blur (that made the whole grid
@@ -2197,19 +2198,45 @@
     if (!window.gsap || REDUCED) { reveal(); return; }
     gsap.to(from, { opacity: 0, duration: 0.24, ease: 'power2.in', onComplete: () => { gsap.set(from, { clearProps: 'opacity' }); reveal(); } });
   }
+  // "wall-less hallway": the hero line rushes past the camera, then a card from
+  // each game flies AT you out of the corridor (Pokémon first), spreading from
+  // centre to its spot, and cross-dissolves into that game's logo. The logos it
+  // becomes ARE the picker — so the cinematic intro resolves straight into it.
   function goPick() {
     const hero = $('hvHero'), pick = $('hvPick');
     if (!window.gsap || REDUCED) { hero.hidden = true; pick.hidden = false; return; }
-    const tl = gsap.timeline();
-    tl.to(hero, { opacity: 0, scale: 0.9, filter: 'blur(16px)', duration: 0.5, ease: 'power2.in' });
-    tl.add(() => { hero.hidden = true; gsap.set(hero, { clearProps: 'opacity,scale,filter' }); pick.hidden = false; });
-    tl.fromTo('.hv-pick .pick-prompt', { opacity: 0, y: -18 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' });
-    const logos = pick.querySelectorAll('.pick-logo');
-    logos.forEach((c, i) => {   // each logo flies AT the camera from deep 3D, alternating sides
-      tl.fromTo(c, { z: -1600, x: (i % 2 ? 1 : -1) * 380, rotateY: (i % 2 ? 1 : -1) * 36, opacity: 0, filter: 'blur(20px)' },
-        { z: 0, x: 0, rotateY: 0, opacity: 1, filter: 'blur(0px)', duration: 0.85, ease: 'power3.out' }, i === 0 ? '<0.1' : '<0.13');
+    pick.hidden = false;
+    const logos = [...pick.querySelectorAll('.pick-logo')];
+    const logoImgs = logos.map((b) => b.querySelector('img'));
+    const prompt = pick.querySelector('.pick-prompt');
+    gsap.set(prompt, { opacity: 0 });
+    gsap.set(logoImgs, { opacity: 0 }); // hidden until each game's card resolves into it
+    const cx = innerWidth / 2;
+    const cards = logos.map((btn, i) => {
+      const card = document.createElement('img');
+      card.className = 'hall-card'; card.alt = ''; card.src = HOME_GAMES[i].card;
+      btn.appendChild(card);
+      return card;
     });
-    tl.set(logos, { clearProps: 'transform,filter' });
+    gsap.set(cards, { xPercent: -50, yPercent: -50, transformOrigin: '50% 50%' }); // centre on the logo
+    const tl = gsap.timeline({ onComplete: () => {
+      cards.forEach((c) => c.remove());
+      gsap.set(logoImgs, { clearProps: 'opacity' });
+    } });
+    // hero rushes toward + past the camera (sells moving down the hall)
+    tl.to(hero, { opacity: 0, scale: 1.5, filter: 'blur(22px)', duration: 0.62, ease: 'power2.in' }, 0);
+    tl.add(() => { hero.hidden = true; gsap.set(hero, { clearProps: 'all' }); }, 0.52);
+    cards.forEach((card, i) => {
+      const t = 0.42 + i * 0.34;                                  // Pokémon first, then in order
+      const r = logos[i].getBoundingClientRect();
+      const startX = (cx - (r.left + r.width / 2)) * 0.55;        // emerge from the corridor mouth
+      tl.fromTo(card,
+        { z: -2600, x: startX, rotateX: 13, opacity: 0, filter: 'blur(16px)' },
+        { z: 70, x: 0, rotateX: 0, opacity: 1, filter: 'blur(0px)', duration: 0.74, ease: 'power2.out' }, t);
+      tl.to(card, { z: 26, opacity: 0, scale: 1.08, duration: 0.36, ease: 'power2.inOut' }, t + 0.64); // → becomes the logo
+      tl.to(logoImgs[i], { opacity: 1, duration: 0.42, ease: 'power2.out' }, t + 0.68);
+    });
+    tl.to(prompt, { opacity: 1, duration: 0.5, ease: 'power2.out' }, '>-0.2');
   }
   function goSets(game) {
     pickGame = game;

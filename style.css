@@ -1514,6 +1514,13 @@ body.home-open .chrome, body.home-open main, body.home-open .minimap, body.home-
 .pick-logo:focus-visible { outline: none; }
 .pick-logo:focus-visible .pl-glow { opacity: 0.7; }
 
+/* hallway intro: a real card per game flies out of the corridor and dissolves
+   into its logo. Positioned on the logo centre; GSAP drives the 3D fly-in. */
+.hall-card { position: absolute; left: 50%; top: 50%; width: clamp(124px, 12.5vw, 208px);
+  aspect-ratio: 734 / 1024; object-fit: cover; border-radius: 11px; pointer-events: none;
+  z-index: 6; backface-visibility: hidden; will-change: transform, opacity, filter;
+  box-shadow: 0 38px 72px rgba(0, 0, 0, 0.62), 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 60px rgba(124, 92, 255, 0.12); }
+
 /* set selector */
 .set-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(188px, 1fr)); gap: 12px; width: min(92vw, 1000px); max-height: 60vh; overflow-y: auto; padding: 4px; scrollbar-width: thin; }
 .set-pick { display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left;
