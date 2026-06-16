@@ -1,76 +1,70 @@
-# Post-process data/sealed.js: download each TCGplayer product photo, knock out
-# its white studio background (border-connected near-white removal), and save a
-# TRANSPARENT WebP locally so sealed products float frameless on the dark wheel —
-# no white box behind them. Rewrites the img paths to the local files.
+# Post-process data/sealed.js: give every sealed product a clean TRANSPARENT
+# render so it floats frameless on the dark wheel — no white box behind it.
+# Uses rembg (U^2-Net AI segmentation) for a professional cutout, then tight-crops
+# and downscales. Re-runnable from either remote TCGplayer URLs or local paths
+# (the product id is the filename / in the URL).
 #
+# Requires: pip install rembg onnxruntime pillow
 # Run AFTER scripts/gen-sealed-tcgcsv.mjs:  python scripts/cutout-sealed.py
 import io, os, re, json, urllib.request
 from concurrent.futures import ThreadPoolExecutor
-import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image
+from rembg import remove, new_session
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SEALED_JS = os.path.join(ROOT, 'data', 'sealed.js')
 OUT_DIR = os.path.join(ROOT, 'assets', 'sealed', 'tcg')
 os.makedirs(OUT_DIR, exist_ok=True)
-PID_RE = re.compile(r'/product/(\d+)_')
+PID_RE = re.compile(r'(\d{4,})')          # product id, in a CDN url or a local path
+SESSION = new_session('u2net')
+MAXDIM = 560
 
-def cutout(im):
-    rgb = np.asarray(im.convert('RGB'))
-    a = rgb.astype(np.int16); mx = a.max(2); mn = a.min(2)
-    white = (mn >= 222) & ((mx - mn) <= 20)              # bright + low-saturation
-    H, W = white.shape; s = 220                          # reconstruct on a small mask (fast)
-    wm = np.asarray(Image.fromarray((white * 255).astype('uint8')).resize((s, s), Image.NEAREST)) > 127
-    seed = np.zeros_like(wm)
-    seed[0, :] = wm[0, :]; seed[-1, :] = wm[-1, :]; seed[:, 0] = wm[:, 0]; seed[:, -1] = wm[:, -1]
-    for _ in range(s * 2):                               # geodesic dilation into border-connected white
-        d = seed.copy()
-        d[1:, :] |= seed[:-1, :]; d[:-1, :] |= seed[1:, :]; d[:, 1:] |= seed[:, :-1]; d[:, :-1] |= seed[:, 1:]
-        d &= wm
-        if d.sum() == seed.sum(): break
-        seed = d
-    bg = np.asarray(Image.fromarray((seed * 255).astype('uint8')).resize((W, H), Image.BILINEAR)) > 110
-    bg &= white                                          # snap to real white pixels at full res
-    alpha = np.where(bg, 0, 255).astype('uint8')
-    out = Image.fromarray(np.dstack([rgb, alpha]), 'RGBA')
-    out.putalpha(out.split()[3].filter(ImageFilter.GaussianBlur(0.8)))   # 1px feather kills the fringe
-    # tight-crop to the product so it isn't lost in a big transparent canvas
-    bbox = out.split()[3].getbbox()
-    if bbox:
-        pad = 12
-        out = out.crop((max(0, bbox[0]-pad), max(0, bbox[1]-pad), min(W, bbox[2]+pad), min(H, bbox[3]+pad)))
-    return out
-
-def process(pid):
-    dst = os.path.join(OUT_DIR, f'{pid}.webp')
-    if os.path.exists(dst):
-        return pid, True
+def fetch(pid):
     try:
         url = f'https://tcgplayer-cdn.tcgplayer.com/product/{pid}_in_1000x1000.jpg'
         req = urllib.request.Request(url, headers={'User-Agent': 'pokex/1.0'})
-        im = Image.open(io.BytesIO(urllib.request.urlopen(req, timeout=30).read()))
-        cutout(im).save(dst, 'WEBP', quality=86, method=4)
-        return pid, True
+        return pid, urllib.request.urlopen(req, timeout=30).read()
     except Exception as e:
-        print('  ! fail', pid, e)
-        return pid, False
+        print('  ! download fail', pid, e); return pid, None
+
+def cut(pid, raw):
+    im = Image.open(io.BytesIO(raw)).convert('RGB')
+    out = remove(im, session=SESSION, post_process_mask=True)   # clean AI alpha
+    bbox = out.split()[3].getbbox()                             # tight-crop to the product
+    if bbox:
+        pad = 8
+        out = out.crop((max(0, bbox[0]-pad), max(0, bbox[1]-pad),
+                        min(out.width, bbox[2]+pad), min(out.height, bbox[3]+pad)))
+    if max(out.size) > MAXDIM:                                   # downscale for the web
+        s = MAXDIM / max(out.size)
+        out = out.resize((round(out.width*s), round(out.height*s)), Image.LANCZOS)
+    out.save(os.path.join(OUT_DIR, f'{pid}.webp'), 'WEBP', quality=90, method=5)
 
 def main():
     src = open(SEALED_JS, encoding='utf-8').read()
     data = json.loads(re.search(r'window\.SEALED_PRODUCTS = ([\s\S]*);', src).group(1))
     pids = sorted({m.group(1) for arr in data.values() for p in arr if (m := PID_RE.search(p.get('img', '')))})
-    print(f'{len(pids)} product photos to cut out…')
-    ok = dict(ThreadPoolExecutor(max_workers=12).map(process, pids))
-    # rewrite img paths to the local transparent files (only where the cut succeeded)
+    print(f'{len(pids)} product photos — downloading…')
+    blobs = dict(ThreadPoolExecutor(max_workers=12).map(fetch, pids))
+    ok = 0
+    for i, pid in enumerate(pids):
+        if not blobs.get(pid):
+            continue
+        try:
+            cut(pid, blobs[pid]); ok += 1
+            if (i + 1) % 40 == 0: print(f'  cut {i+1}/{len(pids)}…')
+        except Exception as e:
+            print('  ! cut fail', pid, e)
+    # point every product at its local transparent webp
     n = 0
     for arr in data.values():
         for p in arr:
             m = PID_RE.search(p.get('img', ''))
-            if m and ok.get(m.group(1)):
-                p['img'] = f'assets/sealed/tcg/{m.group(1)}.webp'; n += 1
+            if m and os.path.exists(os.path.join(OUT_DIR, f"{m.group(1)}.webp")):
+                p['img'] = f"assets/sealed/tcg/{m.group(1)}.webp"; n += 1
     banner = ('// Sealed-product prices — GENERATED by scripts/gen-sealed-tcgcsv.mjs,\n'
-              '// images cut out to transparent by scripts/cutout-sealed.py.\n')
+              '// images cut out to transparent (rembg / U^2-Net) by scripts/cutout-sealed.py.\n')
     open(SEALED_JS, 'w', encoding='utf-8').write(banner + 'window.SEALED_PRODUCTS = ' + json.dumps(data, indent=2, ensure_ascii=False) + ';\n')
-    print(f'done — {sum(ok.values())}/{len(pids)} cut, {n} img paths rewritten to local transparent webp')
+    print(f'done — {ok}/{len(pids)} cut clean, {n} paths set to local transparent webp')
 
 main()
