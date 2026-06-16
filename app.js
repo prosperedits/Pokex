@@ -45,7 +45,18 @@
     if (typeof card.priceUsd !== 'number') return { var: '--tier-none', label: null };
     return TIERS.find(t => card.priceUsd < t.max);
   }
-  const safeImg = (url) => (typeof url === 'string' && url.startsWith('https://assets.tcgdex.net/')) ? url : '';
+  // image hosts we allow: tcgdex (Pokemon), Scryfall (Magic), Lorcast (Lorcana)
+  const IMG_HOSTS = ['https://assets.tcgdex.net/', 'https://cards.scryfall.io/', 'https://cards.lorcast.io/'];
+  const safeImg = (url) => (typeof url === 'string' && IMG_HOSTS.some((h) => url.startsWith(h))) ? url : '';
+  // one chokepoint for every card image: sealed renders carry a local PNG path,
+  // external-game cards (Magic/Lorcana) carry a COMPLETE url, and tcgdex cards
+  // carry a base url + a /quality.ext ladder (high.png / high.webp / low.webp).
+  const cardImg = (card, quality) => {
+    if (!card) return '';
+    if (card.sealed) return card.image;          // local path, used directly
+    if (card.fullImg) return safeImg(card.image); // external full url (whitelisted host)
+    return safeImg(card.image + '/' + quality);   // tcgdex base + quality
+  };
   // tcgdex set logos live at /en/<series>/<id>/logo; the series is the set id's
   // alpha prefix (sv05 -> sv, me03 -> me). Derive it instead of trusting
   // set.logo — sv05 (Temporal Forces) shipped with a wrong /en/me/ path, which
@@ -73,6 +84,10 @@
     Grass: '#5dc264', Fire: '#ff7a3d', Water: '#4aa6ee', Lightning: '#f6cf3b',
     Psychic: '#d164c8', Fighting: '#d2683f', Darkness: '#6b6f86', Metal: '#9fb0c0',
     Dragon: '#d8a93e', Fairy: '#f48cc6', Colorless: '#cdc6ba',
+    // Magic colours
+    White: '#f0e9c8', Blue: '#3f8fe0', Black: '#5b5f74', Red: '#ff6347', Green: '#4fbf6a', Gold: '#d8a93e',
+    // Lorcana inks
+    Amber: '#f0a830', Amethyst: '#a766d6', Emerald: '#3fbf7f', Ruby: '#e0556a', Sapphire: '#4f8fe0', Steel: '#9fb0c0',
   };
   function cardTintColor(card) {
     if (card && Array.isArray(card.types) && card.types.length && TYPE_COLORS[card.types[0]]) {
@@ -286,7 +301,7 @@
         img.addEventListener('error', () => {
           if (img.dataset.q === 'high') {            // high failed -> drop to low
             img.dataset.q = 'low';
-            img.src = safeImg(card.image + '/low.webp');
+            img.src = cardImg(card, 'low.webp');
           } else {                                    // low failed -> placeholder
             el.classList.add('noimg');
           }
@@ -329,10 +344,10 @@
     if (q === 'high') {
       const pre = new Image();
       pre.onload = () => { slot.img.dataset.q = 'high'; slot.img.src = pre.src; slot.loaded = 'high'; };
-      pre.src = safeImg(card.image + '/high.webp');
+      pre.src = cardImg(card, 'high.webp');
     } else if (!slot.loaded) {
       slot.img.dataset.q = 'low';
-      slot.img.src = safeImg(card.image + '/low.webp');
+      slot.img.src = cardImg(card, 'low.webp');
       slot.loaded = 'low';
     }
   }
@@ -503,7 +518,7 @@
         pngWarm.add(card.id);
         const pre = new Image();
         pre.decoding = 'async';
-        pre.src = safeImg(card.image + '/high.png');
+        pre.src = cardImg(card, 'high.png');
       }
     }
   }
@@ -694,17 +709,21 @@
     });
     // footer snapshot label + staleness follow the set
     $('snapshotLabel').textContent =
-      `${DATA.set.name} · ${DATA.set.total} cards · market snapshot via TCGdex · refreshed ${new Date(DATA.snapshotAt).toLocaleString()}`;
-    $('staleNotice').hidden = Date.now() - Date.parse(DATA.snapshotAt) <= 7 * 864e5;
+      `${DATA.set.name} · ${DATA.set.total} cards · market snapshot via ${DATA.source || 'TCGdex'} · refreshed ${new Date(DATA.snapshotAt).toLocaleString()}`;
+    $('staleNotice').hidden = DATA.set.external || Date.now() - Date.parse(DATA.snapshotAt) <= 7 * 864e5;
     // selector reflects the active set — fall back to the set name as text when
-    // the logo asset is missing (some sets, e.g. Temporal Forces, have none)
+    // the logo asset is missing (Temporal Forces, all external-game sets)
     const btnLogo = $('setBtnLogo'), btnName = $('setBtnName');
     btnName.textContent = DATA.set.name;
     btnLogo.alt = DATA.set.name;
-    btnLogo.hidden = false; btnName.hidden = true;
-    btnLogo.onload = () => { btnLogo.hidden = false; btnName.hidden = true; };
-    btnLogo.onerror = () => { btnLogo.hidden = true; btnName.hidden = false; };
-    btnLogo.src = setLogoPng(DATA.set);
+    if (DATA.set.external) {            // external games have no tcgdex logo — show the name
+      btnLogo.hidden = true; btnName.hidden = false; btnLogo.removeAttribute('src');
+    } else {
+      btnLogo.hidden = false; btnName.hidden = true;
+      btnLogo.onload = () => { btnLogo.hidden = false; btnName.hidden = true; };
+      btnLogo.onerror = () => { btnLogo.hidden = true; btnName.hidden = false; };
+      btnLogo.src = setLogoPng(DATA.set);
+    }
     $('setBtn').setAttribute('aria-label', `${DATA.set.name} — switch set`);
     setMenu.querySelectorAll('.set-item').forEach((b) => {
       b.classList.toggle('active', b.dataset.set === id);
@@ -762,6 +781,91 @@
     }
   }
   setBtn.addEventListener('click', () => toggleSetMenu(setMenu.hidden));
+
+  // --- Other games: Magic (Scryfall) & Lorcana (Lorcast), fetched on demand ----
+  const GAME_SETS = [
+    { game: 'magic', label: 'Magic: The Gathering', sets: [
+      { id: 'mtg-blb', code: 'blb', name: 'Bloomburrow' },
+      { id: 'mtg-otj', code: 'otj', name: 'Outlaws of Thunder Junction' },
+      { id: 'mtg-mh3', code: 'mh3', name: 'Modern Horizons 3' },
+    ] },
+    { game: 'lorcana', label: 'Disney Lorcana', sets: [
+      { id: 'lor-1', code: '1', name: 'The First Chapter' },
+      { id: 'lor-2', code: '2', name: 'Rise of the Floodborn' },
+      { id: 'lor-5', code: '5', name: 'Shimmering Skies' },
+    ] },
+  ];
+  const gameSetMeta = (id) => {
+    for (const g of GAME_SETS) for (const s of g.sets) if (s.id === id) return { code: s.code, name: s.name, game: g.game };
+    return null;
+  };
+  for (const g of GAME_SETS) {
+    const head = document.createElement('div');
+    head.className = 'set-group'; head.textContent = g.label;
+    setMenu.appendChild(head);
+    for (const s of g.sets) {
+      const item = document.createElement('button');
+      item.type = 'button'; item.className = 'set-item set-item-game'; item.dataset.set = s.id;
+      const name = document.createElement('span');
+      name.className = 'si-name'; name.textContent = s.name;
+      item.appendChild(name);
+      item.addEventListener('click', () => { toggleSetMenu(false); if (DATA.set.id !== s.id) loadExternalSet(s.id); });
+      setMenu.appendChild(item);
+    }
+  }
+  const MTG_COLOR = { W: 'White', U: 'Blue', B: 'Black', R: 'Red', G: 'Green' };
+  const magicTypes = (c) => {
+    const cols = c.colors && c.colors.length ? c.colors : (c.color_identity || []);
+    if (!cols.length) return ['Colorless'];
+    return cols.length > 1 ? ['Gold'] : [MTG_COLOR[cols[0]] || 'Colorless'];
+  };
+  const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : '');
+  async function fetchJSON(url) { const r = await fetch(url); if (!r.ok) throw new Error(r.status); return r.json(); }
+  async function fetchMagicSet(code) {
+    let out = [], url = `https://api.scryfall.com/cards/search?q=set%3A${code}+game%3Apaper&unique=cards&order=set`;
+    for (let p = 0; url && p < 4; p++) { const j = await fetchJSON(url); out.push(...(j.data || [])); url = j.has_more ? j.next_page : null; }
+    return out.filter((c) => c.image_uris && c.image_uris.normal).map((c, i) => ({
+      id: `mtg-${code}-${c.collector_number}`, num: parseInt(c.collector_number, 10) || (i + 1), localId: c.collector_number,
+      name: c.name, rarity: cap(c.rarity), category: 'Magic', types: magicTypes(c),
+      image: c.image_uris.large || c.image_uris.normal, fullImg: true,
+      priceUsd: c.prices && c.prices.usd ? parseFloat(c.prices.usd) : null,
+      priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true,
+    }));
+  }
+  async function fetchLorcanaSet(code) {
+    const j = await fetchJSON(`https://api.lorcast.com/v0/sets/${code}/cards`);
+    const arr = Array.isArray(j) ? j : (j.results || j.cards || []);
+    return arr.map((c, i) => {
+      const u = (c.image_uris && c.image_uris.digital) || {};   // Lorcast nests under .digital
+      return { c, i, img: u.large || u.normal };
+    }).filter((x) => x.img).map(({ c, i, img }) => ({
+      id: `lor-${code}-${c.collector_number}`, num: parseInt(c.collector_number, 10) || (i + 1), localId: c.collector_number,
+      name: c.version ? `${c.name} — ${c.version}` : c.name, rarity: c.rarity || '', category: 'Lorcana', types: [c.ink || 'Colorless'],
+      image: img, fullImg: true,
+      priceUsd: c.prices && c.prices.usd ? parseFloat(c.prices.usd) : null,
+      priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true,
+    }));
+  }
+  let loadingGame = false;
+  async function loadExternalSet(id) {
+    if (SETS[id]) { loadSet(id); return; }
+    const meta = gameSetMeta(id);
+    if (!meta || loadingGame) return;
+    loadingGame = true;
+    const btnLogo = $('setBtnLogo'), btnName = $('setBtnName');
+    btnLogo.hidden = true; btnName.hidden = false; btnName.textContent = `Loading ${meta.name}…`;
+    try {
+      const cards = meta.game === 'magic' ? await fetchMagicSet(meta.code) : await fetchLorcanaSet(meta.code);
+      if (!cards.length) throw new Error('empty');
+      SETS[id] = {
+        set: { id, name: meta.name, total: cards.length, official: cards.length, logo: '', external: true },
+        cards, snapshotAt: new Date().toISOString(), source: meta.game === 'magic' ? 'Scryfall' : 'Lorcast',
+      };
+      loadSet(id);
+    } catch (e) {
+      btnName.textContent = `Couldn't load ${meta.name}`;
+    } finally { loadingGame = false; }
+  }
 
   // --- Sealed-product price tracker (per active set; verified snapshots only) -
   const sealedDlg = $('sealedDlg');
@@ -1388,7 +1492,7 @@
       b.type = 'button'; b.className = 'gallery-card';
       b.title = `${c.name} — ${SETS[setId].set.name}`;
       const img = document.createElement('img');
-      img.loading = 'lazy'; img.alt = c.name; img.src = safeImg(c.image + '/low.webp');
+      img.loading = 'lazy'; img.alt = c.name; img.src = cardImg(c, 'low.webp');
       const meta = document.createElement('div'); meta.className = 'gc-meta';
       const setS = document.createElement('span'); setS.className = 'gc-set'; setS.textContent = SETS[setId].set.name;
       const priceS = document.createElement('span'); priceS.className = 'gc-price';
@@ -1467,7 +1571,7 @@
     if (card.sealed) {
       zoomImg.src = card.image; // local transparent product render
     } else {
-      zoomImg.src = liveSrc || safeImg(card.image + '/low.webp');
+      zoomImg.src = liveSrc || cardImg(card, 'low.webp');
       if (card.imageOk !== false) {
         const webp = new Image();
         webp.onload = () => {
@@ -1475,12 +1579,12 @@
           zoomImg.src = webp.src; // same picture, higher res — never fade the card
           const png = new Image();
           png.onload = () => { if (ig === imgGen) zoomImg.src = png.src; };
-          png.src = safeImg(card.image + '/high.png');
+          png.src = cardImg(card, 'high.png');
         };
-        webp.src = safeImg(card.image + '/high.webp');
+        webp.src = cardImg(card, 'high.webp');
       }
     }
-    $('zoomBgArt').src = card.sealed ? card.image : safeImg(card.image + '/low.webp');
+    $('zoomBgArt').src = card.sealed ? card.image : cardImg(card, 'low.webp');
     paintZoomScene(card); // editorial title + holo badge + backdrop tint
     updateListButtons(card);
     // share link: a real anchor — click copies, right-click/long-press works too
@@ -1811,7 +1915,7 @@
     const im = new Image();
     im.decoding = 'async';
     im.onload = im.onerror = () => setTimeout(prefetchChain, 60);
-    im.src = safeImg(CARDS[i].image + '/high.webp');
+    im.src = cardImg(CARDS[i], 'high.webp');
   }
   setTimeout(() => { prefetchChain(); prefetchChain(); prefetchChain(); }, 1500);
 
@@ -1821,14 +1925,20 @@
   initParallax();
   updateListCounts();
   const qs = new URLSearchParams(location.search);
-  loadSet(SETS[qs.get('set')] ? qs.get('set') : HOME_SET); // ?set=me02.5 deep-links a set
-  // ?card=N deep-links a card (by collector number) and opens its inspect
-  const deepLink = parseInt(qs.get('card'), 10);
-  if (deepLink >= 1 && deepLink <= N) {
-    position = slotOf[deepLink - 1];
-    current = -1;
-    render(true);
+  const reqSet = qs.get('set');
+  const deepCard = parseInt(qs.get('card'), 10);
+  const isExternalReq = reqSet && gameSetMeta(reqSet);
+  if (isExternalReq) {
+    loadExternalSet(reqSet); // external game set (Magic/Lorcana) — loads async
+  } else {
+    loadSet(SETS[reqSet] ? reqSet : HOME_SET); // ?set=me02.5 deep-links a Pokemon set
+    // ?card=N deep-links a card (by collector number) and opens its inspect
+    if (deepCard >= 1 && deepCard <= N) {
+      position = slotOf[deepCard - 1];
+      current = -1;
+      render(true);
+    }
   }
   requestAnimationFrame(tick);
-  if (deepLink >= 1 && deepLink <= N) setTimeout(() => openZoomFor(slotOf[deepLink - 1]), 450);
+  if (!isExternalReq && deepCard >= 1 && deepCard <= N) setTimeout(() => openZoomFor(slotOf[deepCard - 1]), 450);
 })();
