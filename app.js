@@ -1958,6 +1958,29 @@
   }
   setTimeout(() => { prefetchChain(); prefetchChain(); prefetchChain(); }, 1500);
 
+  // --- HOME: the front door — a deck of game cards; pick one to enter its wheel ---
+  const homeEl = $('home');
+  function showHome() {
+    homeEl.hidden = false;
+    document.body.classList.add('home-open');
+    if (window.gsap && !REDUCED) {
+      gsap.fromTo('.home-head > *', { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out', stagger: 0.07 });
+      gsap.fromTo('#homeDeck .game-card', { y: 46, opacity: 0, rotateX: -12 },
+        { y: 0, opacity: 1, rotateX: 0, duration: 0.7, ease: 'power3.out', stagger: 0.08, delay: 0.1 });
+    }
+  }
+  function hideHome() { homeEl.hidden = true; document.body.classList.remove('home-open'); }
+  $('homeDeck').addEventListener('click', (e) => {
+    const tile = e.target.closest('.game-card');
+    if (!tile || tile.disabled) return;
+    hideHome();
+    const game = tile.dataset.game;
+    if (game === 'pokemon') { if (DATA.set.external) loadSet(HOME_SET); }
+    else if (game === 'magic') loadExternalSet('mtg-fin');
+    else if (game === 'lorcana') loadExternalSet('lor-1');
+  });
+  document.querySelector('.lockup').addEventListener('click', showHome); // brand mark → home
+
   // --- Boot --------------------------------------------------------------------------------
   measure();
   initHolo();
@@ -1980,4 +2003,5 @@
   }
   requestAnimationFrame(tick);
   if (!isExternalReq && deepCard >= 1 && deepCard <= N) setTimeout(() => openZoomFor(slotOf[deepCard - 1]), 450);
+  if (!reqSet) showHome(); // no deep-link → land on the home deck first
 })();

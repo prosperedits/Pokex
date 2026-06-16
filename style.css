@@ -1365,3 +1365,109 @@ html.motion-reduced .zoom-close,
 html.motion-reduced .stage-glow,
 html.motion-reduced .card img { transition: none; }
 html.motion-reduced .shine { display: none; }
+
+/* ====================== HOME — the front door ====================== */
+.home {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(70% 55% at 50% 8%, rgba(127, 212, 244, 0.10) 0%, transparent 60%),
+    radial-gradient(60% 60% at 12% 100%, rgba(196, 75, 173, 0.10) 0%, transparent 55%),
+    radial-gradient(60% 60% at 100% 90%, rgba(240, 140, 30, 0.08) 0%, transparent 55%),
+    #08070d;
+  perspective: 1600px;
+  overflow: hidden;
+}
+.home[hidden] { display: none; }
+body.home-open .chrome, body.home-open main, body.home-open .minimap { visibility: hidden; }
+.home-aura {
+  position: absolute; inset: -20%;
+  background: conic-gradient(from 0deg at 50% 50%,
+    rgba(127,212,244,0.06), rgba(196,75,173,0.06), rgba(240,140,30,0.05), rgba(127,212,244,0.06));
+  filter: blur(60px);
+  animation: homeSpin 40s linear infinite;
+  pointer-events: none;
+}
+@keyframes homeSpin { to { transform: rotate(360deg); } }
+.home-inner { position: relative; z-index: 1; text-align: center; padding: 4vh 5vw; width: 100%; }
+.home-kicker {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.4em; text-transform: uppercase;
+  color: var(--spectral-bright); opacity: 0.85; margin-bottom: 14px;
+}
+.home-title {
+  font-family: var(--font-display); font-weight: 700; line-height: 0.98;
+  font-size: clamp(38px, 7vw, 88px); letter-spacing: -0.01em; color: #fff;
+  text-shadow: 0 6px 40px rgba(0,0,0,0.6);
+}
+.home-title em {
+  font-style: normal;
+  background: linear-gradient(100deg, var(--spectral-bright), var(--phantom), var(--ember-glint));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+}
+.home-sub { margin-top: 16px; font-family: var(--font-ui); font-size: clamp(14px, 1.6vw, 18px); color: var(--text-dim); }
+
+.home-deck {
+  margin-top: clamp(28px, 5vh, 64px);
+  display: flex; flex-wrap: wrap; gap: clamp(16px, 2vw, 34px);
+  align-items: center; justify-content: center;
+  transform-style: preserve-3d;
+}
+.game-card {
+  position: relative;
+  width: clamp(190px, 17vw, 268px);
+  aspect-ratio: 734 / 1024;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.14);
+  cursor: pointer;
+  color: #fff;
+  overflow: hidden;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 20px 18px;
+  text-align: left;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.12);
+  transition: transform 0.3s var(--ease-snap), box-shadow 0.3s, border-color 0.3s;
+  transform: rotateY(0deg);
+}
+.gc-pokemon { background: linear-gradient(160deg, #ff5a4d 0%, #c0240f 46%, #6b0f06 100%); }
+.gc-magic   { background: linear-gradient(160deg, #3a2a52 0%, #1b1430 50%, #0c0918 100%); }
+.gc-lorcana { background: linear-gradient(160deg, #2bbfa6 0%, #5a4bd0 55%, #2a1f5e 100%); }
+.gc-soon    { background: linear-gradient(160deg, #3a3a44 0%, #222229 100%); cursor: default; }
+.game-card .gc-sheen {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(125deg, rgba(255,255,255,0.28) 0%, transparent 30%, transparent 72%, rgba(255,255,255,0.10) 100%);
+  mix-blend-mode: screen; opacity: 0.7;
+}
+.gc-magic::after, .gc-pokemon::after, .gc-lorcana::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(120% 80% at 50% -10%, rgba(255,255,255,0.22), transparent 55%);
+}
+.game-card .gc-kicker {
+  position: relative; z-index: 2;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: rgba(255,255,255,0.85); margin-bottom: auto;
+}
+.game-card .gc-name {
+  position: relative; z-index: 2;
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 2.4vw, 34px); line-height: 1; letter-spacing: 0.01em;
+  text-shadow: 0 2px 14px rgba(0,0,0,0.5);
+}
+.game-card .gc-name small { display: block; font-size: 0.42em; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.8; margin-top: 6px; }
+.game-card .gc-go {
+  position: relative; z-index: 2; margin-top: 14px;
+  font-family: var(--font-ui); font-weight: 600; font-size: 13px; letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.92);
+}
+.game-card:not(.gc-soon):hover {
+  transform: translateY(-12px) rotateX(6deg) scale(1.03);
+  box-shadow: 0 44px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.3), 0 0 46px rgba(127,212,244,0.25);
+  border-color: rgba(255,255,255,0.4);
+}
+.gc-pokemon:hover { box-shadow: 0 44px 80px rgba(0,0,0,0.6), 0 0 46px rgba(255,90,77,0.45); }
+.gc-lorcana:hover { box-shadow: 0 44px 80px rgba(0,0,0,0.6), 0 0 46px rgba(43,191,166,0.45); }
+.game-card:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.gc-soon { opacity: 0.55; }
+@media (max-width: 560px) { .game-card { width: 44vw; } }

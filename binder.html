@@ -24,9 +24,10 @@ body {
   overflow-x: hidden;
 }
 .chrome {
-  display: flex; justify-content: space-between; align-items: center;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
   padding: var(--s-3) var(--s-5); min-height: 64px;
 }
+.chrome .back { justify-self: end; }
 .logo-pokex { display: inline-flex; line-height: 1; text-decoration: none; }
 .logo-pokex .lx {
   font-family: var(--font-logo-x); font-size: 46px;

@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=48">
-<link rel="stylesheet" href="style.css?v=52">
+<link rel="stylesheet" href="style.css?v=53">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -56,6 +56,44 @@
       <div id="counter" class="counter" aria-hidden="true">001<span>/130</span></div>
     </div>
   </header>
+
+  <!-- HOME: the front door. A deck of game "cards"; pick a universe to enter its wheel. -->
+  <div id="home" class="home" hidden>
+    <div class="home-aura" aria-hidden="true"></div>
+    <div class="home-inner">
+      <header class="home-head">
+        <p class="home-kicker">P® Cards</p>
+        <h1 class="home-title">Every card.<br><em>One wheel.</em></h1>
+        <p class="home-sub">Pick a universe.</p>
+      </header>
+      <div class="home-deck" id="homeDeck">
+        <button type="button" class="game-card gc-pokemon" data-game="pokemon">
+          <span class="gc-sheen" aria-hidden="true"></span>
+          <span class="gc-kicker">21 sets</span>
+          <span class="gc-name">Pokémon</span>
+          <span class="gc-go">Enter →</span>
+        </button>
+        <button type="button" class="game-card gc-magic" data-game="magic">
+          <span class="gc-sheen" aria-hidden="true"></span>
+          <span class="gc-kicker">10 sets</span>
+          <span class="gc-name">Magic<small>The Gathering</small></span>
+          <span class="gc-go">Enter →</span>
+        </button>
+        <button type="button" class="game-card gc-lorcana" data-game="lorcana">
+          <span class="gc-sheen" aria-hidden="true"></span>
+          <span class="gc-kicker">12 sets</span>
+          <span class="gc-name">Lorcana<small>Disney</small></span>
+          <span class="gc-go">Enter →</span>
+        </button>
+        <button type="button" class="game-card gc-soon" data-game="soon" disabled>
+          <span class="gc-sheen" aria-hidden="true"></span>
+          <span class="gc-kicker">Yu-Gi-Oh · One Piece</span>
+          <span class="gc-name">More<small>soon</small></span>
+          <span class="gc-go">Coming soon</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <main>
     <div id="stageGlow" class="stage-glow" aria-hidden="true"></div>
@@ -184,6 +222,6 @@
   <script src="data/cards-me03.js"></script>
   <script src="data/cards-me04.js"></script>
   <script src="data/sealed.js"></script>
-  <script src="app.js?v=52"></script>
+  <script src="app.js?v=53"></script>
 </body>
 </html>
