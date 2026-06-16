@@ -634,9 +634,9 @@
   function applyAmbience(cols) {
     const [a, b, c] = [cols[0], cols[1] ?? cols[0], cols[2] ?? cols[1] ?? cols[0]];
     bgLight.style.background =
-      `radial-gradient(95% 72% at 50% -14%, ${hexA(a, 0.17)} 0%, transparent 62%),` +
-      ` radial-gradient(72% 95% at 106% 80%, ${hexA(b, 0.13)} 0%, transparent 58%),` +
-      ` linear-gradient(118deg, transparent 36%, ${hexA(c, 0.09)} 50%, transparent 64%)`;
+      `radial-gradient(100% 78% at 50% -14%, ${hexA(a, 0.26)} 0%, transparent 64%),` +
+      ` radial-gradient(78% 100% at 106% 82%, ${hexA(b, 0.19)} 0%, transparent 60%),` +
+      ` linear-gradient(118deg, transparent 34%, ${hexA(c, 0.12)} 50%, transparent 66%)`;
     // the glass streaks are baked ice-blue (hue ≈205): rotate toward the primary
     const n = parseInt(cols[0].slice(1), 16);
     const r = (n >> 16) & 255, g = (n >> 8) & 255, bl = n & 255;
@@ -691,6 +691,25 @@
     img.onerror = () => cb(null);
     img.src = url;
   }
+  // the set's signature colour comes from a LOCAL image we can actually read into
+  // a canvas: its sealed box render (authentic Pokémon PNG / cut-out webp), else
+  // the game logo. Cross-origin card/logo URLs taint the canvas, so they're out.
+  function localSetImage(id) {
+    const prods = (window.SEALED_PRODUCTS || {})[id] || [];
+    const p = prods.find((x) => x.img && x.img.startsWith('assets/'));
+    if (p) return new URL(p.img.split('?')[0], location.href).href;
+    const meta = gameSetMeta(id);
+    if (meta) return new URL(`assets/logos/${meta.game}.png`, location.href).href;
+    return null;
+  }
+  function setAmbience(id) {
+    const pre = (window.SET_COLORS || {})[id];     // precomputed from the set LOGO
+    if (pre && pre.length) { applyAmbience(pre); return; }
+    extractLogoColors(localSetImage(id), (cols) => {   // external sets: read the box
+      if (!DATA || DATA.set.id !== id) return;     // guard against rapid re-switch
+      applyAmbience(cols || AMB_DEFAULT);
+    });
+  }
 
   // --- Set switching -----------------------------------------------------------------
   function loadSet(id) {
@@ -735,11 +754,9 @@
     current = -1;
     painted = new Set();
     applySort(sortMode); // rebuilds view/ticks order and lands per mode
-    // relight the stage in this set's colors (async; guard against re-switch)
-    extractLogoColors(setLogoPng(DATA.set), (cols) => {
-      if (DATA.set.id !== id) return;
-      applyAmbience(cols || AMB_DEFAULT);
-    });
+    // relight the stage in THIS set's signature colour, read from its local
+    // sealed render (Perfect Order → green, etc.); async, guards re-switch
+    setAmbience(id);
   }
 
   // Era-grouped dropdown, newest sets first. Only sets with data appear.

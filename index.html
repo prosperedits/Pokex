@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=48">
-<link rel="stylesheet" href="style.css?v=61">
+<link rel="stylesheet" href="style.css?v=63">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -70,25 +70,25 @@
         <button type="button" class="game-card gc-pokemon" data-game="pokemon">
           <span class="gc-sheen" aria-hidden="true"></span>
           <span class="gc-kicker">21 sets</span>
-          <span class="gc-name">Pokémon</span>
+          <img class="gc-logo" src="assets/logos/pokemon.png" alt="Pokémon">
           <span class="gc-go">Enter →</span>
         </button>
         <button type="button" class="game-card gc-magic" data-game="magic">
           <span class="gc-sheen" aria-hidden="true"></span>
           <span class="gc-kicker">10 sets</span>
-          <span class="gc-name">Magic<small>The Gathering</small></span>
+          <img class="gc-logo" src="assets/logos/magic.png" alt="Magic: The Gathering">
           <span class="gc-go">Enter →</span>
         </button>
         <button type="button" class="game-card gc-lorcana" data-game="lorcana">
           <span class="gc-sheen" aria-hidden="true"></span>
           <span class="gc-kicker">12 sets</span>
-          <span class="gc-name">Lorcana<small>Disney</small></span>
+          <img class="gc-logo" src="assets/logos/lorcana.png" alt="Disney Lorcana">
           <span class="gc-go">Enter →</span>
         </button>
         <button type="button" class="game-card gc-onepiece" data-game="onepiece">
           <span class="gc-sheen" aria-hidden="true"></span>
           <span class="gc-kicker">13 sets</span>
-          <span class="gc-name">One Piece</span>
+          <img class="gc-logo" src="assets/logos/onepiece.png" alt="One Piece">
           <span class="gc-go">Enter →</span>
         </button>
         <button type="button" class="game-card gc-soon" data-game="soon" disabled>
@@ -228,6 +228,7 @@
   <script src="data/cards-me03.js"></script>
   <script src="data/cards-me04.js"></script>
   <script src="data/sealed.js?v=62"></script>
-  <script src="app.js?v=59"></script>
+  <script src="data/set-colors.js?v=63"></script>
+  <script src="app.js?v=63"></script>
 </body>
 </html>
