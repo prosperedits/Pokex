@@ -439,8 +439,14 @@ main {
   letter-spacing: 0.04em;
   text-wrap: balance;
 }
-/* valuable cards (>= $20) announce themselves */
-.cap-name.hot, .zoom-panel h2.hot {
+/* card NAMES are always WHITE (P's call) — only the price/rarity carry colour */
+.cap-name { color: #fff; }
+.cap-name.hot {
+  color: #fff;
+  text-shadow: 0 0 26px rgba(127, 212, 244, 0.28);
+}
+/* the valuable-card flourish stays on the panel price header, not the name */
+.zoom-panel h2.hot {
   color: var(--hot-color, var(--ember));
   text-shadow: 0 0 26px color-mix(in srgb, var(--hot-color, var(--ember)) 55%, transparent);
 }

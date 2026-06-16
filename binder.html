@@ -74,7 +74,7 @@ body {
 }
 .bank-handle:hover { transform: translateY(-50%) translateX(2px); }
 .bank {
-  position: fixed; left: 0; top: 0; z-index: 45; height: 100vh; width: clamp(300px, 30vw, 392px);
+  position: fixed; left: 0; top: 0; z-index: 45; height: 100vh; width: clamp(360px, 36vw, 500px);
   display: flex; flex-direction: column;
   background: linear-gradient(170deg, #18151f, #110f17); border-right: 1px solid rgba(255,255,255,0.09);
   box-shadow: 18px 0 60px rgba(0,0,0,0.6);
@@ -208,7 +208,23 @@ body.bank-open .bank-handle { opacity: 0; pointer-events: none; }
     let opPromise = null;
     const ensureOP = () => window.OP_CARDS ? Promise.resolve() : (opPromise = opPromise || new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'data/onepiece.js'; s.onload = res; s.onerror = rej; document.head.appendChild(s); }));
     const cache = {};
+    async function loadAllSets(g) {
+      const key = g + ':__all__';
+      if (cache[key]) return cache[key];
+      const sets = GAMES[g].sets;
+      let all = [];
+      if (g === 'pokemon' || g === 'onepiece') {           // bundled — instant
+        for (const s of sets) all.push(...await loadSet(g, s));
+      } else {                                             // API — fetch every set in parallel
+        const results = await Promise.all(sets.map((s) => loadSet(g, s).catch(() => [])));
+        for (const r of results) all.push(...r);
+      }
+      all.sort((a, b) => (b.priceUsd ?? -1) - (a.priceUsd ?? -1));
+      cache[key] = all;
+      return all;
+    }
     async function loadSet(game, set) {
+      if (set.all) return loadAllSets(game);
       const key = game + ':' + set.id;
       if (cache[key]) return cache[key];
       let cards = [];
@@ -253,13 +269,19 @@ body.bank-open .bank-handle { opacity: 0; pointer-events: none; }
 
     // ---------- bank browser ----------
     let game = 'pokemon', curSet = null, rarity = 'all', query = '', loaded = [];
+    const perGame = {};   // remember each game's {setId, rarity, query} across tab switches
     const tcgTabs = $('tcgTabs'), setSel = $('setSel'), rarityRow = $('rarityRow'), grid = $('bankGrid');
+    const syncState = () => { perGame[game] = { setId: curSet ? curSet.id : '', rarity, query }; };
 
     tcgTabs.innerHTML = Object.entries(GAMES).map(([g, v]) => `<button class="tcg-tab" data-game="${g}"><span>${GLYPH[g]}</span><span>${v.label}</span></button>`).join('');
     function fillSets() {
-      setSel.innerHTML = '<option value="">Select set…</option>' + GAMES[game].sets.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
-      curSet = null; loaded = []; rarity = 'all'; query = ''; $('bankSearch').value = '';
-      renderRarity(); renderGrid();
+      setSel.innerHTML = '<option value="">Select set…</option><option value="__all__">★ All sets (filter by rarity)</option>'
+        + GAMES[game].sets.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
+      const st = perGame[game] || {};
+      rarity = st.rarity || 'all'; query = st.query || ''; $('bankSearch').value = query;
+      setSel.value = st.setId || '';
+      if (st.setId) pickSet(st.setId);   // restore where you left this game
+      else { curSet = null; loaded = []; renderRarity(); renderGrid(); }
     }
     function renderTabs() { tcgTabs.querySelectorAll('.tcg-tab').forEach((t) => t.classList.toggle('active', t.dataset.game === game)); }
     function renderRarity() {
@@ -267,14 +289,14 @@ body.bank-open .bank-handle { opacity: 0; pointer-events: none; }
       if (!loaded.length) return;
       const order = ['Common','Uncommon','Rare','Double Rare','Holo Rare','Ultra Rare','Illustration Rare','Special Illustration Rare','Hyper Rare','Mythic','Super rare','Epic','Legendary','Enchanted','Iconic','Super Rare','Secret Rare','Leader'];
       const rares = [...new Set(loaded.map((c) => c.rarity).filter(Boolean))].sort((a, b) => { const ia = order.indexOf(a), ib = order.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
-      const mk = (val, label) => { const b = document.createElement('button'); b.className = 'rarity-chip' + (rarity === val ? ' active' : ''); b.textContent = label; b.onclick = () => { rarity = val; renderRarity(); renderGrid(); }; return b; };
+      const mk = (val, label) => { const b = document.createElement('button'); b.className = 'rarity-chip' + (rarity === val ? ' active' : ''); b.textContent = label; b.onclick = () => { rarity = val; syncState(); renderRarity(); renderGrid(); }; return b; };
       rarityRow.appendChild(mk('all', 'All rarities'));
       for (const r of rares) rarityRow.appendChild(mk(r, r));
     }
     function renderGrid() {
       grid.replaceChildren();
-      if (!curSet) { const m = document.createElement('div'); m.className = 'bank-msg'; m.textContent = 'Pick a TCG and a set above to browse its cards, then drag them into the binder.'; grid.appendChild(m); $('bankCount').textContent = 'pick a set'; return; }
-      if (!loaded.length) { const m = document.createElement('div'); m.className = 'bank-msg'; m.textContent = 'Loading…'; grid.appendChild(m); return; }
+      if (!curSet) { const m = document.createElement('div'); m.className = 'bank-msg'; m.textContent = 'Pick a TCG and a set above to browse its cards, then click (or drag) any card to add it to the binder.'; grid.appendChild(m); $('bankCount').textContent = 'pick a set'; return; }
+      if (!loaded.length) { const m = document.createElement('div'); m.className = 'bank-msg'; m.textContent = curSet.all && (game === 'magic' || game === 'lorcana') ? 'Loading every set… (this one takes a few seconds)' : 'Loading…'; grid.appendChild(m); return; }
       const placed = placedIds(), q = query.trim().toLowerCase();
       let list = loaded.filter((c) => !placed.has(c.id) && (rarity === 'all' || c.rarity === rarity) && (!q || c.name.toLowerCase().includes(q)));
       $('bankCount').textContent = `${list.length} card${list.length === 1 ? '' : 's'}`;
@@ -284,22 +306,27 @@ body.bank-open .bank-handle { opacity: 0; pointer-events: none; }
         const t = document.createElement('div'); t.className = 'bank-card'; t.draggable = true; t.title = `${c.name}${c.priceUsd != null ? ' · ' + fmt(c.priceUsd) : ''}`;
         const img = document.createElement('img'); img.loading = 'lazy'; img.alt = c.name; img.src = c.image; t.appendChild(img);
         if (c.priceUsd != null) { const pr = document.createElement('span'); pr.className = 'pr'; pr.textContent = fmt(c.priceUsd); t.appendChild(pr); }
-        t.addEventListener('dragstart', (ev) => { ev.dataTransfer.setData('text/plain', JSON.stringify({ from: 'bank', snap: { id: c.id, name: c.name, image: c.image, priceUsd: c.priceUsd } })); ev.dataTransfer.effectAllowed = 'move'; t.classList.add('dragging'); });
+        const snap = { id: c.id, name: c.name, image: c.image, priceUsd: c.priceUsd };
+        t.addEventListener('dragstart', (ev) => { ev.dataTransfer.setData('text/plain', JSON.stringify({ from: 'bank', snap })); ev.dataTransfer.effectAllowed = 'move'; t.classList.add('dragging'); });
         t.addEventListener('dragend', () => t.classList.remove('dragging'));
+        t.addEventListener('click', () => placeInNextEmpty(snap));   // click = drop into the next open pocket
         grid.appendChild(t);
       }
       if (list.length > CAP) { const m = document.createElement('div'); m.className = 'bank-msg'; m.textContent = `+${list.length - CAP} more — filter by rarity or search to narrow.`; grid.appendChild(m); }
     }
     async function pickSet(id) {
-      curSet = GAMES[game].sets.find((s) => s.id === id) || null;
-      loaded = []; rarity = 'all'; renderRarity(); renderGrid();
-      if (!curSet) return;
-      try { loaded = await loadSet(game, curSet); } catch (e) { loaded = []; grid.replaceChildren(Object.assign(document.createElement('div'), { className: 'bank-msg', textContent: "Couldn't load this set." })); return; }
-      renderRarity(); renderGrid();
+      curSet = id === '__all__' ? { id: '__all__', name: 'All sets', all: true }
+        : (GAMES[game].sets.find((s) => s.id === id) || null);
+      loaded = []; renderRarity(); renderGrid();   // shows the loading message
+      if (!curSet) { syncState(); return; }
+      const token = curSet.id;
+      try { const r = await loadSet(game, curSet); if (curSet && curSet.id !== token) return; loaded = r; }
+      catch (e) { loaded = []; grid.replaceChildren(Object.assign(document.createElement('div'), { className: 'bank-msg', textContent: "Couldn't load — try again." })); return; }
+      syncState(); renderRarity(); renderGrid();
     }
-    tcgTabs.querySelectorAll('.tcg-tab').forEach((t) => t.addEventListener('click', () => { game = t.dataset.game; renderTabs(); fillSets(); }));
-    setSel.addEventListener('change', () => pickSet(setSel.value));
-    $('bankSearch').addEventListener('input', (e) => { query = e.target.value; renderGrid(); });
+    tcgTabs.querySelectorAll('.tcg-tab').forEach((t) => t.addEventListener('click', () => { syncState(); game = t.dataset.game; renderTabs(); fillSets(); }));
+    setSel.addEventListener('change', () => { rarity = 'all'; query = ''; $('bankSearch').value = ''; pickSet(setSel.value); });
+    $('bankSearch').addEventListener('input', (e) => { query = e.target.value; syncState(); renderGrid(); });
 
     // ---------- binder page render + drag/drop ----------
     function pageMeta() {
@@ -319,6 +346,14 @@ body.bank-open .bank-handle { opacity: 0; pointer-events: none; }
       save(); renderPage(); renderGrid(); pageMeta();
     }
     function removeSlot(slot) { binder.pages[pageIdx][slot] = null; save(); renderPage(); renderGrid(); pageMeta(); }
+    function placeInNextEmpty(snap) {                       // click-to-place: next open pocket
+      for (const pg of binder.pages) { const k = pg.findIndex((s) => s && s.id === snap.id); if (k >= 0) pg[k] = null; }
+      let pi = pageIdx, si = -1;
+      for (; pi < binder.pages.length; pi++) { const e = binder.pages[pi].indexOf(null); if (e >= 0) { si = e; break; } }
+      if (si < 0) { binder.pages.push(Array(9).fill(null)); pi = binder.pages.length - 1; si = 0; }
+      binder.pages[pi][si] = snap; pageIdx = pi;
+      save(); renderPage(); renderGrid(); pageMeta();
+    }
     function pocketEl(slot) {
       const snap = binder.pages[pageIdx][slot];
       const pk = document.createElement('div'); pk.className = snap ? 'pocket filled' : 'pocket empty'; pk.dataset.slot = slot;
