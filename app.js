@@ -948,7 +948,9 @@
       id: `mtg-${code}-${c.collector_number}`, num: parseInt(c.collector_number, 10) || (i + 1), localId: c.collector_number,
       name: c.name, rarity: cap(c.rarity), category: 'Magic', types: magicTypes(c),
       image: img, fullImg: true,
-      priceUsd: usdPrice(c.prices),
+      // Scryfall doesn't price most serialized cards — backfill from the bundled
+      // TCGplayer prices (window.MAGIC_PRICES, keyed by tcgplayer_id) when it's null.
+      priceUsd: usdPrice(c.prices) ?? ((window.MAGIC_PRICES && window.MAGIC_PRICES[c.tcgplayer_id]) || null),
       priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true, illustrator: c.artist || '',
       meta: [
         ['Type', c.type_line], ['Mana', c.mana_cost], ['Set', c.set_name],
