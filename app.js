@@ -2181,7 +2181,7 @@
         </div>
         <div class="hv hv-pick" id="hvPick" hidden>
           <p class="pick-prompt">Pick a universe</p>
-          <div class="pick-logos" id="pickLogos">${HOME_GAMES.map((g) => `<button type="button" class="pick-logo" data-game="${g.game}" style="--accent:${g.accent}" aria-label="${g.name}"><span class="pl-glow" aria-hidden="true"></span><img src="assets/logos/${g.game}.png?v=69" alt="${g.name}"></button>`).join('')}</div>
+          <div class="pick-logos" id="pickLogos">${HOME_GAMES.map((g) => `<button type="button" class="pick-logo" data-game="${g.game}" style="--accent:${g.accent}" aria-label="${g.name}"><span class="pl-glow" aria-hidden="true"></span><img src="assets/logos/${g.game}.png?v=79" alt="${g.name}"></button>`).join('')}</div>
         </div>
         <div class="hv hv-sets" id="hvSets" hidden>
           <p class="pick-prompt" id="setsTitle">Choose a set</p>

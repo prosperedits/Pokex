@@ -267,7 +267,7 @@ body.bank-open .bank-handle { opacity: 0; pointer-events: none; }
     const tcgTabs = $('tcgTabs'), setSel = $('setSel'), rarityRow = $('rarityRow'), grid = $('bankGrid');
     const syncState = () => { perGame[game] = { setId: curSet ? curSet.id : '', rarity, query }; };
 
-    tcgTabs.innerHTML = Object.entries(GAMES).map(([g, v]) => `<button class="tcg-tab" data-game="${g}" title="${v.label}"><img src="assets/logos/${g}.png" alt="${v.label}"></button>`).join('');
+    tcgTabs.innerHTML = Object.entries(GAMES).map(([g, v]) => `<button class="tcg-tab" data-game="${g}" title="${v.label}"><img src="assets/logos/${g}.png?v=79" alt="${v.label}"></button>`).join('');
     function fillSets() {
       setSel.innerHTML = '<option value="">Select set…</option><option value="__all__">★ All sets (filter by rarity)</option>'
         + GAMES[game].sets.map((s) => `<option value="${s.id}">${game === 'onepiece' ? s.code + ' · ' + s.name : s.name}</option>`).join('');
