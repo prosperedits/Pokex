@@ -692,6 +692,7 @@ main {
   width: 100%;
   max-width: 1100px;
   text-align: center;
+  margin-top: clamp(16px, 5vh, 60px);  /* P: title sat too high — drop it down */
   margin-bottom: clamp(6px, 1.4vh, 18px);
   pointer-events: none;
 }
@@ -734,6 +735,35 @@ main {
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85);
 }
 .z-number:empty { display: none; }
+/* Lorcana subtitle — the "— Title" epithet, shown dash-free on its own line */
+.z-subtitle {
+  display: block;
+  margin-top: clamp(3px, 0.9vh, 10px);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: clamp(13px, 2.1vh, 23px);
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--text-dim);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.78);
+}
+
+/* special rarities wear their own character — iridescent / metallic clipped
+   text. -webkit-text-fill-color keeps the var(--rarity-color) as a fallback. */
+.rar-enchanted, .rar-iconic, .rar-ultra-rare,
+.rar-special-illustration-rare, .rar-hyper-rare, .rar-mega-hyper-rare {
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 100% 100%;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.82); /* legibility; colored glow dropped */
+}
+.rar-enchanted { background-image: linear-gradient(95deg, #ffb3da, #ffe6a8 26%, #b6ff9e 50%, #9ec9ff 74%, #d6b3ff); }
+.rar-iconic { background-image: linear-gradient(95deg, #e9b955, #fff3c8 30%, #d89a2e 52%, #fff3c8 74%, #e9b955); }
+.rar-ultra-rare { background-image: linear-gradient(95deg, #cdd6e8, #ffffff 30%, #9fabc6 55%, #ffffff 78%, #cdd6e8); }
+.rar-special-illustration-rare { background-image: linear-gradient(95deg, #ff9fd0, #ffd877 28%, #8dffca 52%, #74d2ff 76%, #c8a0ff); }
+.rar-hyper-rare { background-image: linear-gradient(95deg, #ffd27a, #ff9ec7 35%, #c4a0ff 65%, #8ad8ff); }
+.rar-mega-hyper-rare { background-image: linear-gradient(95deg, #ff7a59, #ffd166 30%, #ff7ab8 55%, #c08cff 80%, #ff7a59); }
 
 .zoom-body {
   position: relative;
@@ -856,11 +886,18 @@ main {
   width: 34px; aspect-ratio: 734 / 1024; object-fit: cover;
   border-radius: 4px; border: 1px solid rgba(237, 234, 244, 0.18);
   background: #14121d; box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+  position: relative; transform-origin: bottom center;
   transition: transform var(--dur-fast) var(--ease-snap);
 }
 .mc-thumbs img + img { margin-left: -14px; }
-.more-cards-link:hover .mc-thumbs img:nth-child(1) { transform: translateX(-3px) rotate(-3deg); }
-.more-cards-link:hover .mc-thumbs img:nth-child(3) { transform: translateX(3px) rotate(3deg); }
+/* explicit stacking so a transformed sibling can't reorder the fan — keep the
+   order they sit in (1 back, 2 middle, 3 front); the middle stays the middle */
+.mc-thumbs img:nth-child(1) { z-index: 1; }
+.mc-thumbs img:nth-child(2) { z-index: 2; }
+.mc-thumbs img:nth-child(3) { z-index: 3; }
+.more-cards-link:hover .mc-thumbs img:nth-child(1) { transform: translateX(-6px) rotate(-5deg); }
+.more-cards-link:hover .mc-thumbs img:nth-child(2) { transform: translateY(-3px); }
+.more-cards-link:hover .mc-thumbs img:nth-child(3) { transform: translateX(6px) rotate(5deg); }
 .mc-label {
   flex: 1; min-width: 0;
   font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em;
@@ -1071,8 +1108,9 @@ main {
   line-height: 0.9;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
-  /* really-subtle lighter→darker green fade, top to bottom (P's ask) */
-  background: linear-gradient(180deg, #7adf9f 0%, #4bc07e 100%);
+  /* barely-there green slope — two greens a hair apart, gentle diagonal (not a
+     hard top/bottom split, which read as a "satin" overlay) */
+  background: linear-gradient(155deg, #69d991 0%, #5bd187 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

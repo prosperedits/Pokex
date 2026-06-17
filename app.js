@@ -156,6 +156,11 @@
     'mega hyper rare': '--tier-5',
   };
   const rarityColor = (r) => tierColor(RARITY_VAR[(r || '').toLowerCase()] || '--text-dim');
+  // slug for the per-rarity "flair" classes (rar-enchanted, rar-ultra-rare, …)
+  const raritySlug = (r) => (r || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  // Lorcana names arrive as "Character — Title"; present them dash-free as a
+  // name + subtitle pair (no hyphens, just spacing). No-op for other games.
+  const splitName = (full) => { const i = (full || '').indexOf(' — '); return i < 0 ? { name: full || '', sub: '' } : { name: full.slice(0, i), sub: full.slice(i + 3) }; };
 
   // --- Species grouping: "other cards of this Pokémon" -----------------------
   // Strip Mega-/possessive-/suffix decoration down to the core species name so
@@ -462,7 +467,9 @@
     cEl.setAttribute('role', 'button');
     cEl.setAttribute('aria-label', `Inspect ${card.name}`);
 
-    glowSwap(capName, card.name); // ALL-CAPS via CSS; seeps in between cards
+    const cn = splitName(card.name); // dash-free Lorcana names (Character / Title)
+    glowSwap(capName, cn.name); // ALL-CAPS via CSS; seeps in between cards
+    capRarity.className = 'cap-rarity-top' + (card.sealed ? '' : ' rar-' + raritySlug(card.rarity)); // special rarities get flair
     // rarity rides the TOP line, above the wheel, in its signature color
     if (card.sealed) capRarity.style.color = 'var(--ember-glint)';
     else capRarity.style.color = rarityColor(card.rarity);
@@ -473,6 +480,7 @@
       ? (card.sealedMeta.detail || 'sealed product')
       : `${card.localId} / ${String(DATA.set.official).padStart(3, '0')}`;
     capMeta.replaceChildren();
+    if (cn.sub) capMeta.textContent = cn.sub; // Lorcana subtitle below the name, no dash
     focusedCard = card;
     refreshCapMarks(card);
 
@@ -755,7 +763,7 @@
     dl.replaceChildren();
     CARDS.forEach((c) => {
       const o = document.createElement('option');
-      o.value = `${c.name} · ${c.localId}`;
+      o.value = `${c.name.replace(/ — /g, ' ')} · ${c.localId}`; // dash-free Lorcana names
       dl.appendChild(o);
     });
     // footer snapshot label + staleness follow the set
@@ -1319,7 +1327,8 @@
   function buildTitle(card) {
     zTitle.replaceChildren();
     zTitle.style.setProperty('--name-glow', rarityColor(card.rarity) + '66');
-    for (const word of card.name.split(' ')) { // words intact (no mid-word wrap)
+    const { name, sub } = splitName(card.name); // Lorcana "Character — Title" → 2 lines
+    for (const word of name.split(' ')) { // words intact (no mid-word wrap)
       const w = document.createElement('span');
       w.className = 'wd';
       for (const ch of word) {
@@ -1330,6 +1339,8 @@
       }
       zTitle.append(w, ' ');
     }
+    let subEl = null;
+    if (sub) { subEl = document.createElement('span'); subEl.className = 'z-subtitle'; subEl.textContent = sub; zTitle.append(subEl); }
     if (window.gsap && !REDUCED) {
       // subtle: a quiet fade + small lift, gentle stagger — no 3D slam, no flare
       const chars = zTitle.querySelectorAll('.ch');
@@ -1337,6 +1348,7 @@
         { yPercent: 24, opacity: 0 },
         { yPercent: 0, opacity: 1, duration: 0.5, ease: 'power2.out',
           stagger: { each: 0.018, from: 'start' }, delay: 0.05 }));
+      if (subEl) sceneTweens.push(gsap.fromTo(subEl, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', delay: 0.34 }));
     }
   }
 
@@ -1344,6 +1356,7 @@
   function buildRarity(card) {
     const label = card.sealed ? 'Sealed Product' : (card.rarity || '');
     zRarity.textContent = label.toUpperCase();
+    zRarity.className = 'z-rarity-line' + (card.sealed ? '' : ' rar-' + raritySlug(card.rarity)); // special rarities get flair
     zRarity.style.setProperty('--rarity-color', card.sealed ? 'var(--ember-glint)' : rarityColor(card.rarity));
     // card number under the rarity — big, pitch white (e.g. 116/086)
     zNumber.textContent = card.sealed ? '' : `${card.localId}/${String(DATA.set.official).padStart(3, '0')}`;
