@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POKEX — FAQ</title>
+<meta name="description" content="Answers to 100+ questions about POKEX: the games, the wheel, prices, collection, binder, sealed products, data sources and more.">
+<link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="brand/tokens.css?v=49">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background:
+      radial-gradient(1200px 700px at 80% -10%, #16122a 0%, transparent 55%),
+      radial-gradient(900px 600px at 0% 110%, #0c1830 0%, transparent 55%),
+      var(--stage);
+    color: var(--text);
+    font-family: var(--font-ui);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: clamp(24px, 5vw, 64px) clamp(18px, 4vw, 48px) 120px; }
+
+  /* --- top bar: title + back (left), category filter (right) --- */
+  .top {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 24px; flex-wrap: wrap; margin-bottom: clamp(20px, 3vh, 34px);
+  }
+  .brand { display: flex; flex-direction: column; gap: 6px; }
+  .back {
+    align-self: flex-start; display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text-dim); text-decoration: none; transition: color 0.16s;
+  }
+  .back:hover { color: var(--text); }
+  .back svg { width: 14px; height: 14px; }
+  h1 {
+    font-family: var(--font-display); font-weight: 700; margin: 0;
+    font-size: clamp(34px, 6vw, 62px); line-height: 0.95; letter-spacing: -0.01em;
+  }
+  h1 .x { color: var(--spectral-bright); }
+  .tagline { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; color: var(--text-dim); }
+
+  /* --- category filter (top right) — dark blue, white font, selected = cyan glow --- */
+  .filter { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; max-width: 600px; }
+  .cat {
+    appearance: none; cursor: pointer;
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
+    padding: 8px 13px; border-radius: 999px;
+    background: #0e1b32;                 /* dark blue */
+    color: #ffffff;                       /* white font */
+    border: 1px solid #1c3356;
+    transition: color 0.18s, border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    white-space: nowrap;
+  }
+  .cat:hover { background: #13233f; border-color: #2a4d7a; }
+  .cat.active {
+    color: #5fe2ff;                       /* cyan font */
+    background: #0c1d36;
+    border-color: #2f6f9e;
+    box-shadow: 0 0 16px rgba(95, 226, 255, 0.35), inset 0 0 12px rgba(95, 226, 255, 0.08);
+    text-shadow: 0 0 10px rgba(95, 226, 255, 0.85), 0 0 22px rgba(95, 226, 255, 0.5); /* glowing */
+  }
+  .cat .n { opacity: 0.5; margin-left: 5px; font-size: 10px; }
+
+  /* --- search --- */
+  .search-row { margin-bottom: 26px; }
+  .search {
+    width: 100%; max-width: 460px;
+    font-family: var(--font-ui); font-size: 15px; color: var(--text);
+    padding: 13px 16px; border-radius: 12px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid var(--stage-line);
+    outline: none; transition: border-color 0.16s, background 0.16s;
+  }
+  .search::placeholder { color: var(--text-faint); }
+  .search:focus { border-color: #2f6f9e; background: rgba(95, 226, 255, 0.05); }
+
+  /* --- Q&A accordion --- */
+  .count { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); margin: 4px 0 16px; }
+  .group-label {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--spectral-bright); opacity: 0.75; margin: 30px 0 10px; padding-left: 2px;
+  }
+  details.qa {
+    border-top: 1px solid rgba(237, 234, 244, 0.09);
+    padding: 2px 0;
+  }
+  details.qa[hidden] { display: none; }
+  details.qa > summary {
+    list-style: none; cursor: pointer; display: flex; align-items: center; gap: 14px;
+    padding: 16px 4px; font-family: var(--font-display); font-weight: 500; font-size: clamp(15px, 1.9vw, 18px);
+    color: var(--text); transition: color 0.15s;
+  }
+  details.qa > summary::-webkit-details-marker { display: none; }
+  details.qa > summary:hover { color: #fff; }
+  .q-mark {
+    flex: none; width: 20px; height: 20px; border-radius: 6px; position: relative;
+    border: 1px solid #2a4d7a; background: #0e1b32; transition: all 0.18s;
+  }
+  .q-mark::before, .q-mark::after {
+    content: ''; position: absolute; inset: 0; margin: auto; background: #5fe2ff; border-radius: 1px;
+    transition: transform 0.22s var(--ease-snap), opacity 0.18s;
+  }
+  .q-mark::before { width: 9px; height: 1.5px; }
+  .q-mark::after { width: 1.5px; height: 9px; }
+  details.qa[open] .q-mark { border-color: #2f6f9e; box-shadow: 0 0 12px rgba(95, 226, 255, 0.4); }
+  details.qa[open] .q-mark::after { transform: rotate(90deg); opacity: 0; }
+  details.qa[open] > summary { color: #fff; }
+  .a {
+    padding: 0 4px 20px 38px; max-width: 800px;
+    font-size: 15px; line-height: 1.65; color: var(--text-dim);
+  }
+  .a code { font-family: var(--font-mono); font-size: 0.86em; background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 4px; color: var(--spectral-bright); }
+  .a strong { color: var(--text); font-weight: 600; }
+  .empty { padding: 50px 4px; color: var(--text-faint); font-size: 15px; }
+
+  .foot { margin-top: 60px; padding-top: 22px; border-top: 1px solid var(--stage-line);
+    font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); letter-spacing: 0.04em; }
+  .foot a { color: var(--text-dim); text-decoration: none; }
+  .foot a:hover { color: var(--spectral-bright); }
+
+  @media (max-width: 720px) {
+    .top { flex-direction: column; align-items: stretch; }
+    .filter { justify-content: flex-start; max-width: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <a class="back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg> Back to POKE<span style="letter-spacing:0">X</span></a>
+        <h1>FA<span class="x">Q</span></h1>
+        <p class="tagline">Everything about POKEX — the games, prices, collecting & the tech.</p>
+      </div>
+      <div class="filter" id="filter" role="tablist" aria-label="Filter by category"></div>
+    </div>
+
+    <div class="search-row">
+      <input id="search" class="search" type="search" placeholder="Search the FAQ…" aria-label="Search questions">
+    </div>
+    <p class="count" id="count"></p>
+
+    <div id="list"></div>
+    <p class="empty" id="empty" hidden>No questions match — try a different word or category.</p>
+
+    <div class="foot">
+      POKEX is a fan-made multi-TCG showcase — not affiliated with Pokémon, Disney, Wizards of the Coast, Bandai or Konami.
+      All card data &amp; prices come from free public sources. &nbsp;·&nbsp; <a href="index.html">Open the wheel →</a>
+    </div>
+  </div>
+
+  <script>
+  // ── FAQ content ──────────────────────────────────────────────────────────
+  // {c: category, q: question, a: answer(HTML allowed)}
+  const FAQ = [
+    // ── Getting started ──
+    { c: 'Getting started', q: 'What is POKEX?', a: 'POKEX is a premium showcase for trading-card games. Every card in a set rides a single 3D wheel; spin to it, inspect it, see its market price, and track what you own. It spans five games in one place — think of it as a beautiful, browseable card index with live pricing.' },
+    { c: 'Getting started', q: 'Do I need an account or to sign in?', a: 'No. There is no sign-up, no login and no password. You can use everything — browsing, inspecting, collection, wishlist and binder — the moment the page loads.' },
+    { c: 'Getting started', q: 'Is POKEX free?', a: 'Completely free. There are no fees, subscriptions, ads or in-app purchases, and you never need a credit card. Every data source it uses is a free public API.' },
+    { c: 'Getting started', q: 'How do I choose a game?', a: 'From the home screen press <strong>Get started</strong>, then pick one of the game logos in the “Pick a universe” screen. You can also switch games any time from the set menu at the top of the wheel.' },
+    { c: 'Getting started', q: 'How do I pick a set?', a: 'After choosing a game you land on its set selector — every set with its card count. Click one to drop straight onto that set’s first card. From the wheel, the logo/menu at the top lets you jump to any set or game.' },
+    { c: 'Getting started', q: 'What is the wheel?', a: 'The wheel is the main view: the whole set laid out as a horizontal carousel of cards. The centre card is the focused one — bigger and sharper — and the rest fan out to each side.' },
+    { c: 'Getting started', q: 'How do I open a card in detail?', a: 'Click the focused (centre) card, or press <strong>Enter</strong>. That opens the inspect view with a large card, its price, a 30-day price graph, variants and more.' },
+    { c: 'Getting started', q: 'How do I get back to the home screen?', a: 'Click the <strong>X</strong> brand mark in the top-left corner. That returns you to the “Every card. One wheel.” front door.' },
+    { c: 'Getting started', q: 'Does POKEX work offline or from a file?', a: 'The interface is built to open straight from a file with no server. Browsing already-loaded Pokémon sets works offline, but live prices, external-game cards and images need an internet connection to fetch.' },
+    { c: 'Getting started', q: 'Which browsers and devices work?', a: 'Any modern browser — Chrome, Edge, Firefox, Safari — on desktop, laptop, tablet or phone. The layout adapts to small screens. A recent browser gives you the smoothest 3D and the foil effects.' },
+    { c: 'Getting started', q: 'Is POKEX an official app?', a: 'No. POKEX is an independent fan project. It is not made, endorsed or licensed by Pokémon, Disney, Wizards of the Coast, Bandai or Konami. All trademarks belong to their owners.' },
+
+    // ── The games ──
+    { c: 'The games', q: 'Which games are on POKEX?', a: 'Pokémon, Magic: The Gathering, Disney Lorcana and One Piece are live today. Yu-Gi-Oh is planned. They all live in the same wheel and inspect experience.' },
+    { c: 'The games', q: 'Which Pokémon sets are included?', a: 'The recent Scarlet &amp; Violet era and the Mega Evolution sets, each with its full card list including the special-rarity chase cards. More eras can be added over time.' },
+    { c: 'The games', q: 'Does POKEX have every Magic set?', a: 'It carries a curated run of recent Magic sets (Bloomburrow, Modern Horizons 3, Final Fantasy, Avatar and more), and within each set it pulls <em>every printing</em> — showcase, borderless, extended-art and serialized — not just one per card.' },
+    { c: 'The games', q: 'What about Disney Lorcana?', a: 'Lorcana is fully supported, fetched live from a free Lorcana API. Every set is there, including the rare Enchanted and Iconic cards with their real prices.' },
+    { c: 'The games', q: 'Is One Piece supported?', a: 'Yes — One Piece sets OP01 through the latest are included, with images and prices. Because its data source blocks browser requests, the One Piece card list is bundled with the app and loads on demand when you open a One Piece set.' },
+    { c: 'The games', q: 'Is Yu-Gi-Oh available?', a: 'Not yet. Yu-Gi-Oh is on the roadmap — there is a free, key-less data source for it (YGOPRODeck), so it is a natural next addition.' },
+    { c: 'The games', q: 'Why do some games load slower than others?', a: 'Pokémon and One Piece data is bundled, so it is quick. Magic and Lorcana are fetched live from their APIs when you open a set — a set with hundreds of printings can take a couple of seconds the first time, then it is cached.' },
+    { c: 'The games', q: 'Are the games’ sets complete?', a: 'Yes — POKEX deliberately loads <em>every</em> card in a set, including alternate arts and chase rarities, and shows the card count so you can see completeness at a glance.' },
+    { c: 'The games', q: 'Can I see cards in other languages?', a: 'Cards are shown in English. Multi-language support isn’t available yet.' },
+    { c: 'The games', q: 'Do you cover vintage / older sets?', a: 'The focus right now is on current and recent sets, where pricing and images are richest. Older eras may be added later.' },
+    { c: 'The games', q: 'Will more games be added?', a: 'That’s the plan. POKEX is built as a multi-TCG platform; new games slot in as long as there’s a free, public data source with cards, images and prices.' },
+
+    // ── Browsing the wheel ──
+    { c: 'Browsing', q: 'How do I move through the cards?', a: 'Drag or scroll across the wheel, use the bottom slider, the arrow keys, or search by name. The wheel has momentum, so a flick coasts through the set.' },
+    { c: 'Browsing', q: 'What is the slider at the bottom?', a: 'It’s the set navigator — a sleek white slider. The thumb shows where you are in the set and the fill shows your progress. Drag it to scrub through the whole set quickly.' },
+    { c: 'Browsing', q: 'How do I jump to a specific card?', a: 'Type a name or a collector number into the search box at the top right and press Enter — the wheel spins straight to it. Or drag the bottom slider to its position.' },
+    { c: 'Browsing', q: 'Can I search by card name?', a: 'Yes. The search box autocompletes card names for the current set. You can also search by collector number.' },
+    { c: 'Browsing', q: 'What order are the cards in?', a: 'By default the most valuable cards sit toward the front of the wheel, so the chase cards are easy to find. Landing on a set from the selector drops you on its first card (the lowest collector number).' },
+    { c: 'Browsing', q: 'What’s the number under the rarity?', a: 'It’s the card’s collector number and the set size — for example <code>125 / 094</code> means card 125 in a set whose main run is 94 cards (numbers above the main count are secret/chase cards).' },
+    { c: 'Browsing', q: 'Why is the centre card bigger?', a: 'The focused card is rendered larger and at higher fidelity so you can read it, while the surrounding cards shrink slightly to give the wheel depth.' },
+    { c: 'Browsing', q: 'Can I navigate with the keyboard?', a: 'Yes — arrow keys move card to card, Page Up/Down jump further, and Enter inspects the focused card. The bottom slider is focusable too.' },
+    { c: 'Browsing', q: 'What’s the counter in the corner?', a: 'The top-right counter shows your position in the set, like <code>042 / 130</code> — current card over total cards.' },
+    { c: 'Browsing', q: 'Why does the background colour change per set?', a: 'The stage relights in each set’s signature colour, sampled from that set’s logo, so every set has its own mood as you browse.' },
+
+    // ── Inspecting a card ──
+    { c: 'Inspecting', q: 'What’s in the inspect view?', a: 'A large, tiltable card with its market price, a 30-day price graph, a variant price table, pull rates (behind a toggle), the card’s details, and a “more cards” shortcut to related cards.' },
+    { c: 'Inspecting', q: 'What does the price graph show?', a: 'The card’s price over the last 30 days, plotted on a true time axis (30 days ago on the left, today on the right) with a smooth trend line. Hover it to read the value at each point.' },
+    { c: 'Inspecting', q: 'Why does the graph only cover 30 days?', a: 'The free price source provides three averages — 30-day, 7-day and latest — which is all the history available without a paid feed. POKEX plots those honestly rather than inventing data.' },
+    { c: 'Inspecting', q: 'What are pull rates and where do I see them?', a: 'Pull rates are the odds of pulling each rarity from a booster pack of that set. In inspect they live behind the <strong>Pull rates</strong> toggle so they’re there when you want them and out of the way when you don’t.' },
+    { c: 'Inspecting', q: 'What’s the “more cards” button?', a: 'For a Pokémon card it previews other cards of the same Pokémon across sets — three thumbnails and an arrow. Click it to open a gallery of all of them and jump to any one.' },
+    { c: 'Inspecting', q: 'Can I flip the card or see the back?', a: 'The inspected card tilts in 3D as you move your cursor, and double-faced Magic cards show their reverse face. A classic card back is used where no real back image exists.' },
+    { c: 'Inspecting', q: 'What’s the holo / foil effect?', a: 'High-rarity cards get an animated holographic backdrop and a shine sweep in inspect, tuned by rarity, to echo how the real foil catches light.' },
+    { c: 'Inspecting', q: 'How do I share one specific card?', a: 'Use the Share button (in inspect, or on the focused card). It copies a direct link that re-opens POKEX on exactly that card.' },
+    { c: 'Inspecting', q: 'What does the trend percentage mean?', a: 'It’s how far the latest price sits above or below the 30-day average — a quick read on whether a card is heating up (green, ▲) or cooling off (red, ▼).' },
+    { c: 'Inspecting', q: 'Why do some cards have a moving background?', a: 'A handful of chase cards have a bespoke animated backdrop in inspect for extra drama. Most cards use the holographic shader backdrop instead.' },
+
+    // ── Cards & rarities ──
+    { c: 'Rarities', q: 'What rarities does Pokémon have?', a: 'From common up: Common, Uncommon, Rare, Double Rare, Ultra Rare, Illustration Rare, Special Illustration Rare, Hyper Rare and the set chase rarities. Each has its own signature colour in POKEX.' },
+    { c: 'Rarities', q: 'What’s a Special Illustration Rare?', a: 'An SIR is a full-art card with alternate, often more artistic illustration and a textured finish — among the most sought-after pulls in a modern Pokémon set. POKEX gives the label its own iridescent treatment.' },
+    { c: 'Rarities', q: 'What’s an Illustration Rare?', a: 'A full-art “art rare” card — the character fills the frame with special artwork. Rarer than a regular rare, a step below Special Illustration Rare.' },
+    { c: 'Rarities', q: 'What’s an Ultra Rare?', a: 'Typically the <em>ex</em> / V / full-mechanic cards with a foil treatment — strong, valuable cards that aren’t quite the top art chase. POKEX gives the term a chrome look.' },
+    { c: 'Rarities', q: 'What’s a Hyper Rare or “gold” card?', a: 'A Hyper Rare is a gold, fully-etched card — one of the rarest pulls in a set. POKEX styles the label to match its premium feel.' },
+    { c: 'Rarities', q: 'What are Lorcana’s Enchanted cards?', a: 'Enchanted cards are Lorcana’s rainbow-foil chase cards with exclusive alternate art — the equivalent of a secret rare. They’re the most valuable cards in most Lorcana sets, and POKEX gives the word an iridescent shimmer.' },
+    { c: 'Rarities', q: 'What’s a Lorcana Iconic card?', a: 'Iconic is a newer ultra-premium Lorcana rarity — a special, limited treatment above Legendary. POKEX renders the label in a gold sheen.' },
+    { c: 'Rarities', q: 'What rarities does Magic use?', a: 'Common, Uncommon, Rare and Mythic Rare, plus special treatments (showcase, borderless, extended-art, serialized) layered on top. POKEX loads each treatment as its own printing.' },
+    { c: 'Rarities', q: 'What’s a serialized card?', a: 'A serialized card is individually numbered (e.g. ###/500) — extremely limited. They’re among the most valuable cards a set can contain. See the pricing section for why some have no listed price.' },
+    { c: 'Rarities', q: 'Why do special rarities look different in POKEX?', a: 'Because they <em>are</em> special. Enchanted, Iconic, Ultra Rare, Special Illustration Rare and Hyper Rare get their own iridescent or metallic text treatment so the rarity reads at a glance.' },
+    { c: 'Rarities', q: 'What’s a reverse holo?', a: 'A reverse holo has the foil pattern over the card body instead of the artwork. It’s a common parallel and usually carries a small premium over the non-foil version.' },
+    { c: 'Rarities', q: 'What does “1 of N in set” mean?', a: 'Inside the pull-rates panel it tells you how many cards of that rarity exist in the set — e.g. “1 of 32 Special Illustration Rares” — so you can gauge how thin that pool is.' },
+
+    // ── Prices & value ──
+    { c: 'Prices', q: 'Where do the prices come from?', a: 'Free public market data: Pokémon prices via TCGdex/Cardmarket, Magic via Scryfall, Lorcana via a Lorcana API, One Piece via a community database, and sealed/serialized prices via a free TCGplayer mirror. No paid feeds.' },
+    { c: 'Prices', q: 'Are the prices live?', a: 'They’re recent market snapshots, refreshed regularly rather than streamed tick-by-tick. Each set shows when its snapshot was last refreshed in the footer.' },
+    { c: 'Prices', q: 'What currency are prices in?', a: 'Everything is shown in <strong>US dollars</strong> for consistency. Where the source is in euros (Cardmarket), POKEX converts at a fixed, labelled rate.' },
+    { c: 'Prices', q: 'Why is a card showing no price?', a: 'Either the market sources have no recent sales for it, or it’s an ultra-rare (like some serialized cards) that simply doesn’t trade often enough to have a tracked price anywhere.' },
+    { c: 'Prices', q: 'Why do serialized cards sometimes have no price?', a: 'Serialized cards are so rare they often have no public market price — the main free source (e.g. Scryfall for Magic) usually doesn’t track them. POKEX backfills from TCGplayer where a price exists, but a few have none anywhere; we show that honestly rather than guess.' },
+    { c: 'Prices', q: 'What’s the difference between low, mid and market price?', a: 'In the variant table, <strong>low</strong> is the cheapest listing, <strong>mid</strong> is the middle of listings, and <strong>market</strong> is the recent actual-sale price — usually the most realistic figure.' },
+    { c: 'Prices', q: 'Why is the holofoil price different from normal?', a: 'Foil and non-foil are separate products with separate markets. Premium cards are often foil-only, so POKEX reads the foil price when there’s no plain-print price — which is also why those chase cards sort to the front.' },
+    { c: 'Prices', q: 'How often are prices updated?', a: 'Snapshots are refreshed on a regular cadence. The exact “refreshed” date for the set you’re viewing is shown at the bottom of the wheel.' },
+    { c: 'Prices', q: 'What does the “trending” fire stamp mean?', a: 'A flame stamp marks a card whose latest price is up meaningfully over the last month (tiered by how much). A snowflake marks a notable drop. It’s a quick momentum cue.' },
+    { c: 'Prices', q: 'Can I trust these prices for buying or selling?', a: 'Treat them as a strong reference, not gospel. They’re market snapshots from public sources; always cross-check a marketplace before a real transaction.' },
+    { c: 'Prices', q: 'Why are some prices converted from euros?', a: 'Pokémon market data often comes from Cardmarket (a European marketplace) in euros. To keep the whole app in one currency, POKEX converts those to USD at a fixed, clearly-labelled rate.' },
+    { c: 'Prices', q: 'What makes a card valuable?', a: 'Scarcity (rarity and print run), demand (popular characters/decks), condition, and special treatments (alternate art, foil, serialized). The chase rarities combine several of these.' },
+
+    // ── Collection & wishlist ──
+    { c: 'Collection', q: 'How do I add a card to my collection?', a: 'Open a card in inspect and press the <strong>Collection</strong> button. It’s saved instantly. The header counter keeps a running total.' },
+    { c: 'Collection', q: 'How do I add to my wishlist?', a: 'In inspect, press the <strong>Wishlist</strong> (heart) button. Wishlist and collection are separate lists you can build independently.' },
+    { c: 'Collection', q: 'Where is my collection saved?', a: 'Locally in your browser (its local storage) on the device you’re using. Nothing is uploaded to a server.' },
+    { c: 'Collection', q: 'Will my collection sync across devices?', a: 'Not automatically — because it lives in your browser, it doesn’t follow you to another device or browser. Cross-device sync isn’t available yet.' },
+    { c: 'Collection', q: 'How do I see my whole collection?', a: 'Open the collection view from the header (the wishlist/collection counter links to it), where your saved cards are listed together.' },
+    { c: 'Collection', q: 'What’s the difference between collection and wishlist?', a: '<strong>Collection</strong> is what you own; <strong>wishlist</strong> is what you want. They’re tracked separately and each card can be on either, both, or neither.' },
+    { c: 'Collection', q: 'How do I remove a card from a list?', a: 'Press the same Collection or Wishlist button again — it toggles off and updates the count.' },
+    { c: 'Collection', q: 'Do the counts include every game?', a: 'Yes. Cards are stored with a game- and set-qualified id, so your collection and wishlist span Pokémon, Magic, Lorcana and One Piece together.' },
+    { c: 'Collection', q: 'Is my collection data private?', a: 'Completely. It never leaves your browser — there’s no account and no server, so only you can see it.' },
+    { c: 'Collection', q: 'What happens if I clear my browser data?', a: 'Because the lists live in local storage, clearing your browser’s site data (or using private/incognito mode) will erase them. Keep that in mind before a big cleanup.' },
+
+    // ── Binder ──
+    { c: 'Binder', q: 'What is the binder?', a: 'A build-your-own 9-pocket binder, just like a real one. Drag cards into the pockets, flip through multiple pages, and keep a curated layout — separate from your collection list.' },
+    { c: 'Binder', q: 'How do I add cards to the binder?', a: 'Open the binder (the Binder link in the header), browse cards from the card bank on the left, and drag them into a pocket — or click to drop into the next empty slot.' },
+    { c: 'Binder', q: 'Can I have multiple pages?', a: 'Yes — add pages and flip between them with a page-turn animation, so you can lay out a whole set or a themed collection.' },
+    { c: 'Binder', q: 'How do I rearrange cards?', a: 'Drag a card from one pocket to another to swap them, or drag it back to the bank to remove it.' },
+    { c: 'Binder', q: 'Does the binder save automatically?', a: 'Yes — your binder is saved in your browser as you build it, so it’s there next time you open it on the same device.' },
+    { c: 'Binder', q: 'Can I mix games in one binder?', a: 'Yes. Each pocket stores a snapshot of the card, so Pokémon, Magic, Lorcana and One Piece cards can share the same binder page.' },
+    { c: 'Binder', q: 'Can I auto-fill from my collection?', a: 'There’s an auto-fill option that drops your collected cards into pockets for you, as a fast starting point you can then rearrange.' },
+    { c: 'Binder', q: 'Can I share my binder?', a: 'Binder sharing isn’t available yet — it’s on the roadmap alongside a more cinematic 3D binder.' },
+
+    // ── Sealed products ──
+    { c: 'Sealed', q: 'What are sealed products?', a: 'Unopened product — booster boxes, Elite Trainer Boxes, bundles, blisters and the like. POKEX tracks their market prices alongside the singles.' },
+    { c: 'Sealed', q: 'Where do sealed prices come from?', a: 'From a free TCGplayer data mirror that carries sealed products with market prices across all four games. Each price is a verified snapshot with its source and date.' },
+    { c: 'Sealed', q: 'Why are some sealed images nicer than others?', a: 'Pokémon has clean official transparent renders, which POKEX uses. The other games don’t publish those, so their sealed images are best-available product photos.' },
+    { c: 'Sealed', q: 'What types of sealed product are shown?', a: 'Booster boxes, Elite Trainer Boxes (ETBs), bundles, build-&-battle kits, blister/booster packs, collection boxes and starter products, depending on what exists for the set.' },
+    { c: 'Sealed', q: 'Are sealed prices tracked over time?', a: 'Not yet — only the current snapshot. Trend history for sealed would need accumulating our own daily data, which isn’t available from the free sources.' },
+    { c: 'Sealed', q: 'Why doesn’t a set have sealed products?', a: 'Either the product isn’t in the source mirror yet, or that set simply doesn’t have tracked sealed product (common for very new or digital-only releases).' },
+    { c: 'Sealed', q: 'What’s an ETB or a booster box?', a: 'A <strong>booster box</strong> is a case of booster packs; an <strong>ETB</strong> (Elite Trainer Box) bundles packs with accessories like sleeves and dice. Both are popular sealed buys.' },
+    { c: 'Sealed', q: 'Are the sealed photos official?', a: 'The Pokémon ones are official transparent renders. For the other games they’re marketplace product photos — accurate, but not first-party renders.' },
+
+    // ── Data & sources ──
+    { c: 'Data', q: 'Where does POKEX get its card data?', a: 'From free, public, key-less sources: TCGdex (Pokémon), Scryfall (Magic), a Lorcana API (Lorcana) and a community One Piece database. Sealed/serialized pricing comes from a free TCGplayer mirror.' },
+    { c: 'Data', q: 'Where do the card images come from?', a: 'Directly from each game’s public image CDN, loaded on demand. POKEX only whitelists those known image hosts.' },
+    { c: 'Data', q: 'How current is the data?', a: 'Card lists track each game’s latest sets; prices are recent snapshots. The “refreshed” date for the set you’re viewing is shown at the bottom of the wheel.' },
+    { c: 'Data', q: 'Do you store my data on a server?', a: 'No. POKEX has no backend and no database. Everything personal — collection, wishlist, binder — stays in your browser.' },
+    { c: 'Data', q: 'Why might an image fail to load?', a: 'Usually a momentary network hiccup or a gap in the source CDN. Reload, or move to the card and back — most images retry and resolve.' },
+    { c: 'Data', q: 'Is there an API I can use?', a: 'POKEX itself doesn’t expose an API — it’s a front-end over public sources. You’d use those underlying APIs (TCGdex, Scryfall, Lorcast, etc.) directly.' },
+    { c: 'Data', q: 'How do you handle cards with multiple printings?', a: 'They’re each loaded as separate cards. A Magic card with showcase, borderless, extended and serialized versions appears as several entries, each with its own art and price.' },
+    { c: 'Data', q: 'Why might a card look “missing”?', a: 'Almost always a stale cache. POKEX loads complete sets; if a card seems absent, hard-refresh the page — your browser or the CDN edge may be holding an old copy.' },
+    { c: 'Data', q: 'Do you keep price history?', a: 'Only what the sources give — typically 30-day, 7-day and latest averages. POKEX doesn’t (yet) accumulate its own long-term history.' },
+    { c: 'Data', q: 'How accurate is the card text and info?', a: 'Card names, numbers, rarities, types and rules text come straight from the official data sources, so they’re as accurate as those datasets — which are well maintained.' },
+
+    // ── Technical & troubleshooting ──
+    { c: 'Technical', q: 'The app looks frozen — no animations. Why?', a: 'Some systems report a “reduced motion” preference, which can pause CSS animations. POKEX’s core motion runs on its own loop regardless, but if you want full motion you can add <code>?motion</code> to the URL.' },
+    { c: 'Technical', q: 'How do I force the latest version?', a: 'Hard-refresh the page (Ctrl/Cmd + Shift + R). POKEX versions its files, but your browser or a CDN edge can briefly hold an old copy.' },
+    { c: 'Technical', q: 'Why is a set showing old data?', a: 'Edge caching. The page’s HTML sends no-cache, but a CDN can lag a minute or two after an update. A hard refresh fixes it.' },
+    { c: 'Technical', q: 'Can I turn animations on or off?', a: 'POKEX honours a reduced-motion preference and offers a <code>?motion=reduced</code> URL override for a calmer experience, or <code>?motion</code> to force the full thing.' },
+    { c: 'Technical', q: 'POKEX is slow to load — what helps?', a: 'The first load of a big external set (lots of printings) is the slowest part. After that it’s cached. A modern browser and a decent connection make the biggest difference.' },
+    { c: 'Technical', q: 'A card image is blank — how do I fix it?', a: 'Scroll away and back, or reload. Images load lazily from external CDNs, so an occasional one needs a second attempt.' },
+    { c: 'Technical', q: 'Does POKEX use a lot of data?', a: 'Card images are the main cost and they load only as you reach them. Browsing a set is light; loading every image of a huge set obviously uses more.' },
+    { c: 'Technical', q: 'Why does the wheel stutter sometimes?', a: 'Heavy image decoding while a lot of new cards come into view can cause a brief hitch on slower devices. It settles once nearby images are cached.' },
+    { c: 'Technical', q: 'What if a price looks wrong?', a: 'It reflects the latest snapshot from the public source. Outliers happen (a thin market, a bad listing). Cross-check a marketplace if a number looks off.' },
+    { c: 'Technical', q: 'How do I report a bug or suggest a feature?', a: 'POKEX is an evolving personal project — feedback drives what gets built next. Pass it to whoever shared POKEX with you.' },
+
+    // ── About ──
+    { c: 'About', q: 'Who made POKEX?', a: 'It’s an independent passion project — a polished, personal take on how a multi-game card index could look and feel.' },
+    { c: 'About', q: 'Is POKEX affiliated with the card games?', a: 'No. It’s an unofficial fan project, not connected to Pokémon, Disney, Wizards of the Coast, Bandai or Konami. All names and artwork belong to their owners.' },
+    { c: 'About', q: 'Why was POKEX built?', a: 'To make browsing trading cards feel premium — a single, beautiful wheel with real prices, instead of scrolling endless grids — and to bring several games together in one place.' },
+    { c: 'About', q: 'What’s on the roadmap?', a: 'Yu-Gi-Oh, a cinematic 3D binder, deeper trending tools, a richer home, collection valuation, and steadily more sets across every game.' },
+    { c: 'About', q: 'What is POKEX built with?', a: 'Plain, framework-free web tech — vanilla JavaScript with a little 3D and animation — and free public APIs. No build step, no backend.' },
+    { c: 'About', q: 'Does POKEX cost anything to run?', a: 'It’s designed around free resources end to end: free data APIs, static hosting and no paid services — which is why it can stay free for you.' },
+    { c: 'About', q: 'Can I use POKEX on my phone?', a: 'Yes — the layout adapts to phones and tablets. Big external sets are heavier on mobile data, but everything works.' },
+    { c: 'About', q: 'How can I support the project?', a: 'Use it, share it, and send feedback. Knowing which games, sets and features matter most is what shapes what gets built next.' },
+  ];
+
+  // ── render ───────────────────────────────────────────────────────────────
+  const CATS = [...new Set(FAQ.map(f => f.c))];
+  const filterEl = document.getElementById('filter');
+  const listEl = document.getElementById('list');
+  const searchEl = document.getElementById('search');
+  const countEl = document.getElementById('count');
+  const emptyEl = document.getElementById('empty');
+  let activeCat = 'All', query = '';
+
+  // filter chips: All + each category
+  function buildFilter() {
+    const chips = ['All', ...CATS];
+    filterEl.innerHTML = chips.map(c => {
+      const n = c === 'All' ? FAQ.length : FAQ.filter(f => f.c === c).length;
+      return `<button class="cat${c === activeCat ? ' active' : ''}" role="tab" data-cat="${c}">${c}<span class="n">${n}</span></button>`;
+    }).join('');
+  }
+  filterEl.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-cat]'); if (!b) return;
+    activeCat = b.dataset.cat;
+    filterEl.querySelectorAll('.cat').forEach(el => el.classList.toggle('active', el.dataset.cat === activeCat));
+    render();
+  });
+
+  // one accordion item
+  function itemHTML(f, i) {
+    return `<details class="qa" data-cat="${f.c}" data-i="${i}">
+      <summary><span class="q-mark" aria-hidden="true"></span><span class="q-text">${f.q}</span></summary>
+      <div class="a">${f.a}</div>
+    </details>`;
+  }
+
+  function render() {
+    const q = query.trim().toLowerCase();
+    // which entries match
+    const matches = FAQ.map((f, i) => ({ f, i }))
+      .filter(({ f }) => (activeCat === 'All' || f.c === activeCat))
+      .filter(({ f }) => !q || (f.q + ' ' + f.a + ' ' + f.c).toLowerCase().includes(q));
+
+    if (!matches.length) { listEl.innerHTML = ''; emptyEl.hidden = false; countEl.textContent = '0 questions'; return; }
+    emptyEl.hidden = true;
+    countEl.textContent = `${matches.length} question${matches.length === 1 ? '' : 's'}` + (activeCat === 'All' && !q ? ` across ${CATS.length} topics` : '');
+
+    // group by category (when showing All), else flat
+    let html = '';
+    if (activeCat === 'All') {
+      for (const cat of CATS) {
+        const inCat = matches.filter(m => m.f.c === cat);
+        if (!inCat.length) continue;
+        html += `<p class="group-label">${cat}</p>` + inCat.map(m => itemHTML(m.f, m.i)).join('');
+      }
+    } else {
+      html = matches.map(m => itemHTML(m.f, m.i)).join('');
+    }
+    listEl.innerHTML = html;
+
+    // open the first match while actively searching, for quick reading
+    if (q) { const first = listEl.querySelector('details.qa'); if (first) first.open = true; }
+  }
+
+  searchEl.addEventListener('input', () => { query = searchEl.value; render(); });
+
+  buildFilter();
+  render();
+  </script>
+</body>
+</html>

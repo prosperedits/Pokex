@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=49">
-<link rel="stylesheet" href="style.css?v=77">
+<link rel="stylesheet" href="style.css?v=78">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -96,11 +96,13 @@
     </section>
   </main>
 
-  <!-- Bottom minimap: one ARIA slider rail; ticks are decorative, thumb is the dial -->
+  <!-- Bottom navigator: a sleek white slider (track + fill + thumb). #ticks is
+       retired (kept hidden so the per-card heat logic stays a harmless no-op). -->
   <nav class="minimap" aria-label="Set navigator">
     <div id="rail" class="rail" role="slider" tabindex="0"
          aria-label="Card position" aria-valuemin="1" aria-valuemax="130" aria-valuenow="1">
-      <div id="ticks" class="ticks" aria-hidden="true"></div>
+      <div class="rail-track" aria-hidden="true"><div id="railFill" class="rail-fill"></div></div>
+      <div id="ticks" class="ticks" aria-hidden="true" hidden></div>
       <div id="railThumb" class="rail-thumb" aria-hidden="true"></div>
     </div>
   </nav>
@@ -178,6 +180,9 @@
   </dialog>
 
   <footer class="site-foot">
+    <div class="foot-left">
+      <a class="foot-link" href="faq.html">FAQ</a>
+    </div>
     <div class="foot-right">
       <span id="snapshotLabel" class="snapshot"></span>
       <span id="staleNotice" class="stale" hidden>snapshot is over a week old — re-run scripts/refresh-data.mjs</span>
@@ -212,6 +217,6 @@
   <script src="data/sealed.js?v=62"></script>
   <script src="data/set-colors.js?v=63"></script>
   <script src="data/magic-prices.js?v=74"></script>
-  <script src="app.js?v=77"></script>
+  <script src="app.js?v=78"></script>
 </body>
 </html>

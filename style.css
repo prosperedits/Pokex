@@ -75,98 +75,64 @@ body {
 }
 .rail {
   position: relative;
-  padding: calc(var(--arc-depth) + var(--s-3)) var(--s-4) var(--s-3); /* room for the lifted tips + >=44px hit area */
+  height: 40px;            /* generous hit area; the track is centred within */
+  display: flex;
+  align-items: center;
   cursor: grab;
   touch-action: none;
   outline: none;
 }
 .rail:active { cursor: grabbing; }
 
-/* the heat strip IS the rail: every bar sits on the arc and fades + shortens
-   toward the tips, so the control tapers to a point at both edges */
-.ticks {
-  display: flex;
-  gap: 2px;
-  align-items: flex-end;
-  height: 18px;
-  overflow: visible;
-  --n: 1;
-}
-.ticks i {
-  flex: 1 1 0;
-  min-width: 1px;
-  --t: calc(var(--s, 0) / max(var(--n) - 1, 1));   /* 0..1 along the strip */
-  --k: calc(2 * var(--t) - 1);                       /* -1 left .. +1 right */
-  --bow: calc(1 - var(--k) * var(--k));             /* 1 centre .. 0 at tips */
-  height: calc(7px + 7px * var(--bow));             /* shorter toward the tips */
-  border-radius: 1px;
-  transform-origin: bottom center;
-  transform:
-    translateY(calc(var(--arc-depth) * (var(--bow) - 1)))  /* tips ride up */
-    rotate(calc(var(--k) * var(--arc-rot)));               /* fan outward */
-  opacity: calc(0.32 + 0.5 * var(--bow));           /* fade -> tapered ends */
-  transition: height var(--dur-fast) var(--ease-snap), opacity var(--dur-fast) linear;
-}
-.ticks i.cur {
-  height: 18px;
-  opacity: 1;
-  box-shadow: 0 0 10px currentColor, 0 0 22px currentColor;
-}
-.rail:hover .ticks i { opacity: calc(0.55 + 0.45 * var(--bow)); }
-.rail:hover .ticks i.cur { opacity: 1; }
-.rail:focus-visible .ticks { outline: 1px solid var(--spectral); outline-offset: 6px; border-radius: 3px; }
+.ticks { display: none; } /* retired heat strip — element stays so JS is a no-op */
 
-/* the dial: a frosted-glass knob that tracks the current card along the arc */
+/* sleek white slider: a thin translucent track + a white fill up to the thumb */
+.rail-track {
+  position: relative;
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(237, 234, 244, 0.14);
+  transition: background var(--dur-fast);
+}
+.rail:hover .rail-track { background: rgba(237, 234, 244, 0.22); }
+.rail:focus-visible .rail-track { outline: 1px solid var(--spectral); outline-offset: 7px; }
+.rail-fill {
+  position: absolute;
+  left: 0; top: 0;
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.95));
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.22);
+  transition: width 120ms linear;
+}
+
+/* the dial: a clean white knob that slides flat along the track */
 .rail-thumb {
   position: absolute;
   top: 50%;
   left: 0;
-  width: 30px;
-  height: 42px;
-  /* --lift (px) and --rot (deg) are computed in JS each frame and written as
-     already-resolved values, so the transform never leans on a deep calc()
-     chain. --pop is the hover/active scale. */
-  transform:
-    translate(-50%, calc(-50% - var(--lift, 0px)))
-    rotate(var(--rot, 0deg))
-    scale(var(--pop, 1));
-  transform-origin: center bottom;
-  border-radius: 9px;
-  background: rgba(237, 234, 244, 0.12);
-  backdrop-filter: blur(9px) saturate(1.5);
-  -webkit-backdrop-filter: blur(9px) saturate(1.5);
-  border: 1px solid rgba(237, 234, 244, 0.6);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #fff;
+  transform: translate(-50%, -50%) scale(var(--pop, 1));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    inset 0 -10px 16px rgba(255, 255, 255, 0.05),
-    0 4px 18px rgba(0, 0, 0, 0.55),
-    0 0 22px rgba(127, 212, 244, 0.4);
+    0 1px 6px rgba(0, 0, 0, 0.5),
+    0 0 0 4px rgba(255, 255, 255, 0.07),
+    0 0 14px rgba(255, 255, 255, 0.4);
   pointer-events: none;
-  transition: left 120ms linear, transform 120ms linear,
-              box-shadow var(--dur-fast);
-}
-/* grip lines so it reads as a physical, grabbable knob */
-.rail-thumb::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 11px;
-  height: 16px;
-  background-image: repeating-linear-gradient(
-    90deg,
-    rgba(237, 234, 244, 0.65) 0 1.5px,
-    transparent 1.5px 4px);
-  opacity: 0.8;
+  transition: left 120ms linear, transform 150ms var(--ease-snap), box-shadow var(--dur-fast);
 }
 .rail:hover .rail-thumb {
-  --pop: 1.06;
+  --pop: 1.2;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    0 4px 22px rgba(0, 0, 0, 0.6),
-    0 0 30px rgba(127, 212, 244, 0.65);
+    0 1px 8px rgba(0, 0, 0, 0.55),
+    0 0 0 5px rgba(255, 255, 255, 0.12),
+    0 0 22px rgba(255, 255, 255, 0.6);
 }
-.rail:active .rail-thumb { --pop: 1.12; }
+.rail:active .rail-thumb { --pop: 1.3; }
 
 /* ---------- Header chrome ---------- */
 .chrome {
@@ -1468,6 +1434,9 @@ main {
   padding: var(--s-2) var(--s-5) var(--s-3);
 }
 .foot-right { text-align: right; display: flex; flex-direction: column; gap: 2px; }
+.foot-left { display: flex; gap: 14px; }
+.foot-link { font-family: var(--font-mono); font-size: var(--type-micro); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); text-decoration: none; transition: color 0.16s; }
+.foot-link:hover { color: var(--spectral-bright); }
 .snapshot { font-family: var(--font-mono); font-size: var(--type-micro); color: var(--text-dim); }
 .stale { font-family: var(--font-mono); font-size: var(--type-micro); color: var(--ember); }
 

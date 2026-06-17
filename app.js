@@ -252,6 +252,7 @@
   // --- DOM ---------------------------------------------------------------------
   const $ = (id) => document.getElementById(id);
   const wheel = $('wheel'), track = $('track'), rail = $('rail'), ticksBox = $('ticks');
+  const railTrack = rail.querySelector('.rail-track'), railFill = $('railFill'); // sleek slider
   // Arc-dial geometry. Single source of truth = the --arc-depth/--arc-rot CSS
   // vars on .minimap (the media query shrinks them on small screens); read them
   // once here and on resize so render() can place the dial without per-frame
@@ -528,16 +529,10 @@
     span.textContent = `/${N}`;
     counter.appendChild(span);
 
-    // dial rides the arc: lift (px) + tangent tilt (deg) computed here and
-    // written resolved, so CSS never needs a deep calc() chain; left places X.
+    // sleek white slider: the fill grows to the thumb; the thumb slides flat
     const railFrac = N > 1 ? idx / (N - 1) : 0.5;
-    const railK = 2 * railFrac - 1;                 // -1 left .. +1 right
-    const railBow = 1 - railK * railK;              // 1 centre .. 0 at the tips
-    const railThumbEl = $('railThumb');
-    railThumbEl.style.left =
-      `${(ticksBox.offsetLeft + railFrac * ticksBox.offsetWidth).toFixed(1)}px`;
-    railThumbEl.style.setProperty('--lift', `${(ARC_DEPTH * (1 - railBow)).toFixed(2)}px`);
-    railThumbEl.style.setProperty('--rot', `${(railK * ARC_ROT * 0.55).toFixed(3)}deg`);
+    $('railThumb').style.left = `${(railFrac * railTrack.offsetWidth).toFixed(1)}px`;
+    railFill.style.width = `${(railFrac * 100).toFixed(2)}%`;
 
     // valuable cards (>= $20) get the hot title treatment
     const hot = typeof card.priceUsd === 'number' && card.priceUsd >= 20;
@@ -1210,7 +1205,7 @@
   // --- Input: minimap scrub -----------------------------------------------------------
   let scrubbing = false;
   function railIndex(e) {
-    const r = ticksBox.getBoundingClientRect();
+    const r = railTrack.getBoundingClientRect();
     const f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
     return Math.round(f * (N - 1));
   }
