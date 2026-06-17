@@ -75,24 +75,41 @@ body {
 }
 .rail {
   position: relative;
-  height: 86px;
+  height: 96px;
   cursor: grab;
   touch-action: none;
   outline: none;
+  perspective: 520px;            /* the depth — segments recede into z, not a flat tilt */
+  perspective-origin: 50% 26%;   /* viewpoint sits above, so the arc reads as 3D */
 }
 .rail:active { cursor: grabbing; }
 .ticks { display: none; } /* retired heat strip — element stays so JS is a no-op */
 
-/* the dial: a curved, segmented (one tick per card), tapered arc, drawn as SVG.
-   ticks fan + shorten toward the ends; the lit tick + glowing knob ride the arc */
-.rail-arc { display: block; width: 100%; height: 86px; overflow: visible; }
-.dring { fill: none; stroke: rgba(237, 234, 244, 0.12); stroke-width: 1; }
-.dtick { stroke: var(--spectral-bright); stroke-width: 2; stroke-linecap: round; transition: opacity 0.25s, stroke 0.2s; }
-.rail:hover .dtick:not(.cur) { opacity: 0.6 !important; }
-.dtick.cur { stroke: #fff; opacity: 1 !important; stroke-width: 3; filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.9)); }
-.dknob { fill: #fff; filter: drop-shadow(0 0 9px rgba(127, 212, 244, 0.95)); }
-.rail:hover .dknob { r: 5.5; }
-.rail:focus-visible .rail-arc { outline: 1px solid var(--spectral); outline-offset: 5px; border-radius: 6px; }
+/* the dial: one bar per card on an arc that curves INTO the screen. Each bar is
+   placed with translate3d; perspective shrinks the receding ends = real depth. */
+.rail-arc { position: absolute; inset: 0; transform-style: preserve-3d; }
+.dial-stage { position: absolute; left: 50%; bottom: 30px; transform-style: preserve-3d; transform: rotateX(12deg); }
+.dtick {
+  position: absolute; bottom: 0; left: 0; width: 3px; margin-left: -1.5px;
+  border-radius: 2px 2px 0 0; transform-origin: bottom center;
+  /* vertical gradient = the segment reads as a lit, rounded 3D pillar */
+  background: linear-gradient(to top, rgba(61, 155, 224, 0.05), var(--spectral) 55%, var(--spectral-bright));
+  box-shadow: 0 0 4px rgba(127, 212, 244, 0.5);
+  transition: opacity 0.25s;
+}
+.rail:hover .dtick:not(.cur) { opacity: 0.7 !important; }
+.dtick.cur {
+  width: 4px; margin-left: -2px; opacity: 1 !important;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.35), #eafaff 60%, #fff);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.95), 0 0 22px rgba(127, 212, 244, 0.85);
+}
+.dknob {
+  position: absolute; bottom: 0; left: 0; width: 12px; height: 12px; margin: 0 0 -4px -6px;
+  border-radius: 50%; transform-origin: center;
+  background: radial-gradient(circle at 36% 30%, #fff, #d4eeff 48%, #5a9fd0);
+  box-shadow: 0 0 13px rgba(127, 212, 244, 0.95), 0 2px 7px rgba(0, 0, 0, 0.55);
+}
+.rail:focus-visible { outline: 1px solid var(--spectral); outline-offset: 4px; border-radius: 8px; }
 
 /* ---------- Header chrome ---------- */
 .chrome {

@@ -253,32 +253,26 @@
   const $ = (id) => document.getElementById(id);
   const wheel = $('wheel'), track = $('track'), rail = $('rail'), ticksBox = $('ticks');
   const railArc = $('railArc'); // arced, segmented, tapered dial (drawn per set)
-  let dial = null;              // { w, h, R, A, cx, cyc, n, _cur, _curEl }
-  // Draw the dial: a shallow ∩ arc with one tapered radial tick per card, the
-  // ticks fanning + shortening toward the ends (the "ring tapered" feel).
+  let dial = null;              // { R, A, chord, n, _cur, _curEl }
+  // 3D dial: one bar per card on an arc that curves INTO the screen (z). Each bar
+  // is positioned with translate3d(x,0,z); the .rail's perspective makes the
+  // receding ends smaller — real depth, not a flat tilt. pt() returns [x, z].
+  const dialPt = (th, R) => [R * Math.sin(th), -R * (1 - Math.cos(th))];
   function buildDial() {
-    const w = Math.round(rail.clientWidth) || 1000, h = 86;
-    railArc.setAttribute('viewBox', `0 0 ${w} ${h}`);
-    // a CENTRED gauge (not full width) so it can genuinely curve; pronounced ∩
-    const chord = Math.min(w * 0.5, 1100), PX = (w - chord) / 2, sag = 52, apexY = 26;
-    const R = (chord * chord / 4 + sag * sag) / (2 * sag);
-    const A = Math.asin(Math.min(1, chord / (2 * R)));   // half arc angle (the fan)
-    const cx = w / 2, cyc = apexY + R;                    // circle centre BELOW → apex up
-    const n = Math.min(N, 260);
-    const pt = (th) => [cx + R * Math.sin(th), cyc - R * Math.cos(th)];
-    let s = '';
-    const [ax0, ay0] = pt(-A), [ax1, ay1] = pt(A);
-    s += `<path class="dring" d="M${ax0.toFixed(1)} ${ay0.toFixed(1)} A ${R.toFixed(0)} ${R.toFixed(0)} 0 0 1 ${ax1.toFixed(1)} ${ay1.toFixed(1)}"/>`;
+    const w = Math.round(rail.clientWidth) || 1000;
+    const chord = Math.min(w * 0.42, 900);
+    const R = chord * 0.62;                                  // small R vs chord → pronounced curve
+    const A = Math.asin(Math.min(1, chord / (2 * R)));       // ~54° half-angle: the ends sweep deep into z
+    const n = Math.min(N, 240);
+    let s = '<div class="dial-stage">';
     for (let i = 0; i < n; i++) {
       const f = n > 1 ? i / (n - 1) : 0.5, th = (f - 0.5) * 2 * A, k = (f - 0.5) * 2, bow = 1 - k * k;
-      const [x, y] = pt(th), len = 5 + 15 * bow;          // long in the middle, tapered to the ends
-      const x2 = x + len * Math.sin(th), y2 = y - len * Math.cos(th); // radial, fanning outward (up)
-      s += `<line class="dtick" data-i="${i}" x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" opacity="${(0.13 + 0.42 * bow).toFixed(2)}"/>`;
+      const [x, z] = dialPt(th, R), len = 7 + 16 * bow;     // taller in the middle, tapering to the ends
+      s += `<i class="dtick" data-i="${i}" style="transform:translate3d(${x.toFixed(1)}px,0,${z.toFixed(1)}px);height:${len.toFixed(1)}px;opacity:${(0.22 + 0.45 * bow).toFixed(2)}"></i>`;
     }
-    const [kx, ky] = pt(0);
-    s += `<circle id="dknob" class="dknob" r="5" cx="${kx.toFixed(1)}" cy="${ky.toFixed(1)}"/>`;
+    s += '<i class="dknob"></i></div>';
     railArc.innerHTML = s;
-    dial = { w, h, R, A, cx, cyc, n, PX, chord, _cur: -1, _curEl: null };
+    dial = { R, A, chord, n, _cur: -1, _curEl: null };
   }
   // Arc-dial geometry. Single source of truth = the --arc-depth/--arc-rot CSS
   // vars on .minimap (the media query shrinks them on small screens); read them
@@ -556,11 +550,12 @@
     span.textContent = `/${N}`;
     counter.appendChild(span);
 
-    // dial: ride the knob along the arc + light the current segment
+    // dial: ride the knob along the 3D arc + light the current segment
     if (dial) {
       const f = N > 1 ? idx / (N - 1) : 0.5, th = (f - 0.5) * 2 * dial.A;
-      const kx = dial.cx + dial.R * Math.sin(th), ky = dial.cyc - dial.R * Math.cos(th);
-      const knob = $('dknob'); if (knob) { knob.setAttribute('cx', kx.toFixed(1)); knob.setAttribute('cy', ky.toFixed(1)); }
+      const [kx, kz] = dialPt(th, dial.R);
+      const knob = railArc.querySelector('.dknob');
+      if (knob) knob.style.transform = `translate3d(${kx.toFixed(1)}px,0,${kz.toFixed(1)}px)`;
       const ti = Math.round(f * (dial.n - 1));
       if (ti !== dial._cur) {
         if (dial._curEl) dial._curEl.classList.remove('cur');
@@ -1247,8 +1242,9 @@
   let scrubbing = false;
   function railIndex(e) {
     const r = railArc.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width * (dial ? dial.w : r.width); // → viewBox x
-    const f = dial ? (px - dial.PX) / dial.chord : (e.clientX - r.left) / r.width;
+    // pointer x relative to centre, over the arc's screen span (≈ chord)
+    const span = dial ? dial.chord : r.width;
+    const f = (e.clientX - (r.left + r.width / 2)) / span + 0.5;
     return Math.round(Math.max(0, Math.min(1, f)) * (N - 1));
   }
   rail.addEventListener('pointerdown', (e) => {
