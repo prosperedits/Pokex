@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=49">
-<link rel="stylesheet" href="style.css?v=79">
+<link rel="stylesheet" href="style.css?v=80">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -61,6 +61,10 @@
         <svg class="ctrl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="1.5"/><path d="M9 3.5v17" stroke-linecap="round"/><path d="M6.6 8h1.1M6.6 12h1.1M6.6 16h1.1" stroke-linecap="round"/></svg>
         <span>Binder</span>
       </a>
+      <a id="faqBtn" class="ctrl ctrl-btn" href="faq.html" title="FAQ — help &amp; answers">
+        <svg class="ctrl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.4 9.2a2.6 2.6 0 0 1 5 1c0 1.7-2.4 2.1-2.4 3.8"/><path d="M12 17.2h.01"/></svg>
+        <span>FAQ</span>
+      </a>
       <div id="counter" class="counter" aria-hidden="true">001<span>/130</span></div>
     </div>
   </header>
@@ -78,15 +82,16 @@
     <p id="capNumber" class="cap-number-top" aria-hidden="true"></p>
     <section id="wheel" class="wheel" aria-label="Card carousel" aria-roledescription="carousel">
       <div id="track" class="track"></div>
+      <!-- share rides the TOP of the focused card (P: top, not bottom) -->
+      <button type="button" id="capShare" class="cap-share cap-share-top" aria-label="Copy a link to this card" title="Share this card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 14V4"/><path d="M8.5 7.5 12 4l3.5 3.5"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5"/></svg>
+        <span>Share</span>
+      </button>
     </section>
 
     <section class="caption" aria-live="polite">
       <h1 id="capName" class="cap-name">&nbsp;</h1>
       <div class="cap-sub">
-        <button type="button" id="capShare" class="cap-share" aria-label="Copy a link to this card" title="Share this card">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 14V4"/><path d="M8.5 7.5 12 4l3.5 3.5"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5"/></svg>
-          <span>Share</span>
-        </button>
         <p id="capMeta" class="cap-meta"></p>
       </div>
       <div class="cap-price-row">
@@ -96,14 +101,13 @@
     </section>
   </main>
 
-  <!-- Bottom navigator: a sleek white slider (track + fill + thumb). #ticks is
-       retired (kept hidden so the per-card heat logic stays a harmless no-op). -->
+  <!-- Bottom navigator: a true arced, segmented (per-card), tapered dial drawn as
+       SVG in app.js (buildDial). #ticks is retired (kept hidden = harmless no-op). -->
   <nav class="minimap" aria-label="Set navigator">
     <div id="rail" class="rail" role="slider" tabindex="0"
          aria-label="Card position" aria-valuemin="1" aria-valuemax="130" aria-valuenow="1">
-      <div class="rail-track" aria-hidden="true"><div id="railFill" class="rail-fill"></div></div>
+      <svg id="railArc" class="rail-arc" aria-hidden="true" preserveAspectRatio="xMidYMid meet"></svg>
       <div id="ticks" class="ticks" aria-hidden="true" hidden></div>
-      <div id="railThumb" class="rail-thumb" aria-hidden="true"></div>
     </div>
   </nav>
 
@@ -217,6 +221,6 @@
   <script src="data/sealed.js?v=62"></script>
   <script src="data/set-colors.js?v=63"></script>
   <script src="data/magic-prices.js?v=74"></script>
-  <script src="app.js?v=79"></script>
+  <script src="app.js?v=80"></script>
 </body>
 </html>

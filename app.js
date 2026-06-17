@@ -252,7 +252,34 @@
   // --- DOM ---------------------------------------------------------------------
   const $ = (id) => document.getElementById(id);
   const wheel = $('wheel'), track = $('track'), rail = $('rail'), ticksBox = $('ticks');
-  const railTrack = rail.querySelector('.rail-track'), railFill = $('railFill'); // sleek slider
+  const railArc = $('railArc'); // arced, segmented, tapered dial (drawn per set)
+  let dial = null;              // { w, h, R, A, cx, cyc, n, _cur, _curEl }
+  // Draw the dial: a shallow ∩ arc with one tapered radial tick per card, the
+  // ticks fanning + shortening toward the ends (the "ring tapered" feel).
+  function buildDial() {
+    const w = Math.round(rail.clientWidth) || 1000, h = 86;
+    railArc.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    // a CENTRED gauge (not full width) so it can genuinely curve; pronounced ∩
+    const chord = Math.min(w * 0.5, 1100), PX = (w - chord) / 2, sag = 52, apexY = 26;
+    const R = (chord * chord / 4 + sag * sag) / (2 * sag);
+    const A = Math.asin(Math.min(1, chord / (2 * R)));   // half arc angle (the fan)
+    const cx = w / 2, cyc = apexY + R;                    // circle centre BELOW → apex up
+    const n = Math.min(N, 260);
+    const pt = (th) => [cx + R * Math.sin(th), cyc - R * Math.cos(th)];
+    let s = '';
+    const [ax0, ay0] = pt(-A), [ax1, ay1] = pt(A);
+    s += `<path class="dring" d="M${ax0.toFixed(1)} ${ay0.toFixed(1)} A ${R.toFixed(0)} ${R.toFixed(0)} 0 0 1 ${ax1.toFixed(1)} ${ay1.toFixed(1)}"/>`;
+    for (let i = 0; i < n; i++) {
+      const f = n > 1 ? i / (n - 1) : 0.5, th = (f - 0.5) * 2 * A, k = (f - 0.5) * 2, bow = 1 - k * k;
+      const [x, y] = pt(th), len = 5 + 15 * bow;          // long in the middle, tapered to the ends
+      const x2 = x + len * Math.sin(th), y2 = y - len * Math.cos(th); // radial, fanning outward (up)
+      s += `<line class="dtick" data-i="${i}" x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" opacity="${(0.13 + 0.42 * bow).toFixed(2)}"/>`;
+    }
+    const [kx, ky] = pt(0);
+    s += `<circle id="dknob" class="dknob" r="5" cx="${kx.toFixed(1)}" cy="${ky.toFixed(1)}"/>`;
+    railArc.innerHTML = s;
+    dial = { w, h, R, A, cx, cyc, n, PX, chord, _cur: -1, _curEl: null };
+  }
   // Arc-dial geometry. Single source of truth = the --arc-depth/--arc-rot CSS
   // vars on .minimap (the media query shrinks them on small screens); read them
   // once here and on resize so render() can place the dial without per-frame
@@ -384,7 +411,7 @@
     cardW = h * (734 / 1024);
     spacing = cardW; // base unit; the focus-pocket curve shapes actual gaps
   }
-  addEventListener('resize', () => { syncArc(); measure(); render(true); });
+  addEventListener('resize', () => { syncArc(); measure(); buildDial(); render(true); });
 
   // --- Render ------------------------------------------------------------------
   const WINDOW = 10; // paint ±10 around position (smaller cards pack more in view)
@@ -529,10 +556,19 @@
     span.textContent = `/${N}`;
     counter.appendChild(span);
 
-    // sleek white slider: the fill grows to the thumb; the thumb slides flat
-    const railFrac = N > 1 ? idx / (N - 1) : 0.5;
-    $('railThumb').style.left = `${(railFrac * railTrack.offsetWidth).toFixed(1)}px`;
-    railFill.style.width = `${(railFrac * 100).toFixed(2)}%`;
+    // dial: ride the knob along the arc + light the current segment
+    if (dial) {
+      const f = N > 1 ? idx / (N - 1) : 0.5, th = (f - 0.5) * 2 * dial.A;
+      const kx = dial.cx + dial.R * Math.sin(th), ky = dial.cyc - dial.R * Math.cos(th);
+      const knob = $('dknob'); if (knob) { knob.setAttribute('cx', kx.toFixed(1)); knob.setAttribute('cy', ky.toFixed(1)); }
+      const ti = Math.round(f * (dial.n - 1));
+      if (ti !== dial._cur) {
+        if (dial._curEl) dial._curEl.classList.remove('cur');
+        dial._curEl = railArc.querySelector(`.dtick[data-i="${ti}"]`);
+        if (dial._curEl) dial._curEl.classList.add('cur');
+        dial._cur = ti;
+      }
+    }
 
     // valuable cards (>= $20) get the hot title treatment
     const hot = typeof card.priceUsd === 'number' && card.priceUsd >= 20;
@@ -785,6 +821,7 @@
     pfNext = 0; // restart idle prefetch for this set
     current = -1;
     painted = new Set();
+    buildDial();          // redraw the arced dial for this set's card count
     applySort(sortMode); // rebuilds view/ticks order and lands per mode
     // relight the stage in THIS set's signature colour, read from its local
     // sealed render (Perfect Order → green, etc.); async, guards re-switch
@@ -865,7 +902,7 @@
   const setMarkSrc = (game, s) => {
     if (game === 'pokemon') return setLogoPng({ id: s.id });
     if (game === 'magic' && s.code) return safeImg(`https://svgs.scryfall.io/sets/${s.code}.svg`);
-    return null;
+    return `assets/logos/${game}.png?v=79`; // Lorcana / One Piece: the game logo as the set sigil
   };
   // --- Categorised, searchable set picker: games as tabs, sets in a scroll list --
   function buildSetPicker() {
@@ -1205,9 +1242,10 @@
   // --- Input: minimap scrub -----------------------------------------------------------
   let scrubbing = false;
   function railIndex(e) {
-    const r = railTrack.getBoundingClientRect();
-    const f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
-    return Math.round(f * (N - 1));
+    const r = railArc.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width * (dial ? dial.w : r.width); // → viewBox x
+    const f = dial ? (px - dial.PX) / dial.chord : (e.clientX - r.left) / r.width;
+    return Math.round(Math.max(0, Math.min(1, f)) * (N - 1));
   }
   rail.addEventListener('pointerdown', (e) => {
     if (zoom.open) return;
