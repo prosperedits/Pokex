@@ -920,6 +920,10 @@
     function markEl(game, s) {
       const mark = document.createElement('span');
       mark.className = 'sm-set-mark';
+      if (game === 'lorcana' && s.code) { // no clean per-set symbol source → numbered chapter sigil
+        mark.innerHTML = `<span class="lor-sigil">${s.code}</span>`;
+        return mark;
+      }
       const src = setMarkSrc(game, s);
       if (src) {
         const img = document.createElement('img');
