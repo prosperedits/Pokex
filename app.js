@@ -55,7 +55,7 @@
   const cardImg = (card, quality) => {
     if (!card) return '';
     if (card.sealed) return card.image;          // local path, used directly
-    if (card.fullImg) return safeImg(card.image); // external full url (whitelisted host)
+    if (card.fullImg) return card.image.startsWith('assets/') ? card.image : safeImg(card.image); // bundled-local OR external full url (whitelisted host)
     return safeImg(card.image + '/' + quality);   // tcgdex base + quality
   };
   // tcgdex set logos live at /en/<series>/<id>/logo; the series is the set id's
@@ -827,7 +827,7 @@
   const SET_GROUPS = [
     { series: 'Mega Evolution', ids: ['me04', 'me03', 'me02.5', 'me02', 'me01'] },
     { series: 'Scarlet & Violet', ids: ['sv10.5w', 'sv10.5b', 'sv10', 'sv09', 'sv08.5', 'sv08', 'sv07', 'sv06.5', 'sv06', 'sv05', 'sv04.5', 'sv04', 'sv03.5', 'sv03', 'sv02', 'sv01'] },
-    { series: 'Promos', ids: ['fpp', 'svp', 'swshp', 'smp', 'xyp', 'bwp', 'dpp', 'hgssp', 'np', 'basep'] },
+    { series: 'Promos', ids: ['fpic1', 'fpp', 'svp', 'swshp', 'smp', 'xyp', 'bwp', 'dpp', 'hgssp', 'np', 'basep'] },
   ];
   const setBtn = $('setBtn'), setMenu = $('setMenu');
   function toggleSetMenu(open) {
