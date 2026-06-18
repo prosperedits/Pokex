@@ -839,6 +839,7 @@
   // --- Other games: Magic (Scryfall) & Lorcana (Lorcast), fetched on demand ----
   const GAME_SETS = [
     { game: 'magic', label: 'Magic: The Gathering', sets: [
+      { id: 'mtg-msh', code: 'msh', name: 'Marvel Super Heroes' },
       { id: 'mtg-tdm', code: 'tdm', name: 'Tarkir: Dragonstorm' },
       { id: 'mtg-fin', code: 'fin', name: 'Final Fantasy' },
       { id: 'mtg-eoe', code: 'eoe', name: 'Edge of Eternities' },
@@ -849,6 +850,7 @@
       { id: 'mtg-mh3', code: 'mh3', name: 'Modern Horizons 3' },
       { id: 'mtg-otj', code: 'otj', name: 'Outlaws of Thunder Junction' },
       { id: 'mtg-mkm', code: 'mkm', name: 'Murders at Karlov Manor' },
+      { id: 'mtg-stx', code: 'stx', name: 'Strixhaven: School of Mages' },
     ] },
     { game: 'lorcana', label: 'Disney Lorcana', sets: [
       { id: 'lor-12', code: '12', name: 'Wilds Unknown' },
