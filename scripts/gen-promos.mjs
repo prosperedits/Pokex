@@ -12,6 +12,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const API = 'https://api.tcgdex.net/v2/en';
 const SET_ID = process.argv[2];
 const SET_NAME = process.argv[3];
+const TCGCSV_GROUP = process.argv[4] || null; // optional explicit TCGCSV groupId (abbrev clashes on "PR")
 const CONCURRENCY = 10;
 const RETRIES = 3;
 if (!SET_ID || !SET_NAME) { console.error('usage: node gen-promos.mjs <setId> "<name>"'); process.exit(1); }
@@ -73,8 +74,13 @@ function adapt(raw) {
 // just leaves promos unpriced. Returns { "001": 11.44, ... } (max market per number).
 async function tcgcsvPricesByNumber(setId) {
   try {
-    const groups = await fetchJson('https://tcgcsv.com/tcgplayer/3/groups'); // 3 = Pokémon
-    const g = (groups.results || []).find((x) => (x.abbreviation || '').toUpperCase() === setId.toUpperCase());
+    let g;
+    if (TCGCSV_GROUP) {
+      g = { groupId: TCGCSV_GROUP, name: `group ${TCGCSV_GROUP}` };
+    } else {
+      const groups = await fetchJson('https://tcgcsv.com/tcgplayer/3/groups'); // 3 = Pokémon
+      g = (groups.results || []).find((x) => (x.abbreviation || '').toUpperCase() === setId.toUpperCase());
+    }
     if (!g) { console.log(`  (no TCGCSV group for ${setId} — promos stay unpriced)`); return {}; }
     const [prod, price] = await Promise.all([
       fetchJson(`https://tcgcsv.com/tcgplayer/3/${g.groupId}/products`),

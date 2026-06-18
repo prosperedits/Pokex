@@ -827,7 +827,7 @@
   const SET_GROUPS = [
     { series: 'Mega Evolution', ids: ['me04', 'me03', 'me02.5', 'me02', 'me01'] },
     { series: 'Scarlet & Violet', ids: ['sv10.5w', 'sv10.5b', 'sv10', 'sv09', 'sv08.5', 'sv08', 'sv07', 'sv06.5', 'sv06', 'sv05', 'sv04.5', 'sv04', 'sv03.5', 'sv03', 'sv02', 'sv01'] },
-    { series: 'Promos', ids: ['svp'] },
+    { series: 'Promos', ids: ['fpp', 'svp', 'swshp', 'smp', 'xyp', 'bwp', 'dpp', 'hgssp', 'np', 'basep'] },
   ];
   const setBtn = $('setBtn'), setMenu = $('setMenu');
   function toggleSetMenu(open) {
