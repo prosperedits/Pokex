@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POKEX — Concept Home</title>
+<meta name="description" content="ApeChain-styled concept home for POKEX — a 3D universe carousel.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a140d; --green:#43e06b; --green-bright:#7bff9e; --ink:#eafaef; --dim:#8fb89a;
+  --line:rgba(95,210,130,.16); --accent:#43e06b;
+  --font:'Archivo', system-ui, sans-serif; --mono:'Space Mono', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--font)}
+body{
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(60,140,80,.30) 0%, transparent 55%),
+    radial-gradient(90% 80% at 80% 120%, rgba(20,60,35,.6) 0%, transparent 60%),
+    linear-gradient(180deg,#0c1810 0%,#08110b 100%);
+  -webkit-font-smoothing:antialiased;
+}
+canvas#topo{position:fixed;inset:0;z-index:0;opacity:.9}
+.vign{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(110% 80% at 50% 42%, transparent 40%, rgba(4,9,6,.55) 100%)}
+
+/* ---------- top bar ---------- */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;
+  justify-content:space-between;padding:22px clamp(20px,4vw,54px)}
+.brand{display:inline-flex;align-items:center;gap:10px;border:2px solid var(--ink);
+  padding:7px 12px 5px;font-weight:900;letter-spacing:.14em;font-size:17px;line-height:1}
+.brand .k{color:var(--green-bright)}
+.nav{display:flex;gap:clamp(20px,3vw,46px)}
+.nav a{color:var(--dim);text-decoration:none;font-weight:700;font-size:13px;letter-spacing:.22em;
+  text-transform:uppercase;transition:.2s;position:relative;padding:4px 0}
+.nav a:hover,.nav a.on{color:var(--ink)}
+.nav a.on::after{content:'';position:absolute;left:0;right:0;bottom:-4px;height:2px;background:var(--green)}
+
+/* ---------- carousel deck ---------- */
+.stage{position:fixed;inset:0;z-index:10;display:grid;place-items:center;perspective:2100px}
+.deck{position:relative;width:min(47vw,720px);aspect-ratio:16/9;transform-style:preserve-3d;will-change:transform,opacity}
+.panel{position:absolute;inset:0;transform-style:preserve-3d;cursor:pointer;border:0;background:none;padding:0;
+  transition:transform .85s cubic-bezier(.16,1,.3,1),opacity .85s ease,filter .85s ease;will-change:transform,opacity}
+.p-card{position:absolute;inset:0;border-radius:16px;overflow:hidden;background:#06100a;
+  box-shadow:0 40px 90px -30px rgba(0,0,0,.85);transform-style:preserve-3d}
+.p-bg{position:absolute;inset:0;background-size:cover;background-position:center;
+  filter:saturate(1.05) brightness(.32) blur(3px);transform:scale(1.1)}
+.p-tint{position:absolute;inset:0;mix-blend-mode:overlay;opacity:.5;
+  background:radial-gradient(80% 80% at 50% 38%, var(--accent), transparent 70%)}
+.p-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,10,7,.4) 0%,rgba(4,10,7,.5) 50%,rgba(4,10,7,.92) 100%)}
+.p-frame{position:absolute;inset:11px;border-radius:12px;border:1.5px solid color-mix(in srgb,var(--accent) 45%,transparent);
+  box-shadow:inset 0 0 34px color-mix(in srgb,var(--accent) 22%,transparent);transition:.5s}
+.p-logo{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:min(56%,330px);
+  filter:drop-shadow(0 0 16px color-mix(in srgb,var(--accent) 60%,transparent)) drop-shadow(0 6px 22px rgba(0,0,0,.6));transition:.5s}
+.p-word{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);text-align:center;
+  font-weight:900;font-size:clamp(34px,5vw,72px);letter-spacing:.04em;line-height:.92;color:#fff;
+  text-shadow:0 0 22px var(--accent),0 0 50px color-mix(in srgb,var(--accent) 60%,transparent);transition:.5s}
+.p-foot{position:absolute;left:0;right:0;bottom:18px;text-align:center}
+.p-foot .pn{font-weight:800;letter-spacing:.16em;text-transform:uppercase;font-size:13px;color:#dff7e6;opacity:.85}
+.panel.is-active .p-frame{inset:9px;border-color:color-mix(in srgb,var(--accent) 85%,transparent);
+  box-shadow:inset 0 0 50px color-mix(in srgb,var(--accent) 30%,transparent),0 0 40px color-mix(in srgb,var(--accent) 35%,transparent)}
+.panel.is-active .p-bg{filter:saturate(1.2) brightness(.46) blur(2px)}
+.panel.is-active .p-logo{filter:drop-shadow(0 0 26px var(--accent)) drop-shadow(0 8px 26px rgba(0,0,0,.6))}
+
+/* ---------- feature overlay ---------- */
+.feature{position:fixed;left:clamp(20px,4vw,58px);bottom:clamp(28px,7vh,70px);z-index:25;max-width:min(40vw,440px)}
+.fpill{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;font-weight:700;
+  letter-spacing:.16em;text-transform:uppercase;color:#bfeccb;margin-bottom:14px}
+.fpill .hot{display:inline-flex;align-items:center;gap:5px;background:color-mix(in srgb,var(--accent) 22%,transparent);
+  color:#fff;padding:4px 9px;border-radius:20px;border:1px solid color-mix(in srgb,var(--accent) 50%,transparent)}
+.fpill .tags{color:var(--dim)}
+.ftitle{font-weight:900;font-size:clamp(38px,6.2vw,78px);line-height:.94;letter-spacing:-.01em;text-transform:uppercase;
+  margin-bottom:12px;text-shadow:0 4px 30px rgba(0,0,0,.6)}
+.fsub{color:var(--dim);font-size:15px;font-weight:500;line-height:1.45;margin-bottom:22px;max-width:380px}
+.enter{display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:#08110b;border:0;cursor:pointer;
+  font-family:var(--font);font-weight:800;letter-spacing:.16em;text-transform:uppercase;font-size:13px;
+  padding:14px 30px;border-radius:40px;transition:.22s}
+.enter:hover{background:var(--green-bright);box-shadow:0 0 30px color-mix(in srgb,var(--accent) 60%,transparent);transform:translateY(-1px)}
+
+/* ---------- side controls ---------- */
+.side{position:fixed;right:clamp(16px,3vw,40px);top:50%;transform:translateY(-50%);z-index:25;
+  display:flex;flex-direction:column;gap:14px}
+.sbtn{width:50px;height:50px;border-radius:50%;border:1.5px solid var(--line);background:rgba(8,16,11,.5);
+  color:var(--ink);cursor:pointer;display:grid;place-items:center;backdrop-filter:blur(8px);transition:.2s}
+.sbtn:hover{border-color:var(--green);color:var(--green-bright);box-shadow:0 0 24px rgba(67,224,107,.3)}
+.sbtn svg{width:18px;height:18px}
+.sbtn.play{position:relative}
+.sbtn.play .ring{position:absolute;inset:-1.5px;border-radius:50%;border:1.5px solid transparent;
+  border-top-color:var(--green);animation:spin 4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+body.paused .sbtn.play .ring{animation-play-state:paused;opacity:.3}
+
+/* ---------- app strip ---------- */
+.strip{position:fixed;right:clamp(16px,3vw,40px);bottom:clamp(20px,4vh,40px);z-index:25;
+  display:flex;align-items:center;gap:14px}
+.strip .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
+.thumbs{display:flex;gap:8px}
+.thumb{width:46px;height:46px;border-radius:9px;overflow:hidden;border:1.5px solid var(--line);cursor:pointer;
+  background:#08110b;position:relative;transition:.2s;flex:none}
+.thumb img{width:100%;height:100%;object-fit:cover;filter:brightness(.8)}
+.thumb .tw{position:absolute;inset:0;display:grid;place-items:center;font-weight:900;font-size:9px;letter-spacing:.04em;color:#fff;text-align:center;padding:2px}
+.thumb:hover{transform:translateY(-3px)}
+.thumb.on{border-color:var(--accent);box-shadow:0 0 16px color-mix(in srgb,var(--accent) 60%,transparent)}
+.thumb.on img{filter:brightness(1.05)}
+
+.hint{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:25;font-family:var(--mono);
+  font-size:10.5px;letter-spacing:.2em;color:rgba(143,184,154,.6);text-transform:uppercase}
+
+/* ---------- loader ---------- */
+.loader{position:fixed;inset:0;z-index:80;background:#07110a;display:grid;place-items:center}
+.ld-wrap{text-align:center}
+.ld-mark{font-weight:900;letter-spacing:.2em;font-size:clamp(40px,7vw,86px);line-height:1;
+  border:3px solid var(--ink);padding:14px 22px 10px;display:inline-block;
+  clip-path:inset(0 100% 0 0);position:relative}
+.ld-mark .k{color:var(--green-bright)}
+.ld-bar{width:min(280px,60vw);height:2px;background:rgba(95,210,130,.18);margin:30px auto 12px;overflow:hidden}
+.ld-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--green-bright));
+  box-shadow:0 0 14px var(--green)}
+.ld-meta{display:flex;justify-content:space-between;width:min(280px,60vw);margin:0 auto;
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.ld-count{color:var(--green-bright)}
+
+@media (max-width:820px){
+  .deck{width:80vw}
+  .feature{max-width:80vw;bottom:120px}
+  .nav{display:none}
+  .strip .lbl{display:none}
+}
+</style>
+</head>
+<body class="">
+  <canvas id="topo"></canvas>
+  <div class="vign"></div>
+
+  <header class="topbar">
+    <span class="brand">PO<span class="k">KE</span>X</span>
+    <nav class="nav">
+      <a href="#" class="on">Explore</a>
+      <a href="#">Sets</a>
+      <a href="#">Rip Lab</a>
+      <a href="#">Binder</a>
+    </nav>
+    <span class="brand" style="border-color:var(--line);color:var(--dim);font-size:12px;letter-spacing:.18em">CONCEPT</span>
+  </header>
+
+  <main class="stage"><div class="deck" id="deck"></div></main>
+
+  <section class="feature" id="feature">
+    <div class="fpill"><span class="hot">🔥 HOT</span><span class="tags" id="fTags"></span></div>
+    <h1 class="ftitle" id="fTitle"></h1>
+    <p class="fsub" id="fSub"></p>
+    <button class="enter" id="enter">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </section>
+
+  <div class="side">
+    <button class="sbtn play" id="play" title="Pause autoplay"><span class="ring"></span>
+      <svg viewBox="0 0 24 24" fill="currentColor" id="playIc"><rect x="7" y="5" width="3.4" height="14" rx="1"/><rect x="13.6" y="5" width="3.4" height="14" rx="1"/></svg></button>
+    <button class="sbtn" id="next" title="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    <button class="sbtn" id="prev" title="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+  </div>
+
+  <div class="strip">
+    <span class="lbl">See all universes</span>
+    <div class="thumbs" id="thumbs"></div>
+  </div>
+
+  <div class="hint">Drag · scroll · arrow keys to explore</div>
+
+  <div class="loader" id="loader">
+    <div class="ld-wrap">
+      <div class="ld-mark" id="ldMark">PO<span class="k">KE</span>X</div>
+      <div class="ld-bar"><i id="ldBar"></i></div>
+      <div class="ld-meta"><span>Loading universes</span><span class="ld-count" id="ldCount">0%</span></div>
+    </div>
+  </div>
+
+  <script src="vendor/gsap.min.js"></script>
+  <script>
+  (() => {
+    'use strict';
+    const $ = (s) => document.querySelector(s);
+    const PANELS = [
+      { kind:'game', key:'pokemon', name:'Pokémon', tags:'TCG, GAMES', sub:'Mega Evolution → Scarlet & Violet · live market prices.', accent:'#ffcb05', art:'assets/hallway/pokemon.webp', logo:'assets/logos/pokemon.png' },
+      { kind:'game', key:'magic', name:'Magic', tags:'TCG, STRATEGY', sub:'Every recent set with foil pricing from Scryfall.', accent:'#e8943b', art:'assets/hallway/magic.jpg', logo:'assets/logos/magic.png' },
+      { kind:'game', key:'lorcana', name:'Lorcana', tags:'TCG, DISNEY', sub:'Wilds Unknown back to The First Chapter.', accent:'#7fd4f4', art:'assets/hallway/lorcana.avif', logo:'assets/logos/lorcana.png' },
+      { kind:'game', key:'onepiece', name:'One Piece', tags:'TCG, ANIME', sub:'Romance Dawn through the newest sets.', accent:'#ff5b4d', art:'assets/hallway/onepiece.webp', logo:'assets/logos/onepiece.png' },
+      { kind:'section', key:'promos', name:'Promos', tags:'POKÉMON, RARE', sub:'Black Star & First Partner promo collections.', accent:'#c084fc', word:'PROMOS' },
+      { kind:'section', key:'rip', name:'Rip Lab', tags:'TOOL, FINANCE', sub:'Best ROI on every sealed product. Pull-odds engine.', accent:'#46d39a', word:'RIP LAB' },
+      { kind:'section', key:'binder', name:'Binder', tags:'YOURS, COLLECTION', sub:'Your cards, wishlist and live collection value.', accent:'#ff5b9a', word:'BINDER' },
+    ];
+    const N = PANELS.length;
+    const deck = $('#deck'), thumbsEl = $('#thumbs');
+    let active = 0, autoplay = true, autoTimer = 0;
+
+    // build panels + thumbs
+    PANELS.forEach((p, i) => {
+      const b = document.createElement('button'); b.className = 'panel'; b.dataset.i = i;
+      const inner = p.kind === 'game'
+        ? `<div class="p-bg" style="background-image:url('${p.art}')"></div><div class="p-tint"></div><div class="p-grad"></div>
+           <div class="p-frame"></div><img class="p-logo" src="${p.logo}" alt="${p.name}">
+           <div class="p-foot"><span class="pn">${p.name}</span></div>`
+        : `<div class="p-bg" style="background:radial-gradient(90% 90% at 50% 35%, color-mix(in srgb, var(--accent) 30%, #0a140d), #07100a)"></div>
+           <div class="p-grad"></div><div class="p-frame"></div><div class="p-word">${p.word}</div>
+           <div class="p-foot"><span class="pn">${p.tags}</span></div>`;
+      b.innerHTML = `<div class="p-card" style="--accent:${p.accent}">${inner}</div>`;
+      b.addEventListener('click', () => { if (+b.dataset.i !== active) setActive(+b.dataset.i); else enter(); });
+      deck.appendChild(b);
+
+      const t = document.createElement('button'); t.className = 'thumb'; t.dataset.i = i;
+      t.style.setProperty('--accent', p.accent);
+      t.innerHTML = p.kind === 'game' ? `<img src="${p.art}" alt="${p.name}">`
+        : `<div class="tw" style="color:${p.accent}">${p.name}</div>`;
+      t.addEventListener('click', () => setActive(i));
+      thumbsEl.appendChild(t);
+    });
+    const panels = [...deck.children];
+
+    // coverflow layout
+    const SPREAD = 46, DEPTH = 285, ROT = 39, SCALE = 0.1, OP = 0.34, MAXV = 3;
+    function layout() {
+      panels.forEach((el, i) => {
+        let off = i - active; if (off > N / 2) off -= N; if (off < -N / 2) off += N;
+        const a = Math.abs(off), vis = a <= MAXV;
+        el.style.transform = `translateX(${off * SPREAD}%) translateZ(${-a * DEPTH}px) rotateY(${off * -ROT}deg) scale(${1 - a * SCALE})`;
+        el.style.opacity = vis ? Math.max(0, 1 - a * OP) : 0;
+        el.style.zIndex = 100 - a;
+        el.style.filter = a >= 2 ? `blur(${(a - 1) * 1.4}px)` : 'none';
+        el.style.pointerEvents = vis ? 'auto' : 'none';
+        el.classList.toggle('is-active', off === 0);
+      });
+      [...thumbsEl.children].forEach((t, i) => t.classList.toggle('on', i === active));
+    }
+
+    function updateFeature() {
+      const p = PANELS[active];
+      document.documentElement.style.setProperty('--accent', p.accent);
+      const f = $('#feature');
+      gsap.fromTo(f, { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: .5, ease: 'power2.out' });
+      $('#fTags').textContent = p.tags;
+      $('#fTitle').textContent = p.name;
+      $('#fSub').textContent = p.sub;
+    }
+
+    function setActive(i) { active = ((i % N) + N) % N; layout(); updateFeature(); restartAuto(); }
+    function step(d) { setActive(active + d); }
+
+    function enter() {
+      const el = panels[active].querySelector('.p-card');
+      gsap.timeline()
+        .to(el, { scale: 1.06, duration: .18, ease: 'power2.out' })
+        .to(deck, { scale: 2.2, z: 600, opacity: 0, duration: .7, ease: 'power3.in' }, '>-.02')
+        .add(() => { gsap.set(deck, { scale: 1, z: 0, opacity: 1 }); gsap.set(el, { scale: 1 }); layout();
+          gsap.from(deck, { opacity: 0, scale: .9, duration: .6, ease: 'power2.out' }); });
+    }
+
+    // controls
+    $('#next').onclick = () => step(1);
+    $('#prev').onclick = () => step(-1);
+    $('#enter').onclick = enter;
+    $('#play').onclick = () => { autoplay = !autoplay; document.body.classList.toggle('paused', !autoplay);
+      $('#play').title = autoplay ? 'Pause autoplay' : 'Play autoplay';
+      $('#playIc').innerHTML = autoplay ? '<rect x="7" y="5" width="3.4" height="14" rx="1"/><rect x="13.6" y="5" width="3.4" height="14" rx="1"/>' : '<path d="M8 5v14l11-7z"/>';
+      restartAuto(); };
+    addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') step(1); else if (e.key === 'ArrowLeft') step(-1); else if (e.key === 'Enter') enter(); });
+    // drag + wheel
+    let dragX = null, acc = 0;
+    deck.addEventListener('pointerdown', (e) => { dragX = e.clientX; deck.setPointerCapture(e.pointerId); });
+    deck.addEventListener('pointermove', (e) => { if (dragX === null) return; const dx = e.clientX - dragX; if (Math.abs(dx) > 70) { step(dx < 0 ? 1 : -1); dragX = e.clientX; } });
+    deck.addEventListener('pointerup', () => { dragX = null; });
+    addEventListener('wheel', (e) => { acc += e.deltaY + e.deltaX; if (Math.abs(acc) > 90) { step(acc > 0 ? 1 : -1); acc = 0; } }, { passive: true });
+    function restartAuto() { clearInterval(autoTimer); if (autoplay) autoTimer = setInterval(() => step(1), 4200); }
+    window.__deck = { setActive, step, pause: () => { autoplay = false; clearInterval(autoTimer); document.body.classList.add('paused'); } };
+
+    // ---------- topographic canvas ----------
+    const cv = $('#topo'), cx2 = cv.getContext('2d');
+    let W, H, cX, cY;
+    function size() { W = cv.width = innerWidth; H = cv.height = innerHeight; cX = W * .5; cY = H * .34; }
+    size(); addEventListener('resize', () => { size(); layout(); });
+    const RINGS = 30;
+    function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+    let curCol = [67, 224, 107];
+    function draw(t) {
+      cx2.clearRect(0, 0, W, H);
+      const acc = hexToRgb(getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#43e06b');
+      curCol = curCol.map((c, k) => c + (( (acc[k] + 67 * 2) / 3 - c) * .04)); // ease toward blend of accent+green
+      for (let i = 0; i < RINGS; i++) {
+        const baseR = 50 + i * 36;
+        cx2.beginPath();
+        for (let a = 0; a <= 6.4; a += .14) {
+          const wob = Math.sin(a * 3 + t * .0004 + i * .55) * 12 + Math.sin(a * 5 - t * .00028 + i) * 7;
+          const r = baseR + wob;
+          const x = cX + Math.cos(a) * r * 1.7, y = cY + Math.sin(a) * r * .92;
+          a === 0 ? cx2.moveTo(x, y) : cx2.lineTo(x, y);
+        }
+        cx2.closePath();
+        const em = i % 5 === 0 ? .085 : .035;
+        cx2.strokeStyle = `rgba(${curCol[0] | 0},${curCol[1] | 0},${curCol[2] | 0},${em})`;
+        cx2.lineWidth = i % 5 === 0 ? 1.3 : 1;
+        cx2.stroke();
+      }
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+
+    // ---------- intro ----------
+    layout();
+    gsap.set(['.topbar', '.side', '.strip', '.hint', '#feature'], { opacity: 0 });
+    gsap.set('.p-card', { opacity: 0, y: 40 });
+    function intro() {
+      const c = { v: 0 };
+      const tl = gsap.timeline();
+      tl.to('#ldMark', { clipPath: 'inset(0 0% 0 0)', duration: 1.0, ease: 'power2.inOut' })
+        .to('#ldBar', { width: '100%', duration: 1.5, ease: 'power1.inOut' }, 0)
+        .to(c, { v: 100, duration: 1.5, ease: 'power1.inOut', onUpdate: () => $('#ldCount').textContent = Math.round(c.v) + '%' }, 0)
+        .to('#loader', { autoAlpha: 0, duration: .6, ease: 'power2.inOut' }, '+=.12')
+        .to(deck, { duration: 1.2, ease: 'power3.out', startAt: { opacity: 0, scale: .8, y: 60, rotationX: 12 }, opacity: 1, scale: 1, y: 0, rotationX: 0 }, '-=.3')
+        .to('.p-card', { opacity: 1, y: 0, duration: .8, stagger: { each: .06, from: 'center' }, ease: 'power2.out' }, '-=.9')
+        .to('.topbar', { opacity: 1, duration: .6 }, '-=.7')
+        .to('#feature', { opacity: 1, duration: .6, startAt: { y: 24 }, y: 0 }, '-=.5')
+        .to(['.side', '.strip'], { opacity: 1, duration: .5, stagger: .08 }, '-=.5')
+        .to('.hint', { opacity: 1, duration: .5 }, '-=.3')
+        .add(() => { updateFeature(); restartAuto(); }, '-=.6');
+    }
+    let booted = false;
+    const boot = () => { if (booted) return; booted = true; intro(); };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(boot, 40));
+    setTimeout(boot, 600); // guaranteed fallback — never trap the loader
+  })();
+  </script>
+</body>
+</html>
