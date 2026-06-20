@@ -186,30 +186,38 @@ body.paused .sbtn.play .rg{animation-play-state:paused;opacity:.3}
     ];
     const T = 'https://assets.tcgdex.net/en/me/', S = 'https://cards.scryfall.io/large/front/', D = 'https://static.dotgg.gg/onepiece/card/', L = 'https://cards.lorcast.io/card/digital/large/';
     const ALL = [
-      // Pokémon
-      {uni:'Pokémon',name:'Mega Gengar ex',set:'Ascended Heroes',rar:'Special Illustration Rare',price:1384.78,accent:'#ffcb05',img:T+'me02.5/284/high.png'},
-      {uni:'Pokémon',name:'Mega Dragonite ex',set:'Ascended Heroes',rar:'Special Illustration Rare',price:876.23,accent:'#ffcb05',img:T+'me02.5/290/high.png'},
-      {uni:'Pokémon',name:'Pikachu ex',set:'Ascended Heroes',rar:'Special Illustration Rare',price:463.42,accent:'#ffcb05',img:T+'me02.5/277/high.png'},
-      {uni:'Pokémon',name:"Team Rocket's Mewtwo",set:'Ascended Heroes',rar:'Special Illustration Rare',price:454.39,accent:'#ffcb05',img:T+'me02.5/281/high.png'},
-      {uni:'Pokémon',name:'Mega Greninja ex',set:'Chaos Rising',rar:'Special Illustration Rare',price:353.31,accent:'#ffcb05',img:T+'me04/116/high.png'},
-      // Magic (Power Nine — Alpha/Beta market values approximate)
-      {uni:'Magic',name:'Black Lotus',set:'Alpha',rar:'Power Nine',price:12000,accent:'#e8943b',img:S+'b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7cdd.jpg'},
-      {uni:'Magic',name:'Timetwister',set:'Unlimited',rar:'Power Nine',price:5142,accent:'#e8943b',img:S+'f/b/fbee1e10-0b8c-44ea-b0e5-44cdd0bfcd76.jpg'},
-      {uni:'Magic',name:'Mox Jet',set:'Beta',rar:'Power Nine',price:4000,accent:'#e8943b',img:S+'1/3/133204e4-fef8-4851-aa50-c96ffa35b802.jpg'},
-      {uni:'Magic',name:'Ancestral Recall',set:'Alpha',rar:'Power Nine',price:3500,accent:'#e8943b',img:S+'2/3/2398892d-28e9-4009-81ec-0d544af79d2b.jpg'},
-      {uni:'Magic',name:'Time Walk',set:'Alpha',rar:'Power Nine',price:2500,accent:'#e8943b',img:S+'7/0/70901356-3266-4bd9-aacc-f06c27271de5.jpg'},
-      // One Piece
-      {uni:'One Piece',name:'Buggy',set:'OP-09',rar:'Secret Rare',price:1479.32,accent:'#ff5b4d',img:D+'OP09-051_p2.webp'},
-      {uni:'One Piece',name:'Marshall D. Teach',set:'OP-09',rar:'Secret Rare',price:1446.50,accent:'#ff5b4d',img:D+'OP09-093_p2.webp'},
-      {uni:'One Piece',name:'Monkey D. Luffy',set:'OP-11',rar:'Secret Rare',price:1366.52,accent:'#ff5b4d',img:D+'OP11-118_p2.webp'},
-      {uni:'One Piece',name:'Portgas D. Ace',set:'OP-13',rar:'Secret Rare',price:1315.33,accent:'#ff5b4d',img:D+'OP13-119_p2.webp'},
-      {uni:'One Piece',name:'Tony Tony Chopper',set:'EB-01',rar:'Secret Rare',price:1267.50,accent:'#ff5b4d',img:D+'EB01-006_p3.webp'},
-      // Lorcana
-      {uni:'Lorcana',name:'Rapunzel',set:'The First Chapter',rar:'Legendary',price:18.53,accent:'#7fd4f4',img:L+'crd_63a9a93217614c00a186fe10b8791073.avif'},
-      {uni:'Lorcana',name:'Mickey Mouse',set:'The First Chapter',rar:'Legendary',price:9.85,accent:'#7fd4f4',img:L+'crd_e74ef94562b9440e8dd95ada098728d6.avif'},
-      {uni:'Lorcana',name:'Beast',set:'Rise of the Floodborn',rar:'Legendary',price:9.00,accent:'#7fd4f4',img:L+'crd_7ffeed1a4c364378ab7814dda3b99b73.avif'},
-      {uni:'Lorcana',name:'Hades',set:'The First Chapter',rar:'Legendary',price:8.55,accent:'#7fd4f4',img:L+'crd_e372495979314c78b3613e2b19c30366.avif'},
-      {uni:'Lorcana',name:'Stitch',set:'The First Chapter',rar:'Legendary',price:4.92,accent:'#7fd4f4',img:L+'crd_78e5de38150f48c5b9813c08cc534dfb.avif'},
+      {uni:'Pokémon',name:'Umbreon ex',set:'Prismatic Evolutions',rar:'Special Illustration Rare',price:1557.92,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/sv/sv08.5/161/high.png'},
+      {uni:'Pokémon',name:'Mega Gengar ex',set:'Ascended Heroes',rar:'Special Illustration Rare',price:1384.78,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/me/me02.5/284/high.png'},
+      {uni:'Pokémon',name:'Pikachu ex',set:'Ascended Heroes',rar:'Special Illustration Rare',price:1276.19,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/me/me02.5/276/high.png'},
+      {uni:'Pokémon',name:'Mew ex',set:'Paldean Fates',rar:'Special Illustration Rare',price:968.49,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/sv/sv04.5/232/high.png'},
+      {uni:'Pokémon',name:'Team Rocket\'s Mewtwo ex',set:'Destined Rivals',rar:'Special Illustration Rare',price:567.98,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/sv/sv10/231/high.png'},
+      {uni:'Pokémon',name:'Sylveon ex',set:'Prismatic Evolutions',rar:'Special Illustration Rare',price:502.98,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/sv/sv08.5/156/high.png'},
+      {uni:'Pokémon',name:'Charizard ex',set:'151',rar:'Special Illustration Rare',price:488.8,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/sv/sv03.5/199/high.png'},
+      {uni:'Pokémon',name:'Greninja ex',set:'Twilight Masquerade',rar:'Special Illustration Rare',price:400.66,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/sv/sv06/214/high.png'},
+      {uni:'Magic',name:'Force of Negation',set:'Final Fantasy Region',rar:'Borderless',price:1492.99,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/b/c/bc5376cb-82f6-43c7-bf8b-43515791e082.jpg'},
+      {uni:'Magic',name:'Giant Growth',set:'Secret Lair Drop',rar:'Borderless',price:662.0,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/6/5/65a168b8-285b-4725-a982-671557d4f0bc.jpg'},
+      {uni:'Magic',name:'Lightning Bolt',set:'Secret Lair Promo',rar:'Borderless',price:623.15,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/b/9/b9399b98-a545-47b2-99bb-6d8251d9ae76.jpg'},
+      {uni:'Magic',name:'Mox Opal',set:'Double Masters',rar:'Borderless',price:342.82,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/5/4/547e3aa5-d88a-4418-ab9d-dd65385f031b.jpg'},
+      {uni:'Magic',name:'Jace, the Mind Sculptor',set:'Secret Lair Drop',rar:'Borderless',price:299.89,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/9/d/9d20e671-9b41-4591-b1ef-2a297411beb7.jpg'},
+      {uni:'Magic',name:'Aerith Gainsborough',set:'Pro Tour Promos',rar:'Borderless',price:251.08,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/f/0/f020aa2f-cc1b-4bb4-bf05-4050ea935d66.jpg'},
+      {uni:'Magic',name:'Tom Bombadil',set:'The Lord of the Ring',rar:'Borderless',price:219.91,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/a/d/ad53e3d4-f907-4f46-9fd9-b23067ce9b82.jpg'},
+      {uni:'Magic',name:'Rograkh, Son of Rohgahh',set:'MagicFest 2025',rar:'Borderless',price:188.86,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/0/5/05e9d580-5da2-4559-b611-870726c53791.jpg'},
+      {uni:'One Piece',name:'Buggy',set:'OP09',rar:'Alt-Art',price:1479.32,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/OP09-051_p2.webp'},
+      {uni:'One Piece',name:'Marshall D Teach',set:'OP09',rar:'Alt-Art',price:1446.5,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/OP09-093_p2.webp'},
+      {uni:'One Piece',name:'Monkey D Luffy',set:'EB02',rar:'Alt-Art',price:1388.75,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/EB02-010_p2.webp'},
+      {uni:'One Piece',name:'Portgas D Ace',set:'OP13',rar:'Alt-Art',price:1315.33,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/OP13-119_p2.webp'},
+      {uni:'One Piece',name:'Tony Tony Chopper',set:'EB01',rar:'Alt-Art',price:1267.5,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/EB01-006_p3.webp'},
+      {uni:'One Piece',name:'Trafalgar Law',set:'ST10',rar:'Alt-Art',price:1251.96,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/ST10-010_p1.webp'},
+      {uni:'One Piece',name:'Sanji',set:'OP09',rar:'Alt-Art',price:1200.0,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/OP09-065_p2.webp'},
+      {uni:'One Piece',name:'Nami',set:'EB03',rar:'Alt-Art',price:1198.57,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/EB03-053_p2.webp'},
+      {uni:'Lorcana',name:'Cinderella',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_eaf7db4a652b47939bddb0db4c9030e9.avif'},
+      {uni:'Lorcana',name:'Minnie Mouse',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_b20587f1945e42d59b750f9b69cc4a6b.avif'},
+      {uni:'Lorcana',name:'Look at This Family',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_7bd65d4574434dd3ba908203c8cea774.avif'},
+      {uni:'Lorcana',name:'Ursula',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_68c45595c25041f3bcf2073a5b533edd.avif'},
+      {uni:'Lorcana',name:'Yen Sid',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_34dd94ad32194a96931c9e2ff311ad26.avif'},
+      {uni:'Lorcana',name:'Second Star to the Right',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_45acf301d7e2469fb961cc1f06bd2889.avif'},
+      {uni:'Lorcana',name:'Diablo',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_93ab5d88940f4610a375a928963a570f.avif'},
+      {uni:'Lorcana',name:'Jasmine',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_54e413e671dc4fa3872b3481db960d47.avif'}
     ];
 
     // ---------- state ----------
@@ -246,7 +254,9 @@ body.paused .sbtn.play .rg{animation-play-state:paused;opacity:.3}
       $('#fTags').textContent = c.uni + ' · ' + c.set;
       $('#fTitle').textContent = c.name;
       $('#fSub').textContent = c.rar + ' — a chase of ' + c.uni + '.';
-      $('#fPrice').textContent = fmt(c.price);
+      const fp = document.querySelector('.fprice');
+      if (c.price != null) { fp.style.display = 'inline-flex'; $('#fPrice').textContent = fmt(c.price); }
+      else { fp.style.display = 'none'; }
     }
     function setActive(i) { active = ((i % N) + N) % N; layout(); updateFeature(); restartAuto(); }
     function step(d) { setActive(active + d); }
