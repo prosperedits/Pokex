@@ -3,239 +3,410 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POKEX — Phantasmal Flames</title>
-<meta name="description" content="Every card of the Pokémon TCG Phantasmal Flames set, on one wheel. Market-price heatmap included.">
-<link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
+<title>POKEX — Home</title>
+<meta name="description" content="POKEX — the ultimate card tracker.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="brand/tokens.css?v=49">
-<link rel="stylesheet" href="style.css?v=87">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#060c1e; --navy-2:#0b1838; --blue:#3b82ff; --blue-bright:#6aa8ff; --ink:#eaf2ff; --dim:#90a6cc;
+  --gold:#f4c544; --gold-lt:#ffe6a3; --gold-dk:#c8862a;
+  --font:'DM Sans', system-ui, sans-serif; --font-display:'Anton','DM Sans',sans-serif;
+  --cw:clamp(350px, 37.5vw, 550px); --ch:calc(var(--cw) / 0.717);
+}
+*{margin:0;padding:0;box-sizing:border-box;cursor:none}
+html{background:#05091c}
+html,body{min-height:100%}
+body{color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden;overflow-y:auto;background:#070d22}
+canvas#topo{position:fixed;inset:0;z-index:0;display:block}
+.vign{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(100% 80% at 50% 40%, transparent 40%, rgba(3,7,18,.6) 100%)}
+
+/* custom cursor — traditional arrow, white + neon-blue outline */
+.cursor{position:fixed;top:0;left:0;z-index:99999;width:20px;height:27px;pointer-events:none;
+  transform-origin:0 0;transition:transform .14s ease, opacity .2s;will-change:left,top;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.5)) drop-shadow(0 0 3px rgba(106,168,255,.85))}
+.cursor svg{display:block;width:100%;height:100%}
+.cursor path{fill:#fff;stroke:var(--blue-bright);stroke-width:1.7;stroke-linejoin:round}
+.cursor.down{transform:scale(.84)}
+.cursor.hover{transform:scale(1.2)}
+.cursor.hover path{fill:var(--gold);stroke:#fff}
+.cursor.hide{opacity:0}
+
+/* top bar */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:22px clamp(20px,4vw,54px)}
+.brand{display:inline-flex;align-items:center;border:2px solid var(--ink);font-family:var(--font-display);padding:8px 13px 5px;letter-spacing:.16em;font-size:19px;line-height:1}
+.brand .k{color:var(--blue-bright)}
+.nav{display:flex;gap:clamp(16px,2.4vw,40px)}
+.nav a{color:rgba(234,242,255,.78);text-decoration:none;font-family:var(--font-display);font-size:18px;letter-spacing:.05em;transition:color .2s;position:relative}
+.nav a:hover,.nav a.on{color:#fff}
+.nav a.on::after{content:'';position:absolute;left:0;right:0;bottom:-5px;height:2px;background:var(--gold)}
+.nav a.new::before{content:'NEW';position:absolute;top:-9px;right:-22px;font-family:var(--font);font-weight:600;font-size:8px;letter-spacing:.1em;color:var(--gold);background:color-mix(in srgb,var(--gold) 16%,transparent);border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);border-radius:6px;padding:1px 4px}
+.live{display:inline-flex;align-items:center;gap:7px;font-family:var(--font);font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.live .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold)}
+
+/* hero / ring — slanted carousel (raised, less tilt, -8%) */
+.hero{position:relative;z-index:10;height:100vh;display:grid;place-items:center;perspective:3000px;perspective-origin:50% 44%;overflow:hidden}
+.tilt-wrap{transform:translateY(-7vh) rotateZ(-8.5deg) rotateX(6deg) scale(.92);transform-style:preserve-3d;will-change:transform}
+.tilt{transform-style:preserve-3d;will-change:transform,opacity}
+.ring{position:relative;width:1px;height:1px;transform-style:preserve-3d}
+.card{position:absolute;width:var(--cw);height:var(--ch);left:calc(var(--cw)/-2);top:calc(var(--ch)/-2);transform-style:preserve-3d}
+.face{position:absolute;inset:0;border-radius:18px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.front{background:#0a1430 center/cover no-repeat;box-shadow:0 36px 70px -26px rgba(0,0,0,.9),inset 0 0 0 1px rgba(255,255,255,.06);
+  transition:transform .32s cubic-bezier(.16,1,.3,1), box-shadow .32s ease}
+.card:hover .front{transform:scale(1.05) translateY(-2.4%);box-shadow:0 48px 90px -22px rgba(0,0,0,.92), 0 0 36px rgba(106,168,255,.3)}
+/* one swept light — position + intensity computed per-frame from each card's angle */
+.front .gloss{position:absolute;inset:0;border-radius:18px;pointer-events:none;mix-blend-mode:screen;opacity:0;will-change:transform,opacity;
+  background:linear-gradient(104deg, transparent 36%, rgba(255,255,255,.16) 46%, rgba(255,255,255,.42) 50%, rgba(255,255,255,.16) 54%, transparent 64%)}
+.back{transform:rotateY(180deg);border-radius:18px;background:linear-gradient(160deg,#13244e,#070d22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+
+/* headline (left) — white, with gold only on "Ultimate" */
+.intro-copy{position:absolute;left:clamp(20px,4vw,64px);bottom:clamp(56px,9vh,104px);z-index:25;max-width:min(52vw,660px);pointer-events:none}
+.intro-copy::before{content:'';position:absolute;inset:-48px -140px -54px -90px;z-index:-1;pointer-events:none;
+  background:radial-gradient(72% 84% at 30% 58%, rgba(3,7,18,.8) 0%, rgba(3,7,18,.4) 46%, transparent 72%)}
+.headline{font-family:var(--font-display);font-size:clamp(40px,5.4vw,86px);line-height:.9;letter-spacing:.004em;text-transform:uppercase;
+  color:#fff;text-shadow:0 3px 18px rgba(0,0,0,.7), 0 1px 0 rgba(0,0,0,.4)}
+.headline .em{background:repeating-linear-gradient(108deg, var(--gold) 0px, var(--gold) 132px, var(--gold-lt) 168px, #fff4d0 184px, var(--gold-lt) 200px, var(--gold) 236px);
+  -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 16px rgba(255,220,120,.5))}
+.scrolldown{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);z-index:25;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:7px;
+  font-family:var(--font);font-weight:600;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:rgba(244,197,68,.7)}
+.scrolldown .arw{font-size:15px;line-height:1}
+
+/* ===== scroll sections ===== */
+.band{position:relative;z-index:10;padding:clamp(60px,11vh,130px) 0;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.band-label{text-align:center;font-family:var(--font);font-weight:600;font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.marquee{overflow:hidden;pointer-events:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.mtrack{display:inline-flex;align-items:center;gap:46px;white-space:nowrap;will-change:transform}
+.mw{font-family:var(--font-display);text-transform:uppercase;line-height:1;letter-spacing:.01em;font-size:clamp(34px,5vw,72px);color:#fff}
+.mw.tag{color:var(--blue-bright)}
+.mw.dim{color:rgba(234,242,255,.16);-webkit-text-stroke:1px rgba(234,242,255,.4)}
+.mw .star,.mw.star{color:var(--gold);font-size:.5em}
+
+/* infographic */
+.info{position:relative;z-index:10;max-width:1080px;margin:0 auto;padding:clamp(20px,5vh,60px) clamp(22px,5vw,40px) 120px}
+.info-head{max-width:640px;margin-bottom:38px}
+.info-kicker{font-family:var(--font);font-weight:600;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.info-head h2{font-family:var(--font-display);font-size:clamp(30px,4.4vw,54px);line-height:.98;text-transform:uppercase;letter-spacing:.01em}
+.info-head p{color:var(--dim);font-size:15px;line-height:1.6;margin-top:14px;max-width:560px}
+.info-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:22px;align-items:stretch}
+.panel{background:linear-gradient(180deg,rgba(20,38,79,.5),rgba(8,16,40,.5));border:1px solid rgba(106,168,255,.16);border-radius:18px;padding:22px 24px;backdrop-filter:blur(8px)}
+.panel h3{font-family:var(--font);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.panel h3 .pill{color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 36%,transparent);border-radius:20px;padding:3px 9px;font-size:10px}
+.chartwrap{margin-top:14px}
+.chart{width:100%;height:170px;display:block}
+.chart-x{display:flex;justify-content:space-between;font-family:var(--font);font-weight:500;font-size:10px;color:var(--dim);margin-top:8px;letter-spacing:.06em}
+.sources{display:flex;flex-direction:column;gap:11px;margin-top:14px}
+.src{display:flex;align-items:center;gap:12px;font-size:13.5px}
+.src .dot{width:9px;height:9px;border-radius:50%;flex:none;box-shadow:0 0 10px currentColor}
+.src .who{color:#cfe0ff;font-weight:700;font-size:13px;letter-spacing:.01em}
+.src .what{color:var(--dim);font-size:12.5px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px}
+.stat{background:rgba(8,16,40,.4);border:1px solid rgba(244,197,68,.18);border-radius:14px;padding:16px 16px}
+.stat .n{font-family:var(--font-display);font-size:clamp(24px,3vw,34px);color:var(--gold);line-height:1}
+.stat .l{font-family:var(--font);font-weight:500;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:8px}
+.reveal{opacity:0;transform:translateY(26px)}
+
+/* bottom live price ticker — the stock bar */
+.ticker{position:fixed;left:0;right:0;bottom:0;height:46px;z-index:30;background:rgba(5,11,28,.9);border-top:1px solid rgba(80,130,255,.18);overflow:hidden;display:flex;align-items:center;backdrop-filter:blur(8px)}
+.ttrack{display:inline-flex;align-items:center;gap:34px;white-space:nowrap;will-change:transform;padding-left:20px}
+.ti{display:inline-flex;align-items:center;gap:9px;font-family:var(--font);font-weight:500;font-size:12.5px}
+.ti .nm{color:#bcd2ff;font-weight:700;letter-spacing:.02em}
+.ti .pr{color:#fff}
+.ti .c{font-weight:700}.ti .c.up{color:#56ff9b}.ti .c.down{color:#ff6b6b}
+.ti .sep{color:rgba(80,130,255,.4)}
+
+/* loader */
+.loader{position:fixed;inset:0;z-index:80;background:#060c1e;display:grid;place-items:center}
+.ld-mark{font-family:var(--font-display);letter-spacing:.2em;font-size:clamp(44px,7.5vw,92px);line-height:1;border:3px solid var(--ink);padding:16px 24px 10px;display:inline-block;clip-path:inset(0 100% 0 0)}
+.ld-mark .k{color:var(--blue-bright)}
+.ld-bar{width:min(280px,60vw);height:2px;background:rgba(80,130,255,.2);margin:30px auto 12px;overflow:hidden}
+.ld-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-dk),var(--gold));box-shadow:0 0 14px var(--gold)}
+.ld-meta{display:flex;justify-content:space-between;width:min(280px,60vw);margin:0 auto;font-family:var(--font);font-weight:500;font-size:11px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.ld-count{color:var(--gold)}.ld-wrap{text-align:center}
+
+@media (pointer:coarse){ *{cursor:auto} .cursor{display:none} }
+@media (max-width:900px){ .nav,.live{display:none} .intro-copy{max-width:84vw} .info-grid{grid-template-columns:1fr} .stats{grid-template-columns:repeat(2,1fr)} :root{--cw:clamp(260px,72vw,420px)} }
+</style>
 </head>
 <body>
-  <!-- background layers driven by the rAF loop in app.js (CSS animation
-       timelines freeze on this machine; the physics loop never does).
-       The wrapper isolates blending so layers composite against its own
-       solid base, never against the live page (kills repaint flicker). -->
-  <div class="bg-stage" aria-hidden="true">
-    <div id="bgGrain" class="bg-grain"></div>
-    <div id="bgGlass" class="bg-glass"></div>
-    <div id="bgLight" class="bg-light"></div>
-  </div>
+  <canvas id="topo"></canvas>
+  <div class="vign"></div>
 
-  <header class="chrome">
-    <div class="lockup">
-      <span class="logo-pokex"><span class="lx" aria-label="POKEX">X</span></span>
-    </div>
-
-    <!-- set selector: current set logo opens an era-grouped menu (built by app.js) -->
-    <div class="set-dropdown">
-      <button id="setBtn" class="set-btn" aria-haspopup="true" aria-expanded="false" aria-label="Switch set">
-        <img id="setBtnLogo" alt="">
-        <span id="setBtnName" class="set-btn-name" hidden></span>
-        <span class="caret" aria-hidden="true">▾</span>
-      </button>
-      <div id="setMenu" class="set-menu" hidden></div>
-    </div>
-
-    <div class="chrome-right">
-      <input id="search" class="search" type="search" list="cardNames" placeholder="Search" aria-label="Search cards">
-      <datalist id="cardNames"></datalist>
-      <span class="ctrl-div" aria-hidden="true"></span>
-      <a id="listCounts" class="ctrl list-counts" href="collection.html" title="Open your collection" aria-label="Wishlist and collection — open collection">
-        <span class="lc-item lc-wish">
-          <svg class="lc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20.3C7 16.9 4 13.9 4 10.2 4 7.9 5.8 6 8 6c1.5 0 2.9.8 3.6 2 .7-1.2 2.1-2 3.6-2 2.2 0 4 1.9 4 4.2 0 3.7-3 6.7-8 10.1z"/></svg>
-          <span id="wishCount">0</span>
-        </span>
-        <span class="lc-item lc-coll">
-          <svg class="lc-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M12 4l8 4-8 4-8-4 8-4z"/><path d="M4 12l8 4 8-4M4 16l8 4 8-4"/></svg>
-          <span id="collCount">0</span>
-        </span>
-      </a>
-      <span class="ctrl-div" aria-hidden="true"></span>
-      <button type="button" id="sealedBtn" class="ctrl ctrl-btn" aria-haspopup="dialog">
-        <svg class="ctrl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="3" width="11" height="18" rx="1.6"/><path d="M6.5 7.5h11" stroke-linecap="round"/></svg>
-        <span>Sealed</span>
-      </button>
-      <a id="ripBtn" class="ctrl ctrl-btn" href="rip.html" title="Rip Lab — sealed pack ROI &amp; pull odds">
-        <svg class="ctrl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="1.4"/><path d="M6 8l2-1 2 1 2-1 2 1 2-1"/><path d="M12 12.5v5M9.5 15h5"/></svg>
-        <span>Rip</span>
-      </a>
-      <a id="binderBtn" class="ctrl ctrl-btn" href="binder.html" title="Open your binder">
-        <svg class="ctrl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="1.5"/><path d="M9 3.5v17" stroke-linecap="round"/><path d="M6.6 8h1.1M6.6 12h1.1M6.6 16h1.1" stroke-linecap="round"/></svg>
-        <span>Binder</span>
-      </a>
-      <a id="faqBtn" class="ctrl ctrl-btn" href="faq.html" title="FAQ — help &amp; answers">
-        <svg class="ctrl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.4 9.2a2.6 2.6 0 0 1 5 1c0 1.7-2.4 2.1-2.4 3.8"/><path d="M12 17.2h.01"/></svg>
-        <span>FAQ</span>
-      </a>
-      <div id="counter" class="counter" aria-hidden="true">001<span>/130</span></div>
-    </div>
+  <header class="topbar">
+    <span class="brand">PO<span class="k">KE</span>X</span>
+    <nav class="nav"><a class="on">Explore</a><a href="app.html">Sets</a><a href="rip.html">Rip Lab</a><a href="binder.html">Binder</a><a class="new">Arbitrage</a></nav>
+    <span class="live"><span class="dot"></span>Live prices</span>
   </header>
 
-  <!-- HOME: a scroll-driven cinematic front door (built by app.js buildHome()).
-       Hero blur-focuses in, then each TCG materialises out of blur as you scroll. -->
-  <div id="home" class="home" hidden>
-    <div class="home-scroll" id="homeScroll" aria-label="Pick a universe"></div>
-  </div>
-
   <main>
-    <div id="stageGlow" class="stage-glow" aria-hidden="true"></div>
-    <!-- the rarity, then the card number directly beneath it, ride the TOP line -->
-    <p id="capRarity" class="cap-rarity-top" aria-hidden="true">&nbsp;</p>
-    <p id="capNumber" class="cap-number-top" aria-hidden="true"></p>
-    <section id="wheel" class="wheel" aria-label="Card carousel" aria-roledescription="carousel">
-      <div id="track" class="track"></div>
-      <!-- share rides the TOP of the focused card (P: top, not bottom) -->
-      <button type="button" id="capShare" class="cap-share cap-share-top" aria-label="Copy a link to this card" title="Share this card">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 14V4"/><path d="M8.5 7.5 12 4l3.5 3.5"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5"/></svg>
-        <span>Share</span>
-      </button>
+    <section class="hero" id="hero">
+      <div class="tilt-wrap"><div class="tilt"><div class="ring" id="ring"></div></div></div>
+      <div class="intro-copy">
+        <h1 class="headline">The <span class="em">Ultimate</span><br>Card Tracker</h1>
+      </div>
+      <div class="scrolldown"><span>Scroll</span><span class="arw">&darr;</span></div>
     </section>
 
-    <section class="caption" aria-live="polite">
-      <h1 id="capName" class="cap-name">&nbsp;</h1>
-      <div class="cap-sub">
-        <p id="capMeta" class="cap-meta"></p>
+    <section class="band">
+      <div class="band-label">The index — every universe, one feed</div>
+      <div class="marquee"><div class="mtrack" id="mq"></div></div>
+      <div class="marquee"><div class="mtrack" id="mq2"></div></div>
+    </section>
+
+    <section class="info">
+      <div class="info-head reveal">
+        <div class="info-kicker">How POKEX tracks</div>
+        <h2>One wheel.<br>Five live sources.</h2>
+        <p>Every card is matched to its market and re-priced from public catalog data — daily snapshots in USD and EUR, charted so you can see a card heat up before it moves.</p>
       </div>
-      <div class="cap-price-row">
-        <div id="capPrice" class="cap-price"></div>
-        <span id="capTrend" class="cap-trend" hidden></span>
+      <div class="info-grid">
+        <div class="panel reveal">
+          <h3>Aggregate chase index <span class="pill">+18.4% · 90d</span></h3>
+          <div class="chartwrap">
+            <svg class="chart" id="chart" viewBox="0 0 600 170" preserveAspectRatio="none" aria-hidden="true"></svg>
+            <div class="chart-x"><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span></div>
+          </div>
+        </div>
+        <div class="panel reveal">
+          <h3>Where the data comes from <span class="pill">5 feeds</span></h3>
+          <div class="sources">
+            <div class="src"><span class="dot" style="color:#ffcb05"></span><span class="who">TCGdex</span><span class="what">Pokémon cards &amp; sets</span></div>
+            <div class="src"><span class="dot" style="color:#e8943b"></span><span class="who">Scryfall</span><span class="what">Magic: The Gathering</span></div>
+            <div class="src"><span class="dot" style="color:#7fd4f4"></span><span class="who">Ravensburger</span><span class="what">Disney Lorcana</span></div>
+            <div class="src"><span class="dot" style="color:#ff5b4d"></span><span class="who">dotGG</span><span class="what">One Piece TCG</span></div>
+            <div class="src"><span class="dot" style="color:var(--gold)"></span><span class="who">TCGCSV</span><span class="what">Market prices &amp; sealed</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat reveal"><div class="n">4</div><div class="l">Universes</div></div>
+        <div class="stat reveal"><div class="n">5</div><div class="l">Live data feeds</div></div>
+        <div class="stat reveal"><div class="n">Daily</div><div class="l">Price snapshots</div></div>
+        <div class="stat reveal"><div class="n">USD<span style="opacity:.5">/</span>EUR</div><div class="l">Dual market</div></div>
       </div>
     </section>
   </main>
 
-  <!-- Bottom navigator: a true arced, segmented (per-card), tapered dial drawn as
-       SVG in app.js (buildDial). #ticks is retired (kept hidden = harmless no-op). -->
-  <nav class="minimap" aria-label="Set navigator">
-    <div id="rail" class="rail" role="slider" tabindex="0"
-         aria-label="Card position" aria-valuemin="1" aria-valuemax="130" aria-valuenow="1">
-      <div id="railArc" class="rail-arc" aria-hidden="true"></div>
-      <div id="ticks" class="ticks" aria-hidden="true" hidden></div>
-    </div>
-  </nav>
+  <div class="ticker"><div class="ttrack" id="tk"></div></div>
 
-  <dialog id="zoom" class="zoom" aria-labelledby="zTitle">
-    <canvas id="holoBg" class="holo-bg" aria-hidden="true"></canvas>
-    <div id="zoomBg" class="zoom-bg" aria-hidden="true">
-      <img id="zoomBgArt" alt="">
-      <video id="zoomVideo" class="zoom-video" muted loop playsinline preload="auto"></video>
-      <div class="zoom-grain"></div>
-    </div>
-    <div class="zoom-scrim" aria-hidden="true"></div>
-    <button id="zoomClose" class="zoom-close" aria-label="Close card detail">×</button>
-    <button type="button" id="zoomBack" class="zoom-back">← Back</button>
-    <div class="zoom-body">
-      <header class="z-header">
-        <h2 id="zTitle" class="z-title"></h2>
-        <p id="zRarity" class="z-rarity-line" aria-hidden="true"></p>
-        <p id="zNumber" class="z-number" aria-hidden="true"></p>
-      </header>
-      <div class="z-stage">
-        <div id="cardCol" class="card-col">
-          <div id="tiltZone" class="tilt-zone">
-            <div id="tiltCard" class="tilt-card">
-              <div id="cardFaces" class="card-faces">
-                <div class="face face-front">
-                  <img id="zoomImg" alt="">
-                  <div id="shine" class="shine" aria-hidden="true"></div>
-                  <div id="cardFx" class="card-fx" aria-hidden="true" hidden></div>
-                </div>
-                <div class="face face-back" aria-hidden="true"></div>
-              </div>
-            </div>
-          </div>
-          <div id="cardActions" class="card-actions">
-            <button type="button" id="wishBtn" aria-pressed="false" aria-label="Toggle wishlist">
-              <span class="ic">♡</span><span class="lb">Wishlist</span></button>
-            <button type="button" id="collBtn" aria-pressed="false" aria-label="Toggle collection">
-              <span class="ic">◇</span><span class="lb">Collection</span></button>
-            <a id="shareBtn" href="#" aria-label="Copy a link to this card">
-              <span class="ic">⤴</span><span class="lb">Share</span></a>
-          </div>
-        </div>
-        <div id="zoomPanel" class="zoom-panel">
-          <div id="zPrice" class="z-price"></div>
-          <div id="zQuick" class="z-quick"></div>
-          <figure id="zCharts" class="z-charts"></figure>
-          <div id="zTable" class="z-table"></div>
-          <details id="pullsBox" class="z-disclosure" hidden>
-            <summary class="disc-sum">Pull rates<span class="disc-caret" aria-hidden="true">▾</span></summary>
-            <div id="zPulls" class="z-pulls"></div>
-          </details>
-          <p id="zCredit" class="z-credit"></p>
-          <button type="button" id="moreCardsBtn" class="more-cards-link" hidden></button>
-        </div>
-        <div id="zGallery" class="z-gallery" hidden aria-hidden="true">
-          <div class="gallery-head">
-            <button type="button" id="galleryBack" class="gallery-back">← Back to card</button>
-            <span id="galleryTitle" class="gallery-title"></span>
-          </div>
-          <div id="galleryGrid" class="gallery-grid"></div>
-        </div>
-      </div>
-    </div>
-  </dialog>
+  <div class="loader" id="loader"><div class="ld-wrap">
+    <div class="ld-mark" id="ldMark">PO<span class="k">KE</span>X</div>
+    <div class="ld-bar"><i id="ldBar"></i></div>
+    <div class="ld-meta"><span>Loading the market</span><span class="ld-count" id="ldCount">0%</span></div>
+  </div></div>
 
-  <dialog id="sealedDlg" class="sealed-dlg" aria-labelledby="sealedTitle">
-    <div class="sealed-head">
-      <span id="sealedTitle" class="sealed-title">Sealed · <span id="sealedSet"></span></span>
-      <button type="button" id="sealedClose" class="zoom-close sealed-x" aria-label="Close sealed prices">×</button>
-    </div>
-    <div id="sealedGrid" class="sealed-grid"></div>
-    <p id="sealedEmpty" class="sealed-empty" hidden>No sealed-price data tracked for this set yet.</p>
-    <p class="sealed-cap">Verified snapshots only — each price carries its source and check date.</p>
-  </dialog>
+  <div class="cursor" id="cursor"><svg viewBox="0 0 16 22"><path d="M1 1 L1 17.8 L5.2 13.9 L7.9 20.1 L10.6 19 L7.9 12.8 L13 12.8 Z"/></svg></div>
 
-  <footer class="site-foot">
-    <div class="foot-left">
-      <a class="foot-link" href="faq.html">FAQ</a>
-    </div>
-    <div class="foot-right">
-      <span id="snapshotLabel" class="snapshot"></span>
-      <span id="staleNotice" class="stale" hidden>snapshot is over a week old — re-run scripts/refresh-data.mjs</span>
-    </div>
-  </footer>
-
-  <script src="layout-constants.js?v=71"></script>
   <script src="vendor/three.min.js"></script>
   <script src="vendor/gsap.min.js"></script>
-  <script src="vendor/ScrollTrigger.min.js"></script>
-  <script src="data/cards-sv01.js"></script>
-  <script src="data/cards-sv02.js"></script>
-  <script src="data/cards-sv03.js"></script>
-  <script src="data/cards-sv03.5.js"></script>
-  <script src="data/cards-sv04.js"></script>
-  <script src="data/cards-sv04.5.js"></script>
-  <script src="data/cards-sv05.js"></script>
-  <script src="data/cards-sv06.js"></script>
-  <script src="data/cards-sv06.5.js"></script>
-  <script src="data/cards-sv07.js"></script>
-  <script src="data/cards-sv08.js"></script>
-  <script src="data/cards-sv08.5.js"></script>
-  <script src="data/cards-sv09.js"></script>
-  <script src="data/cards-sv10.js"></script>
-  <script src="data/cards-sv10.5b.js"></script>
-  <script src="data/cards-sv10.5w.js"></script>
-  <script src="data/cards-me01.js"></script>
-  <script src="data/cards-me02.js"></script>
-  <script src="data/cards-me02.5.js"></script>
-  <script src="data/cards-me03.js"></script>
-  <script src="data/cards-me04.js"></script>
-  <script src="data/cards-fpic1.js"></script>
-  <script src="data/cards-fpp.js"></script>
-  <script src="data/cards-svp.js"></script>
-  <script src="data/cards-swshp.js"></script>
-  <script src="data/cards-smp.js"></script>
-  <script src="data/cards-xyp.js"></script>
-  <script src="data/cards-bwp.js"></script>
-  <script src="data/cards-dpp.js"></script>
-  <script src="data/cards-hgssp.js"></script>
-  <script src="data/cards-np.js"></script>
-  <script src="data/cards-basep.js"></script>
-  <script src="data/sealed.js?v=62"></script>
-  <script src="data/set-colors.js?v=63"></script>
-  <script src="data/magic-prices.js?v=74"></script>
-  <script src="app.js?v=87"></script>
+  <script>
+  (() => {
+    'use strict';
+    const $ = (s) => document.querySelector(s);
+    const fmt0 = (p) => '$' + Math.round(p).toLocaleString('en-US');
+
+    const T='https://assets.tcgdex.net/en/', Sc='https://cards.scryfall.io/large/front/',
+          Dg='https://static.dotgg.gg/onepiece/card/', Rv='https://api.lorcana.ravensburger.com/images/en/';
+    const ALL = [
+      {name:'Umbreon ex',         game:'pokemon',  price:1557.92, img:T+'sv/sv08.5/161/high.png'},
+      {name:'Demonic Tutor',      game:'magic',    price:505.29,  img:Sc+'9/9/99b6e466-784b-48a6-8e72-beff72f39231.jpg'},
+      {name:'Buggy',              game:'onepiece', price:1479.32, img:Dg+'OP09-051_p2.webp'},
+      {name:'Stitch · Rock Star', game:'lorcana',  price:52.00,   img:'https://lorcana-api.com/images/stitch/rock_star/stitch-rock_star-large.png'},
+      {name:'Mega Gengar ex',     game:'pokemon',  price:1384.78, img:T+'me/me02.5/284/high.png'},
+      {name:'Counterspell',       game:'magic',    price:46.34,   img:Sc+'8/1/8118282a-1473-4c0b-a283-1f58e0d0209a.jpg'},
+      {name:'Marshall D. Teach',  game:'onepiece', price:1446.50, img:Dg+'OP09-093_p2.webp'},
+      {name:'Elsa · Ice Artisan', game:'lorcana',  price:240.00,  img:Rv+'set11/233_9976ce443fc2c5d3019e2da31bc3c1e0cd4081a8.jpg'},
+      {name:'Pikachu ex',         game:'pokemon',  price:1276.19, img:T+'me/me02.5/276/high.png'},
+      {name:'Swords to Plowshares',game:'magic',   price:59.91,   img:Sc+'a/5/a5d364f3-e3e7-46fb-8273-aabd56ded0c5.jpg'},
+      {name:'Monkey D. Luffy',    game:'onepiece', price:1388.75, img:Dg+'EB02-010_p2.webp'},
+      {name:'Mickey · Brave Prince',game:'lorcana',price:38.00,   img:Rv+'set9/111_fc83a63669bace91d4de7d711d22c3ed67f3afa8.jpg'},
+      {name:'Mew ex',             game:'pokemon',  price:968.49,  img:T+'sv/sv04.5/232/high.png'},
+      {name:'Time Warp',          game:'magic',    price:50.61,   img:Sc+'3/4/34f0f4cb-1ef6-44cd-8cca-1d1e138c0344.jpg'},
+      {name:'Portgas D. Ace',     game:'onepiece', price:1315.33, img:Dg+'OP13-119_p2.webp'},
+      {name:'Aurora · Dreaming',  game:'lorcana',  price:44.00,   img:Rv+'set9/153_e399771f6aff5232df46ef15dd9b44b79950dbd1.jpg'},
+    ];
+    const seed = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+    const rng = (s) => () => { s |= 0; s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    ALL.forEach((c) => { c.pct = +((rng(seed(c.name))() * 19) - 6).toFixed(1); });
+
+    // ---- ring (slanted cylinder) ----
+    const ring = $('#ring'), hero = $('#hero');
+    const N = ALL.length, STEP = 360 / N;
+    ALL.forEach((c) => {
+      const el = document.createElement('div'); el.className = 'card'; el.dataset.game = c.game;
+      el.innerHTML = `<div class="face front" style="background-image:url('${c.img}')"><span class="gloss"></span></div><div class="face back"></div>`;
+      ring.appendChild(el);
+    });
+    const cards = [...ring.children];
+    const glosses = cards.map((el) => el.querySelector('.gloss'));
+    let R = 1380;
+    function placeCards() { cards.forEach((el, i) => el.style.transform = `rotateY(${i * STEP}deg) translateZ(${R}px)`); }
+    function sizeRing() { R = Math.max(1120, Math.min(innerWidth * 0.77, 1520)); placeCards(); }
+    sizeRing(); addEventListener('resize', sizeRing);
+
+    // ---- spin: always auto-spins; hold-drag to control; release → momentum ----
+    let rot = 0, vel = 0, dragging = false, didDrag = false, dragStartX = 0, rotStart = 0, lastX = 0;
+    const SPIN = 5, DRAGK = 0.2;
+    let curX = innerWidth / 2, curY = innerHeight / 2, tmX = 0, tmY = 0;     // tmX/tmY = normalised mouse for the bg shader
+    const cursor = $('#cursor');
+
+    hero.addEventListener('pointerdown', (e) => {
+      dragging = true; didDrag = false; dragStartX = lastX = e.clientX; rotStart = rot; vel = 0;
+      cursor.classList.add('down');
+    });
+    addEventListener('pointermove', (e) => {
+      curX = e.clientX; curY = e.clientY; cursor.classList.remove('hide');
+      tmX = (e.clientX / innerWidth) * 2 - 1; tmY = -((e.clientY / innerHeight) * 2 - 1);
+      if (dragging) {
+        const dx = e.clientX - dragStartX;
+        if (Math.abs(dx) > 5) didDrag = true;
+        rot = rotStart + dx * DRAGK;
+        vel = (e.clientX - lastX) * DRAGK; lastX = e.clientX;
+      }
+    });
+    addEventListener('pointerup', () => { if (dragging) { dragging = false; cursor.classList.remove('down'); } });
+    addEventListener('pointercancel', () => { dragging = false; cursor.classList.remove('down'); });
+    document.addEventListener('mouseleave', () => cursor.classList.add('hide'));
+    cards.forEach((el) => {
+      el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+      el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+      el.addEventListener('click', () => { if (!didDrag) location.href = 'app.html?game=' + el.dataset.game; });
+    });
+
+    // ---- Three.js topographic background (slow drift + subtle mouse) ----
+    let bgRender = () => {};
+    (() => {
+      if (!window.THREE) return;
+      const renderer = new THREE.WebGLRenderer({ canvas: $('#topo'), antialias: true, alpha: false });
+      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+      const scene = new THREE.Scene();
+      const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      const uni = { uTime: { value: 0 }, uRes: { value: new THREE.Vector2() }, uMouse: { value: new THREE.Vector2() } };
+      const mat = new THREE.ShaderMaterial({
+        uniforms: uni,
+        vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+        fragmentShader: `
+          precision highp float; varying vec2 vUv; uniform vec2 uRes; uniform vec2 uMouse; uniform float uTime;
+          float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453123); }
+          float noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+            return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x), mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x), f.y); }
+          float fbm(vec2 p){ float v=0.0, a=0.55; for(int i=0;i<6;i++){ v+=a*noise(p); p=p*2.03+vec2(11.3,7.7); a*=0.5; } return v; }
+          void main(){
+            vec2 uv = vUv;
+            vec2 p = uv; p.x *= uRes.x / max(uRes.y, 1.0);
+            p = p * 3.1 + uMouse * 0.30;                 // subtle mouse parallax
+            float n = fbm(p + vec2(uTime * 0.018, uTime * 0.012));
+            float f = n * 8.5;                            // contour density
+            float fr = fract(f);
+            float d = min(fr, 1.0 - fr);                  // distance to nearest contour line
+            float line = 1.0 - smoothstep(0.0, 0.052, d);
+            float g = clamp(uv.x * 0.45 + (1.0 - uv.y) * 0.7, 0.0, 1.0);
+            vec3 base = mix(vec3(0.16,0.22,0.55), vec3(0.018,0.03,0.13), g);   // royal-blue → deep navy
+            vec3 lineCol = mix(vec3(0.33,0.55,1.0), vec3(0.12,0.20,0.55), g);
+            vec3 col = mix(base, lineCol, line * (0.55 + 0.35 * (1.0 - g)));
+            gl_FragColor = vec4(col, 1.0);
+          }`
+      });
+      scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
+      function rs() { renderer.setSize(innerWidth, innerHeight, false); uni.uRes.value.set(innerWidth, innerHeight); }
+      rs(); addEventListener('resize', rs);
+      let mx = 0, my = 0;
+      bgRender = (t) => {
+        uni.uTime.value = t * 0.001;
+        mx += (tmX - mx) * 0.035; my += (tmY - my) * 0.035;   // slow ease → subtle
+        uni.uMouse.value.set(mx, my);
+        renderer.render(scene, cam);
+      };
+    })();
+
+    let last = 0, mqX = 0, mq2X = 0, tkX = 0;
+    const DEG = Math.PI / 180;
+    function frame(now) {
+      const dt = last ? Math.min((now - last) / 1000, 0.05) : 0; last = now;
+      if (!dragging) { rot -= SPIN * dt; rot += vel; vel *= 0.9; if (Math.abs(vel) < 0.002) vel = 0; }
+      ring.style.transform = `translateZ(${-R}px) rotateY(${rot}deg)`;
+      for (let i = 0; i < N; i++) {
+        let a = (i * STEP + rot) % 360; if (a > 180) a -= 360; if (a < -180) a += 360;
+        const fr = Math.cos(a * DEG);
+        const g = glosses[i];
+        g.style.opacity = fr > 0 ? (fr * fr * 0.62).toFixed(3) : '0';
+        g.style.transform = `translateX(${Math.max(-130, Math.min(130, (a / 88) * 130)).toFixed(1)}%)`;
+      }
+      cursor.style.left = curX + 'px'; cursor.style.top = curY + 'px';
+      mqX -= 24 * dt; mq2X += 20 * dt;
+      const mqW = mqTrack.scrollWidth / 2, mq2W = mqTrack2.scrollWidth / 2, tkW = tkTrack.scrollWidth / 2;
+      if (mqX <= -mqW) mqX += mqW; if (mq2X >= 0) mq2X -= mq2W; tkX -= 70 * dt; if (tkX <= -tkW) tkX += tkW;
+      mqTrack.style.transform = `translateX(${mqX}px)`;
+      mqTrack2.style.transform = `translateX(${mq2X}px)`;
+      tkTrack.style.transform = `translateX(${tkX}px)`;
+      bgRender(now);
+      requestAnimationFrame(frame);
+    }
+
+    // marquee — two rows
+    const MWORDS = [['POKÉMON','tag'],['MAGIC',''],['ONE PIECE','tag'],['LORCANA',''],['THE ULTIMATE CARD TRACKER','dim']];
+    const mw = (arr) => arr.map(([w, c]) => `<span class="mw ${c}">${w}</span><span class="mw star">✦</span>`).join('');
+    const mqTrack = $('#mq'), mqTrack2 = $('#mq2');
+    mqTrack.innerHTML = mw(MWORDS) + mw(MWORDS);
+    mqTrack2.innerHTML = mw([...MWORDS].reverse()) + mw([...MWORDS].reverse());
+
+    // ticker
+    const tkTrack = $('#tk');
+    const tkHTML = ALL.map((c) => {
+      const up = c.pct >= 0, pr = c.price != null ? fmt0(c.price) : '—';
+      const chg = c.price != null ? `<span class="c ${up ? 'up' : 'down'}">${up ? '▲' : '▼'}${Math.abs(c.pct).toFixed(1)}%</span>` : `<span class="c">ENCH</span>`;
+      return `<span class="ti"><span class="nm">${c.name.toUpperCase()}</span><span class="pr">${pr}</span>${chg}</span><span class="sep">·</span>`;
+    }).join('');
+    tkTrack.innerHTML = tkHTML + tkHTML;
+    requestAnimationFrame(frame);
+
+    // ---- chart (aggregate index area) ----
+    (() => {
+      const r = rng(0x51ce);
+      const pts = []; let v = 40;
+      for (let i = 0; i <= 48; i++) { v += (r() - 0.42) * 7; v = Math.max(12, Math.min(150, v)); pts.push(v); }
+      pts[pts.length - 1] = Math.max(pts[pts.length - 1], 120);
+      const X = (i) => (i / 48) * 600, Y = (val) => 165 - val;
+      let d = `M0 ${Y(pts[0])}`; pts.forEach((p, i) => { d += ` L${X(i).toFixed(1)} ${Y(p).toFixed(1)}`; });
+      const area = d + ` L600 170 L0 170 Z`;
+      $('#chart').innerHTML =
+        `<defs><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1">
+           <stop offset="0" stop-color="#f4c544" stop-opacity=".42"/><stop offset="1" stop-color="#f4c544" stop-opacity="0"/></linearGradient></defs>
+         <g stroke="rgba(120,150,210,.14)"><line x1="0" y1="42" x2="600" y2="42"/><line x1="0" y1="104" x2="600" y2="104"/></g>
+         <path d="${area}" fill="url(#gg)"/>
+         <path d="${d}" fill="none" stroke="#f4c544" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+    })();
+
+    // ---- scroll reveal ----
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((es) => es.forEach((e) => {
+        if (e.isIntersecting) { gsap.to(e.target, { opacity: 1, y: 0, duration: .7, ease: 'power3.out' }); io.unobserve(e.target); }
+      }), { threshold: .2 });
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+    } else document.querySelectorAll('.reveal').forEach((el) => { el.style.opacity = 1; el.style.transform = 'none'; });
+
+    // ---- loader / intro ----
+    gsap.set(['.topbar', '.hero', '.ticker'], { opacity: 0 });
+    // slow, seamless gold shimmer on "Ultimate" only (repeating gradient → no visible reset)
+    gsap.fromTo('.headline .em', { backgroundPosition: '0px 0' }, { backgroundPosition: '-236px 0', duration: 11, ease: 'none', repeat: -1 });
+    gsap.to('.scrolldown', { y: 7, duration: 1.1, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+    function intro() {
+      const c = { v: 0 };
+      gsap.timeline()
+        .to('#ldMark', { clipPath: 'inset(0 0% 0 0)', duration: 1.0, ease: 'power2.inOut' })
+        .to('#ldBar', { width: '100%', duration: 1.5, ease: 'power1.inOut' }, 0)
+        .to(c, { v: 100, duration: 1.5, onUpdate: () => $('#ldCount').textContent = Math.round(c.v) + '%' }, 0)
+        .to('#loader', { autoAlpha: 0, duration: .6 }, '+=.12')
+        .to('.topbar', { opacity: 1, duration: .6 }, '-=.3')
+        .to('.hero', { opacity: 1, duration: .7 }, '-=.4')
+        .from('.tilt', { opacity: 0, scale: .86, rotationY: -24, duration: 1.2, ease: 'power3.out' }, '<')
+        .from('.intro-copy', { opacity: 0, y: 22, duration: .7 }, '-=.7')
+        .to('.ticker', { opacity: 1, duration: .6 }, '-=.5');
+    }
+    let booted = false; const boot = () => { if (booted) return; booted = true; intro(); };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(boot, 40));
+    setTimeout(boot, 600);
+    setTimeout(() => { if (getComputedStyle($('#loader')).opacity !== '0') { gsap.set('#loader', { autoAlpha: 0 }); gsap.set(['.topbar', '.hero', '.ticker'], { opacity: 1 }); } }, 4800);
+  })();
+  </script>
 </body>
 </html>

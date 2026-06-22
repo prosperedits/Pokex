@@ -3,174 +3,145 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POKEX — Concept Home</title>
-<meta name="description" content="POKEX home concept — pick a universe, spin its chase cards.">
+<title>CARDx — Home</title>
+<meta name="description" content="CARDx — every chase card, one place.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0a140d; --green:#43e06b; --green-bright:#7bff9e; --ink:#eafaef; --dim:#8fb89a;
-  --accent:#43e06b; --money:#5fe2a0;
+  --ink-bg:#030a21; --blue:#0054fa; --blue-bright:#3b82ff; --ink:#eaf2ff; --dim:#8fa8c8;
+  --accent:#3b82ff; --money:#7bd0ff;
   --font:'DM Sans', system-ui, sans-serif; --font-display:'Anton','DM Sans',sans-serif; --mono:'DM Mono', monospace;
-  --cw:clamp(320px, 38vw, 600px); --ch:calc(var(--cw) / 0.717);
+  --cw:clamp(280px, 31vw, 470px); --ch:calc(var(--cw) / 0.717);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--font)}
-body{background:
-    radial-gradient(120% 90% at 50% -10%, rgba(60,140,80,.30) 0%, transparent 55%),
-    radial-gradient(90% 80% at 80% 120%, rgba(20,60,35,.6) 0%, transparent 60%),
-    linear-gradient(180deg,#0c1810 0%,#070f0a 100%);-webkit-font-smoothing:antialiased}
-canvas#topo{position:fixed;inset:0;z-index:0;opacity:.85}
+html{scroll-behavior:smooth}
+body{min-height:100%;background:var(--ink-bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* ---- mouse-reactive WebGL background (ported from link 2) ---- */
+#bg{position:fixed;inset:0;z-index:0}
+#bg canvas{display:block;width:100%!important;height:100%!important}
 .vign{position:fixed;inset:0;z-index:1;pointer-events:none;
-  background:radial-gradient(100% 75% at 50% 46%, transparent 38%, rgba(4,9,6,.66) 100%)}
+  background:radial-gradient(100% 80% at 50% 42%, transparent 40%, rgba(2,6,18,.72) 100%)}
 
-/* top bar */
+/* ---- top bar (Anton) ---- */
 .topbar{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:22px clamp(20px,4vw,54px)}
-.brand{display:inline-flex;align-items:center;gap:10px;border:2px solid var(--ink);font-family:var(--font-display);
-  padding:8px 13px 5px;font-weight:400;letter-spacing:.16em;font-size:19px;line-height:1}
-.brand .k{color:var(--green-bright)}
-.nav{display:flex;gap:clamp(20px,3vw,46px)}
-.nav a{color:var(--dim);text-decoration:none;font-weight:700;font-size:13px;letter-spacing:.22em;text-transform:uppercase;transition:.2s;position:relative;padding:4px 0;cursor:pointer}
-.nav a:hover,.nav a.on{color:var(--ink)}
-.nav a.on::after{content:'';position:absolute;left:0;right:0;bottom:-4px;height:2px;background:var(--green)}
+.topbar::before{content:'';position:absolute;inset:0;height:120px;background:linear-gradient(180deg,rgba(3,8,22,.85),transparent);pointer-events:none}
+.brand{position:relative;display:inline-flex;align-items:center;border:2px solid var(--ink);font-family:var(--font-display);
+  padding:8px 13px 5px;letter-spacing:.16em;font-size:19px;line-height:1}
+.brand .k{color:var(--blue-bright)}
+.nav{position:relative;display:flex;gap:clamp(20px,3vw,46px)}
+.nav a{color:rgba(234,242,255,.82);text-decoration:none;font-family:var(--font-display);font-size:18px;letter-spacing:.06em;transition:.2s;cursor:pointer}
+.nav a:hover,.nav a.on{color:#fff}
+.burger{position:relative;display:flex;flex-direction:column;gap:6px;padding:8px;background:none;border:0;cursor:pointer}
+.burger span{display:block;width:24px;height:2px;background:var(--ink)}
 
-/* ---------- universe picker ---------- */
-.picker{position:fixed;inset:0;z-index:18;display:grid;place-items:center;perspective:1500px}
-.pick-head{position:absolute;top:15%;left:0;right:0;text-align:center}
-.pick-head .eye{font-family:var(--mono);font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--green-bright);opacity:.9}
-.pick-head h1{font-family:var(--font-display);font-weight:400;font-size:clamp(40px,6.5vw,90px);letter-spacing:.02em;text-transform:uppercase;line-height:.95;margin-top:10px}
-.pick-row{display:flex;align-items:center;gap:clamp(18px,5vw,90px);transform-style:preserve-3d}
-.uni{position:relative;width:clamp(150px,17vw,270px);aspect-ratio:1;display:grid;place-items:center;cursor:pointer;
-  background:none;border:0;transform-style:preserve-3d;transition:transform .35s cubic-bezier(.16,1,.3,1)}
-.uni .logo{width:100%;will-change:transform;
-  filter:drop-shadow(0 16px 30px rgba(0,0,0,.6)) drop-shadow(0 0 30px color-mix(in srgb,var(--accent) 55%,transparent))}
-.uni .disc{position:absolute;bottom:-2%;width:78%;height:20px;border-radius:50%;filter:blur(7px);
-  background:radial-gradient(closest-side, color-mix(in srgb,var(--accent) 60%,transparent), transparent)}
-.uni .nm{position:absolute;bottom:-22%;left:0;right:0;text-align:center;font-family:var(--font-display);font-weight:400;
-  font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:#dff7e6;opacity:.85;transition:.3s}
-.uni:hover{transform:scale(1.08) translateZ(40px)}
-.uni:hover .nm{opacity:1;color:color-mix(in srgb,var(--accent) 80%,#fff)}
-.pick-hint{position:fixed;left:50%;bottom:7%;transform:translateX(-50%);z-index:19;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:rgba(143,184,154,.6);text-transform:uppercase}
+/* ---- intro (CARDx, ported from link 2's APECHAIN preloader) ---- */
+#intro{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:var(--blue);overflow:hidden}
+#intro.leaving{animation:intro-out .8s cubic-bezier(.76,0,.24,1) forwards}
+#intro .word{display:flex;font-family:var(--font-display);color:#fff;line-height:.9;user-select:none;font-size:clamp(64px,13vw,220px)}
+#intro .word span{display:inline-block;transform-origin:bottom;animation:intro-letter .7s cubic-bezier(.22,1,.36,1) both}
+#intro .word .x{color:#cfe0ff}
+@keyframes intro-letter{0%{transform:translateY(120%) scaleY(1.6);opacity:0}60%{transform:translateY(0) scaleY(1);opacity:1}100%{transform:translateY(0) scaleY(1);opacity:1}}
+@keyframes intro-out{to{transform:translateY(-100%)}}
 
-/* ---------- 3D card ring ---------- */
-.scene{position:fixed;inset:0;z-index:10;display:grid;place-items:center;perspective:1500px;perspective-origin:50% 45%;opacity:0;pointer-events:none}
-.scene.on{opacity:1;pointer-events:auto}
-.tilt{transform-style:preserve-3d;transform:rotateX(13deg) rotateZ(-1deg);will-change:transform}
-.ring{position:relative;width:1px;height:1px;transform-style:preserve-3d;transition:transform 1s cubic-bezier(.16,1,.3,1);will-change:transform}
+/* ---- hero: the big oval wheel ---- */
+.hero{position:relative;z-index:10;height:100vh;min-height:640px;display:grid;place-items:center;perspective:1900px;perspective-origin:50% 44%;overflow:hidden}
+.tilt{transform-style:preserve-3d;transform:rotateX(11deg);will-change:transform}
+.ring{position:relative;width:1px;height:1px;transform-style:preserve-3d}
 .card{position:absolute;width:var(--cw);height:var(--ch);left:calc(var(--cw)/-2);top:calc(var(--ch)/-2);transform-style:preserve-3d;cursor:pointer;will-change:transform}
-.face{position:absolute;inset:0;border-radius:15px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
-.front{background:#0c160f center/cover no-repeat;box-shadow:0 26px 54px -22px rgba(0,0,0,.85)}
-.front .edge{position:absolute;inset:0;border-radius:15px;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 38%,transparent),inset 0 0 26px color-mix(in srgb,var(--accent) 16%,transparent)}
-.back{transform:rotateY(180deg);display:grid;place-items:center;overflow:hidden;
-  background:repeating-linear-gradient(45deg, transparent 0 7px, color-mix(in srgb,var(--accent) 7%,transparent) 7px 8px),
-    repeating-linear-gradient(-45deg, transparent 0 7px, color-mix(in srgb,var(--accent) 7%,transparent) 7px 8px),
-    radial-gradient(72% 64% at 50% 40%, color-mix(in srgb,var(--accent) 26%,#0b160e), #060d09)}
-.back .uni-l{position:absolute;top:10%;font-weight:800;letter-spacing:.22em;font-size:10px;text-transform:uppercase;color:color-mix(in srgb,var(--accent) 80%,#fff);opacity:.85}
-.back .emblem{position:relative;display:grid;place-items:center;width:56%;aspect-ratio:1}
-.back .emblem::before,.back .emblem::after{content:'';position:absolute;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--accent) 48%,transparent)}
-.back .emblem::before{inset:0;box-shadow:0 0 22px color-mix(in srgb,var(--accent) 42%,transparent),inset 0 0 14px color-mix(in srgb,var(--accent) 26%,transparent)}
-.back .emblem::after{inset:15%;border-style:dashed;opacity:.7}
-.back .pb{width:58%;opacity:.72;filter:drop-shadow(0 0 12px color-mix(in srgb,var(--accent) 85%,transparent))}
-.back .bk{position:absolute;bottom:10%;font-weight:900;letter-spacing:.28em;font-size:11px;color:#e6fbed;opacity:.72}
-.back::after{content:'';position:absolute;inset:9px;border-radius:11px;border:1.5px solid color-mix(in srgb,var(--accent) 34%,transparent)}
-.card.is-active .front{box-shadow:0 44px 80px -18px rgba(0,0,0,.85),0 0 60px color-mix(in srgb,var(--accent) 42%,transparent)}
-.card.is-active .front .edge{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 85%,transparent),inset 0 0 40px color-mix(in srgb,var(--accent) 26%,transparent)}
+.face{position:absolute;inset:0;border-radius:16px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.front{background:#0a1430 center/cover no-repeat;box-shadow:0 30px 60px -24px rgba(0,0,0,.9)}
+.front .edge{position:absolute;inset:0;border-radius:16px;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 40%,transparent),inset 0 0 26px color-mix(in srgb,var(--accent) 16%,transparent)}
+/* plain tinted back — no logo, no theme */
+.back{transform:rotateY(180deg);border-radius:16px;
+  background:linear-gradient(160deg, color-mix(in srgb,var(--accent) 16%, #0a1530), #060c1c);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+.card.is-active .front{box-shadow:0 50px 90px -20px rgba(0,0,0,.85),0 0 70px color-mix(in srgb,var(--accent) 45%,transparent)}
+.card.is-active .front .edge{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 90%,transparent),inset 0 0 42px color-mix(in srgb,var(--accent) 28%,transparent)}
 
-/* feature overlay */
-.feature{position:fixed;left:clamp(20px,4vw,58px);bottom:clamp(26px,7vh,68px);z-index:25;max-width:min(42vw,460px);opacity:0;pointer-events:none}
-.feature.on{pointer-events:auto}
-.fpill{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#bfeccb;margin-bottom:14px}
-.fpill .hot{display:inline-flex;align-items:center;gap:5px;background:color-mix(in srgb,var(--accent) 22%,transparent);color:#fff;padding:4px 9px;border-radius:20px;border:1px solid color-mix(in srgb,var(--accent) 50%,transparent)}
-.fpill .tags{color:var(--dim)}
-.ftitle{font-family:var(--font-display);font-weight:400;font-size:clamp(40px,6.4vw,82px);line-height:.92;letter-spacing:.01em;text-transform:uppercase;margin-bottom:10px;text-shadow:0 4px 30px rgba(0,0,0,.6)}
+/* ---- feature text (left) — chase tag removed ---- */
+.feature{position:absolute;left:clamp(20px,4vw,60px);bottom:clamp(28px,9vh,90px);z-index:25;max-width:min(40vw,440px)}
+.fmeta{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#a9c4ec;margin-bottom:12px}
+.ftitle{font-family:var(--font-display);font-size:clamp(40px,6.2vw,84px);line-height:.92;letter-spacing:.01em;text-transform:uppercase;margin-bottom:10px;text-shadow:0 6px 34px rgba(0,0,0,.6)}
 .fsub{color:var(--dim);font-size:14.5px;font-weight:500;line-height:1.45;margin-bottom:16px}
 .fprice{display:inline-flex;align-items:baseline;gap:8px;margin-bottom:22px}
-.fprice .v{font-family:var(--mono);font-weight:700;font-size:30px;color:var(--money);text-shadow:0 0 22px color-mix(in srgb,var(--money) 40%,transparent)}
+.fprice .v{font-family:var(--mono);font-weight:500;font-size:30px;color:var(--money);text-shadow:0 0 22px color-mix(in srgb,var(--money) 40%,transparent)}
 .fprice .l{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
-.enter{display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:#08110b;border:0;cursor:pointer;font-family:var(--font);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:13px;padding:14px 30px;border-radius:40px;transition:.22s}
-.enter:hover{background:var(--green-bright);box-shadow:0 0 30px color-mix(in srgb,var(--accent) 60%,transparent);transform:translateY(-1px)}
+.enter{display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:#06122b;border:0;cursor:pointer;font-family:var(--font);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:13px;padding:14px 30px;border-radius:40px;transition:.22s}
+.enter:hover{background:#fff;box-shadow:0 0 30px color-mix(in srgb,var(--accent) 60%,transparent);transform:translateY(-1px)}
 
-/* back to universes */
-.backbtn{position:fixed;top:88px;left:clamp(20px,4vw,54px);z-index:30;display:none;align-items:center;gap:8px;background:rgba(8,16,11,.5);border:1.5px solid rgba(95,210,130,.2);color:var(--dim);
-  font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:9px 16px;border-radius:30px;cursor:pointer;backdrop-filter:blur(8px);transition:.2s}
-.backbtn:hover{color:var(--ink);border-color:var(--green)}
-.backbtn.on{display:inline-flex}
+/* ---- expanding dots / page counter (ported from link 2) ---- */
+.dots{position:absolute;left:50%;bottom:clamp(22px,4.5vh,46px);transform:translateX(-50%);z-index:26;display:flex;gap:10px}
+.dots button{height:8px;width:8px;border:0;padding:0;border-radius:99px;background:rgba(255,255,255,.32);cursor:pointer;transition:width .5s cubic-bezier(.22,1,.36,1),background .5s}
+.dots button.on{width:30px;background:var(--blue-bright);box-shadow:0 0 14px color-mix(in srgb,var(--blue-bright) 75%,transparent)}
+.scrollcue{position:absolute;right:clamp(20px,4vw,56px);bottom:clamp(22px,4.5vh,46px);z-index:26;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(143,168,200,.7)}
 
-/* side controls */
-.side{position:fixed;right:clamp(16px,3vw,40px);top:50%;transform:translateY(-50%);z-index:25;display:none;flex-direction:column;gap:14px}
-.side.on{display:flex}
-.sbtn{width:50px;height:50px;border-radius:50%;border:1.5px solid rgba(95,210,130,.18);background:rgba(8,16,11,.5);color:var(--ink);cursor:pointer;display:grid;place-items:center;backdrop-filter:blur(8px);transition:.2s}
-.sbtn:hover{border-color:var(--green);color:var(--green-bright);box-shadow:0 0 24px rgba(67,224,107,.3)}
-.sbtn svg{width:18px;height:18px}
-.sbtn.play{position:relative}
-.sbtn.play .rg{position:absolute;inset:-1.5px;border-radius:50%;border:1.5px solid transparent;border-top-color:var(--green);animation:spin 4s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-body.paused .sbtn.play .rg{animation-play-state:paused;opacity:.3}
+/* ---- scroll-down marquee (ported from link 2, faded-gradient text) ---- */
+.marquee{position:relative;z-index:10;padding:clamp(70px,11vh,130px) 0;
+  background:linear-gradient(180deg, transparent, rgba(3,8,22,.55) 16%, rgba(3,8,22,.55) 84%, transparent)}
+.marquee .row{display:flex;overflow:hidden}
+.marquee .row+.row{margin-top:6px}
+.mtrack{display:flex;width:max-content;align-items:center;gap:50px;white-space:nowrap;will-change:transform}
+.mtrack.left{animation:mq-left 40s linear infinite}
+.mtrack.right{animation:mq-right 32s linear infinite}
+.mword{display:inline-flex;align-items:center;gap:50px;font-family:var(--font-display);font-size:clamp(50px,8.5vw,120px);line-height:1;letter-spacing:.01em;
+  background:linear-gradient(180deg, rgba(168,196,255,.95) 0%, rgba(59,130,255,.55) 55%, rgba(0,84,250,.12) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.mword::after{content:'';width:14px;height:14px;border-radius:4px;background:linear-gradient(135deg,var(--blue-bright),rgba(0,84,250,.2));-webkit-background-clip:border-box;flex:none}
+@keyframes mq-left{to{transform:translateX(-50%)}}
+@keyframes mq-right{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+.endcap{position:relative;z-index:10;text-align:center;padding:0 24px clamp(50px,9vh,110px)}
+.endcap h2{font-family:var(--font-display);font-size:clamp(34px,5vw,66px);text-transform:uppercase;letter-spacing:.01em}
+.endcap p{margin-top:12px;color:var(--dim);font-size:14px;font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase}
 
-/* thumb strip */
-.strip{position:fixed;right:clamp(16px,3vw,40px);bottom:clamp(20px,4vh,40px);z-index:25;display:none;align-items:center;gap:14px}
-.strip.on{display:flex}
-.strip .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
-.thumbs{display:flex;gap:8px}
-.thumb{width:38px;height:53px;border-radius:7px;overflow:hidden;border:1.5px solid rgba(95,210,130,.18);cursor:pointer;background:#08110b;transition:.2s;flex:none}
-.thumb img{width:100%;height:100%;object-fit:cover;filter:brightness(.78)}
-.thumb:hover{transform:translateY(-3px)}
-.thumb.on{border-color:var(--accent);box-shadow:0 0 16px color-mix(in srgb,var(--accent) 60%,transparent)}
-.thumb.on img{filter:brightness(1.05)}
-
-/* loader */
-.loader{position:fixed;inset:0;z-index:80;background:#070f0a;display:grid;place-items:center}
-.ld-mark{font-family:var(--font-display);font-weight:400;letter-spacing:.2em;font-size:clamp(44px,7.5vw,92px);line-height:1;border:3px solid var(--ink);padding:16px 24px 10px;display:inline-block;clip-path:inset(0 100% 0 0)}
-.ld-mark .k{color:var(--green-bright)}
-.ld-bar{width:min(280px,60vw);height:2px;background:rgba(95,210,130,.18);margin:30px auto 12px;overflow:hidden}
-.ld-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--green-bright));box-shadow:0 0 14px var(--green)}
-.ld-meta{display:flex;justify-content:space-between;width:min(280px,60vw);margin:0 auto;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
-.ld-count{color:var(--green-bright)}.ld-wrap{text-align:center}
-
-@media (max-width:860px){ .nav,.strip .lbl{display:none} .feature{max-width:84vw;bottom:118px} .pick-row{flex-wrap:wrap;justify-content:center;gap:36px 28px} :root{--cw:clamp(260px,70vw,420px)} }
+@media (max-width:860px){
+  .nav,.scrollcue{display:none}
+  .feature{max-width:84vw;bottom:96px}
+  :root{--cw:clamp(220px,66vw,380px)}
+}
 </style>
 </head>
 <body>
-  <canvas id="topo"></canvas>
+  <div id="bg"></div>
   <div class="vign"></div>
 
+  <div id="intro"><div class="word">CARD<span class="x">X</span></div></div>
+
   <header class="topbar">
-    <span class="brand">PO<span class="k">KE</span>X</span>
-    <nav class="nav"><a class="on" data-home>Explore</a><a>Sets</a><a>Rip Lab</a><a>Binder</a></nav>
-    <span class="brand" style="border-color:rgba(95,210,130,.2);color:var(--dim);font-size:12px;letter-spacing:.18em">CONCEPT</span>
+    <span class="brand">CARD<span class="k">X</span></span>
+    <nav class="nav"><a class="on">Explore</a><a>Sets</a><a>Rip Lab</a><a>Binder</a></nav>
+    <button class="burger" aria-label="Menu"><span></span><span></span></button>
   </header>
 
-  <section class="picker" id="picker">
-    <div class="pick-head"><div class="eye">P® Cards</div><h1>Pick a universe</h1></div>
-    <div class="pick-row" id="pickRow"></div>
-  </section>
-  <div class="pick-hint" id="pickHint">Four universes · every chase card · one place</div>
+  <main>
+    <section class="hero">
+      <div class="tilt"><div class="ring" id="ring"></div></div>
 
-  <button class="backbtn" id="backbtn">← Universes</button>
-  <main class="scene" id="scene"><div class="tilt"><div class="ring" id="ring"></div></div></main>
+      <section class="feature" id="feature">
+        <div class="fmeta" id="fMeta"></div>
+        <h1 class="ftitle" id="fTitle"></h1>
+        <p class="fsub" id="fSub"></p>
+        <div class="fprice"><span class="v" id="fPrice"></span><span class="l">market value</span></div>
+        <div><button class="enter" id="enter">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+      </section>
 
-  <section class="feature" id="feature">
-    <div class="fpill"><span class="hot">🔥 CHASE</span><span class="tags" id="fTags"></span></div>
-    <h1 class="ftitle" id="fTitle"></h1>
-    <p class="fsub" id="fSub"></p>
-    <div class="fprice"><span class="v" id="fPrice"></span><span class="l">market value</span></div>
-    <div><button class="enter" id="enter">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
-  </section>
+      <div class="dots" id="dots"></div>
+      <div class="scrollcue">Scroll ↓</div>
+    </section>
 
-  <div class="side" id="side">
-    <button class="sbtn play" id="play" title="Pause"><span class="rg"></span><svg id="playIc" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="5" width="3.4" height="14" rx="1"/><rect x="13.6" y="5" width="3.4" height="14" rx="1"/></svg></button>
-    <button class="sbtn" id="next" title="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
-    <button class="sbtn" id="prev" title="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
-  </div>
+    <section class="marquee">
+      <div class="row"><div class="mtrack left" id="mqA"></div></div>
+      <div class="row"><div class="mtrack right" id="mqB"></div></div>
+    </section>
 
-  <div class="strip" id="strip"><span class="lbl">Chase cards</span><div class="thumbs" id="thumbs"></div></div>
+    <div class="endcap">
+      <h2>Every chase card. One place.</h2>
+      <p>Pokémon · Magic · Lorcana · One Piece</p>
+    </div>
+  </main>
 
-  <div class="loader" id="loader"><div class="ld-wrap">
-    <div class="ld-mark" id="ldMark">PO<span class="k">KE</span>X</div>
-    <div class="ld-bar"><i id="ldBar"></i></div>
-    <div class="ld-meta"><span>Loading the vault</span><span class="ld-count" id="ldCount">0%</span></div>
-  </div></div>
-
+  <script src="vendor/three.min.js"></script>
   <script src="vendor/gsap.min.js"></script>
   <script>
   (() => {
@@ -178,189 +149,210 @@ body.paused .sbtn.play .rg{animation-play-state:paused;opacity:.3}
     const $ = (s) => document.querySelector(s);
     const fmt = (p) => '$' + p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    const UNIVERSES = [
-      { key:'Pokémon',  short:'Pokémon',  accent:'#ffcb05', logo:'assets/logos/pokemon.png' },
-      { key:'Magic',    short:'Magic',    accent:'#e8943b', logo:'assets/logos/magic.png' },
-      { key:'Lorcana',  short:'Lorcana',  accent:'#7fd4f4', logo:'assets/logos/lorcana.png' },
-      { key:'One Piece',short:'One Piece',accent:'#ff5b4d', logo:'assets/logos/onepiece.png' },
-    ];
-    const T = 'https://assets.tcgdex.net/en/me/', S = 'https://cards.scryfall.io/large/front/', D = 'https://static.dotgg.gg/onepiece/card/', L = 'https://cards.lorcast.io/card/digital/large/';
     const ALL = [
       {uni:'Pokémon',name:'Umbreon ex',set:'Prismatic Evolutions',rar:'Special Illustration Rare',price:1557.92,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/sv/sv08.5/161/high.png'},
       {uni:'Pokémon',name:'Mega Gengar ex',set:'Ascended Heroes',rar:'Special Illustration Rare',price:1384.78,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/me/me02.5/284/high.png'},
       {uni:'Pokémon',name:'Pikachu ex',set:'Ascended Heroes',rar:'Special Illustration Rare',price:1276.19,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/me/me02.5/276/high.png'},
       {uni:'Pokémon',name:'Mew ex',set:'Paldean Fates',rar:'Special Illustration Rare',price:968.49,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/sv/sv04.5/232/high.png'},
-      {uni:'Pokémon',name:'Team Rocket\'s Mewtwo ex',set:'Destined Rivals',rar:'Special Illustration Rare',price:567.98,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/sv/sv10/231/high.png'},
-      {uni:'Pokémon',name:'Sylveon ex',set:'Prismatic Evolutions',rar:'Special Illustration Rare',price:502.98,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/sv/sv08.5/156/high.png'},
-      {uni:'Pokémon',name:'Charizard ex',set:'151',rar:'Special Illustration Rare',price:488.8,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/sv/sv03.5/199/high.png'},
-      {uni:'Pokémon',name:'Greninja ex',set:'Twilight Masquerade',rar:'Special Illustration Rare',price:400.66,accent:'#ffcb05',img:'https://assets.tcgdex.net/en/sv/sv06/214/high.png'},
       {uni:'Magic',name:'Force of Negation',set:'Final Fantasy Region',rar:'Borderless',price:1492.99,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/b/c/bc5376cb-82f6-43c7-bf8b-43515791e082.jpg'},
       {uni:'Magic',name:'Giant Growth',set:'Secret Lair Drop',rar:'Borderless',price:662.0,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/6/5/65a168b8-285b-4725-a982-671557d4f0bc.jpg'},
       {uni:'Magic',name:'Lightning Bolt',set:'Secret Lair Promo',rar:'Borderless',price:623.15,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/b/9/b9399b98-a545-47b2-99bb-6d8251d9ae76.jpg'},
       {uni:'Magic',name:'Mox Opal',set:'Double Masters',rar:'Borderless',price:342.82,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/5/4/547e3aa5-d88a-4418-ab9d-dd65385f031b.jpg'},
-      {uni:'Magic',name:'Jace, the Mind Sculptor',set:'Secret Lair Drop',rar:'Borderless',price:299.89,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/9/d/9d20e671-9b41-4591-b1ef-2a297411beb7.jpg'},
-      {uni:'Magic',name:'Aerith Gainsborough',set:'Pro Tour Promos',rar:'Borderless',price:251.08,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/f/0/f020aa2f-cc1b-4bb4-bf05-4050ea935d66.jpg'},
-      {uni:'Magic',name:'Tom Bombadil',set:'The Lord of the Ring',rar:'Borderless',price:219.91,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/a/d/ad53e3d4-f907-4f46-9fd9-b23067ce9b82.jpg'},
-      {uni:'Magic',name:'Rograkh, Son of Rohgahh',set:'MagicFest 2025',rar:'Borderless',price:188.86,accent:'#e8943b',img:'https://cards.scryfall.io/large/front/0/5/05e9d580-5da2-4559-b611-870726c53791.jpg'},
       {uni:'One Piece',name:'Buggy',set:'OP09',rar:'Alt-Art',price:1479.32,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/OP09-051_p2.webp'},
       {uni:'One Piece',name:'Marshall D Teach',set:'OP09',rar:'Alt-Art',price:1446.5,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/OP09-093_p2.webp'},
       {uni:'One Piece',name:'Monkey D Luffy',set:'EB02',rar:'Alt-Art',price:1388.75,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/EB02-010_p2.webp'},
       {uni:'One Piece',name:'Portgas D Ace',set:'OP13',rar:'Alt-Art',price:1315.33,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/OP13-119_p2.webp'},
-      {uni:'One Piece',name:'Tony Tony Chopper',set:'EB01',rar:'Alt-Art',price:1267.5,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/EB01-006_p3.webp'},
-      {uni:'One Piece',name:'Trafalgar Law',set:'ST10',rar:'Alt-Art',price:1251.96,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/ST10-010_p1.webp'},
-      {uni:'One Piece',name:'Sanji',set:'OP09',rar:'Alt-Art',price:1200.0,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/OP09-065_p2.webp'},
-      {uni:'One Piece',name:'Nami',set:'EB03',rar:'Alt-Art',price:1198.57,accent:'#ff5b4d',img:'https://static.dotgg.gg/onepiece/card/EB03-053_p2.webp'},
       {uni:'Lorcana',name:'Cinderella',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_eaf7db4a652b47939bddb0db4c9030e9.avif'},
       {uni:'Lorcana',name:'Minnie Mouse',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_b20587f1945e42d59b750f9b69cc4a6b.avif'},
-      {uni:'Lorcana',name:'Look at This Family',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_7bd65d4574434dd3ba908203c8cea774.avif'},
       {uni:'Lorcana',name:'Ursula',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_68c45595c25041f3bcf2073a5b533edd.avif'},
-      {uni:'Lorcana',name:'Yen Sid',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_34dd94ad32194a96931c9e2ff311ad26.avif'},
-      {uni:'Lorcana',name:'Second Star to the Right',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_45acf301d7e2469fb961cc1f06bd2889.avif'},
-      {uni:'Lorcana',name:'Diablo',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_93ab5d88940f4610a375a928963a570f.avif'},
-      {uni:'Lorcana',name:'Jasmine',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_54e413e671dc4fa3872b3481db960d47.avif'}
+      {uni:'Lorcana',name:'Yen Sid',set:'Enchanted · Ursula',rar:'Enchanted',price:null,accent:'#7fd4f4',img:'https://cards.lorcast.io/card/digital/large/crd_34dd94ad32194a96931c9e2ff311ad26.avif'}
     ];
+    // interleave universes so the wheel cycles through colours as it spins
+    const byUni = (u) => ALL.filter((c) => c.uni === u);
+    const groups = [byUni('Pokémon'), byUni('Magic'), byUni('One Piece'), byUni('Lorcana')];
+    const WHEEL = [];
+    for (let i = 0; i < 4; i++) groups.forEach((g) => { if (g[i]) WHEEL.push(g[i]); });
 
-    // ---------- state ----------
-    let CARDS = [], N = 0, STEP = 0, cards = [], active = 0, autoplay = true, autoTimer = 0, R = 900;
-    const ring = $('#ring'), thumbsEl = $('#thumbs');
+    // ---------- build the ring ----------
+    const ring = $('#ring'), dotsEl = $('#dots');
+    const N = WHEEL.length, STEP = 360 / N;
+    let cards = [];
+    WHEEL.forEach((c, i) => {
+      const el = document.createElement('div');
+      el.className = 'card'; el.dataset.i = i; el.style.setProperty('--accent', c.accent);
+      el.innerHTML = `<div class="face front" style="background-image:url('${c.img}')"><span class="edge"></span></div><div class="face back"></div>`;
+      el.addEventListener('click', () => seekTo(i));
+      ring.appendChild(el);
+      const d = document.createElement('button'); d.dataset.i = i;
+      d.addEventListener('click', () => seekTo(i));
+      dotsEl.appendChild(d);
+    });
+    cards = [...ring.children];
+    const dots = [...dotsEl.children];
 
-    function buildRing(subset) {
-      CARDS = subset; N = subset.length; STEP = 360 / N; active = 0;
-      ring.replaceChildren(); thumbsEl.replaceChildren();
-      subset.forEach((c, i) => {
-        const el = document.createElement('div'); el.className = 'card'; el.dataset.i = i; el.style.setProperty('--accent', c.accent);
-        el.innerHTML = `<div class="face front" style="background-image:url('${c.img}')"><span class="edge"></span></div>
-          <div class="face back"><span class="uni-l">${c.uni}</span><span class="emblem"><img class="pb" src="assets/pokex-ball.png" alt=""></span><span class="bk">POKEX</span></div>`;
-        el.addEventListener('click', () => { if (+el.dataset.i !== active) setActive(+el.dataset.i); });
-        ring.appendChild(el);
-        const t = document.createElement('button'); t.className = 'thumb'; t.dataset.i = i; t.style.setProperty('--accent', c.accent);
-        t.innerHTML = `<img src="${c.img}" alt="${c.name}">`;
-        t.addEventListener('click', () => setActive(i));
-        thumbsEl.appendChild(t);
-      });
-      cards = [...ring.children];
-      placeCards(); layout(); updateFeature();
+    // ---------- geometry / continuous spin ----------
+    let RX = 760, RZ = 380;                 // wide + shallow = oval, not a circle
+    function sizeRing() {
+      RX = Math.max(440, Math.min(innerWidth * 0.52, 880));
+      RZ = RX * 0.46;
     }
-    function placeCards() { cards.forEach((el, i) => el.style.transform = `rotateY(${i * STEP}deg) translateZ(${R}px)`); }
-    function layout() {
-      ring.style.transform = `translateZ(${-R}px) rotateY(${-active * STEP}deg)`;
+    sizeRing(); addEventListener('resize', sizeRing);
+
+    let rot = 0;                            // ring rotation, degrees
+    let target = null;                      // when seeking to a dot/card
+    let paused = false;                     // hover-pause
+    const SPIN = 6.5;                       // degrees / second — slow drift
+    let active = -1;
+
+    function place() {
+      for (let i = 0; i < N; i++) {
+        const a = (i * STEP + rot) * Math.PI / 180;
+        const x = Math.sin(a) * RX, z = Math.cos(a) * RZ;
+        cards[i].style.transform = `translate3d(${x}px,0,${z}px) rotateY(${i * STEP + rot}deg)`;
+        cards[i].style.zIndex = String(1000 + Math.round(z));
+      }
+    }
+    function updateActive() {
+      const idx = ((Math.round(-rot / STEP) % N) + N) % N;
+      if (idx === active) return;
+      active = idx;
       cards.forEach((el, i) => el.classList.toggle('is-active', i === active));
-      [...thumbsEl.children].forEach((t, i) => t.classList.toggle('on', i === active));
-    }
-    function updateFeature() {
-      const c = CARDS[active]; if (!c) return;
+      dots.forEach((d, i) => d.classList.toggle('on', i === active));
+      const c = WHEEL[active];
       document.documentElement.style.setProperty('--accent', c.accent);
-      gsap.fromTo('#feature', { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: .5, ease: 'power2.out' });
-      $('#fTags').textContent = c.uni + ' · ' + c.set;
+      $('#fMeta').textContent = c.uni + ' · ' + c.set;
       $('#fTitle').textContent = c.name;
       $('#fSub').textContent = c.rar + ' — a chase of ' + c.uni + '.';
       const fp = document.querySelector('.fprice');
       if (c.price != null) { fp.style.display = 'inline-flex'; $('#fPrice').textContent = fmt(c.price); }
       else { fp.style.display = 'none'; }
+      gsap.fromTo('.feature', { opacity: .25, x: -14 }, { opacity: 1, x: 0, duration: .5, ease: 'power2.out' });
     }
-    function setActive(i) { active = ((i % N) + N) % N; layout(); updateFeature(); restartAuto(); }
-    function step(d) { setActive(active + d); }
-    function restartAuto() { clearInterval(autoTimer); if (autoplay && view === 'carousel') autoTimer = setInterval(() => step(1), 4600); }
-
-    // ---------- view switching ----------
-    let view = 'picker';
-    function enterUniverse(uni) {
-      view = 'carousel';
-      buildRing(ALL.filter((c) => c.uni === uni));
-      gsap.to('#picker', { opacity: 0, scale: 1.1, duration: .5, ease: 'power2.in', onComplete: () => $('#picker').style.display = 'none' });
-      gsap.to('#pickHint', { opacity: 0, duration: .3 });
-      $('#scene').classList.add('on'); $('#feature').classList.add('on'); $('#side').classList.add('on'); $('#strip').classList.add('on'); $('#backbtn').classList.add('on');
-      gsap.fromTo('#scene', { opacity: 0 }, { opacity: 1, duration: .6, delay: .25 });
-      gsap.fromTo('.tilt', { opacity: 0, scale: .8, rotationY: -30 }, { opacity: 1, scale: 1, rotationY: 0, duration: 1.1, ease: 'power3.out', delay: .25 });
-      gsap.fromTo(['#side', '#strip', '#backbtn'], { opacity: 0 }, { opacity: 1, duration: .5, delay: .5, stagger: .06 });
-      restartAuto();
-    }
-    function backToPicker() {
-      view = 'picker'; clearInterval(autoTimer);
-      $('#scene').classList.remove('on'); $('#feature').classList.remove('on'); $('#side').classList.remove('on'); $('#strip').classList.remove('on'); $('#backbtn').classList.remove('on');
-      document.documentElement.style.setProperty('--accent', '#43e06b');
-      const p = $('#picker'); p.style.display = 'grid';
-      gsap.fromTo('#picker', { opacity: 0, scale: .94 }, { opacity: 1, scale: 1, duration: .6, ease: 'power2.out' });
-      gsap.fromTo('.uni', { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: .6, stagger: .08, ease: 'power2.out' });
-      gsap.to('#pickHint', { opacity: 1, duration: .4, delay: .2 });
-      floatLogos();
+    function seekTo(i) {
+      // shortest rotation that brings card i to the front (i*STEP + rot ≡ 0)
+      let want = -i * STEP;
+      while (want - rot > 180) want -= 360;
+      while (want - rot < -180) want += 360;
+      target = want;
     }
 
-    // ---------- picker build ----------
-    const pickRow = $('#pickRow');
-    UNIVERSES.forEach((u) => {
-      const b = document.createElement('button'); b.className = 'uni'; b.style.setProperty('--accent', u.accent);
-      b.innerHTML = `<img class="logo" src="${u.logo}" alt="${u.short}"><span class="disc"></span><span class="nm">${u.short}</span>`;
-      b.addEventListener('click', () => enterUniverse(u.key));
-      pickRow.appendChild(b);
-    });
-    const uniLogos = [...document.querySelectorAll('.uni .logo')];
-    function floatLogos() {
-      uniLogos.forEach((img, i) => {
-        gsap.killTweensOf(img);
-        gsap.set(img, { transformOrigin: '50% 60%' });
-        gsap.to(img, { rotationY: 18, duration: 2.6 + i * .2, ease: 'sine.inOut', yoyo: true, repeat: -1, startAt: { rotationY: -18 } });
-        gsap.to(img, { y: -16, duration: 2.2 + i * .15, ease: 'sine.inOut', yoyo: true, repeat: -1 });
-      });
-    }
-
-    // ---------- controls ----------
-    $('#next').onclick = () => step(1);
-    $('#prev').onclick = () => step(-1);
-    $('#enter').onclick = () => { const c = cards[active]; gsap.timeline().to(c, { scale: 1.07, duration: .2 }).to('.tilt', { scale: 2.3, opacity: 0, duration: .6, ease: 'power3.in' }, '>-.02').add(() => { gsap.set('.tilt', { scale: 1, opacity: 1 }); gsap.set(c, { scale: 1 }); gsap.from('.tilt', { opacity: 0, scale: .9, duration: .5 }); }); };
-    $('#backbtn').onclick = backToPicker;
-    $('#play').onclick = () => { autoplay = !autoplay; document.body.classList.toggle('paused', !autoplay);
-      $('#playIc').innerHTML = autoplay ? '<rect x="7" y="5" width="3.4" height="14" rx="1"/><rect x="13.6" y="5" width="3.4" height="14" rx="1"/>' : '<path d="M8 5v14l11-7z"/>'; restartAuto(); };
-    $('[data-home]').onclick = () => { if (view === 'carousel') backToPicker(); };
-    addEventListener('keydown', (e) => { if (view !== 'carousel') return; if (e.key === 'ArrowRight') step(1); else if (e.key === 'ArrowLeft') step(-1); else if (e.key === 'Escape') backToPicker(); });
-    let dragX = null, acc = 0;
-    addEventListener('pointerdown', (e) => { if (view !== 'carousel' || e.target.closest('.sbtn,.enter,.thumb,.nav,.backbtn')) return; dragX = e.clientX; });
-    addEventListener('pointermove', (e) => { if (dragX === null) return; const dx = e.clientX - dragX; if (Math.abs(dx) > 80) { step(dx < 0 ? 1 : -1); dragX = e.clientX; } });
-    addEventListener('pointerup', () => dragX = null);
-    addEventListener('wheel', (e) => { if (view !== 'carousel') return; acc += e.deltaY + e.deltaX; if (Math.abs(acc) > 110) { step(acc > 0 ? 1 : -1); acc = 0; } }, { passive: true });
-    window.__deck = { enterUniverse, backToPicker, setActive, step, pause: () => { autoplay = false; clearInterval(autoTimer); document.body.classList.add('paused'); } };
-
-    // ---------- topo ----------
-    const cv = $('#topo'), cx2 = cv.getContext('2d');
-    let W, H, cX, cY;
-    function size() { W = cv.width = innerWidth; H = cv.height = innerHeight; cX = W * .5; cY = H * .36; }
-    size(); addEventListener('resize', () => { size(); if (view === 'carousel') { placeCards(); layout(); } });
-    const hex = (h) => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
-    let curCol = [67, 224, 107];
-    function draw(t) {
-      cx2.clearRect(0, 0, W, H);
-      const a = hex((getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#43e06b'));
-      curCol = curCol.map((c, k) => c + (((a[k] + 67 * 2) / 3 - c) * .04));
-      for (let i = 0; i < 30; i++) {
-        cx2.beginPath();
-        for (let aa = 0; aa <= 6.4; aa += .14) { const wob = Math.sin(aa * 3 + t * .0004 + i * .55) * 12 + Math.sin(aa * 5 - t * .00028 + i) * 7; const r = 50 + i * 36 + wob; const x = cX + Math.cos(aa) * r * 1.7, y = cY + Math.sin(aa) * r * .92; aa === 0 ? cx2.moveTo(x, y) : cx2.lineTo(x, y); }
-        cx2.closePath(); cx2.strokeStyle = `rgba(${curCol[0]|0},${curCol[1]|0},${curCol[2]|0},${i % 5 === 0 ? .085 : .035})`; cx2.lineWidth = i % 5 === 0 ? 1.3 : 1; cx2.stroke();
+    let last = 0;
+    function frame(now) {
+      const dt = last ? Math.min((now - last) / 1000, 0.05) : 0; last = now;
+      if (target !== null) {
+        rot += (target - rot) * 0.12;
+        if (Math.abs(target - rot) < 0.05) { rot = target; target = null; }
+      } else if (!paused) {
+        rot -= SPIN * dt;                   // negative = forward spin through the list
       }
-      requestAnimationFrame(draw);
+      place(); updateActive();
+      requestAnimationFrame(frame);
     }
-    requestAnimationFrame(draw);
+    requestAnimationFrame(frame);
 
-    // ---------- intro → picker ----------
-    gsap.set(['.topbar', '.picker', '#pickHint'], { opacity: 0 });
-    function intro() {
-      const c = { v: 0 };
-      gsap.timeline()
-        .to('#ldMark', { clipPath: 'inset(0 0% 0 0)', duration: 1.0, ease: 'power2.inOut' })
-        .to('#ldBar', { width: '100%', duration: 1.5, ease: 'power1.inOut' }, 0)
-        .to(c, { v: 100, duration: 1.5, ease: 'power1.inOut', onUpdate: () => $('#ldCount').textContent = Math.round(c.v) + '%' }, 0)
-        .to('#loader', { autoAlpha: 0, duration: .6 }, '+=.12')
-        .to('.topbar', { opacity: 1, duration: .6 }, '-=.3')
-        .to('.picker', { opacity: 1, duration: .5 }, '-=.4')
-        .from('.pick-head .eye', { opacity: 0, y: 12, duration: .5 }, '-=.2')
-        .from('.pick-head h1', { opacity: 0, y: 18, duration: .6 }, '-=.3')
-        .from('.uni', { opacity: 0, y: 40, scale: .8, duration: .8, stagger: .1, ease: 'power3.out' }, '-=.3')
-        .to('#pickHint', { opacity: 1, duration: .5 }, '-=.3')
-        .add(floatLogos, '-=.6');
-    }
-    let booted = false; const boot = () => { if (booted) return; booted = true; intro(); };
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(boot, 40));
-    setTimeout(boot, 600);
-    setTimeout(() => { if (getComputedStyle($('#loader')).opacity !== '0') { gsap.set('#loader', { autoAlpha: 0 }); gsap.set(['.topbar', '.picker', '#pickHint'], { opacity: 1 }); floatLogos(); } }, 4800);
+    // hover the wheel to pause the drift; arrows + enter
+    const hero = document.querySelector('.hero');
+    hero.addEventListener('pointerenter', () => paused = true);
+    hero.addEventListener('pointerleave', () => paused = false);
+    addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') seekTo((active + 1) % N);
+      else if (e.key === 'ArrowLeft') seekTo((active - 1 + N) % N);
+    });
+    $('#enter').onclick = () => gsap.fromTo(cards[active], { scale: 1 }, { scale: 1.06, duration: .18, yoyo: true, repeat: 1, ease: 'power2.out' });
+
+    // ---------- marquee (faded-gradient moving text) ----------
+    const WORDS_A = ['POKÉMON', 'CHASE HITS', 'MAGIC', 'GRADED 10', 'ONE PIECE', 'SEALED', 'LORCANA', 'ALT ART'];
+    const WORDS_B = ['SPECIAL ILLUSTRATION', 'VAULT', 'BORDERLESS', 'ENCHANTED', 'SECRET RARE', 'THE HUNT'];
+    const fillTrack = (el, words) => {
+      const set = words.map((w) => `<span class="mword">${w}</span>`).join('');
+      el.innerHTML = set + set;            // duplicate for a seamless loop
+    };
+    fillTrack($('#mqA'), WORDS_A);
+    fillTrack($('#mqB'), WORDS_B);
+
+    // ---------- mouse-reactive WebGL background (ported from link 2) ----------
+    (function background() {
+      if (!window.THREE) return;
+      const mount = $('#bg');
+      const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      renderer.setSize(innerWidth, innerHeight);
+      mount.appendChild(renderer.domElement);
+      const scene = new THREE.Scene();
+      const camera = new THREE.Camera();
+      const uniforms = {
+        uTime: { value: 0 },
+        uRes: { value: new THREE.Vector2(innerWidth, innerHeight) },
+        uMouse: { value: new THREE.Vector2(0, 0) }
+      };
+      const FRAG = `
+        precision highp float;
+        uniform float uTime; uniform vec2 uRes; uniform vec2 uMouse;
+        vec2 hash2(vec2 p){ p=vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))); return -1.0+2.0*fract(sin(p)*43758.5453123); }
+        float noise(vec2 p){ vec2 i=floor(p),f=fract(p); vec2 u=f*f*(3.0-2.0*f);
+          return mix(mix(dot(hash2(i+vec2(0,0)),f-vec2(0,0)),dot(hash2(i+vec2(1,0)),f-vec2(1,0)),u.x),
+                     mix(dot(hash2(i+vec2(0,1)),f-vec2(0,1)),dot(hash2(i+vec2(1,1)),f-vec2(1,1)),u.x),u.y); }
+        float fbm(vec2 p){ float v=0.0,a=0.5; mat2 m=mat2(1.6,1.2,-1.2,1.6);
+          for(int i=0;i<4;i++){ v+=a*noise(p); p=m*p; a*=0.5; } return v; }
+        void main(){
+          vec2 uv=(gl_FragCoord.xy-0.5*uRes)/uRes.y; float t=uTime*0.06;
+          float warp=fbm(uv*1.8+vec2(t,t*0.4)+uMouse*0.15)*2.4;
+          float h=uv.y*11.0+warp+uv.x*1.5;
+          float lines=pow(0.5+0.5*cos(h*6.2831),80.0);
+          lines*=smoothstep(1.1,0.1,length(uv)*0.7);
+          vec3 base=vec3(0.010,0.017,0.045);
+          vec3 lineCol=mix(vec3(0.10,0.26,0.72),vec3(0.35,0.5,0.95),lines);
+          vec3 col=base+lines*lineCol*0.58;
+          float glow=smoothstep(0.9,0.0,length(uv*vec2(1.4,1.0)));
+          col+=glow*vec3(0.0,0.30,0.95)*0.10;
+          col*=mix(0.6,1.0,smoothstep(-0.7,0.5,uv.y));
+          col*=mix(0.45,1.0,smoothstep(1.5,0.2,length(uv)));
+          gl_FragColor=vec4(col,1.0);
+        }`;
+      const material = new THREE.ShaderMaterial({
+        vertexShader: 'void main(){ gl_Position=vec4(position,1.0); }',
+        fragmentShader: FRAG, uniforms, depthTest: false, depthWrite: false
+      });
+      scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material));
+      const m = { x: 0, y: 0 };
+      addEventListener('pointermove', (e) => { m.x = (e.clientX / innerWidth) * 2 - 1; m.y = -((e.clientY / innerHeight) * 2 - 1); });
+      addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); uniforms.uRes.value.set(innerWidth, innerHeight); });
+      const start = performance.now();
+      (function tick() {
+        uniforms.uTime.value = (performance.now() - start) / 1000;
+        uniforms.uMouse.value.x += (m.x - uniforms.uMouse.value.x) * 0.04;
+        uniforms.uMouse.value.y += (m.y - uniforms.uMouse.value.y) * 0.04;
+        renderer.render(scene, camera);
+        requestAnimationFrame(tick);
+      })();
+    })();
+
+    // ---------- intro dismissal (robust: never strands if the tab is hidden) ----------
+    const intro = $('#intro');
+    // wrap each character so it can animate in (CARD text + the X span)
+    (function stagger() {
+      const word = intro.querySelector('.word');
+      const letters = [];
+      word.childNodes.forEach((n) => {
+        if (n.nodeType === 3) { // text node "CARD"
+          const frag = document.createDocumentFragment();
+          n.textContent.split('').forEach((ch) => { const s = document.createElement('span'); s.textContent = ch; frag.appendChild(s); letters.push(s); });
+          word.replaceChild(frag, n);
+        } else { letters.push(n); }
+      });
+      [...word.children].forEach((s, i) => s.style.animationDelay = (i * 0.08) + 's');
+    })();
+    let introGone = false;
+    const t0 = performance.now();
+    const killIntro = () => { if (introGone) return; introGone = true; intro.remove(); };
+    setTimeout(() => intro.classList.add('leaving'), 2100);
+    setTimeout(killIntro, 3050);
+    // Only a backstop: if the tab was frozen and the timers never ran, force the
+    // intro away once we're past when it should already be gone. Never cuts the
+    // animation short on a normal load.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && performance.now() - t0 > 3000) killIntro();
+    });
   })();
   </script>
 </body>

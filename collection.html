@@ -209,7 +209,7 @@ main { max-width: 1280px; margin: 0 auto; padding: var(--s-4) var(--s-5) var(--s
       for (const { setId, setName, card } of entries) {
         const a = document.createElement('a');
         a.className = 'tile';
-        a.href = `index.html?set=${encodeURIComponent(setId)}&card=${card.num}`;
+        a.href = `app.html?set=${encodeURIComponent(setId)}&card=${card.num}`;
         const img = document.createElement('img');
         img.loading = 'lazy';
         img.alt = card.name;

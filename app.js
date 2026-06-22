@@ -2345,14 +2345,11 @@
     homeEl.hidden = false;
     document.body.classList.add('home-open');
     buildHome();
-    $('hvHero').hidden = false; $('hvPick').hidden = true; $('hvSets').hidden = true;
+    // straight to the universe picker — the "Every card / One wheel" splash is gone
+    $('hvHero').hidden = true; $('hvPick').hidden = false; $('hvSets').hidden = true;
     if (window.gsap && !REDUCED) {
-      gsap.set('#hvHero', { clearProps: 'opacity,scale,filter' });
-      gsap.fromTo('.hv-hero .hero-kicker', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out', delay: 0.1 });
-      gsap.fromTo('.hv-hero .ht1, .hv-hero .ht2', { opacity: 0, filter: 'blur(22px)', y: 30 },
-        { opacity: 1, filter: 'blur(0px)', y: 0, duration: 1.1, ease: 'power3.out', stagger: 0.15, delay: 0.18 });
-      gsap.fromTo('.hv-hero .hero-sub, .hv-hero .get-started', { opacity: 0, y: 14 },
-        { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out', stagger: 0.1, delay: 0.72 });
+      gsap.fromTo('#hvPick .pick-prompt', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' });
+      gsap.fromTo('#hvPick .pick-logo', { opacity: 0, y: 30, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: 'power3.out', stagger: 0.08, delay: 0.05, clearProps: 'transform' });
     }
   }
   function hideHome() { homeEl.hidden = true; document.body.classList.remove('home-open'); }
@@ -2380,5 +2377,9 @@
   }
   requestAnimationFrame(tick);
   if (!isExternalReq && deepCard >= 1 && deepCard <= N) setTimeout(() => openZoomFor(slotOf[deepCard - 1]), 450);
-  if (!reqSet) showHome(); // no deep-link → land on the home deck first
+  const reqGame = qs.get('game'); // ?game=pokemon → straight into that universe's set-selector (from the new homepage)
+  if (reqGame && HOME_GAMES.some((g) => g.game === reqGame)) {
+    homeEl.hidden = false; document.body.classList.add('home-open'); buildHome();
+    $('hvHero').hidden = true; $('hvPick').hidden = true; goSets(reqGame);
+  } else if (!reqSet) showHome(); // no deep-link → land on the home deck first
 })();
