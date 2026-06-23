@@ -3,107 +3,317 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POKEX — Home</title>
-<meta name="description" content="POKEX — the ultimate card tracker.">
+<title>Crowns — Home</title>
+<meta name="description" content="Crowns — the ultimate card tracker.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --navy:#060c1e; --navy-2:#0b1838; --blue:#3b82ff; --blue-bright:#6aa8ff; --ink:#eaf2ff; --dim:#90a6cc;
-  --gold:#f4c544; --gold-lt:#ffe6a3; --gold-dk:#c8862a;
+  --gold:#ffd24a; --gold-lt:#ffe9a8; --gold-dk:#d99a2e;
   --font:'DM Sans', system-ui, sans-serif; --font-display:'Anton','DM Sans',sans-serif;
-  --cw:clamp(350px, 37.5vw, 550px); --ch:calc(var(--cw) / 0.717);
+  --cw:clamp(300px, 32vw, 475px); --ch:calc(var(--cw) / 0.717);
 }
 *{margin:0;padding:0;box-sizing:border-box;cursor:none}
-html{background:#05091c}
+html{background:#05091c;scroll-behavior:smooth}
 html,body{min-height:100%}
 body{color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden;overflow-y:auto;background:#070d22}
 canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .vign{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(100% 80% at 50% 40%, transparent 40%, rgba(3,7,18,.6) 100%)}
 
-/* custom cursor — traditional arrow, white + neon-blue outline */
+/* custom cursor — white arrow with a neon-blue outline */
 .cursor{position:fixed;top:0;left:0;z-index:99999;width:20px;height:27px;pointer-events:none;
-  transform-origin:0 0;transition:transform .14s ease, opacity .2s;will-change:left,top;
+  transition:transform .14s ease, opacity .2s;will-change:left,top}
+.cursor .cur-arrow{display:block;width:100%;height:100%;transform-origin:0 0;
   filter:drop-shadow(0 1px 2px rgba(0,0,0,.5)) drop-shadow(0 0 3px rgba(106,168,255,.85))}
-.cursor svg{display:block;width:100%;height:100%}
-.cursor path{fill:#fff;stroke:var(--blue-bright);stroke-width:1.7;stroke-linejoin:round}
-.cursor.down{transform:scale(.84)}
-.cursor.hover{transform:scale(1.2)}
-.cursor.hover path{fill:var(--gold);stroke:#fff}
+.cursor .cur-arrow path{fill:#fff;stroke:var(--blue-bright);stroke-width:1.7;stroke-linejoin:round}
+.cursor.down{transform:scale(.86)}
+.cursor.hover{transform:scale(1.12)}
 .cursor.hide{opacity:0}
 
 /* top bar */
-.topbar{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:22px clamp(20px,4vw,54px)}
-.brand{display:inline-flex;align-items:center;border:2px solid var(--ink);font-family:var(--font-display);padding:8px 13px 5px;letter-spacing:.16em;font-size:19px;line-height:1}
-.brand .k{color:var(--blue-bright)}
-.nav{display:flex;gap:clamp(16px,2.4vw,40px)}
-.nav a{color:rgba(234,242,255,.78);text-decoration:none;font-family:var(--font-display);font-size:18px;letter-spacing:.05em;transition:color .2s;position:relative}
-.nav a:hover,.nav a.on{color:#fff}
-.nav a.on::after{content:'';position:absolute;left:0;right:0;bottom:-5px;height:2px;background:var(--gold)}
-.nav a.new::before{content:'NEW';position:absolute;top:-9px;right:-22px;font-family:var(--font);font-weight:600;font-size:8px;letter-spacing:.1em;color:var(--gold);background:color-mix(in srgb,var(--gold) 16%,transparent);border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);border-radius:6px;padding:1px 4px}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:18px clamp(20px,4vw,54px)}
+.brand{display:inline-flex;align-items:center;border:2px solid var(--blue-bright);font-family:var(--font-display);padding:8px 13px 5px;letter-spacing:.16em;font-size:19px;line-height:1;text-transform:uppercase;color:var(--gold);background:rgba(7,13,32,.55);backdrop-filter:blur(10px);text-shadow:0 0 12px rgba(255,210,74,.35);box-shadow:0 0 16px -4px rgba(106,168,255,.4)}
+.brand .k{color:var(--blue-bright);text-shadow:0 0 12px rgba(106,168,255,.5)}
+.nav{display:flex;align-items:center;gap:clamp(40px,5.3vw,102px);position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:11px clamp(18px,1.9vw,28px)}
+/* premium frosted-glass HUD bar — floats just under the top edge and blurs the topo behind it.
+   thin gold hairline + uppercase, wide-tracked type → modern, understated, not a banner */
+.nav::before{content:'';position:absolute;inset:0;z-index:-1;border-radius:14px;
+  background:linear-gradient(180deg,rgba(23,33,62,.5),rgba(8,14,32,.58));
+  -webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4);
+  border:1px solid rgba(255,214,102,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.15), inset 0 -1px 0 rgba(0,0,0,.45), 0 26px 56px -28px rgba(0,0,0,.72)}
+.nav a{color:rgba(245,239,226,.9);text-decoration:none;font-family:var(--font);font-size:14px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;transition:color .22s, background .22s;position:relative;cursor:none;
+  background:none;border:none;border-radius:10px;padding:9px 13px}
+.nav a:hover,.nav a.on{color:var(--gold);background:rgba(255,214,102,.11)}
+/* Sets dropdown */
+.nav-item{position:relative;display:inline-flex;align-items:center}
+.nav-item > a::after{content:'';display:inline-block;margin-left:9px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid currentColor;vertical-align:middle;transition:transform .2s}
+.nav-item:hover > a::after{transform:translateY(3px)}
+.nav-drop{position:absolute;top:calc(100% + 16px);left:50%;transform:translateX(-50%) translateY(8px);min-width:200px;z-index:5;
+  display:flex;flex-direction:column;gap:2px;padding:10px;border-radius:14px;
+  background:rgba(9,17,40,.97);border:1px solid rgba(106,168,255,.22);box-shadow:0 26px 54px -18px rgba(0,0,0,.75);backdrop-filter:blur(14px);
+  opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s, transform .22s, visibility .22s}
+.nav-drop::before{content:'';position:absolute;left:0;right:0;top:-16px;height:16px}
+.nav-item:hover .nav-drop{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.nav-drop a{font-family:var(--font);font-weight:600;font-size:14px;letter-spacing:.02em;color:rgba(234,242,255,.84);padding:9px 13px;border-radius:9px;cursor:none;transition:background .18s, color .18s}
+.nav-drop a:hover{background:rgba(106,168,255,.16);color:#fff}
+.nav-drop a.nd-all{color:var(--gold);margin-top:5px;border-top:1px solid rgba(106,168,255,.16);border-radius:0 0 9px 9px}
+/* Join now button (replaces the live-prices badge) */
+.join-now{display:inline-flex;align-items:center;font-family:var(--font);font-weight:700;font-size:14.5px;letter-spacing:.01em;
+  color:#10131f;background:linear-gradient(180deg,#ffe79a,#ffc63a);border-radius:30px;padding:11px 24px;text-decoration:none;cursor:none;
+  box-shadow:0 10px 26px -10px rgba(255,200,60,.5), inset 0 1px 0 rgba(255,255,255,.5);transition:transform .2s, box-shadow .2s}
+.join-now:hover{transform:translateY(-2px) scale(1.06);box-shadow:0 18px 40px -10px rgba(255,200,60,.7)}
+.join-now:active{transform:scale(.93);transition:transform .08s}
 .live{display:inline-flex;align-items:center;gap:7px;font-family:var(--font);font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 .live .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold)}
 
-/* hero / ring — slanted carousel (raised, less tilt, -8%) */
-.hero{position:relative;z-index:10;height:100vh;display:grid;place-items:center;perspective:3000px;perspective-origin:50% 44%;overflow:hidden}
-.tilt-wrap{transform:translateY(-7vh) rotateZ(-8.5deg) rotateX(6deg) scale(.92);transform-style:preserve-3d;will-change:transform}
-.tilt{transform-style:preserve-3d;will-change:transform,opacity}
-.ring{position:relative;width:1px;height:1px;transform-style:preserve-3d}
-.card{position:absolute;width:var(--cw);height:var(--ch);left:calc(var(--cw)/-2);top:calc(var(--ch)/-2);transform-style:preserve-3d}
-.face{position:absolute;inset:0;border-radius:18px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
-.front{background:#0a1430 center/cover no-repeat;box-shadow:0 36px 70px -26px rgba(0,0,0,.9),inset 0 0 0 1px rgba(255,255,255,.06);
-  transition:transform .32s cubic-bezier(.16,1,.3,1), box-shadow .32s ease}
-.card:hover .front{transform:scale(1.05) translateY(-2.4%);box-shadow:0 48px 90px -22px rgba(0,0,0,.92), 0 0 36px rgba(106,168,255,.3)}
-/* one swept light — position + intensity computed per-frame from each card's angle */
-.front .gloss{position:absolute;inset:0;border-radius:18px;pointer-events:none;mix-blend-mode:screen;opacity:0;will-change:transform,opacity;
-  background:linear-gradient(104deg, transparent 36%, rgba(255,255,255,.16) 46%, rgba(255,255,255,.42) 50%, rgba(255,255,255,.16) 54%, transparent 64%)}
-.back{transform:rotateY(180deg);border-radius:18px;background:linear-gradient(160deg,#13244e,#070d22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+/* hero / wheel — a 3D rotating cylinder of cards */
+.hero{position:relative;z-index:10;height:100vh;display:flex;align-items:center}
+.tape-wrap{--cw:clamp(300px,30vw,475px);--ch:calc(var(--cw) / .717);
+  position:relative;transform:translateY(-7vh);width:100%;height:min(94vh,920px);display:flex;align-items:center;justify-content:center;overflow:hidden;
+  perspective:1500px;perspective-origin:50% 50%;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 13%,#000 87%,transparent);mask-image:linear-gradient(90deg,transparent,#000 13%,#000 87%,transparent)}
+.tape{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d;will-change:transform;z-index:1}
+/* giant tracker emblem at the hub of the wheel (cards revolve in front of it) */
+.wheel-emblem{position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);width:min(64vw,920px);z-index:0;pointer-events:none;
+  opacity:.5;filter:drop-shadow(0 14px 28px rgba(0,0,0,.5)) drop-shadow(0 0 46px rgba(45,230,125,.5))}
+.we-3d{transform-style:preserve-3d}
+.wheel-emblem svg{width:100%;height:auto;display:block}
+.tcard{position:absolute;left:50%;top:50%;width:var(--cw);height:var(--ch);margin-left:calc(var(--cw) / -2);margin-top:calc(var(--ch) / -2);
+  border-radius:16px;background:#0a1430 center/cover no-repeat;cursor:none;text-decoration:none;backface-visibility:hidden;will-change:transform,opacity;
+  user-select:none;-webkit-user-drag:none;-webkit-user-select:none;
+  box-shadow:0 24px 60px -20px rgba(0,0,0,.8);transform:rotateY(var(--a,0deg)) translateZ(var(--r,0px))}
+/* a clean thin edge on every card; a golden rim appears on hover */
+.tcard::after{content:'';position:absolute;inset:0;border-radius:16px;pointer-events:none;transition:opacity .3s, box-shadow .3s;opacity:.45;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.tcard:hover::after{opacity:1;box-shadow:inset 0 0 0 2px var(--gold), 0 0 30px 1px rgba(255,210,74,.45)}
+/* gold focus brackets frame the centred (inspectable) card */
+.tbr{position:absolute;inset:-10px;pointer-events:none;opacity:0;transform:scale(.97);transition:opacity .34s, transform .34s cubic-bezier(.16,1,.3,1)}
+.tbr i{position:absolute;width:28px;height:28px;border:3px solid #fff;filter:drop-shadow(0 0 5px rgba(255,255,255,.5))}
+.tbr i:nth-child(1){top:0;left:0;border-right:0;border-bottom:0;border-radius:8px 0 0 0}
+.tbr i:nth-child(2){top:0;right:0;border-left:0;border-bottom:0;border-radius:0 8px 0 0}
+.tbr i:nth-child(3){bottom:0;left:0;border-right:0;border-top:0;border-radius:0 0 0 8px}
+.tbr i:nth-child(4){bottom:0;right:0;border-left:0;border-top:0;border-radius:0 0 8px 0}
+.tcard .tbr{opacity:1;transform:scale(1)}
+/* "Inspect" indicator sits UNDER the front card, in the small theme type */
+.tinspect{position:absolute;left:50%;bottom:-40px;transform:translateX(-50%) translateY(-6px);opacity:0;pointer-events:none;z-index:2;
+  font-family:var(--font);font-weight:700;font-size:12px;letter-spacing:.32em;text-indent:.32em;text-transform:uppercase;color:#fff;white-space:nowrap;
+  text-shadow:0 0 12px rgba(255,255,255,.45), 0 2px 8px rgba(0,0,0,.6);
+  display:inline-flex;align-items:center;gap:9px;transition:opacity .3s, transform .3s}
+.tinspect svg{filter:drop-shadow(0 0 6px rgba(255,255,255,.5))}
+.tcard .tinspect{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* on-page inspect modal */
+.inspect{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.inspect.on{opacity:1;pointer-events:auto}
+.ins-scrim{position:absolute;inset:0;cursor:pointer;transition:background .45s ease;
+  background:linear-gradient(180deg, var(--card-top,#0a1226) 0%, var(--card-bot,#1b2c52) 100%)}
+.ins-close{position:absolute;top:22px;right:26px;z-index:3;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05);color:#fff;font-size:24px;line-height:1;cursor:pointer;display:grid;place-items:center;transition:background .2s,transform .2s}
+.ins-close:hover{background:rgba(255,255,255,.12);transform:scale(1.06)}
+.ins-stage{position:relative;z-index:2;display:flex;align-items:center;gap:clamp(28px,5vw,72px);max-width:1080px;padding:24px;
+  transform:scale(.92);opacity:0;transition:transform .4s cubic-bezier(.16,1,.3,1), opacity .35s}
+.inspect.on .ins-stage{transform:scale(1);opacity:1}
+.ins-cardwrap{position:relative;flex:none;perspective:1200px;cursor:grab}
+.ins-cardwrap:active{cursor:grabbing}
+.ins-card{position:relative;width:min(42vw,500px);aspect-ratio:.717;border-radius:20px;background:#0a1430 center/cover no-repeat;transform-style:preserve-3d;will-change:transform;
+  box-shadow:0 50px 110px -30px rgba(0,0,0,.9), 0 0 80px -8px color-mix(in srgb,var(--accent,#82b4ff) 60%,transparent)}
+/* light bar under the card — toggle it on to wash the card with light from below,
+   revealing the foil / depth / texture. Off by default (no abrasive glare on open). */
+.ins-shine{position:absolute;inset:0;border-radius:20px;pointer-events:none;mix-blend-mode:screen;opacity:0;transition:opacity .22s ease;
+  background:radial-gradient(125% 105% at 50% 55%, rgba(255,252,240,.34), rgba(255,250,236,.2) 64%, rgba(255,255,255,.06) 100%)}
+.ins-cardwrap.lit .ins-shine{opacity:1}
+.ins-lightbar{position:absolute;left:7%;right:7%;bottom:-22px;height:9px;border-radius:9px;pointer-events:none;opacity:0;transition:opacity .45s;
+  background:linear-gradient(90deg,transparent,#fff 16%,#fff 84%,transparent);
+  box-shadow:0 0 20px 5px rgba(255,246,224,.85), 0 -10px 46px 12px rgba(255,240,205,.5)}
+.ins-cardwrap.lit .ins-lightbar{opacity:1}
+.ins-light-toggle{position:absolute;left:50%;bottom:-62px;transform:translateX(-50%);z-index:6;display:inline-flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap;
+  font-family:var(--font);font-weight:600;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(244,238,222,.82);
+  padding:9px 16px;border-radius:999px;border:1px solid rgba(255,214,102,.26);background:rgba(12,20,42,.62);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:color .25s,background .25s,border-color .25s}
+.ins-light-toggle:hover{color:var(--gold);border-color:rgba(255,214,102,.5)}
+.ins-light-toggle.on{color:#0b1224;background:var(--gold);border-color:var(--gold)}
+.ins-light-toggle .dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.ins-br{position:absolute;width:36px;height:36px;border:3px solid var(--gold);opacity:0;transition:opacity .45s ease .15s, transform .45s cubic-bezier(.16,1,.3,1) .15s;pointer-events:none}
+.ins-br.tl{top:-16px;left:-16px;border-right:0;border-bottom:0;border-radius:9px 0 0 0;transform:translate(8px,8px)}
+.ins-br.tr{top:-16px;right:-16px;border-left:0;border-bottom:0;border-radius:0 9px 0 0;transform:translate(-8px,8px)}
+.ins-br.bl{bottom:-16px;left:-16px;border-right:0;border-top:0;border-radius:0 0 0 9px;transform:translate(8px,-8px)}
+.ins-br.br{bottom:-16px;right:-16px;border-left:0;border-top:0;border-radius:0 0 9px 0;transform:translate(-8px,-8px)}
+.inspect.on .ins-br{opacity:.95;transform:translate(0,0)}
+.ins-info{max-width:380px}
+.ins-universe{font-family:var(--font);font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.ins-name{font-family:var(--font-display);font-size:clamp(34px,4.4vw,58px);line-height:.96;margin:10px 0 6px;text-transform:uppercase;color:#fff}
+.ins-set{font-family:var(--font);font-size:13px;color:var(--dim);letter-spacing:.04em}
+.ins-price-row{display:flex;align-items:baseline;gap:14px;margin:22px 0 4px}
+.ins-price{font-family:var(--font-display);font-size:clamp(38px,5vw,60px);color:#fff;line-height:1}
+.ins-trend{font-family:var(--font);font-weight:700;font-size:16px}
+.ins-trend.up{color:#56ff9b}.ins-trend.down{color:#ff6b6b}
+.ins-spark{width:100%;height:60px;margin:8px 0 18px;display:block}
+.ins-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px 22px;margin-bottom:22px}
+.ins-stat .k{font-family:var(--font);font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.ins-stat .v{font-family:var(--font);font-weight:700;font-size:17px;color:#fff;margin-top:3px;letter-spacing:.01em}
+.ins-open{display:inline-flex;align-items:center;gap:8px;font-family:var(--font);font-weight:700;font-size:14.5px;letter-spacing:.01em;color:#10131f;background:linear-gradient(180deg,#ffe79a,#ffc63a);padding:12px 24px;border-radius:28px;text-decoration:none;transition:transform .2s}
+.ins-open:hover{transform:translateY(-2px)}
+.ins-hint{display:block;margin-top:16px;font-family:var(--font);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.38)}
+@media (max-width:780px){ .ins-stage{flex-direction:column;gap:24px;padding:16px} .ins-card{width:min(62vw,300px)} .ins-info{max-width:90vw} }
 
 /* headline (left) — white, with gold only on "Ultimate" */
-.intro-copy{position:absolute;left:clamp(20px,4vw,64px);bottom:clamp(56px,9vh,104px);z-index:25;max-width:min(52vw,660px);pointer-events:none}
-.intro-copy::before{content:'';position:absolute;inset:-48px -140px -54px -90px;z-index:-1;pointer-events:none;
-  background:radial-gradient(72% 84% at 30% 58%, rgba(3,7,18,.8) 0%, rgba(3,7,18,.4) 46%, transparent 72%)}
+.intro-copy{position:absolute;left:clamp(20px,4vw,64px);bottom:clamp(56px,9vh,104px);z-index:25;max-width:min(62vw,760px);pointer-events:none;display:flex;align-items:flex-end;gap:clamp(16px,2.2vw,38px);flex-wrap:wrap}
+/* no dark backing blob behind the headline (it hard-edged); legibility is a soft text-shadow only */
 .headline{font-family:var(--font-display);font-size:clamp(40px,5.4vw,86px);line-height:.9;letter-spacing:.004em;text-transform:uppercase;
-  color:#fff;text-shadow:0 3px 18px rgba(0,0,0,.7), 0 1px 0 rgba(0,0,0,.4)}
-.headline .em{background:repeating-linear-gradient(108deg, var(--gold) 0px, var(--gold) 132px, var(--gold-lt) 168px, #fff4d0 184px, var(--gold-lt) 200px, var(--gold) 236px);
-  -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 16px rgba(255,220,120,.5))}
+  color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.55), 0 4px 20px rgba(0,0,0,.42)}
+.headline .em{display:inline-block;font-size:1.12em;line-height:.86;text-shadow:none;
+  background:linear-gradient(176deg,#ffeebf 3%,#f6cf57 38%,#e3a92f 72%,#c98a1c 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 1px 1px rgba(120,75,10,.45)) drop-shadow(0 0 5px rgba(238,184,66,.25))}
 .scrolldown{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);z-index:25;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:7px;
   font-family:var(--font);font-weight:600;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:rgba(244,197,68,.7)}
 .scrolldown .arw{font-size:15px;line-height:1}
+/* primary explore CTA + card of the month */
+.explore-btn{display:inline-flex;align-items:center;gap:10px;pointer-events:auto;
+  font-family:var(--font-display);font-size:clamp(15px,1.4vw,19px);line-height:.9;letter-spacing:.08em;text-transform:uppercase;
+  color:#fff;background:none;border:none;padding:0 2px;
+  cursor:pointer;transition:opacity .2s;text-decoration:none;white-space:nowrap}
+.explore-btn:hover{opacity:.78}
+.explore-btn span{transition:transform .2s}
+.explore-btn:hover span{transform:translateX(5px)}
+/* card of the month — the real card, angled, hover-reactive, stats to the right */
+.cotm-section{position:relative;z-index:10;display:flex;justify-content:center;padding:clamp(40px,8vh,96px) clamp(22px,5vw,40px)}
+.cotm2{display:flex;align-items:center;gap:clamp(30px,5vw,76px);max-width:1080px;width:100%}
+.cotm2-cardwrap{position:relative;flex:none;perspective:1300px;cursor:pointer}
+.cotm2-card{position:relative;width:min(40vw,430px);aspect-ratio:.717;border-radius:20px;background:#0a1430 center/cover no-repeat;transform-style:preserve-3d;
+  transform:rotateX(var(--rx,7deg)) rotateY(var(--ry,24deg));transition:transform .5s cubic-bezier(.16,1,.3,1);
+  box-shadow:0 60px 110px -38px rgba(11,24,56,.7), 0 0 84px -16px color-mix(in srgb,var(--accent,#82b4ff) 55%,transparent)}
+.cotm2-card.live{transition:transform .08s ease-out}
+.cotm2-shine{position:absolute;inset:0;border-radius:18px;pointer-events:none;mix-blend-mode:screen;opacity:.55;
+  background:radial-gradient(58% 42% at var(--sx,40%) var(--sy,32%), rgba(255,255,255,.6), transparent 60%)}
+.cotm2-info{flex:1;min-width:0}
+.cotm2-label{font-family:var(--font-display);font-size:clamp(24px,3.2vw,40px);letter-spacing:.02em;text-transform:uppercase;color:var(--gold);text-shadow:0 0 24px rgba(255,210,74,.32);line-height:1;display:block}
+.cotm2-name{font-family:var(--font);font-weight:700;font-size:clamp(19px,2.2vw,28px);line-height:1.12;color:#fff;margin:8px 0 2px;letter-spacing:0}
+.cotm2-pred{font-family:var(--font);font-size:13.5px;color:#aab9d8;line-height:1.55;margin:2px 0 18px;max-width:340px}
+.cotm2-pred b{color:#fff;font-weight:700}
+.cotm2-price-row{display:flex;align-items:center;gap:14px;margin:18px 0 8px}
+.cotm2-price{font-family:var(--font-display);font-size:clamp(30px,3.6vw,46px);color:#fff;line-height:1}
+.cotm2-trend{font-family:var(--font);font-weight:700;font-size:15px;padding:4px 11px;border-radius:20px}
+.cotm2-trend.up{color:#56ff9b;background:rgba(86,255,155,.12)}.cotm2-trend.down{color:#ff6b6b;background:rgba(255,107,107,.12)}
+.cotm2-spark{width:100%;max-width:360px;height:60px;display:block;margin:6px 0 18px}
+.cotm2-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 22px;margin:6px 0 22px;max-width:340px}
+.cotm2-stat .k{font-family:var(--font);font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.cotm2-stat .v{font-family:var(--font-display);font-size:18px;color:#fff;margin-top:2px}
+.cotm2-open{display:inline-flex;align-items:center;gap:7px;font-family:var(--font);font-weight:700;font-size:15px;letter-spacing:.01em;color:var(--gold);background:none;padding:5px 0;border-bottom:2px solid color-mix(in srgb,var(--gold) 45%,transparent);text-decoration:none;cursor:pointer;transition:gap .2s, border-color .2s}
+.cotm2-open:hover{gap:11px;border-color:var(--gold)}
+@media(max-width:780px){ .cotm2{flex-direction:column;text-align:center} .cotm2-card{width:min(62vw,260px)} .cotm2-stats{margin-inline:auto} }
 
 /* ===== scroll sections ===== */
-.band{position:relative;z-index:10;padding:clamp(60px,11vh,130px) 0;display:flex;flex-direction:column;gap:14px;overflow:hidden}
-.band-label{text-align:center;font-family:var(--font);font-weight:600;font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.band{position:relative;z-index:10;padding:clamp(118px,17vh,220px) 0 clamp(56px,10vh,120px);display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.band-label{text-align:center;display:flex;flex-direction:column;align-items:center;gap:7px;margin-bottom:20px}
+.bl-big{font-family:var(--font-display);font-size:clamp(22px,2.8vw,36px);letter-spacing:.04em;text-transform:uppercase;line-height:1;
+  background:linear-gradient(176deg,#ffeebf 3%,#f3c84a 52%,#e0a82e 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 18px rgba(240,190,70,.42))}
+.bl-sub{font-family:var(--font);font-weight:600;font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--dim)}
 .marquee{overflow:hidden;pointer-events:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
 .mtrack{display:inline-flex;align-items:center;gap:46px;white-space:nowrap;will-change:transform}
 .mw{font-family:var(--font-display);text-transform:uppercase;line-height:1;letter-spacing:.01em;font-size:clamp(34px,5vw,72px);color:#fff}
 .mw.tag{color:var(--blue-bright)}
+.mw.gold{background:linear-gradient(176deg,#ffeebf,#f3c84a 55%,#e0a82e);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 18px rgba(240,190,70,.4))}
 .mw.dim{color:rgba(234,242,255,.16);-webkit-text-stroke:1px rgba(234,242,255,.4)}
 .mw .star,.mw.star{color:var(--gold);font-size:.5em}
+.mw-logo{height:.92em;width:auto;display:inline-block;vertical-align:middle;object-fit:contain;filter:drop-shadow(0 2px 9px rgba(0,0,0,.45))}
 
 /* infographic */
 .info{position:relative;z-index:10;max-width:1080px;margin:0 auto;padding:clamp(20px,5vh,60px) clamp(22px,5vw,40px) 120px}
-.info-head{max-width:640px;margin-bottom:38px}
+.info-head{max-width:680px;margin:0 auto;text-align:center}
+.info-head p{margin-left:auto;margin-right:auto}
 .info-kicker{font-family:var(--font);font-weight:600;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
 .info-head h2{font-family:var(--font-display);font-size:clamp(30px,4.4vw,54px);line-height:.98;text-transform:uppercase;letter-spacing:.01em}
 .info-head p{color:var(--dim);font-size:15px;line-height:1.6;margin-top:14px;max-width:560px}
 .info-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:22px;align-items:stretch}
 .panel{background:linear-gradient(180deg,rgba(20,38,79,.5),rgba(8,16,40,.5));border:1px solid rgba(106,168,255,.16);border-radius:18px;padding:22px 24px;backdrop-filter:blur(8px)}
-.panel h3{font-family:var(--font);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.panel h3{font-family:var(--font);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#aebfde;font-weight:600;display:flex;justify-content:space-between;align-items:center}
 .panel h3 .pill{color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 36%,transparent);border-radius:20px;padding:3px 9px;font-size:10px}
 .chartwrap{margin-top:14px}
-.chart{width:100%;height:170px;display:block}
+.chart{width:100%;height:222px;display:block}
 .chart-x{display:flex;justify-content:space-between;font-family:var(--font);font-weight:500;font-size:10px;color:var(--dim);margin-top:8px;letter-spacing:.06em}
 .sources{display:flex;flex-direction:column;gap:11px;margin-top:14px}
 .src{display:flex;align-items:center;gap:12px;font-size:13.5px}
-.src .dot{width:9px;height:9px;border-radius:50%;flex:none;box-shadow:0 0 10px currentColor}
-.src .who{color:#cfe0ff;font-weight:700;font-size:13px;letter-spacing:.01em}
-.src .what{color:var(--dim);font-size:12.5px}
+.src .dot{width:13px;height:13px;border-radius:50%;flex:none;box-shadow:0 0 16px currentColor, 0 0 6px currentColor;border:1px solid color-mix(in srgb, currentColor 60%, #fff)}
+.src .who{color:#fff;font-weight:700;font-size:14px;letter-spacing:.01em}
+.src .what{color:#aab9d8;font-size:12.5px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px}
 .stat{background:rgba(8,16,40,.4);border:1px solid rgba(244,197,68,.18);border-radius:14px;padding:16px 16px}
 .stat .n{font-family:var(--font-display);font-size:clamp(24px,3vw,34px);color:var(--gold);line-height:1}
 .stat .l{font-family:var(--font);font-weight:500;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:8px}
 .reveal{opacity:0;transform:translateY(26px)}
+/* free-floating, interactive index radar (no panel) */
+.index-stage{display:flex;flex-direction:column;align-items:center;text-align:center;margin:clamp(24px,6vh,64px) 0 clamp(20px,4vh,44px);position:relative;z-index:1}
+.index-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:clamp(6px,2vh,20px)}
+.index-title{font-family:var(--font-display);font-size:clamp(22px,3vw,38px);text-transform:uppercase;letter-spacing:.01em;color:#fff;text-shadow:0 0 26px rgba(255,210,74,.18)}
+.index-chg{font-family:var(--font);font-weight:700;font-size:16px;color:#56ff9b}
+.index-chg i{color:var(--dim);font-style:normal;font-weight:500;font-size:13px;letter-spacing:.04em}
+.radar-wrap{position:relative;width:min(88vw,540px);perspective:1000px}
+.radar{width:100%;height:auto;display:block;overflow:visible;transform-style:preserve-3d;will-change:transform}
+.feed-dot{transition:filter .2s}.feed-dot:hover{filter:drop-shadow(0 0 8px currentColor)}
+.radar-readout{margin-top:clamp(10px,2vh,18px);min-height:52px;display:flex;flex-direction:column;align-items:center;gap:4px;max-width:480px}
+.rr-name{font-family:var(--font-display);font-size:clamp(16px,1.9vw,21px);text-transform:uppercase;letter-spacing:.04em;color:var(--gold);transition:color .2s}
+.rr-what{font-family:var(--font);font-size:14px;color:#aab9d8;line-height:1.5}
+.rr-what b{color:#fff;font-weight:700}
+/* inline stat row (no boxes) */
+.stat-row{display:flex;align-items:center;justify-content:center;gap:clamp(18px,4vw,56px);flex-wrap:wrap;margin-top:clamp(14px,3vh,30px)}
+.stat2{display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;padding:0 4px}
+.stat2 b{font-family:var(--font-display);font-weight:400;font-size:clamp(28px,3.4vw,42px);color:var(--gold);line-height:1;text-shadow:0 0 22px rgba(255,210,74,.25)}
+.stat2.fx b{color:#56ff9b;text-shadow:0 0 22px rgba(86,255,155,.28)}
+.stat2 span{font-family:var(--font);font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.stat2:not(:last-child)::after{content:'';position:absolute;right:calc(-1 * clamp(9px,2vw,28px));top:14%;height:72%;width:1px;background:rgba(150,180,230,.2)}
+@media(max-width:600px){.stat2:not(:last-child)::after{display:none}}
+
+/* pricing */
+/* pricing — Free = white panel · Premium = navy glow · Collector = solid gold */
+.pricing{position:relative;z-index:10;max-width:1080px;margin:0 auto;padding:clamp(30px,7vh,80px) clamp(22px,5vw,40px) 130px}
+.emph-booster{color:var(--gold)}
+.pricing .price-card.ultra{position:relative;transform:translateY(-10px)}
+/* crisp static gloss — a single glass-reflection sheen across the gold, no animation.
+   soft-light keeps the dark text/CTA readable while brightening only the gold. */
+.pricing .price-card.ultra::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:4;
+  background:
+    linear-gradient(118deg, transparent 0 31%, rgba(255,255,255,.42) 44%, rgba(255,255,255,.9) 50%, rgba(255,255,255,.4) 56%, transparent 67%),
+    linear-gradient(180deg, rgba(255,255,255,.32), transparent 26%);
+  mix-blend-mode:soft-light}
+.pricing .price-card.featured{box-shadow:0 30px 72px -28px rgba(217,154,46,.5), 0 0 0 1px rgba(230,173,58,.4), 0 0 64px -22px rgba(240,190,70,.45)}
+/* Free = clean white panel (intentionally plain next to the gold) */
+.price-card.free{background:#f4f3ee;border:1px solid rgba(11,24,56,.14);backdrop-filter:none}
+.price-card.free .pc-name,.price-card.free .pc-price{color:#0b1838}
+.price-card.free .pc-price span{color:#7a879e}
+.price-card.free .pc-feat li{color:#3d4d68}
+.price-card.free .pc-feat li::before{color:#c79220}
+.price-card.free .pc-cta.ghost{color:#0b1838;border:1px solid rgba(11,24,56,.24);background:transparent}
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch}
+.price-card{position:relative;display:flex;flex-direction:column;gap:15px;padding:32px 26px;border-radius:18px;
+  background:linear-gradient(180deg,rgba(20,38,79,.5),rgba(8,16,40,.55));border:1px solid rgba(106,168,255,.16);backdrop-filter:blur(8px)}
+.price-card.featured{border-color:color-mix(in srgb,var(--gold) 50%,transparent);box-shadow:0 24px 60px -24px rgba(255,200,60,.4), inset 0 0 0 1px color-mix(in srgb,var(--gold) 18%,transparent)}
+.pc-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);white-space:nowrap;font-family:var(--font);font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#10131f;background:linear-gradient(180deg,#ffe79a,#ffc63a);padding:5px 14px;border-radius:20px}
+.pc-name{font-family:var(--font-display);font-size:22px;text-transform:uppercase;letter-spacing:.04em;color:#fff}
+.pc-price{font-family:var(--font-display);font-size:clamp(34px,4vw,48px);color:var(--gold);line-height:1}
+.pc-price span{font-family:var(--font);font-weight:600;font-size:15px;color:var(--dim);margin-left:4px}
+.pc-price s{font-family:var(--font);font-weight:600;font-size:.5em;color:var(--dim);margin-right:9px;text-decoration-thickness:2px;vertical-align:middle}
+.pc-note{font-family:var(--font);font-size:12px;color:var(--dim);margin:-8px 0 2px}
+.pc-feat{list-style:none;display:flex;flex-direction:column;gap:10px;margin:6px 0 auto;padding:0}
+.pc-feat li{position:relative;padding-left:24px;font-size:14px;color:#cfe0ff;line-height:1.4}
+.pc-feat li::before{content:'✦';position:absolute;left:0;color:var(--gold);font-size:12px;top:2px}
+.pc-cta{display:inline-flex;align-items:center;justify-content:center;padding:13px;border-radius:30px;font-family:var(--font-display);font-size:15px;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;transition:transform .2s, box-shadow .2s;margin-top:6px}
+.pc-cta.gold{color:#10131f;background:linear-gradient(180deg,#ffe79a,#ffc63a);box-shadow:0 12px 30px -10px rgba(255,200,60,.5)}
+.pc-cta.ghost{color:#fff;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.03)}
+.pc-cta:hover{transform:translateY(-2px)}
+@media (max-width:760px){ .price-grid{grid-template-columns:1fr} }
+
+/* FAQ */
+.faq{position:relative;z-index:10;max-width:880px;margin:0 auto;padding:clamp(20px,5vh,60px) clamp(22px,5vw,40px) 100px}
+.faq-list{display:flex;flex-direction:column;gap:12px}
+.faq-item{background:linear-gradient(180deg,rgba(20,38,79,.5),rgba(8,16,40,.5));border:1px solid rgba(106,168,255,.16);border-radius:14px;overflow:hidden;transition:border-color .25s}
+.faq-item[open]{border-color:color-mix(in srgb,var(--gold) 40%,transparent)}
+.faq-item summary{list-style:none;cursor:pointer;padding:18px 22px;font-family:var(--font-display);font-size:clamp(16px,1.7vw,21px);letter-spacing:.01em;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:'+';font-family:var(--font);font-weight:400;font-size:26px;line-height:1;color:var(--gold);transition:transform .25s;flex:none}
+.faq-item[open] summary::after{transform:rotate(45deg)}
+.faq-item summary:hover{color:var(--gold-lt)}
+.faq-item p{margin:0 22px 20px;color:#aab9d8;font-size:14.5px;line-height:1.62;max-width:660px}
 
 /* bottom live price ticker — the stock bar */
 .ticker{position:fixed;left:0;right:0;bottom:0;height:46px;z-index:30;background:rgba(5,11,28,.9);border-top:1px solid rgba(80,130,255,.18);overflow:hidden;display:flex;align-items:center;backdrop-filter:blur(8px)}
@@ -115,13 +325,46 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .ti .sep{color:rgba(80,130,255,.4)}
 
 /* loader */
-.loader{position:fixed;inset:0;z-index:80;background:#060c1e;display:grid;place-items:center}
-.ld-mark{font-family:var(--font-display);letter-spacing:.2em;font-size:clamp(44px,7.5vw,92px);line-height:1;border:3px solid var(--ink);padding:16px 24px 10px;display:inline-block;clip-path:inset(0 100% 0 0)}
-.ld-mark .k{color:var(--blue-bright)}
-.ld-bar{width:min(280px,60vw);height:2px;background:rgba(80,130,255,.2);margin:30px auto 12px;overflow:hidden}
-.ld-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-dk),var(--gold));box-shadow:0 0 14px var(--gold)}
-.ld-meta{display:flex;justify-content:space-between;width:min(280px,60vw);margin:0 auto;font-family:var(--font);font-weight:500;font-size:11px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
-.ld-count{color:var(--gold)}.ld-wrap{text-align:center}
+.loader{position:fixed;inset:0;z-index:80;background:radial-gradient(120% 90% at 50% 42%, #0c1a3c 0%, #05091c 68%);display:grid;place-items:center;overflow:hidden}
+.ld-glow{position:absolute;width:62vw;height:62vw;max-width:760px;max-height:760px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle, rgba(106,168,255,.14) 0%, transparent 62%)}
+.ld-stack{position:relative;display:flex;flex-direction:column;align-items:center;gap:clamp(16px,3vh,32px)}
+.ld-word{font-family:var(--font-display);letter-spacing:.5em;text-indent:.5em;font-size:clamp(14px,1.5vw,19px);color:var(--gold);text-transform:uppercase}
+.ld-word .k{color:var(--blue-bright)}
+.ld-num{font-family:var(--font-display);font-size:clamp(84px,15vw,210px);line-height:.84;color:#fff;display:flex;align-items:flex-start}
+.ld-pct{font-size:.3em;color:var(--gold);margin:.45em 0 0 .12em}
+.ld-line{width:min(260px,54vw);height:2px;background:rgba(106,168,255,.16);overflow:hidden;border-radius:2px}
+.ld-line i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue-bright),var(--gold));box-shadow:0 0 12px var(--gold)}
+.ld-rotor{font-family:var(--font);font-weight:600;font-size:clamp(22px,3.4vw,40px);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);min-height:1.4em;display:flex;align-items:center;gap:.45em;justify-content:center}
+.ld-roll{height:1.5em;width:auto;max-width:7.5em;display:inline-block;vertical-align:middle;object-fit:contain;filter:drop-shadow(0 2px 9px rgba(0,0,0,.5))}
+
+/* ===== below the band the busy topo settles into a calm opaque navy ===== */
+.fade-to-white{height:clamp(170px,26vh,300px);position:relative;z-index:10;background:linear-gradient(180deg,transparent,#0c1a3c)}
+.lightzone{position:relative;z-index:10;background:#0c1a3c}
+.lightzone .info-head h2{letter-spacing:.018em;line-height:1.04}
+.lightzone .info-head h2 .lk{color:var(--blue-bright);text-decoration:underline;text-decoration-color:rgba(106,168,255,.6);text-decoration-thickness:3px;text-underline-offset:5px}
+/* full-bleed kinetic title — ONE WHEEL over FIVE LIVE SOURCES, each spanning the whole screen */
+/* big, centred — NOT stretched edge to edge; both lines share one scale */
+.bigtitle{width:max-content;max-width:96vw;position:relative;left:50%;transform:translateX(-50%);margin:6px 0 16px;
+  text-align:center;line-height:.9;font-family:var(--font-display);font-weight:400;text-transform:uppercase;letter-spacing:.012em}
+.bt-line{display:block;font-size:clamp(44px,8.4vw,138px);white-space:nowrap}
+.bt-1{color:#fff}
+.bt-2 .bt-white{color:#fff}
+.bt-2 .bt-link{color:var(--blue-bright);text-decoration:underline;text-decoration-thickness:.055em;text-underline-offset:.09em;text-decoration-color:rgba(106,168,255,.6)}
+.lightzone .stat.fx .n{color:#56ff9b}
+/* premium "Pro" tier — the gold-framed anchor card */
+.price-card.ultra{background:linear-gradient(165deg,#ffe9a8 0%,#f4c948 44%,#dca328 100%);
+  border:1px solid #c8920f;
+  box-shadow:0 40px 92px -30px rgba(120,80,10,.6), 0 0 0 1px rgba(255,236,176,.5), inset 0 2px 0 rgba(255,255,255,.7)}
+.price-card.ultra .pc-name{color:#3a2a05}
+.price-card.ultra .pc-price{color:#241804}
+.price-card.ultra .pc-price span{color:#6a4f12}
+.price-card.ultra .pc-price s{color:#8a6a18}
+.price-card.ultra .pc-note{color:#6a4f12}
+.price-card.ultra .pc-feat li{color:#4a3608}
+.price-card.ultra .pc-feat li::before{color:#7a5a0e}
+.price-card.ultra .pc-cta.gold{background:linear-gradient(180deg,#1a2436,#0b1322);color:#ffe6a0;box-shadow:0 14px 30px -10px rgba(0,0,0,.55)}
+.pc-badge.dark{background:linear-gradient(180deg,#1a2436,#0b1322);color:var(--gold);border:1px solid rgba(255,210,74,.5)}
 
 @media (pointer:coarse){ *{cursor:auto} .cursor{display:none} }
 @media (max-width:900px){ .nav,.live{display:none} .intro-copy{max-width:84vw} .info-grid{grid-template-columns:1fr} .stats{grid-template-columns:repeat(2,1fr)} :root{--cw:clamp(260px,72vw,420px)} }
@@ -132,69 +375,173 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
   <div class="vign"></div>
 
   <header class="topbar">
-    <span class="brand">PO<span class="k">KE</span>X</span>
-    <nav class="nav"><a class="on">Explore</a><a href="app.html">Sets</a><a href="rip.html">Rip Lab</a><a href="binder.html">Binder</a><a class="new">Arbitrage</a></nav>
-    <span class="live"><span class="dot"></span>Live prices</span>
+    <span class="brand">Crowns</span>
+    <nav class="nav">
+      <span class="nav-item"><a href="app.html">Sets</a>
+        <span class="nav-drop">
+          <a href="app.html?game=pokemon">Pok&eacute;mon</a>
+          <a href="app.html?game=magic">Magic</a>
+          <a href="app.html?game=lorcana">Lorcana</a>
+          <a href="app.html?game=onepiece">One Piece</a>
+          <a class="nd-all" href="app.html">All sets &rarr;</a>
+        </span>
+      </span>
+      <a href="rip.html">Rip Lab</a>
+      <a href="binder.html">Binder</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a>Arbitrage</a>
+    </nav>
+    <a class="join-now" href="app.html">Join now</a>
   </header>
 
   <main>
     <section class="hero" id="hero">
-      <div class="tilt-wrap"><div class="tilt"><div class="ring" id="ring"></div></div></div>
+      <div class="tape-wrap">
+        <div class="tape" id="tape"></div>
+      </div>
       <div class="intro-copy">
         <h1 class="headline">The <span class="em">Ultimate</span><br>Card Tracker</h1>
+        <a class="explore-btn" href="app.html">Explore <span aria-hidden="true">&rarr;</span></a>
       </div>
       <div class="scrolldown"><span>Scroll</span><span class="arw">&darr;</span></div>
     </section>
 
+    <div class="fade-to-white" aria-hidden="true"></div>
+    <div class="lightzone">
+
+    <section class="info">
+      <div class="info-head reveal">
+        <div class="info-kicker">How Crowns tracks</div>
+        <h2 class="bigtitle" aria-label="Every card. Five live sources.">
+          <span class="bt-line bt-1">Every card</span>
+          <span class="bt-line bt-2"><span class="bt-white">Five live </span><span class="bt-link">sources</span></span>
+        </h2>
+        <p>Every card is matched to its market and re-priced from public catalog data — daily snapshots in USD and EUR, charted so you can see a card heat up before it moves.</p>
+      </div>
+      <div class="index-stage reveal">
+        <div class="index-head">
+          <span class="index-title">Highly accurate index</span>
+          <span class="index-chg">&#9650; 18.4% <i>past 90 days</i></span>
+        </div>
+        <div class="radar-wrap" id="radarWrap">
+          <svg class="radar" id="radar" viewBox="0 0 340 300" aria-hidden="true"></svg>
+        </div>
+        <div class="radar-readout" id="radarReadout">
+          <span class="rr-name">Five live sources</span>
+          <span class="rr-what">Hover a source to see how it scores into the index.</span>
+        </div>
+      </div>
+      <div class="stat-row reveal">
+        <div class="stat2"><b>4</b><span>Universes</span></div>
+        <div class="stat2"><b>5</b><span>Live sources</span></div>
+        <div class="stat2"><b>Daily</b><span>Snapshots</span></div>
+        <div class="stat2 fx"><b>USD / EUR</b><span>Dual market</span></div>
+      </div>
+    </section>
+
     <section class="band">
-      <div class="band-label">The index — every universe, one feed</div>
       <div class="marquee"><div class="mtrack" id="mq"></div></div>
       <div class="marquee"><div class="mtrack" id="mq2"></div></div>
     </section>
 
-    <section class="info">
-      <div class="info-head reveal">
-        <div class="info-kicker">How POKEX tracks</div>
-        <h2>One wheel.<br>Five live sources.</h2>
-        <p>Every card is matched to its market and re-priced from public catalog data — daily snapshots in USD and EUR, charted so you can see a card heat up before it moves.</p>
-      </div>
-      <div class="info-grid">
-        <div class="panel reveal">
-          <h3>Aggregate chase index <span class="pill">+18.4% · 90d</span></h3>
-          <div class="chartwrap">
-            <svg class="chart" id="chart" viewBox="0 0 600 170" preserveAspectRatio="none" aria-hidden="true"></svg>
-            <div class="chart-x"><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span></div>
-          </div>
+    <section class="cotm-section">
+      <div class="cotm2">
+        <div class="cotm2-cardwrap" id="cotmWrap">
+          <div class="cotm2-card" id="cotmCard"><span class="cotm2-shine"></span></div>
         </div>
-        <div class="panel reveal">
-          <h3>Where the data comes from <span class="pill">5 feeds</span></h3>
-          <div class="sources">
-            <div class="src"><span class="dot" style="color:#ffcb05"></span><span class="who">TCGdex</span><span class="what">Pokémon cards &amp; sets</span></div>
-            <div class="src"><span class="dot" style="color:#e8943b"></span><span class="who">Scryfall</span><span class="what">Magic: The Gathering</span></div>
-            <div class="src"><span class="dot" style="color:#7fd4f4"></span><span class="who">Ravensburger</span><span class="what">Disney Lorcana</span></div>
-            <div class="src"><span class="dot" style="color:#ff5b4d"></span><span class="who">dotGG</span><span class="what">One Piece TCG</span></div>
-            <div class="src"><span class="dot" style="color:var(--gold)"></span><span class="who">TCGCSV</span><span class="what">Market prices &amp; sealed</span></div>
-          </div>
+        <div class="cotm2-info">
+          <span class="cotm2-label">Card of the Month</span>
+          <h3 class="cotm2-name" id="cotmName"></h3>
+          <div class="cotm2-price-row"><span class="cotm2-price" id="cotmPrice"></span><span class="cotm2-trend" id="cotmTrend"></span></div>
+          <svg class="cotm2-spark" id="cotmSpark" viewBox="0 0 360 60" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <div class="cotm2-pred" id="cotmPred"></div>
+          <a class="cotm2-open" id="cotmOpen">See more <span aria-hidden="true">&rarr;</span></a>
         </div>
-      </div>
-      <div class="stats">
-        <div class="stat reveal"><div class="n">4</div><div class="l">Universes</div></div>
-        <div class="stat reveal"><div class="n">5</div><div class="l">Live data feeds</div></div>
-        <div class="stat reveal"><div class="n">Daily</div><div class="l">Price snapshots</div></div>
-        <div class="stat reveal"><div class="n">USD<span style="opacity:.5">/</span>EUR</div><div class="l">Dual market</div></div>
       </div>
     </section>
+
+    <section class="pricing" id="pricing">
+      <div class="info-head reveal" style="max-width:none;text-align:center;margin:0 auto 44px">
+        <div class="info-kicker" style="text-align:center">Pricing</div>
+        <h2>Track free.<br>Go deeper for <span class="emph-booster">less than a booster</span>.</h2>
+      </div>
+      <div class="price-grid">
+        <div class="price-card free reveal">
+          <span class="pc-name">Free</span>
+          <span class="pc-price">$0<span>/mo</span></span>
+          <ul class="pc-feat"><li>Free access to the last 3 sets of every universe</li><li>Live prices &amp; daily USD/EUR snapshots</li><li>Basic watchlist</li></ul>
+          <a class="pc-cta ghost" href="app.html">Start free</a>
+        </div>
+        <div class="price-card featured reveal">
+          <span class="pc-badge">Most popular</span>
+          <span class="pc-name">Premium</span>
+          <span class="pc-price">$6<span>/mo</span></span>
+          <ul class="pc-feat"><li>Everything in Free</li><li>Access to every set in every universe</li><li>Full binder &amp; collection value</li><li>Price alerts &amp; trend charts</li><li>Rip Lab EV calculator</li><li>Early access to new universes</li></ul>
+          <a class="pc-cta gold" href="app.html">Get Premium</a>
+        </div>
+        <div class="price-card ultra reveal">
+          <span class="pc-badge dark">Launch sale</span>
+          <span class="pc-name">Collector</span>
+          <span class="pc-price"><s>$25</s>$12<span>1st mo</span></span>
+          <span class="pc-note">then $25/mo &middot; cancel anytime</span>
+          <ul class="pc-feat"><li>Everything in Premium</li><li>Real-time cross-market arbitrage engine</li><li>AI price forecasts &amp; breakout alerts</li><li>Portfolio analytics, P&amp;L &amp; CSV / API export</li><li>Unlimited watchlists &amp; priority data refresh</li><li>Grading ROI &amp; population insights</li><li>Concierge deal-sourcing &amp; 1:1 onboarding</li></ul>
+          <a class="pc-cta gold" href="app.html">Get Collector</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq" id="faq">
+      <div class="info-head reveal" style="max-width:none;text-align:center;margin:0 auto 36px">
+        <div class="info-kicker" style="text-align:center">FAQ</div>
+        <h2>Questions, answered.</h2>
+      </div>
+      <div class="faq-list">
+        <details class="faq-item"><summary>Where do the prices come from?</summary><p>Five public catalog feeds &mdash; TCGdex, Scryfall, Ravensburger, dotGG and TCGCSV &mdash; re-priced daily in USD and EUR.</p></details>
+        <details class="faq-item"><summary>Which games are supported?</summary><p>Pok&eacute;mon, Magic: The Gathering, Disney Lorcana and One Piece &mdash; with more universes rolling out.</p></details>
+        <details class="faq-item"><summary>Is Crowns free?</summary><p>Yes. Free tracks the last three sets of every universe; Premium and Collector unlock every set, alerts and analytics.</p></details>
+        <details class="faq-item"><summary>How often do prices update?</summary><p>Daily market snapshots, charted so you can watch a card heat up before it moves.</p></details>
+        <details class="faq-item"><summary>Can I track my own collection?</summary><p>Premium adds a full binder with live collection value; Collector adds portfolio analytics, P&amp;L and exports.</p></details>
+        <details class="faq-item"><summary>Do you sell cards?</summary><p>No &mdash; Crowns is a tracker. We surface the market so you decide when to buy, hold or sell.</p></details>
+      </div>
+    </section>
+    </div>
   </main>
 
   <div class="ticker"><div class="ttrack" id="tk"></div></div>
 
-  <div class="loader" id="loader"><div class="ld-wrap">
-    <div class="ld-mark" id="ldMark">PO<span class="k">KE</span>X</div>
-    <div class="ld-bar"><i id="ldBar"></i></div>
-    <div class="ld-meta"><span>Loading the market</span><span class="ld-count" id="ldCount">0%</span></div>
-  </div></div>
+  <div class="loader" id="loader">
+    <div class="ld-glow" aria-hidden="true"></div>
+    <div class="ld-stack">
+      <div class="ld-rotor">Loading <img class="ld-roll" id="ldRoll" alt="" src="assets/logos/pokemon.png?v=79"></div>
+    </div>
+  </div>
 
-  <div class="cursor" id="cursor"><svg viewBox="0 0 16 22"><path d="M1 1 L1 17.8 L5.2 13.9 L7.9 20.1 L10.6 19 L7.9 12.8 L13 12.8 Z"/></svg></div>
+  <div class="inspect" id="inspect" hidden>
+    <div class="ins-scrim" id="insScrim"></div>
+    <button class="ins-close" id="insClose" aria-label="Close">&times;</button>
+    <div class="ins-stage">
+      <div class="ins-cardwrap" id="insCardWrap">
+        <div class="ins-card" id="insCard"><span class="ins-shine"></span></div>
+        <i class="ins-br tl"></i><i class="ins-br tr"></i><i class="ins-br bl"></i><i class="ins-br br"></i>
+        <span class="ins-lightbar"></span>
+        <button class="ins-light-toggle" id="insLight" type="button" aria-pressed="false"><span class="dot"></span>Light</button>
+      </div>
+      <div class="ins-info">
+        <span class="ins-universe" id="insUni"></span>
+        <h2 class="ins-name" id="insName"></h2>
+        <div class="ins-set" id="insSet"></div>
+        <div class="ins-price-row"><span class="ins-price" id="insPrice"></span><span class="ins-trend" id="insTrend"></span></div>
+        <svg class="ins-spark" id="insSpark" viewBox="0 0 280 64" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="ins-stats" id="insStats"></div>
+        <a class="ins-open" id="insOpen" href="#">Open in tracker <span aria-hidden="true">&rarr;</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="cursor" id="cursor">
+    <svg class="cur-arrow" viewBox="0 0 16 22"><path d="M1 1 L1 17.8 L5.2 13.9 L7.9 20.1 L10.6 19 L7.9 12.8 L13 12.8 Z"/></svg>
+  </div>
 
   <script src="vendor/three.min.js"></script>
   <script src="vendor/gsap.min.js"></script>
@@ -207,50 +554,135 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
     const T='https://assets.tcgdex.net/en/', Sc='https://cards.scryfall.io/large/front/',
           Dg='https://static.dotgg.gg/onepiece/card/', Rv='https://api.lorcana.ravensburger.com/images/en/';
     const ALL = [
-      {name:'Umbreon ex',         game:'pokemon',  price:1557.92, img:T+'sv/sv08.5/161/high.png'},
-      {name:'Demonic Tutor',      game:'magic',    price:505.29,  img:Sc+'9/9/99b6e466-784b-48a6-8e72-beff72f39231.jpg'},
-      {name:'Buggy',              game:'onepiece', price:1479.32, img:Dg+'OP09-051_p2.webp'},
-      {name:'Stitch · Rock Star', game:'lorcana',  price:52.00,   img:'https://lorcana-api.com/images/stitch/rock_star/stitch-rock_star-large.png'},
-      {name:'Mega Gengar ex',     game:'pokemon',  price:1384.78, img:T+'me/me02.5/284/high.png'},
-      {name:'Counterspell',       game:'magic',    price:46.34,   img:Sc+'8/1/8118282a-1473-4c0b-a283-1f58e0d0209a.jpg'},
-      {name:'Marshall D. Teach',  game:'onepiece', price:1446.50, img:Dg+'OP09-093_p2.webp'},
-      {name:'Elsa · Ice Artisan', game:'lorcana',  price:240.00,  img:Rv+'set11/233_9976ce443fc2c5d3019e2da31bc3c1e0cd4081a8.jpg'},
-      {name:'Pikachu ex',         game:'pokemon',  price:1276.19, img:T+'me/me02.5/276/high.png'},
-      {name:'Swords to Plowshares',game:'magic',   price:59.91,   img:Sc+'a/5/a5d364f3-e3e7-46fb-8273-aabd56ded0c5.jpg'},
-      {name:'Monkey D. Luffy',    game:'onepiece', price:1388.75, img:Dg+'EB02-010_p2.webp'},
-      {name:'Mickey · Brave Prince',game:'lorcana',price:38.00,   img:Rv+'set9/111_fc83a63669bace91d4de7d711d22c3ed67f3afa8.jpg'},
-      {name:'Mew ex',             game:'pokemon',  price:968.49,  img:T+'sv/sv04.5/232/high.png'},
-      {name:'Time Warp',          game:'magic',    price:50.61,   img:Sc+'3/4/34f0f4cb-1ef6-44cd-8cca-1d1e138c0344.jpg'},
-      {name:'Portgas D. Ace',     game:'onepiece', price:1315.33, img:Dg+'OP13-119_p2.webp'},
-      {name:'Aurora · Dreaming',  game:'lorcana',  price:44.00,   img:Rv+'set9/153_e399771f6aff5232df46ef15dd9b44b79950dbd1.jpg'},
+      {name:'Umbreon ex',         game:'pokemon',  set:'sv08.5', num:'161', price:1557.92, img:T+'sv/sv08.5/161/high.png'},
+      {name:'Demonic Tutor',      game:'magic',    set:'sta', num:'90',  price:505.29,  img:Sc+'9/9/99b6e466-784b-48a6-8e72-beff72f39231.jpg'},
+      {name:'Buggy',              game:'onepiece', set:'OP09', num:'051', price:1479.32, img:Dg+'OP09-051_p2.webp'},
+      {name:'Stitch · Rock Star', game:'lorcana',  set:'1', num:'23',   price:52.00,   img:'https://lorcana-api.com/images/stitch/rock_star/stitch-rock_star-large.png'},
+      {name:'Mega Gengar ex',     game:'pokemon',  set:'me02.5', num:'284', price:1384.78, img:T+'me/me02.5/284/high.png'},
+      {name:'Counterspell',       game:'magic',    set:'sta', num:'78',  price:46.34,   img:Sc+'8/1/8118282a-1473-4c0b-a283-1f58e0d0209a.jpg'},
+      {name:'Marshall D. Teach',  game:'onepiece', set:'OP09', num:'093', price:1446.50, img:Dg+'OP09-093_p2.webp'},
+      {name:'Elsa · Ice Artisan', game:'lorcana',  set:'11', num:'233',  price:240.00,  img:Rv+'set11/233_9976ce443fc2c5d3019e2da31bc3c1e0cd4081a8.jpg'},
+      {name:'Pikachu ex',         game:'pokemon',  set:'me02.5', num:'276', price:1276.19, img:T+'me/me02.5/276/high.png'},
+      {name:'Swords to Plowshares',game:'magic',   set:'sta', num:'73',  price:59.91,   img:Sc+'a/5/a5d364f3-e3e7-46fb-8273-aabd56ded0c5.jpg'},
+      {name:'Monkey D. Luffy',    game:'onepiece', set:'EB02', num:'010', price:1388.75, img:Dg+'EB02-010_p2.webp'},
+      {name:'Mickey · Brave Prince',game:'lorcana',set:'9', num:'111',   price:38.00,   img:Rv+'set9/111_fc83a63669bace91d4de7d711d22c3ed67f3afa8.jpg'},
+      {name:'Mew ex',             game:'pokemon',  set:'sv04.5', num:'232', price:968.49,  img:T+'sv/sv04.5/232/high.png'},
+      {name:'Time Warp',          game:'magic',    set:'sta', num:'85',  price:50.61,   img:Sc+'3/4/34f0f4cb-1ef6-44cd-8cca-1d1e138c0344.jpg'},
+      {name:'Portgas D. Ace',     game:'onepiece', set:'OP13', num:'119', price:1315.33, img:Dg+'OP13-119_p2.webp'},
+      {name:'Aurora · Dreaming',  game:'lorcana',  set:'9', num:'153',   price:44.00,   img:Rv+'set9/153_e399771f6aff5232df46ef15dd9b44b79950dbd1.jpg'},
+      {name:'Terapagos ex',       game:'pokemon',  set:'sv08.5', num:'180', price:142, img:T+'sv/sv08.5/180/high.png'},
+      {name:'Teal Mask Ogerpon ex',game:'pokemon', set:'sv08.5', num:'177', price:96,  img:T+'sv/sv08.5/177/high.png'},
+      {name:'Walking Wake ex',    game:'pokemon',  set:'sv08.5', num:'178', price:64,  img:T+'sv/sv08.5/178/high.png'},
+      {name:'Iron Leaves ex',     game:'pokemon',  set:'sv08.5', num:'176', price:58,  img:T+'sv/sv08.5/176/high.png'},
+      {name:'Lacey',              game:'pokemon',  set:'sv08.5', num:'175', price:48,  img:T+'sv/sv08.5/175/high.png'},
+      {name:'Mega Gardevoir ex',  game:'pokemon',  set:'me01', num:'187', price:120, img:T+'me/me01/187/high.png'},
+      {name:'Mega Lucario ex',    game:'pokemon',  set:'me01', num:'188', price:110, img:T+'me/me01/188/high.png'},
+      {name:'Zapdos ex',          game:'pokemon',  set:'sv03.5', num:'202', price:88,  img:T+'sv/sv03.5/202/high.png'},
+      {name:"Erika's Invitation", game:'pokemon',  set:'sv03.5', num:'203', price:76,  img:T+'sv/sv03.5/203/high.png'},
+      {name:"Giovanni's Charisma",game:'pokemon',  set:'sv03.5', num:'204', price:72,  img:T+'sv/sv03.5/204/high.png'},
+      {name:"Acerola's Mischief", game:'pokemon',  set:'me01', num:'183', price:54,  img:T+'me/me01/183/high.png'},
+      {name:"Lillie's Determination",game:'pokemon',set:'me01', num:'184', price:130, img:T+'me/me01/184/high.png'},
+      {name:"Wally's Compassion", game:'pokemon',  set:'me01', num:'186', price:60,  img:T+'me/me01/186/high.png'},
+      {name:"Lt. Surge's Bargain",game:'pokemon',  set:'me01', num:'185', price:52,  img:T+'me/me01/185/high.png'},
+      {name:'Leonardo, Sewer Samurai',game:'magic',set:'tmt', num:'301', price:2945, img:Sc+'7/4/74628e5a-7500-45d3-8147-30d2ef06da50.jpg'},
+      {name:'Donatello, Mechanic',game:'magic',    set:'tmt', num:'302', price:2767, img:Sc+'b/8/b818aa60-b312-457a-b167-b66f7c0cc5f4.jpg'},
+      {name:'Ancestral Recall',   game:'magic',    set:'sos', num:'306', price:2900, img:Sc+'e/f/ef371352-ec8f-4da4-9085-67195068fb79.jpg'},
+      {name:'Edgar Markov',       game:'magic',    set:'inr', num:'491', price:2500, img:Sc+'e/7/e70bfc25-3c0c-4574-b504-1d1f73e9e790.jpg'},
+      {name:'Murktide Regent',    game:'magic',    set:'slp', num:'17',  price:2300, img:Sc+'d/6/d6954d23-86a7-47ed-bad9-7f92c0edb0e4.jpg'},
+      {name:'Leonardo da Vinci',  game:'magic',    set:'acr', num:'118z',price:1819, img:Sc+'2/c/2c7f82c4-7223-4dae-b037-aac96a32212f.jpg'},
+      {name:'The Soul Stone',     game:'magic',    set:'spm', num:'243', price:1303, img:Sc+'f/9/f9d80efc-e829-4257-83e8-f37b0b68de57.jpg'},
+      {name:'Ms. Bumbleflower',   game:'magic',    set:'blc', num:'103', price:1144, img:Sc+'5/c/5c75bab8-02d0-477c-bfb1-dace7cb33a1f.jpg'},
+      {name:'Lilo · Rock Star',   game:'lorcana',  set:'11', num:'223',  price:180, img:Rv+'set11/223_488ba872f5899a5448d6486fc58b3b4ec4dee566.jpg'},
+      {name:'Ohana Means Family', game:'lorcana',  set:'11', num:'224',  price:90,  img:Rv+'set11/224_face6cebc1848935d7768d44be66222e51696e7a.jpg'},
+      {name:'Raging Storm',       game:'lorcana',  set:'11', num:'225',  price:70,  img:Rv+'set11/225_62bd1edbc6df8530da20dad9b8006d209bdbb4fd.jpg'},
+      {name:'Eeyore · In the Way',game:'lorcana',  set:'11', num:'226',  price:120, img:Rv+'set11/226_bc197bb1f0d815655b5892354689fd78ef3def6f.jpg'},
+      {name:'Anna · Soothing',    game:'lorcana',  set:'11', num:'227',  price:85,  img:Rv+'set11/227_f8d28117357d9e1713e11e250f15b5130502fb00.jpg'},
+      {name:'Colors of the Wind', game:'lorcana',  set:'11', num:'228',  price:160, img:Rv+'set11/228_2b28e693a13fbd80fb31b24c59ea334f1c7fcf72.jpg'},
+      {name:'Mulan · Resourceful',game:'lorcana',  set:'11', num:'229',  price:95,  img:Rv+'set11/229_11ef687182293e556172f0e3a32c0746de52c77a.jpg'},
+      {name:'Tod · Knows Tricks', game:'lorcana',  set:'11', num:'230',  price:78,  img:Rv+'set11/230_b7e8c0b77dd13291ddb501be94bbc569f2a62567.jpg'},
+      {name:'Gouging Fire ex',    game:'pokemon',  set:'sv05', num:'214', price:78,  img:T+'sv/sv05/214/high.png'},
+      {name:'Iron Crown ex',      game:'pokemon',  set:'sv05', num:'216', price:62,  img:T+'sv/sv05/216/high.png'},
+      {name:'Iron Boulder ex',    game:'pokemon',  set:'sv05', num:'217', price:56,  img:T+'sv/sv05/217/high.png'},
+      {name:'Raging Bolt ex',     game:'pokemon',  set:'sv05', num:'218', price:90,  img:T+'sv/sv05/218/high.png'},
+      {name:'Bloodmoon Ursaluna ex',game:'pokemon',set:'sv06', num:'222', price:158, img:T+'sv/sv06/222/high.png'},
+      {name:'Briar',              game:'pokemon',  set:'sv07', num:'171', price:112, img:T+'sv/sv07/171/high.png'},
+      {name:'Terapagos ex · SIR', game:'pokemon',  set:'sv07', num:'173', price:84,  img:T+'sv/sv07/173/high.png'},
+      {name:'Traveling Chocobo',  game:'magic',    set:'fin', num:'551a', price:140, img:Sc+'8/1/81690ce7-0651-40e4-9769-baebe10e2cbf.jpg'},
+      {name:'Chatterfang',        game:'magic',    set:'blc', num:'95',  price:90,  img:Sc+'7/9/798d161f-230d-4115-8351-ec6e33ed1730.jpg'},
+      {name:'Stitch · Carefree',  game:'lorcana',  set:'9', num:'24',   price:64,  img:Rv+'set9/24_aa738c1a1e82230750e09c061d49573c437e16d9.jpg'},
+      {name:'Circle of Life',     game:'lorcana',  set:'9', num:'26',   price:88,  img:Rv+'set9/26_9c4fdfaaa46d5be868e25f85c9c6d1a867a6321b.jpg'},
+      {name:'Elsa · Spirit of Winter',game:'lorcana',set:'9', num:'43', price:120, img:Rv+'set9/43_2de43d81f0ad5fd3956dab9c711af9d3e51dcea2.jpg'},
+      {name:'Dumbo · Ninth Wonder',game:'lorcana', set:'9', num:'45',   price:46,  img:Rv+'set9/45_6e544899ae7ed6842b52197b317826cf8b241cbc.jpg'},
+      {name:'Max Goof · Chart Topper',game:'lorcana',set:'9', num:'77', price:54,  img:Rv+'set9/77_8169a2ef57d7bcf315417fc5102f987335064324.jpg'},
+      {name:'John Silver · Pirate',game:'lorcana', set:'9', num:'89',   price:72,  img:Rv+'set9/89_49e7868f92881a426148953ffbe43019973ae057.jpg'},
     ];
     const seed = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
     const rng = (s) => () => { s |= 0; s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
     ALL.forEach((c) => { c.pct = +((rng(seed(c.name))() * 19) - 6).toFixed(1); });
 
-    // ---- ring (slanted cylinder) ----
-    const ring = $('#ring'), hero = $('#hero');
-    const N = ALL.length, STEP = 360 / N;
-    ALL.forEach((c) => {
-      const el = document.createElement('div'); el.className = 'card'; el.dataset.game = c.game;
-      el.innerHTML = `<div class="face front" style="background-image:url('${c.img}')"><span class="gloss"></span></div><div class="face back"></div>`;
-      ring.appendChild(el);
-    });
-    const cards = [...ring.children];
-    const glosses = cards.map((el) => el.querySelector('.gloss'));
-    let R = 1380;
-    function placeCards() { cards.forEach((el, i) => el.style.transform = `rotateY(${i * STEP}deg) translateZ(${R}px)`); }
-    function sizeRing() { R = Math.max(1120, Math.min(innerWidth * 0.77, 1520)); placeCards(); }
-    sizeRing(); addEventListener('resize', sizeRing);
+    // ---- 3D wheel (a recycling cylinder of cards) ----
+    const tape = $('#tape'), hero = $('#hero');
+    const WHEEL = ALL.filter((c) => c.price != null && c.price >= 100);   // the wheel shows only the iconic / enchanted chase cards
+    const N = WHEEL.length;
+    const inspectHref = (c) => (c.set && c.num) ? `app.html?set=${encodeURIComponent(c.set)}&card=${encodeURIComponent(c.num)}&game=${c.game}` : `app.html?game=${c.game}`;
+    // eager-load only the wheel faces (what's on screen); defer the rest to idle so the
+    // page paints fast instead of firing ~150 image requests up front.
+    const warm = (c) => { const im = new Image(); im.decoding = 'async'; im.src = c.img; };
+    WHEEL.forEach(warm);
+    const warmRest = () => ALL.forEach((c) => { if (c.price == null || c.price < 100) warm(c); });
+    if ('requestIdleCallback' in window) requestIdleCallback(warmRest, { timeout: 4000 }); else setTimeout(warmRest, 2200);
 
-    // ---- spin: always auto-spins; hold-drag to control; release → momentum ----
-    let rot = 0, vel = 0, dragging = false, didDrag = false, dragStartX = 0, rotStart = 0, lastX = 0;
-    const SPIN = 5, DRAGK = 0.2;
     let curX = innerWidth / 2, curY = innerHeight / 2, tmX = 0, tmY = 0;     // tmX/tmY = normalised mouse for the bg shader
     const cursor = $('#cursor');
 
+    // A fixed set of physical card nodes ride the drum; as it turns they recycle through all N cards.
+    const STEP = 20;                               // degrees between cards on the drum → the wheel's curvature
+    const VIS = Math.ceil(90 / STEP) + 2;          // half-window of slots kept alive on each side of front
+    const POOL = VIS * 2 + 1;                      // physical nodes (< N, so no card is ever shown twice)
+    const insvg = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>`;
+    const nodes = [];
+    for (let i = 0; i < POOL; i++) {
+      const el = document.createElement('a'); el.className = 'tcard'; el.draggable = false;   // no native link-drag (kills the white drag-hand + jank)
+      el.addEventListener('dragstart', (e) => e.preventDefault());
+      el.innerHTML = `<span class="tinspect">Inspect ${insvg}</span><span class="tbr" aria-hidden="true"><i></i><i></i><i></i><i></i></span>`;
+      el.addEventListener('mouseenter', () => {
+        cursor.classList.add('hover');
+        if (dragging) return;
+        clearTimeout(resumeT);
+        clearTimeout(hoverT);
+        hoverT = setTimeout(() => {                      // only centre after a 3s dwell
+          centerTarget = spin - (el._slotFace || 0);    // ease the card under the cursor to dead-centre
+          centering = true; vel = 0;
+        }, 3000);
+      });
+      el.addEventListener('mouseleave', () => {
+        cursor.classList.remove('hover');
+        clearTimeout(hoverT);                            // cancel the pending centre if they leave early
+        clearTimeout(resumeT);
+        resumeT = setTimeout(() => { centering = false; }, 90);   // off the card → resume the spin
+      });
+      el.addEventListener('click', (e) => { e.preventDefault(); if (!didDrag && el._card) openInspect(el._card); });
+      tape.appendChild(el); nodes.push(el);
+    }
+    let R = 1000;
+    const sizeWheel = () => {
+      const cw = nodes[0].offsetWidth || 260;
+      R = Math.max((cw * 1.12) / (2 * Math.sin(STEP * Math.PI / 360)), 760);   // radius so neighbours never collide
+      nodes.forEach((el) => el.style.setProperty('--r', R.toFixed(1) + 'px'));
+      tape.style.transform = `translateZ(${(-R).toFixed(1)}px)`;               // push the drum back so the front card sits at z=0
+    };
+    addEventListener('resize', sizeWheel);
+    sizeWheel();
+
+    // ---- motion: slow auto-spin; hold-drag to turn; release → momentum ----
+    let spin = 0, vel = 0, dragging = false, didDrag = false, dragStartX = 0, spinStart = 0, lastX = 0;
+    let centering = false, centerTarget = 0, resumeT = 0, hoverT = 0;   // hover-to-centre: after a 3s dwell, ease the card to front, hold, resume on leave
+    const SURFACE = 70, DRAGK = 0.085;             // px/sec — ONE linear speed shared with the bottom ticker · deg per px dragged (≈ grab-and-turn feel)
+    const DTR = Math.PI / 180;
+
     hero.addEventListener('pointerdown', (e) => {
-      dragging = true; didDrag = false; dragStartX = lastX = e.clientX; rotStart = rot; vel = 0;
+      dragging = true; didDrag = false; dragStartX = lastX = e.clientX; spinStart = spin; vel = 0;
+      centering = false; clearTimeout(resumeT);          // dragging overrides hover-centring
       cursor.classList.add('down');
     });
     addEventListener('pointermove', (e) => {
@@ -259,25 +691,114 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
       if (dragging) {
         const dx = e.clientX - dragStartX;
         if (Math.abs(dx) > 5) didDrag = true;
-        rot = rotStart + dx * DRAGK;
+        spin = spinStart + dx * DRAGK;
         vel = (e.clientX - lastX) * DRAGK; lastX = e.clientX;
       }
     });
     addEventListener('pointerup', () => { if (dragging) { dragging = false; cursor.classList.remove('down'); } });
     addEventListener('pointercancel', () => { dragging = false; cursor.classList.remove('down'); });
     document.addEventListener('mouseleave', () => cursor.classList.add('hide'));
-    cards.forEach((el) => {
-      el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
-      el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
-      el.addEventListener('click', () => { if (!didDrag) location.href = 'app.html?game=' + el.dataset.game; });
+
+    const spinWheel = (dt) => {
+      if (centering && !dragging) { spin += (centerTarget - spin) * 0.09; }   // ease the hovered card to centre, then hold
+      else if (!dragging) { spin += (SURFACE / R) / DTR * dt + vel; vel *= 0.94; if (Math.abs(vel) < 0.002) vel = 0; }   // px/sec → deg/sec at radius R
+      const centerP = Math.round(-spin / STEP);    // which card position is nearest the front
+      let frontEl = null, frontAbs = 999;
+      for (let t = 0; t < POOL; t++) {
+        const p = centerP - VIS + t, el = nodes[t];
+        const di = ((p % N) + N) % N, c = WHEEL[di];
+        if (el._di !== di) { el._di = di; el._card = c; el.style.backgroundImage = `url('${c.img}')`; el.href = inspectHref(c); el.dataset.game = c.game; }
+        const face = p * STEP + spin, fa = Math.abs(face);   // facing angle: 0 = dead centre
+        el._slotFace = face;                                  // snapshot for hover-to-centre
+        el.style.setProperty('--a', face.toFixed(2) + 'deg');
+        const op = fa > 97 ? 0 : fa > 60 ? Math.max(0, 1 - (fa - 60) / 37) : 1;
+        el.style.opacity = op.toFixed(3);
+        el.style.filter = `brightness(${(0.55 + 0.45 * Math.max(0, Math.cos(face * DTR))).toFixed(3)})`;
+        el.style.zIndex = String(1000 - Math.round(fa));
+        el.style.pointerEvents = op < 0.25 ? 'none' : 'auto';
+        if (fa < frontAbs) { frontAbs = fa; frontEl = el; }
+      }
+      for (let t = 0; t < POOL; t++) nodes[t].classList.toggle('front', nodes[t] === frontEl && frontAbs < STEP * 0.7);
+    };
+
+    // ---- on-page 3D inspect modal ----
+    const inspectEl = $('#inspect'), insCard = $('#insCard'), insCardWrap = $('#insCardWrap'), insLight = $('#insLight');
+    const ACCENTS = { pokemon: '#ffcb05', magic: '#e8943b', lorcana: '#7fd4f4', onepiece: '#ff5b4d' };
+    const UNI = { pokemon: 'Pokémon', magic: 'Magic: The Gathering', lorcana: 'Disney Lorcana', onepiece: 'One Piece' };
+    // tint the inspect backdrop with the card's own dominant colour (falls back to the universe accent)
+    // solid backdrop: a vertical gradient of the card's colour — dark at top, lighter at bottom
+    const setBg = (r, g, b) => {
+      const c = (k) => `rgb(${Math.min(255, Math.round(r * k))},${Math.min(255, Math.round(g * k))},${Math.min(255, Math.round(b * k))})`;
+      inspectEl.style.setProperty('--card-top', c(0.15));
+      inspectEl.style.setProperty('--card-bot', c(0.5));
+    };
+    function tintBackdrop(c) {
+      const n = parseInt((ACCENTS[c.game] || '#82b4ff').slice(1), 16);
+      setBg((n >> 16) & 255, (n >> 8) & 255, n & 255);               // instant fallback = universe colour
+      // fetch the art as a CORS blob → ImageBitmap → canvas is untainted, so pixels are readable.
+      // CDNs that don't allow CORS just reject and we keep the universe-accent fallback.
+      fetch(c.img, { mode: 'cors' }).then((res) => res.ok ? res.blob() : Promise.reject()).then(createImageBitmap).then((bm) => {
+        const cv = document.createElement('canvas'); cv.width = 18; cv.height = 25;
+        const x = cv.getContext('2d'); x.drawImage(bm, 0, 0, 18, 25);
+        const d = x.getImageData(0, 0, 18, 25).data;
+        let r = 0, g = 0, b = 0, w = 0;
+        for (let i = 0; i < d.length; i += 4) {
+          if (d[i + 3] < 200) continue;
+          const R = d[i], G = d[i + 1], B = d[i + 2], mx = Math.max(R, G, B), mn = Math.min(R, G, B);
+          const k = 0.18 + (mx ? (mx - mn) / mx : 0);                  // vivid pixels weigh more → the card's true colour
+          r += R * k; g += G * k; b += B * k; w += k;
+        }
+        if (w) setBg(Math.round(r / w), Math.round(g / w), Math.round(b / w));
+      }).catch(() => { /* CORS-blocked → keep fallback */ });
+    }
+    function openInspect(c) {
+      if (!c) return;
+      insCard.style.backgroundImage = `url('${c.img}')`;
+      insCard.style.setProperty('--accent', ACCENTS[c.game] || '#82b4ff');
+      tintBackdrop(c);   // backdrop glow takes on the card's own colour
+      $('#insUni').textContent = UNI[c.game] || c.game;
+      $('#insName').textContent = c.name;
+      $('#insSet').textContent = c.set ? `Set ${c.set} · #${c.num}` : '';
+      $('#insPrice').textContent = c.price != null ? fmt0(c.price) : 'Untracked';
+      const up = c.pct >= 0, tr = $('#insTrend');
+      tr.textContent = `${up ? '▲' : '▼'} ${Math.abs(c.pct).toFixed(1)}%`;
+      tr.className = 'ins-trend ' + (up ? 'up' : 'down');
+      $('#insOpen').href = inspectHref(c);
+      const r = rng(seed(c.name + 'spk')); let v = 36; const pts = [];
+      for (let i = 0; i <= 32; i++) { v += (r() - 0.46) * 9; v = Math.max(8, Math.min(56, v)); pts.push(v); }
+      pts[pts.length - 1] = up ? Math.max(pts[pts.length - 1], 44) : Math.min(pts[pts.length - 1], 22);
+      const X = (i) => (i / 32) * 280, Y = (val) => 60 - val;
+      let d = `M0 ${Y(pts[0]).toFixed(1)}`; pts.forEach((p, i) => d += ` L${X(i).toFixed(1)} ${Y(p).toFixed(1)}`);
+      const col = up ? '#56ff9b' : '#ff6b6b';
+      $('#insSpark').innerHTML = `<path d="${d} L280 64 L0 64 Z" fill="${col}" fill-opacity=".12"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
+      $('#insStats').innerHTML = [
+        ['Universe', UNI[c.game] || c.game], ['Set', c.set || '—'],
+        ['Card №', c.num ? ('#' + c.num) : '—'], ['30-day', `${up ? '+' : ''}${c.pct.toFixed(1)}%`],
+      ].map(([k, v]) => `<div class="ins-stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+      inspectEl.hidden = false; requestAnimationFrame(() => inspectEl.classList.add('on'));
+    }
+    function closeInspect() { inspectEl.classList.remove('on'); insCard.style.transform = 'rotateX(0deg) rotateY(0deg)';
+      insCardWrap.classList.remove('lit'); insLight.classList.remove('on'); insLight.setAttribute('aria-pressed', 'false');
+      setTimeout(() => { inspectEl.hidden = true; }, 320); }
+    insCardWrap.addEventListener('pointermove', (e) => {
+      const rr = insCardWrap.getBoundingClientRect();
+      const px = (e.clientX - rr.left) / rr.width - 0.5, py = (e.clientY - rr.top) / rr.height - 0.5;
+      insCard.style.transform = `rotateY(${(px * 24).toFixed(1)}deg) rotateX(${(-py * 24).toFixed(1)}deg)`;
     });
+    insCardWrap.addEventListener('pointerleave', () => { insCard.style.transform = 'rotateY(0deg) rotateX(0deg)'; });
+    // toggle the under-card light bar (reveals foil/depth); pointerdown so card-tilt drag doesn't swallow it
+    insLight.addEventListener('click', (e) => { e.stopPropagation();
+      const lit = insCardWrap.classList.toggle('lit'); insLight.classList.toggle('on', lit); insLight.setAttribute('aria-pressed', lit ? 'true' : 'false'); });
+    $('#insScrim').addEventListener('click', closeInspect);
+    $('#insClose').addEventListener('click', closeInspect);
+    addEventListener('keydown', (e) => { if (e.key === 'Escape' && !inspectEl.hidden) closeInspect(); });
 
     // ---- Three.js topographic background (slow drift + subtle mouse) ----
     let bgRender = () => {};
     (() => {
       if (!window.THREE) return;
       const renderer = new THREE.WebGLRenderer({ canvas: $('#topo'), antialias: true, alpha: false });
-      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
       const scene = new THREE.Scene();
       const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
       const uni = { uTime: { value: 0 }, uRes: { value: new THREE.Vector2() }, uMouse: { value: new THREE.Vector2() } };
@@ -293,16 +814,17 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
           void main(){
             vec2 uv = vUv;
             vec2 p = uv; p.x *= uRes.x / max(uRes.y, 1.0);
-            p = p * 3.1 + uMouse * 0.30;                 // subtle mouse parallax
+            p = p * 4.6 + uMouse * 0.26;                 // zoomed out → more of the pattern + subtle mouse parallax
             float n = fbm(p + vec2(uTime * 0.018, uTime * 0.012));
             float f = n * 8.5;                            // contour density
             float fr = fract(f);
             float d = min(fr, 1.0 - fr);                  // distance to nearest contour line
-            float line = 1.0 - smoothstep(0.0, 0.052, d);
+            float line = 1.0 - smoothstep(0.0, 0.038, d); // crisp, thin lines
             float g = clamp(uv.x * 0.45 + (1.0 - uv.y) * 0.7, 0.0, 1.0);
-            vec3 base = mix(vec3(0.16,0.22,0.55), vec3(0.018,0.03,0.13), g);   // royal-blue → deep navy
-            vec3 lineCol = mix(vec3(0.33,0.55,1.0), vec3(0.12,0.20,0.55), g);
-            vec3 col = mix(base, lineCol, line * (0.55 + 0.35 * (1.0 - g)));
+            vec3 base = mix(vec3(0.13,0.19,0.48), vec3(0.015,0.025,0.11), g);   // royal-blue → deep navy field
+            vec3 lineWhite = mix(vec3(0.9,0.94,1.0), vec3(0.5,0.58,0.78), g);   // white, less pronounced, dims with depth
+            float lineStr = line * (0.3 + 0.14 * (1.0 - g));  // softer; no glow halo → no blotches
+            vec3 col = mix(base, lineWhite, clamp(lineStr, 0.0, 1.0));
             gl_FragColor = vec4(col, 1.0);
           }`
       });
@@ -322,19 +844,11 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
     const DEG = Math.PI / 180;
     function frame(now) {
       const dt = last ? Math.min((now - last) / 1000, 0.05) : 0; last = now;
-      if (!dragging) { rot -= SPIN * dt; rot += vel; vel *= 0.9; if (Math.abs(vel) < 0.002) vel = 0; }
-      ring.style.transform = `translateZ(${-R}px) rotateY(${rot}deg)`;
-      for (let i = 0; i < N; i++) {
-        let a = (i * STEP + rot) % 360; if (a > 180) a -= 360; if (a < -180) a += 360;
-        const fr = Math.cos(a * DEG);
-        const g = glosses[i];
-        g.style.opacity = fr > 0 ? (fr * fr * 0.62).toFixed(3) : '0';
-        g.style.transform = `translateX(${Math.max(-130, Math.min(130, (a / 88) * 130)).toFixed(1)}%)`;
-      }
+      spinWheel(dt);
       cursor.style.left = curX + 'px'; cursor.style.top = curY + 'px';
       mqX -= 24 * dt; mq2X += 20 * dt;
       const mqW = mqTrack.scrollWidth / 2, mq2W = mqTrack2.scrollWidth / 2, tkW = tkTrack.scrollWidth / 2;
-      if (mqX <= -mqW) mqX += mqW; if (mq2X >= 0) mq2X -= mq2W; tkX -= 70 * dt; if (tkX <= -tkW) tkX += tkW;
+      if (mqX <= -mqW) mqX += mqW; if (mq2X >= 0) mq2X -= mq2W; tkX -= SURFACE * dt; if (tkX <= -tkW) tkX += tkW;
       mqTrack.style.transform = `translateX(${mqX}px)`;
       mqTrack2.style.transform = `translateX(${mq2X}px)`;
       tkTrack.style.transform = `translateX(${tkX}px)`;
@@ -343,37 +857,112 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
     }
 
     // marquee — two rows
-    const MWORDS = [['POKÉMON','tag'],['MAGIC',''],['ONE PIECE','tag'],['LORCANA',''],['THE ULTIMATE CARD TRACKER','dim']];
-    const mw = (arr) => arr.map(([w, c]) => `<span class="mw ${c}">${w}</span><span class="mw star">✦</span>`).join('');
+    const MWORDS = [['pokemon','logo'],['magic','logo'],['onepiece','logo'],['lorcana','logo'],['THE ULTIMATE CARD TRACKER','dim'],['THE INDEX — EVERY UNIVERSE, ONE FEED','gold']];
+    const mw = (arr) => arr.map(([w, c]) => (c === 'logo'
+      ? `<img class="mw mw-logo" src="assets/logos/${w}.png?v=79" alt="">`
+      : `<span class="mw ${c}">${w}</span>`) + `<span class="mw star">✦</span>`).join('');
     const mqTrack = $('#mq'), mqTrack2 = $('#mq2');
     mqTrack.innerHTML = mw(MWORDS) + mw(MWORDS);
     mqTrack2.innerHTML = mw([...MWORDS].reverse()) + mw([...MWORDS].reverse());
 
-    // ticker
+    // ticker — most-trending first (biggest movers, up or down)
     const tkTrack = $('#tk');
-    const tkHTML = ALL.map((c) => {
+    const tkHTML = [...ALL].sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).map((c) => {
       const up = c.pct >= 0, pr = c.price != null ? fmt0(c.price) : '—';
       const chg = c.price != null ? `<span class="c ${up ? 'up' : 'down'}">${up ? '▲' : '▼'}${Math.abs(c.pct).toFixed(1)}%</span>` : `<span class="c">ENCH</span>`;
       return `<span class="ti"><span class="nm">${c.name.toUpperCase()}</span><span class="pr">${pr}</span>${chg}</span><span class="sep">·</span>`;
     }).join('');
     tkTrack.innerHTML = tkHTML + tkHTML;
+
+    // ---- card of the month — the hardest-trending card ----
+    (() => {
+      const top = [...ALL].sort((a, b) => b.pct - a.pct)[0];
+      const card = $('#cotmCard'); if (!card || !top) return;
+      card.style.backgroundImage = `url('${top.img}')`;
+      card.style.setProperty('--accent', ACCENTS[top.game] || '#82b4ff');
+      $('#cotmName').textContent = top.name;
+      $('#cotmPrice').textContent = top.price != null ? fmt0(top.price) : 'Untracked';
+      const up = top.pct >= 0, tr = $('#cotmTrend');
+      tr.textContent = `${up ? '▲' : '▼'} ${Math.abs(top.pct).toFixed(1)}%`;
+      tr.className = 'cotm2-trend ' + (up ? 'up' : 'down');
+      if (top.price != null) {   // simple momentum forecast off the 30-day trend
+        const p30 = top.price * (1 + top.pct / 100), p1y = top.price * (1 + (top.pct / 100) * 3.4);
+        $('#cotmPred').innerHTML = `Projected &middot; <b>${fmt0(p30)}</b> in 30 days &middot; <b>${fmt0(p1y)}</b> in 1 year`;
+      }
+      (() => {   // trend sparkline (seeded so it matches the card)
+        const sr = rng(seed(top.name + 'spk')); let v = 36; const pts = [];
+        for (let i = 0; i <= 36; i++) { v += (sr() - 0.46) * 9; v = Math.max(8, Math.min(56, v)); pts.push(v); }
+        pts[pts.length - 1] = up ? Math.max(pts[pts.length - 1], 46) : Math.min(pts[pts.length - 1], 20);
+        const X = (i) => (i / 36) * 360, Y = (val) => 58 - val;
+        let d = `M0 ${Y(pts[0]).toFixed(1)}`; pts.forEach((p, i) => d += ` L${X(i).toFixed(1)} ${Y(p).toFixed(1)}`);
+        const col = up ? '#56ff9b' : '#ff6b6b';
+        $('#cotmSpark').innerHTML = `<path d="${d} L360 60 L0 60 Z" fill="${col}" fill-opacity=".14"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.6" stroke-linejoin="round"/>`;
+      })();
+      const wrap = $('#cotmWrap');
+      wrap.addEventListener('pointermove', (e) => {
+        const r = wrap.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5;
+        card.classList.add('live');
+        card.style.setProperty('--ry', (24 + px * 26).toFixed(1) + 'deg');
+        card.style.setProperty('--rx', (7 - py * 22).toFixed(1) + 'deg');
+        card.style.setProperty('--sx', (40 + px * 60) + '%'); card.style.setProperty('--sy', (32 + py * 60) + '%');
+      });
+      wrap.addEventListener('pointerleave', () => {
+        card.classList.remove('live');                       // smooth return to the resting angle
+        card.style.setProperty('--ry', '24deg'); card.style.setProperty('--rx', '7deg');
+        card.style.setProperty('--sx', '40%'); card.style.setProperty('--sy', '32%');
+      });
+      const open = () => openInspect(top);
+      $('#cotmOpen').addEventListener('click', open);
+      card.addEventListener('click', open);
+    })();
     requestAnimationFrame(frame);
 
-    // ---- chart (aggregate index area) ----
+    // ---- index radar: 5 live feeds → their average; free-floating, 3D & interactive ----
     (() => {
-      const r = rng(0x51ce);
-      const pts = []; let v = 40;
-      for (let i = 0; i <= 48; i++) { v += (r() - 0.42) * 7; v = Math.max(12, Math.min(150, v)); pts.push(v); }
-      pts[pts.length - 1] = Math.max(pts[pts.length - 1], 120);
-      const X = (i) => (i / 48) * 600, Y = (val) => 165 - val;
-      let d = `M0 ${Y(pts[0])}`; pts.forEach((p, i) => { d += ` L${X(i).toFixed(1)} ${Y(p).toFixed(1)}`; });
-      const area = d + ` L600 170 L0 170 Z`;
-      $('#chart').innerHTML =
-        `<defs><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1">
-           <stop offset="0" stop-color="#f4c544" stop-opacity=".42"/><stop offset="1" stop-color="#f4c544" stop-opacity="0"/></linearGradient></defs>
-         <g stroke="rgba(120,150,210,.14)"><line x1="0" y1="42" x2="600" y2="42"/><line x1="0" y1="104" x2="600" y2="104"/></g>
-         <path d="${area}" fill="url(#gg)"/>
-         <path d="${d}" fill="none" stroke="#f4c544" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+      const radar = $('#radar'), wrap = $('#radarWrap'), readout = $('#radarReadout');
+      if (!radar) return;
+      const cx = 170, cy = 138, R = 104, DTR = Math.PI / 180;
+      const feeds = [
+        { name: 'TCGdex', what: 'Pokémon cards &amp; sets', v: 0.88, c: '#ffcf1a' },
+        { name: 'Scryfall', what: 'Magic: The Gathering', v: 0.72, c: '#ff9a52' },
+        { name: 'Ravensburger', what: 'Disney Lorcana', v: 0.81, c: '#5ec6f5' },
+        { name: 'dotGG', what: 'One Piece TCG', v: 0.66, c: '#ff5b6b' },
+        { name: 'TCGCSV', what: 'Market prices &amp; sealed', v: 0.84, c: '#b18cff' },
+      ];
+      const Nf = feeds.length;
+      const ang = (i) => (-90 + i * (360 / Nf)) * DTR;
+      const pt = (i, r) => [cx + r * Math.cos(ang(i)), cy + r * Math.sin(ang(i))];
+      const poly = (rFn) => feeds.map((f, i) => { const [x, y] = pt(i, rFn(f, i)); return `${x.toFixed(1)},${y.toFixed(1)}`; }).join(' ');
+      const avg = feeds.reduce((s, f) => s + f.v, 0) / Nf;
+      let s = `<defs><filter id="radGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+      [0.25, 0.5, 0.75, 1].forEach((L) => { s += `<polygon points="${poly(() => R * L)}" fill="none" stroke="rgba(150,180,230,.12)" stroke-width="1"/>`; });
+      feeds.forEach((f, i) => { const [x, y] = pt(i, R); s += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(150,180,230,.12)" stroke-width="1"/>`; });
+      s += `<polygon points="${poly(() => R * avg)}" fill="rgba(255,210,74,.05)" stroke="rgba(255,210,74,.5)" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+      s += `<polygon points="${poly((f) => R * f.v)}" fill="rgba(232,183,62,.2)" stroke="#ffd24a" stroke-width="2.4" stroke-linejoin="round" filter="url(#radGlow)"/>`;
+      feeds.forEach((f, i) => { const [x, y] = pt(i, R * f.v); s += `<circle class="feed-dot" data-i="${i}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="${f.c}" style="color:${f.c};cursor:pointer"/>`; });
+      feeds.forEach((f, i) => {
+        const [x, y] = pt(i, R + 20), c = Math.cos(ang(i)), si = Math.sin(ang(i));
+        const anchor = Math.abs(c) < 0.3 ? 'middle' : (c > 0 ? 'start' : 'end');
+        const dy = si > 0.3 ? '0.72em' : (si < -0.3 ? '-0.2em' : '0.32em');
+        s += `<text class="feed-label" data-i="${i}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="${anchor}" dy="${dy}" fill="#b3c2e0" font-family="DM Sans, sans-serif" font-size="11" font-weight="600" style="cursor:pointer">${f.name}</text>`;
+      });
+      s += `<circle cx="${cx}" cy="${cy}" r="3" fill="#ffd24a"/>`;
+      radar.innerHTML = s;
+      const base = `<span class="rr-name">Five live sources</span><span class="rr-what">Hover a source to see how it scores into the index.</span>`;
+      const show = (i) => {
+        if (i == null) { readout.innerHTML = base; return; }
+        const f = feeds[i];
+        readout.innerHTML = `<span class="rr-name" style="color:${f.c}">${f.name}</span><span class="rr-what">${f.what} &middot; <b>${Math.round(f.v * 100)}% market match</b></span>`;
+      };
+      const hi = (i) => { radar.querySelectorAll('.feed-dot').forEach((d) => d.setAttribute('r', +d.dataset.i === i ? '9.5' : '6')); };
+      radar.querySelectorAll('.feed-dot, .feed-label').forEach((el) => {
+        const i = +el.dataset.i;
+        el.addEventListener('mouseenter', () => { show(i); hi(i); });
+        el.addEventListener('mouseleave', () => { show(null); hi(-1); });
+      });
+      // a gentle static 3D tilt (lies back like a table top) — no mouse-follow
+      if (window.gsap) gsap.set(radar, { transformPerspective: 950, transformOrigin: '50% 56%', rotateX: 13 });
     })();
 
     // ---- scroll reveal ----
@@ -386,19 +975,31 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 
     // ---- loader / intro ----
     gsap.set(['.topbar', '.hero', '.ticker'], { opacity: 0 });
+    // rotating "Loading <universe>" words on the loader
+    (() => {
+      const roll = $('#ldRoll'); if (!roll || !window.gsap) return;
+      const logos = ['pokemon', 'magic', 'lorcana', 'onepiece'].map((g) => `assets/logos/${g}.png?v=79`);
+      logos.forEach((s) => { const im = new Image(); im.src = s; });   // preload so swaps don't flash
+      let i = 0;
+      const t = setInterval(() => {
+        gsap.to(roll, { y: -14, opacity: 0, duration: 0.26, ease: 'power2.in', onComplete: () => {
+          i = (i + 1) % logos.length; roll.src = logos[i];
+          gsap.fromTo(roll, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.32, ease: 'power2.out' });
+        } });
+      }, 900);
+      setTimeout(() => clearInterval(t), 7000);
+    })();
     // slow, seamless gold shimmer on "Ultimate" only (repeating gradient → no visible reset)
-    gsap.fromTo('.headline .em', { backgroundPosition: '0px 0' }, { backgroundPosition: '-236px 0', duration: 11, ease: 'none', repeat: -1 });
+    gsap.to('.headline .em', { filter: 'drop-shadow(0 1px 1px rgba(130,85,10,.5)) drop-shadow(0 0 8px rgba(255,212,90,.36))', duration: 2.6, ease: 'sine.inOut', repeat: -1, yoyo: true });
     gsap.to('.scrolldown', { y: 7, duration: 1.1, repeat: -1, yoyo: true, ease: 'sine.inOut' });
     function intro() {
-      const c = { v: 0 };
+      gsap.set('.ld-stack', { opacity: 0, y: 16 });
       gsap.timeline()
-        .to('#ldMark', { clipPath: 'inset(0 0% 0 0)', duration: 1.0, ease: 'power2.inOut' })
-        .to('#ldBar', { width: '100%', duration: 1.5, ease: 'power1.inOut' }, 0)
-        .to(c, { v: 100, duration: 1.5, onUpdate: () => $('#ldCount').textContent = Math.round(c.v) + '%' }, 0)
-        .to('#loader', { autoAlpha: 0, duration: .6 }, '+=.12')
-        .to('.topbar', { opacity: 1, duration: .6 }, '-=.3')
-        .to('.hero', { opacity: 1, duration: .7 }, '-=.4')
-        .from('.tilt', { opacity: 0, scale: .86, rotationY: -24, duration: 1.2, ease: 'power3.out' }, '<')
+        .to('.ld-stack', { opacity: 1, y: 0, duration: .8, ease: 'power3.out' })
+        .to('#loader', { autoAlpha: 0, scale: 1.05, filter: 'blur(9px)', duration: .9, ease: 'power2.inOut' }, '+=1.7')
+        .to('.topbar', { opacity: 1, duration: .6 }, '-=.55')
+        .to('.hero', { opacity: 1, duration: .7 }, '-=.55')
+        .from('.tape-wrap', { opacity: 0, duration: 1.1, ease: 'power3.out' }, '<')
         .from('.intro-copy', { opacity: 0, y: 22, duration: .7 }, '-=.7')
         .to('.ticker', { opacity: 1, duration: .6 }, '-=.5');
     }

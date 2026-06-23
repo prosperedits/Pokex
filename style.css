@@ -40,7 +40,7 @@ body {
   inset: -8%;
   background: url('assets/glass-spectral.jpg') center / cover no-repeat;
   mix-blend-mode: screen;
-  opacity: 0.3;
+  opacity: 0.46;
   will-change: transform;
 }
 /* lighting pass: a cool keylight from above, ember kicker from the lower right,
@@ -49,9 +49,9 @@ body {
   position: absolute;
   inset: -10%;
   background:
-    radial-gradient(95% 72% at 50% -14%, rgba(127, 212, 244, 0.17) 0%, transparent 62%),
-    radial-gradient(72% 95% at 106% 80%, rgba(240, 140, 30, 0.13) 0%, transparent 58%),
-    linear-gradient(118deg, transparent 36%, rgba(196, 75, 173, 0.08) 50%, transparent 64%);
+    radial-gradient(95% 82% at 50% -22%, rgba(127, 212, 244, 0.44) 0%, transparent 64%),
+    radial-gradient(72% 95% at 106% 80%, rgba(240, 140, 30, 0.34) 0%, transparent 58%),
+    linear-gradient(118deg, transparent 36%, rgba(196, 75, 173, 0.22) 50%, transparent 64%);
   mix-blend-mode: screen;
   will-change: transform, opacity;
 }
@@ -75,12 +75,10 @@ body {
 }
 .rail {
   position: relative;
-  height: 96px;
+  height: 54px;
   cursor: grab;
   touch-action: none;
   outline: none;
-  perspective: 520px;            /* the depth — segments recede into z, not a flat tilt */
-  perspective-origin: 50% 26%;   /* viewpoint sits above, so the arc reads as 3D */
 }
 .rail:active { cursor: grabbing; }
 .ticks { display: none; } /* retired heat strip — element stays so JS is a no-op */
@@ -88,26 +86,27 @@ body {
 /* the dial: one bar per card on an arc that curves INTO the screen. Each bar is
    placed with translate3d; perspective shrinks the receding ends = real depth. */
 .rail-arc { position: absolute; inset: 0; transform-style: preserve-3d; }
-.dial-stage { position: absolute; left: 50%; bottom: 30px; transform-style: preserve-3d; transform: rotateX(12deg); }
+.dial-stage { position: absolute; left: 50%; bottom: 22px; }
+.dial-stage::before { content: ''; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+  width: var(--dial-w, 760px); height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(170,205,255,0.22) 18%, rgba(170,205,255,0.22) 82%, transparent); }
 .dtick {
-  position: absolute; bottom: 0; left: 0; width: 3px; margin-left: -1.5px;
-  border-radius: 2px 2px 0 0; transform-origin: bottom center;
-  /* vertical gradient = the segment reads as a lit, rounded 3D pillar */
-  background: linear-gradient(to top, rgba(61, 155, 224, 0.05), var(--spectral) 55%, var(--spectral-bright));
-  box-shadow: 0 0 4px rgba(127, 212, 244, 0.5);
-  transition: opacity 0.25s;
+  position: absolute; bottom: 0; left: 0; width: 2px; margin-left: -1px;
+  border-radius: 2px; transform-origin: bottom center;
+  background: linear-gradient(to top, rgba(120, 160, 220, 0.1), rgba(178, 208, 255, 0.7));
+  transition: opacity 0.25s, background 0.25s;
 }
 .rail:hover .dtick:not(.cur) { opacity: 0.7 !important; }
 .dtick.cur {
-  width: 4px; margin-left: -2px; opacity: 1 !important;
-  background: linear-gradient(to top, rgba(255, 255, 255, 0.35), #eafaff 60%, #fff);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.95), 0 0 22px rgba(127, 212, 244, 0.85);
+  width: 3px; margin-left: -1.5px; opacity: 1 !important;
+  background: linear-gradient(to top, rgba(255, 210, 90, 0.5), #ffe08a 60%, #fff3cf);
+  box-shadow: 0 0 9px rgba(255, 210, 90, 0.9), 0 0 20px rgba(255, 200, 60, 0.6);
 }
 .dknob {
   position: absolute; bottom: 0; left: 0; width: 12px; height: 12px; margin: 0 0 -4px -6px;
   border-radius: 50%; transform-origin: center;
-  background: radial-gradient(circle at 36% 30%, #fff, #d4eeff 48%, #5a9fd0);
-  box-shadow: 0 0 13px rgba(127, 212, 244, 0.95), 0 2px 7px rgba(0, 0, 0, 0.55);
+  background: radial-gradient(circle at 36% 30%, #fff, #ffe08a 50%, #e0a834);
+  box-shadow: 0 0 12px rgba(255, 210, 90, 0.9), 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 .rail:focus-visible { outline: 1px solid var(--spectral); outline-offset: 4px; border-radius: 8px; }
 
@@ -124,19 +123,12 @@ body {
 }
 .lockup { display: flex; align-items: center; cursor: pointer; }
 .lockup:hover { filter: brightness(1.15); }
-/* the mark, for now: just the ember strike-X */
-.logo-pokex { display: inline-flex; line-height: 1; user-select: none; }
-.logo-pokex .lx {
-  font-family: var(--font-logo-x);
-  font-size: 50px;
-  /* chromium blue: cold metallic gradient through the FLAMES ice palette */
-  background: linear-gradient(178deg,
-    #EAF7FF 6%, var(--spectral-bright) 28%, var(--spectral) 54%, #1B5E96 78%, #9FE2FF 96%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 22px rgba(61, 155, 224, 0.55)) drop-shadow(0 0 48px rgba(127, 212, 244, 0.28));
-}
+/* the POKEX wordmark — blue-bordered box, gold letters, blue KE (matches the homepage) */
+.logo-pokex { display: inline-flex; align-items: center; line-height: 1; user-select: none; text-transform: uppercase;
+  font-family: var(--font-display); font-size: 20px; letter-spacing: 0.16em; padding: 8px 13px 5px;
+  border: 2px solid var(--spectral-bright); color: #ffd24a;
+  text-shadow: 0 0 12px rgba(255, 210, 74, 0.35); box-shadow: 0 0 16px -4px rgba(127, 212, 244, 0.45); }
+.logo-pokex .k { color: var(--spectral-bright); text-shadow: 0 0 12px rgba(127, 212, 244, 0.55); }
 
 /* set selector: current set logo, dead center; opens an era-grouped menu */
 .set-dropdown {
@@ -771,9 +763,15 @@ main {
 
 /* elegant, simple action row — clean segmented control, capped to the card width */
 /* action row — three clean editorial buttons, capped to the card width */
+/* toggle-able whole-card light wash on the inspect card */
+.z-lightwash { position: absolute; inset: 0; z-index: 4; border-radius: inherit; pointer-events: none;
+  opacity: 0; transition: opacity 0.22s ease; mix-blend-mode: screen;
+  background: radial-gradient(125% 105% at 50% 55%, rgba(255,252,240,0.34), rgba(255,250,236,0.2) 64%, rgba(255,255,255,0.06) 100%); }
+.card-faces.lit .z-lightwash { opacity: 1; }
+.card-actions #lightBtn[aria-pressed="true"] { --back-color: 45, 90%; color: #1a1206; }
 .card-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   width: 100%;
   max-width: var(--featured-card-w, 360px); /* JS pins this = the card's width */
   gap: 8px;
@@ -1453,8 +1451,7 @@ main {
 }
 @media (max-width: 700px) {
   .chrome { padding-inline: var(--s-4); }
-  .logo-pokex .lp { font-size: 28px; }
-  .logo-pokex .lx { font-size: 38px; }
+  .logo-pokex { font-size: 16px; padding: 7px 11px 4px; }
   .chrome-right { gap: var(--s-3); }
   .wheel { height: 52vh; }
 }
@@ -1473,7 +1470,9 @@ html.motion-reduced .shine { display: none; }
 /* ---------- HOME: hero → "Get started" → "Pick one" 3D card spread ---------- */
 .home { position: fixed; inset: 0; z-index: 50; background: radial-gradient(80% 60% at 50% 0%, rgba(127,212,244,0.06), transparent 64%), #07060c; }
 .home[hidden] { display: none; }
-body.home-open .chrome, body.home-open main, body.home-open .minimap, body.home-open .site-foot { visibility: hidden; }
+body.home-open main, body.home-open .minimap, body.home-open .site-foot { visibility: hidden; }
+/* keep the Crowns brand on the universe picker; hide only the set-specific controls */
+body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden; }
 .home-scroll { position: absolute; inset: 0; overflow: hidden; }
 .home-stage { position: absolute; inset: 0; perspective: 1500px; }
 .hv { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 8vh 6vw; box-sizing: border-box; transform-style: preserve-3d; }
@@ -1525,7 +1524,11 @@ body.home-open .chrome, body.home-open main, body.home-open .minimap, body.home-
   box-shadow: 0 38px 72px rgba(0, 0, 0, 0.62), 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 60px rgba(124, 92, 255, 0.12); }
 
 /* set selector */
-.set-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(188px, 1fr)); gap: 12px; width: min(92vw, 1000px); max-height: 60vh; overflow-y: auto; padding: 4px; scrollbar-width: thin; }
+/* the set screen wears the universe's colour full-bleed, so the expanded picker
+   column resolves straight into it with no colour jump */
+.hv-sets { background: linear-gradient(170deg, color-mix(in srgb, var(--accent, #7fd4f4) 24%, #0a1126) 0%, #070c1a 58%, #05091a 100%); }
+.set-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; width: min(95vw, 1280px); padding: 4px; }
+@media (max-width: 1040px) { .set-grid { grid-template-columns: repeat(4, 1fr); } }
 .set-pick { display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left;
   padding: 15px 16px; border-radius: 12px; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--stage-line);
   transition: background 0.16s, border-color 0.16s, transform 0.16s; }
@@ -1533,10 +1536,75 @@ body.home-open .chrome, body.home-open main, body.home-open .minimap, body.home-
 .sp-name { font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--text); }
 .set-pick:hover .sp-name { color: #fff; }
 .sp-count { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); background: rgba(255, 255, 255, 0.05); padding: 2px 8px; border-radius: 999px; flex: none; }
-.pick-back { position: relative; margin-top: clamp(22px, 4vh, 42px); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); background: none; border: none; cursor: pointer; }
-.pick-back:hover { color: var(--text); }
+/* visual, per-universe-themed set tiles (image-led, not black boxes) */
+.set-tile { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center;
+  padding: 18px 12px 14px; border-radius: 15px; cursor: pointer; min-height: 132px; overflow: hidden;
+  background: linear-gradient(165deg, color-mix(in srgb, var(--accent, #7fd4f4) 30%, rgba(12, 18, 38, 0.9)), rgba(8, 13, 30, 0.92));
+  border: 1px solid color-mix(in srgb, var(--accent, #7fd4f4) 44%, transparent);
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
+.set-tile::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(120% 80% at 50% -6%, color-mix(in srgb, var(--accent, #7fd4f4) 62%, transparent), transparent 66%); }
+.set-tile:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--accent, #7fd4f4) 92%, transparent);
+  box-shadow: 0 20px 44px -16px rgba(0, 0, 0, 0.7), 0 0 52px -8px color-mix(in srgb, var(--accent, #7fd4f4) 88%, transparent); }
+.st-art { position: relative; z-index: 1; height: 60px; display: flex; align-items: center; justify-content: center; }
+.st-logo { max-width: 132px; max-height: 58px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55)); }
+.st-logo.magic { height: 46px; width: auto; max-width: 116px; max-height: none; flex: none; filter: brightness(0) invert(1) drop-shadow(0 0 7px color-mix(in srgb, var(--accent, #7fd4f4) 80%, transparent)); }
+.st-logo.st-hide { display: none; }
+.st-fallback { display: none; width: 38px; height: 38px; color: color-mix(in srgb, var(--accent, #7fd4f4) 78%, #fff); opacity: 0.7; }
+.st-fallback svg { width: 100%; height: 100%; }
+.st-logo.st-hide + .st-fallback { display: block; }
+.st-sigil { font-family: var(--font-display); font-size: 30px; font-weight: 700; letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--accent, #7fd4f4) 80%, #fff); text-shadow: 0 0 22px color-mix(in srgb, var(--accent, #7fd4f4) 55%, transparent); }
+.st-name { position: relative; z-index: 1; font-family: var(--font-display); font-size: 15px; font-weight: 600; color: #fff; line-height: 1.12; }
+.st-count { position: relative; z-index: 1; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
+.pick-back { position: absolute; top: clamp(18px, 4vh, 40px); left: clamp(18px, 4vw, 46px); z-index: 6; margin: 0; display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff;
+  background: color-mix(in srgb, var(--accent, #7fd4f4) 16%, rgba(8, 13, 30, 0.55)); border: 1px solid color-mix(in srgb, var(--accent, #7fd4f4) 50%, transparent);
+  border-radius: 30px; padding: 11px 20px 11px 16px; cursor: pointer; backdrop-filter: blur(6px);
+  transition: color 0.18s, border-color 0.18s, background 0.18s, transform 0.18s; }
+.pick-back .pb-arrow { display: inline-flex; font-size: 17px; line-height: 1; transition: transform 0.2s; }
+.pick-back:hover { background: color-mix(in srgb, var(--accent, #7fd4f4) 30%, rgba(8, 13, 30, 0.55)); border-color: var(--accent, #7fd4f4); transform: translateX(-2px); }
+.pick-back:hover .pb-arrow { transform: translateX(-3px); }
 @media (max-width: 640px) {
   .pick-logos { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 26px; }
   .pick-logo img { width: 34vw; max-height: 15vh; }
   .set-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ===== four-universe picker — full-bleed columns ===== */
+.hv-pick { padding: 0; pointer-events: auto; perspective: none; }
+.uni-cols { display: flex; width: 100%; height: 100%; pointer-events: auto; }
+.uni-head { position: absolute; top: clamp(18px, 4vh, 42px); left: 50%; transform: translateX(-50%); z-index: 5; pointer-events: none;
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.24em; font-size: clamp(11px, 1.2vw, 15px);
+  color: rgba(255, 255, 255, 0.84); text-shadow: 0 2px 16px rgba(0, 0, 0, 0.75); }
+.uni-col { position: relative; flex: 1 1 0; height: 100%; min-width: 0; overflow: hidden; border: 0; padding: 0; margin: 0;
+  background: #060c1e; cursor: pointer; border-right: 1px solid rgba(255, 255, 255, 0.07);
+  transition: flex-grow 0.55s cubic-bezier(0.16, 1, 0.3, 1); }
+.uni-col:last-child { border-right: 0; }
+.uc-wash { position: absolute; inset: 0; transition: filter 0.4s ease;
+  background: linear-gradient(170deg, color-mix(in srgb, var(--accent) 24%, #0a1126) 0%, #070c1a 58%, #05091a 100%); }
+.uc-glow { position: absolute; inset: 0; will-change: opacity, transform;
+  background: radial-gradient(68% 46% at 50% 34%, color-mix(in srgb, var(--accent) 52%, transparent) 0%, transparent 60%); }
+.uc-inner { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: clamp(18px, 3vh, 30px); padding: 32px; }
+.uc-logo { width: min(70%, 250px); max-height: clamp(110px, 18vh, 180px); object-fit: contain;
+  filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.75)); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+.uc-go { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-display); font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.16em; font-size: 12px; color: #fff; border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent); padding: 10px 20px; border-radius: 30px;
+  opacity: 0; transform: translateY(12px); transition: opacity 0.4s, transform 0.4s; }
+.uc-go i { font-style: normal; transition: transform 0.3s; }
+.uni-col::after { content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none; box-shadow: inset 0 0 0 0 transparent; transition: box-shadow 0.45s; }
+.uni-col:hover { flex-grow: 1.55; }
+.uni-col:hover .uc-wash { filter: brightness(1.18) saturate(1.1); }
+.uni-col:hover .uc-logo { transform: scale(1.08); }
+.uni-col:hover .uc-go { opacity: 1; transform: translateY(0); }
+.uni-col:hover .uc-go i { transform: translateX(4px); }
+.uni-col:hover::after { box-shadow: inset 0 -5px 0 0 var(--accent), inset 0 0 90px -26px color-mix(in srgb, var(--accent) 85%, transparent); }
+.uni-col:focus-visible { outline: none; }
+.uni-col:focus-visible::after { box-shadow: inset 0 0 0 2px var(--accent); }
+@media (max-width: 760px) {
+  .uni-cols { flex-wrap: wrap; }
+  .uni-col { flex: 1 1 50%; height: 50%; }
+  .uni-col:hover { flex-grow: 1; }
 }

@@ -3,152 +3,150 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POKEX — Rip Lab</title>
-<meta name="description" content="Sealed-pack rip economics: expected value, ROI and break-even odds for every Pokémon sealed product.">
+<title>PLACEHOLDER — Rip Lab</title>
+<meta name="description" content="Sealed-pack rip economics: expected value, ROI and break-even odds for every sealed product.">
 <link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="brand/tokens.css?v=23">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; font-synthesis: none; }
-html { background: var(--stage, #0B0A10); scroll-behavior: smooth; }
-body {
-  min-height: 100vh; color: var(--text, #ECE9F2);
-  font-family: var(--font-ui, 'Outfit', sans-serif);
-  background:
-    radial-gradient(85% 55% at 50% -10%, rgba(95, 226, 255, 0.10) 0%, transparent 60%),
-    radial-gradient(70% 80% at 110% 8%, rgba(240, 140, 30, 0.09) 0%, transparent 55%),
-    radial-gradient(60% 70% at -8% 88%, rgba(168, 85, 247, 0.08) 0%, transparent 55%),
-    #0B0A10;
-  -webkit-font-smoothing: antialiased;
+:root{
+  --navy:#060c1e; --navy-2:#0b1838; --blue:#3b82ff; --blue-bright:#6aa8ff; --ink:#eaf2ff; --dim:#90a6cc;
+  --gold:#ffd24a; --gold-lt:#ffe9a8; --gold-dk:#d99a2e;
+  --font:'DM Sans', system-ui, sans-serif; --font-display:'Anton','DM Sans',sans-serif;
+  /* map the engine's legacy tokens onto the homepage palette */
+  --font-ui:var(--font); --font-price:var(--font); --text:var(--ink); --text-dim:var(--dim);
+  --hairline:rgba(106,168,255,.16); --money:#4ade80; --spectral:#3b82ff; --spectral-bright:#6aa8ff; --ember:#ff9a3d;
 }
-body::after { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: radial-gradient(120% 90% at 50% 30%, rgba(10, 14, 26, 0.4) 0%, rgba(11,10,16,0) 55%); }
+*{margin:0;padding:0;box-sizing:border-box;font-synthesis:none}
+html{background:#05091c;scroll-behavior:smooth}
+html,body{min-height:100%}
+body{color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden;background:#04071a}
+canvas#topo{display:none}
+.vign{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 90% at 50% 0%, rgba(20,34,72,.22), transparent 60%)}
 
-/* ---- chrome / header ---- */
-.chrome { display: flex; justify-content: space-between; align-items: center;
-  padding: 18px clamp(16px, 4vw, 48px); max-width: 1180px; margin: 0 auto; gap: 16px; }
-.logo-pokex { font-family: var(--font-display, 'Outfit'); font-weight: 700; font-size: 20px;
-  letter-spacing: 0.02em; color: var(--text); text-decoration: none; display: inline-flex; align-items: center; gap: 2px; }
-.logo-pokex .x { color: var(--spectral-bright, #7fe9ff); }
-.back { color: var(--text-dim, #9a96a8); text-decoration: none; font-size: 14px; font-weight: 500;
-  padding: 8px 14px; border: 1px solid var(--hairline, #262333); border-radius: 10px; transition: .18s; white-space: nowrap; }
-.back:hover { color: var(--text); border-color: var(--spectral, #3d9be0); background: rgba(61,155,224,.07); }
+/* ---- header (glass, matches the homepage) ---- */
+.chrome{position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:16px;
+  max-width:1180px;margin:0 auto;padding:20px clamp(16px,4vw,48px) 8px}
+.brand{display:inline-flex;align-items:center;border:2px solid var(--blue-bright);font-family:var(--font-display);
+  padding:8px 13px 5px;letter-spacing:.16em;font-size:19px;line-height:1;color:var(--gold);background:rgba(7,13,32,.55);
+  backdrop-filter:blur(10px);text-shadow:0 0 12px rgba(255,210,74,.35);box-shadow:0 0 16px -4px rgba(106,168,255,.4);text-decoration:none}
+.back{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-display);font-size:13px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:rgba(244,238,222,.84);text-decoration:none;white-space:nowrap;
+  padding:10px 18px;border-radius:13px;border:1px solid rgba(255,214,102,.22);background:rgba(11,24,56,.5);
+  -webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 18px 40px -22px rgba(0,0,0,.7);transition:color .22s,border-color .22s,background .22s}
+.back:hover{color:var(--gold);border-color:rgba(255,214,102,.5);background:rgba(13,28,64,.62)}
 
-main { max-width: 1180px; margin: 0 auto; padding: 8px clamp(16px, 4vw, 48px) 80px; }
+main{position:relative;z-index:10;max-width:1180px;margin:0 auto;padding:8px clamp(16px,4vw,48px) 96px}
 
 /* ---- set bar ---- */
-.setbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 8px 0 22px; }
-.eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--spectral-bright, #7fe9ff); font-weight: 600; }
-.setpick { background: #14121D; color: var(--text); border: 1px solid var(--hairline, #262333);
-  border-radius: 11px; padding: 9px 14px; font-family: var(--font-ui); font-size: 15px; font-weight: 600; cursor: pointer; }
-.setpick:focus { outline: none; border-color: var(--spectral, #3d9be0); }
-.setmeta { font-size: 13px; color: var(--text-dim, #9a96a8); }
+.setbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:14px 0 24px}
+.eyebrow{font-family:var(--font-display);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.setpick{background:rgba(11,24,56,.6);color:var(--ink);border:1px solid var(--hairline);border-radius:11px;padding:9px 14px;
+  font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.setpick:focus{outline:none;border-color:var(--blue-bright)}
+.setmeta{font-size:13px;color:var(--dim)}
 
 /* ---- hero verdict ---- */
-h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 5.5vw, 54px);
-  letter-spacing: -0.02em; line-height: 1.02; margin-bottom: 6px; }
-h1.title .accent { color: var(--ember, #ff8a3d); }
-.lede { color: var(--text-dim, #9a96a8); font-size: clamp(15px, 2.2vw, 18px); max-width: 720px; line-height: 1.5; margin-bottom: 26px; }
-.lede b { color: var(--text); font-weight: 600; }
+h1.title{font-family:var(--font-display);font-weight:400;font-size:clamp(40px,7vw,82px);letter-spacing:.005em;line-height:.96;
+  margin-bottom:10px;text-transform:uppercase}
+h1.title .accent{color:var(--gold);text-shadow:0 0 30px rgba(255,210,74,.45)}
+.lede{color:var(--dim);font-size:clamp(15px,2.2vw,18px);max-width:740px;line-height:1.55;margin-bottom:30px}
+.lede b{color:var(--ink);font-weight:600}
 
-.verdict { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 40px; }
-.vcard { background: linear-gradient(180deg, rgba(28,24,40,.7), rgba(16,14,24,.7));
-  border: 1px solid var(--hairline, #262333); border-radius: 16px; padding: 20px 20px 18px; position: relative; overflow: hidden; }
-.vcard .k { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim); font-weight: 600; margin-bottom: 8px; }
-.vcard .v { font-family: var(--font-price, 'JetBrains Mono', monospace); font-weight: 700; font-size: 34px; line-height: 1; letter-spacing: -.01em; }
-.vcard .sub { font-size: 12.5px; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
-.vcard.good .v { color: var(--money, #46d39a); }
-.vcard.warn .v { color: var(--ember, #ff8a3d); }
-.vcard.cool .v { color: var(--spectral-bright, #7fe9ff); }
-.vcard .glow { position: absolute; inset: 0; opacity: .5; pointer-events: none;
-  background: radial-gradient(120% 80% at 80% -10%, currentColor 0%, transparent 55%); }
+.verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:46px}
+.vcard{background:linear-gradient(180deg,rgba(20,38,79,.5),rgba(8,16,40,.55));border:1px solid var(--hairline);border-radius:16px;
+  padding:22px 20px 18px;position:relative;overflow:hidden;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.vcard .k{font-family:var(--font-display);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:10px}
+.vcard .v{font-family:var(--font-display);font-weight:400;font-size:34px;line-height:1;letter-spacing:.01em}
+.vcard .sub{font-size:12.5px;color:var(--dim);margin-top:9px;line-height:1.45}
+.vcard.good .v{color:var(--money)} .vcard.warn .v{color:var(--gold)} .vcard.cool .v{color:var(--blue-bright)}
+.vcard .glow{position:absolute;inset:0;opacity:.4;pointer-events:none;background:radial-gradient(120% 80% at 80% -10%,currentColor 0%,transparent 55%)}
+.vcard.good{color:var(--money)} .vcard.warn{color:var(--gold)} .vcard.cool{color:var(--blue-bright)}
 
 /* ---- section ---- */
-section { margin-bottom: 46px; }
-h2.sec { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -.01em; margin-bottom: 4px; display: flex; align-items: baseline; gap: 10px; }
-h2.sec .hint { font-size: 13px; font-weight: 400; color: var(--text-dim); letter-spacing: 0; }
-.sec-note { color: var(--text-dim); font-size: 13.5px; margin-bottom: 18px; max-width: 760px; line-height: 1.5; }
+section{margin-bottom:50px}
+h2.sec{font-family:var(--font-display);font-weight:400;font-size:clamp(24px,3vw,34px);letter-spacing:.01em;text-transform:uppercase;
+  margin-bottom:6px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+h2.sec .hint{font-family:var(--font);font-size:13px;font-weight:400;color:var(--dim);letter-spacing:0;text-transform:none}
+.sec-note{color:var(--dim);font-size:13.5px;margin-bottom:20px;max-width:780px;line-height:1.55}
+.sec-note b{color:var(--ink)}
 
 /* ---- product ROI rows ---- */
-.prod { display: grid; grid-template-columns: 1fr; gap: 12px; }
-.prow { display: grid; grid-template-columns: 1.4fr 0.8fr 0.8fr 1.5fr 0.9fr; gap: 14px; align-items: center;
-  background: rgba(20,18,29,.6); border: 1px solid var(--hairline, #262333); border-radius: 14px; padding: 16px 18px; transition: .18s; }
-.prow:hover { border-color: rgba(95,226,255,.3); background: rgba(24,22,34,.7); }
-.prow.best { border-color: rgba(70,211,154,.45); box-shadow: 0 0 0 1px rgba(70,211,154,.15), 0 10px 30px -12px rgba(70,211,154,.25); }
-.prow .pname { font-weight: 600; font-size: 16px; }
-.prow .pname small { display: block; color: var(--text-dim); font-weight: 400; font-size: 12.5px; margin-top: 3px; }
-.prow .num { font-family: var(--font-price, 'JetBrains Mono', monospace); font-weight: 600; font-size: 16px; }
-.prow .num small { color: var(--text-dim); font-size: 11px; display: block; font-weight: 400; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 2px; }
-.roi-wrap { display: flex; flex-direction: column; gap: 5px; }
-.roi-bar { height: 9px; border-radius: 6px; background: rgba(255,255,255,.06); overflow: hidden; position: relative; }
-.roi-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; }
-.roi-bar .mark { position: absolute; top: -3px; bottom: -3px; width: 2px; background: rgba(255,255,255,.5); }
-.roi-label { font-family: var(--font-price, monospace); font-weight: 700; font-size: 15px; }
-.tag { justify-self: end; font-size: 11.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
-  padding: 5px 10px; border-radius: 20px; white-space: nowrap; }
-.tag.profit { color: var(--money, #46d39a); background: rgba(70,211,154,.12); }
-.tag.loss { color: var(--ember, #ff8a3d); background: rgba(255,138,61,.12); }
-.tag.even { color: var(--spectral-bright, #7fe9ff); background: rgba(95,226,255,.12); }
+.prod{display:grid;grid-template-columns:1fr;gap:12px}
+.prow{display:grid;grid-template-columns:1.4fr .8fr .8fr 1.5fr .9fr;gap:14px;align-items:center;
+  background:rgba(11,22,50,.5);border:1px solid var(--hairline);border-radius:14px;padding:16px 18px;transition:.18s;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.prow:hover{border-color:rgba(106,168,255,.35);background:rgba(14,28,62,.62)}
+.prow.best{border-color:rgba(255,210,74,.5);box-shadow:0 0 0 1px rgba(255,210,74,.16),0 14px 36px -16px rgba(255,200,70,.3)}
+.prow .pname{font-weight:600;font-size:16px}
+.prow .pname small{display:block;color:var(--dim);font-weight:400;font-size:12.5px;margin-top:3px}
+.prow .num{font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
+.prow .num small{color:var(--dim);font-size:11px;display:block;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.roi-wrap{display:flex;flex-direction:column;gap:5px}
+.roi-bar{height:9px;border-radius:6px;background:rgba(106,168,255,.1);overflow:hidden;position:relative}
+.roi-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+.roi-bar .mark{position:absolute;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.55)}
+.roi-label{font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+.tag{justify-self:end;font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:6px 12px;border-radius:20px;white-space:nowrap}
+.tag.profit{color:var(--money);background:rgba(74,222,128,.12)} .tag.loss{color:var(--ember);background:rgba(255,154,61,.12)} .tag.even{color:var(--blue-bright);background:rgba(106,168,255,.12)}
 
 /* ---- per-pack panel ---- */
-.panel { display: grid; grid-template-columns: 1.1fr 1fr; gap: 22px; align-items: start; }
-.dist { background: rgba(20,18,29,.55); border: 1px solid var(--hairline); border-radius: 16px; padding: 20px 22px; }
-.dist h3 { font-size: 14px; font-weight: 600; margin-bottom: 14px; color: var(--text); }
-.histo { display: flex; align-items: flex-end; gap: 4px; height: 110px; margin-bottom: 8px; }
-.histo .b { flex: 1; background: linear-gradient(180deg, var(--spectral, #3d9be0), rgba(61,155,224,.25)); border-radius: 3px 3px 0 0; min-height: 2px; transition: .2s; }
-.histo .b.hot { background: linear-gradient(180deg, var(--ember, #ff8a3d), rgba(255,138,61,.25)); }
-.axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); font-family: var(--font-price, monospace); }
-.pctl { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; margin-top: 14px; font-size: 13.5px; }
-.pctl .lbl { color: var(--text-dim); }
-.pctl .val { font-family: var(--font-price, monospace); font-weight: 600; text-align: right; }
+.panel{display:grid;grid-template-columns:1.1fr 1fr;gap:22px;align-items:start}
+.dist,.model{background:rgba(11,22,50,.5);border:1px solid var(--hairline);border-radius:16px;padding:22px 22px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.dist h3,.model h3{font-size:14px;font-weight:600;margin-bottom:14px;color:var(--ink)}
+.histo{display:flex;align-items:flex-end;gap:4px;height:120px;margin-bottom:8px}
+.histo .b{flex:1;background:linear-gradient(180deg,var(--blue-bright),rgba(59,130,255,.2));border-radius:3px 3px 0 0;min-height:2px;transition:.2s}
+.histo .b.hot{background:linear-gradient(180deg,var(--gold),rgba(255,210,74,.2))}
+.axis{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+.pctl{display:grid;grid-template-columns:1fr auto;gap:7px 14px;margin-top:16px;font-size:13.5px}
+.pctl .lbl{color:var(--dim)} .pctl .val{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
 
 /* ---- pull-rate model editor ---- */
-.model { background: rgba(20,18,29,.55); border: 1px solid var(--hairline); border-radius: 16px; padding: 20px 22px; }
-.model h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-.model .mnote { font-size: 12px; color: var(--text-dim); margin-bottom: 16px; line-height: 1.45; }
-.mrow { display: grid; grid-template-columns: 1.1fr 64px 1fr; gap: 10px; align-items: center; margin-bottom: 11px; }
-.mrow label { font-size: 13.5px; font-weight: 500; }
-.mrow input[type=number] { width: 100%; background: #100E18; border: 1px solid var(--hairline); color: var(--text);
-  border-radius: 8px; padding: 6px 8px; font-family: var(--font-price, monospace); font-size: 13px; text-align: right; }
-.mrow input[type=number]:focus { outline: none; border-color: var(--spectral); }
-.mrow .oneIn { font-size: 12px; color: var(--text-dim); font-family: var(--font-price, monospace); }
-.mreset { margin-top: 8px; background: none; border: 1px solid var(--hairline); color: var(--text-dim);
-  border-radius: 8px; padding: 7px 12px; font-size: 12.5px; cursor: pointer; font-family: var(--font-ui); transition: .15s; }
-.mreset:hover { color: var(--text); border-color: var(--spectral); }
+.model .mnote{font-size:12px;color:var(--dim);margin-bottom:16px;line-height:1.5}
+.mrow{display:grid;grid-template-columns:1.1fr 64px 1fr;gap:10px;align-items:center;margin-bottom:11px}
+.mrow label{font-size:13.5px;font-weight:500}
+.mrow input[type=number]{width:100%;background:rgba(6,12,30,.7);border:1px solid var(--hairline);color:var(--ink);border-radius:8px;
+  padding:6px 8px;font-family:var(--font);font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.mrow input[type=number]:focus{outline:none;border-color:var(--blue-bright)}
+.mrow .oneIn{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+.mreset{margin-top:10px;background:none;border:1px solid var(--hairline);color:var(--dim);border-radius:8px;padding:8px 13px;
+  font-size:12.5px;cursor:pointer;font-family:var(--font);font-weight:600;transition:.15s}
+.mreset:hover{color:var(--gold);border-color:rgba(255,214,102,.5)}
 
 /* ---- rarity ladder ---- */
-.ladder { display: flex; flex-direction: column; gap: 12px; }
-.rung { background: rgba(20,18,29,.55); border: 1px solid var(--hairline); border-radius: 14px; padding: 14px 16px;
-  display: grid; grid-template-columns: 1.6fr 2.2fr; gap: 16px; align-items: center; }
-.rung .rinfo .rname { font-weight: 600; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
-.rung .rinfo .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
-.rung .rinfo .rstats { font-size: 12.5px; color: var(--text-dim); margin-top: 5px; font-family: var(--font-price, monospace); }
-.rung .rinfo .rrate { font-size: 12px; color: var(--spectral-bright); margin-top: 3px; font-weight: 600; }
-.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
-.chip { flex: none; width: 74px; text-decoration: none; }
-.chip img { width: 74px; height: 103px; object-fit: cover; border-radius: 7px; background: #14121D; border: 1px solid var(--hairline); display: block; }
-.chip .cp { font-family: var(--font-price, monospace); font-weight: 700; font-size: 12px; color: var(--money); margin-top: 4px; text-align: center; }
-.chip .cn { font-size: 10.5px; color: var(--text-dim); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ladder{display:flex;flex-direction:column;gap:12px}
+.rung{background:rgba(11,22,50,.5);border:1px solid var(--hairline);border-radius:14px;padding:14px 16px;
+  display:grid;grid-template-columns:1.6fr 2.2fr;gap:16px;align-items:center;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.rung .rinfo .rname{font-weight:600;font-size:15.5px;display:flex;align-items:center;gap:8px}
+.rung .rinfo .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.rung .rinfo .rstats{font-size:12.5px;color:var(--dim);margin-top:5px;font-variant-numeric:tabular-nums}
+.rung .rinfo .rrate{font-size:12px;color:var(--blue-bright);margin-top:3px;font-weight:600}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.chip{flex:none;width:74px;text-decoration:none}
+.chip img{width:74px;height:103px;object-fit:cover;border-radius:7px;background:#0b1838;border:1px solid var(--hairline);display:block}
+.chip .cp{font-weight:700;font-size:12px;color:var(--money);margin-top:4px;text-align:center;font-variant-numeric:tabular-nums}
+.chip .cn{font-size:10.5px;color:var(--dim);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.method { font-size: 12.5px; color: var(--text-dim); line-height: 1.6; border-top: 1px solid var(--hairline); padding-top: 20px; }
-.method a { color: var(--spectral-bright); }
-.method b { color: var(--text); }
+.method{font-size:12.5px;color:var(--dim);line-height:1.6;border-top:1px solid var(--hairline);padding-top:22px}
+.method a{color:var(--blue-bright)} .method b{color:var(--ink)}
 
-@media (max-width: 760px) {
-  .prow { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .prow .roi-wrap { grid-column: 1 / -1; }
-  .prow .tag { justify-self: start; }
-  .panel { grid-template-columns: 1fr; }
-  .rung { grid-template-columns: 1fr; gap: 12px; }
+@media (max-width:760px){
+  .prow{grid-template-columns:1fr 1fr;gap:10px}
+  .prow .roi-wrap{grid-column:1 / -1}
+  .prow .tag{justify-self:start}
+  .panel{grid-template-columns:1fr}
+  .rung{grid-template-columns:1fr;gap:12px}
 }
 </style>
 </head>
 <body>
+<canvas id="topo"></canvas>
+<div class="vign"></div>
+
 <header class="chrome">
-  <a class="logo-pokex" href="index.html">PO<span class="x">KE</span>X</a>
-  <a class="back" href="index.html">← Back to wheel</a>
+  <a class="brand" href="index.html">PLACEHOLDER</a>
+  <a class="back" href="index.html"><span aria-hidden="true">&larr;</span> Back to wheel</a>
 </header>
 
 <main>
@@ -161,13 +159,13 @@ h2.sec .hint { font-size: 13px; font-weight: 400; color: var(--text-dim); letter
   </div>
 
   <h1 class="title">Should you <span class="accent">rip</span> it?</h1>
-  <p class="lede" id="lede">Crunching the packs…</p>
+  <p class="lede" id="lede">Crunching the packs&hellip;</p>
 
   <div class="verdict" id="verdict"></div>
 
   <section>
     <h2 class="sec">Sealed products <span class="hint">ranked by expected return on a rip</span></h2>
-    <p class="sec-note">For each product we simulate opening every pack 20,000 times against live market prices. <b>ROI</b> = expected pull value ÷ price. <b>Profit odds</b> = how often a rip of that product beats its cost. The cheaper the per-pack cost, the better the rip.</p>
+    <p class="sec-note">For each product we simulate opening every pack 20,000 times against live market prices. <b>ROI</b> = expected pull value &divide; price. <b>Profit odds</b> = how often a rip of that product beats its cost. The cheaper the per-pack cost, the better the rip.</p>
     <div class="prod" id="prod"></div>
   </section>
 
@@ -176,13 +174,13 @@ h2.sec .hint { font-size: 13px; font-weight: 400; color: var(--text-dim); letter
     <p class="sec-note">The value lives in the rare slot. Most packs are bulk; a few carry the whole set. Tune the pull rates on the right and everything recomputes live.</p>
     <div class="panel">
       <div class="dist">
-        <h3>Value of a single pack <span id="ppCost" style="color:var(--text-dim);font-weight:400"></span></h3>
+        <h3>Value of a single pack <span id="ppCost" style="color:var(--dim);font-weight:400"></span></h3>
         <div class="histo" id="histo"></div>
         <div class="axis"><span>$0</span><span id="axMid"></span><span id="axMax"></span></div>
         <div class="pctl" id="pctl"></div>
       </div>
       <div class="model">
-        <h3>Pull rates — the rare slot</h3>
+        <h3>Pull rates &mdash; the rare slot</h3>
         <p class="mnote">Per-pack odds for the guaranteed rare-or-better slot. Defaults are aggregated from ~1,700 documented Scarlet &amp; Violet-era packs (The Pokémon Company doesn't publish official rates). Edit any to see ROI move.</p>
         <div id="modelRows"></div>
         <button class="mreset" id="mreset">Reset to defaults</button>
@@ -192,12 +190,53 @@ h2.sec .hint { font-size: 13px; font-weight: 400; color: var(--text-dim); letter
 
   <section>
     <h2 class="sec">Top hits by rarity <span class="hint">the cards you're chasing</span></h2>
-    <p class="sec-note">Each rarity's pull rate, card count, and the priciest pulls in the set — the ones that make a rip worth it.</p>
+    <p class="sec-note">Each rarity's pull rate, card count, and the priciest pulls in the set &mdash; the ones that make a rip worth it.</p>
     <div class="ladder" id="ladder"></div>
   </section>
 
   <p class="method" id="method"></p>
 </main>
+
+<script src="vendor/three.min.js"></script>
+<script>
+/* topographic background — same shader as the homepage (clean gold contours on navy) */
+(() => {
+  if (!window.THREE) return;
+  const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('topo'), antialias: true, alpha: false });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  const scene = new THREE.Scene();
+  const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const uni = { uTime: { value: 0 }, uRes: { value: new THREE.Vector2() } };
+  const mat = new THREE.ShaderMaterial({
+    uniforms: uni,
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: `
+      precision highp float; varying vec2 vUv; uniform vec2 uRes; uniform float uTime;
+      float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453123); }
+      float noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+        return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x), mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x), f.y); }
+      float fbm(vec2 p){ float v=0.0, a=0.55; for(int i=0;i<6;i++){ v+=a*noise(p); p=p*2.03+vec2(11.3,7.7); a*=0.5; } return v; }
+      void main(){
+        vec2 uv = vUv; vec2 p = uv; p.x *= uRes.x / max(uRes.y, 1.0);
+        p = p * 3.1; float n = fbm(p + vec2(uTime * 0.016, uTime * 0.011));
+        float f = n * 8.5; float fr = fract(f); float d = min(fr, 1.0 - fr);
+        float line = 1.0 - smoothstep(0.0, 0.052, d);
+        float g = clamp(uv.x * 0.45 + (1.0 - uv.y) * 0.7, 0.0, 1.0);
+        vec3 base = mix(vec3(0.13,0.19,0.48), vec3(0.015,0.025,0.11), g);
+        vec3 lineGold = mix(vec3(1.0,0.82,0.34), vec3(0.66,0.47,0.15), g);
+        float major = 1.0 - step(0.5, mod(floor(f), 5.0));
+        float lineStr = line * (0.24 + 0.16 * (1.0 - g)) * (0.6 + major * 1.05);
+        vec3 col = mix(base, lineGold, lineStr);
+        gl_FragColor = vec4(col, 1.0);
+      }`
+  });
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
+  const rs = () => { renderer.setSize(innerWidth, innerHeight, false); uni.uRes.value.set(innerWidth, innerHeight); };
+  rs(); addEventListener('resize', rs);
+  const loop = (t) => { uni.uTime.value = t * 0.001; renderer.render(scene, cam); requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+})();
+</script>
 
 <script src="data/cards-me04.js"></script>
 <script src="data/sealed.js"></script>

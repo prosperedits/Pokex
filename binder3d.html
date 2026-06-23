@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>POKEX · 3D Binder</title>
+<style>
+  :root{ --ui:#eef1f6; --muted:#8a95a6; --panel:rgba(14,16,21,.72); --line:rgba(255,255,255,.10); }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; overflow:hidden; background:#050608;
+    font-family:"Archivo","Segoe UI",system-ui,sans-serif; color:var(--ui); -webkit-font-smoothing:antialiased; }
+  #app{ position:fixed; inset:0; }
+  canvas{ display:block; touch-action:none; }
+  /* photographic vignette over the whole scene */
+  #vig{ position:fixed; inset:0; pointer-events:none; z-index:5;
+    background:radial-gradient(135% 115% at 50% 42%, rgba(0,0,0,0) 66%, rgba(0,0,0,.30) 100%); }
+
+  #boot{ position:fixed; inset:0; display:grid; place-items:center; z-index:50;
+    background:radial-gradient(60% 60% at 50% 40%,#0f1219 0%,#050608 100%); transition:opacity .6s ease; }
+  #boot.hide{ opacity:0; pointer-events:none; }
+  #boot .ring{ width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,.14);border-top-color:#7cc0ff;animation:spin 1s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .hud{ position:fixed; z-index:20; user-select:none; }
+  .brand{ left:26px; top:22px; }
+  .brand .k{ font-weight:800; letter-spacing:.22em; font-size:12px; color:#fff; }
+  .brand .s{ font-size:11px; color:var(--muted); letter-spacing:.16em; margin-top:3px; }
+
+  .panel{ left:26px; bottom:26px; background:var(--panel); backdrop-filter:blur(16px);
+    border:1px solid var(--line); border-radius:18px; padding:17px 17px 15px; width:268px;
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.85); }
+  .panel h4{ margin:0 0 11px; font-size:10.5px; letter-spacing:.18em; color:var(--muted); font-weight:700; text-transform:uppercase; }
+  .swatches{ display:flex; gap:9px; flex-wrap:wrap; align-items:center; }
+  .sw{ width:30px;height:30px;border-radius:9px;cursor:pointer;position:relative;border:1px solid rgba(255,255,255,.14);
+    transition:transform .15s ease, box-shadow .15s ease; }
+  .sw:hover{ transform:translateY(-2px); }
+  .sw.on{ box-shadow:0 0 0 2px #050608,0 0 0 4px #7cc0ff; }
+  .sw.custom{ display:grid; place-items:center; overflow:hidden;
+    background:conic-gradient(from 0deg,#ff5d5d,#ffd35d,#7dff8e,#5dd5ff,#9b7dff,#ff5d5d); }
+  .sw.custom input{ position:absolute; inset:-6px; opacity:0; cursor:pointer; }
+  .sw.custom span{ font-size:14px; color:#0a0a0a; font-weight:800; mix-blend-mode:overlay; }
+
+  .finish{ display:flex; gap:8px; margin-top:13px; }
+  .seg{ flex:1; height:31px; border-radius:9px; font-size:11px; letter-spacing:.03em;
+    border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted); cursor:pointer; transition:.15s; }
+  .seg.on{ color:#fff; background:rgba(124,192,255,.16); border-color:rgba(124,192,255,.4); }
+  .row{ display:flex; align-items:center; gap:8px; margin-top:14px; }
+  .btn{ flex:1; height:38px; border-radius:11px; border:1px solid var(--line); background:rgba(255,255,255,.04);
+    color:var(--ui); font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:background .15s ease,transform .1s ease; }
+  .btn:hover{ background:rgba(255,255,255,.10); }
+  .btn:active{ transform:translateY(1px); }
+  .pageno{ width:74px; text-align:center; font-variant-numeric:tabular-nums; font-size:12px; color:var(--muted); }
+
+  .hint{ right:26px; bottom:28px; font-size:11px; color:var(--muted); text-align:right; line-height:1.7; }
+  .hint b{ color:#cfd8e6; font-weight:600; }
+  /* holographic value readout projected above the binder */
+  #holo{ position:fixed; left:0; top:0; z-index:10; pointer-events:none; transform:translate(-50%,-50%); will-change:left,top; }
+  .holo-frame{ position:relative; padding:9px 20px; text-align:center; color:#86ffc2;
+    text-shadow:0 0 7px rgba(70,255,150,.95), 0 0 20px rgba(70,255,150,.55);
+    font-variant-numeric:tabular-nums; animation:holoflick 4s infinite steps(1,end); }
+  .holo-label{ font-size:12px; letter-spacing:.36em; opacity:.85; margin-bottom:6px; }
+  .holo-val{ font-size:60px; font-weight:800; letter-spacing:.005em; line-height:1;
+    text-shadow:0 0 10px rgba(70,255,150,.95), 0 0 28px rgba(70,255,150,.6), 0 0 52px rgba(70,255,150,.3); }
+  .holo-frame::before{ content:""; position:absolute; inset:-7px -12px; border-radius:9px;
+    border:1px solid rgba(90,255,150,.35); box-shadow:inset 0 0 16px rgba(70,255,150,.22); }
+  .holo-frame::after{ content:""; position:absolute; inset:-7px -12px; border-radius:9px; pointer-events:none;
+    background:repeating-linear-gradient(0deg, rgba(120,255,170,.10) 0 1px, transparent 1px 3px);
+    mix-blend-mode:screen; opacity:.55; }
+  @keyframes holoflick{ 0%,96%,100%{opacity:1} 97%{opacity:.74} 98%{opacity:.95} 99%{opacity:.82} }
+
+  @media (max-width:560px){ .hint{ display:none; } .panel{ width:calc(100vw - 52px); } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="vig"></div>
+<div id="boot"><div class="ring"></div></div>
+
+<div class="hud brand">
+  <div class="k">P&#174; &middot; POKEX</div>
+  <div class="s">3D BINDER &mdash; PROTOTYPE</div>
+</div>
+
+<div class="hud panel">
+  <h4>Binder finish</h4>
+  <div class="swatches" id="swatches"></div>
+  <div class="finish" id="finishSeg">
+    <button class="seg" data-finish="leather">Leatherette</button>
+    <button class="seg" data-finish="matte">Soft-touch</button>
+    <button class="seg on" data-finish="gloss">Gloss</button>
+  </div>
+  <div class="row">
+    <button class="btn" id="prev">&#8592; Prev</button>
+    <div class="pageno" id="pageno">1 &ndash; 2</div>
+    <button class="btn" id="next">Next &#8594;</button>
+  </div>
+</div>
+
+<div class="hud hint">
+  <div><b>Drag</b> to orbit &middot; <b>scroll</b> to zoom</div>
+  <div><b>Click a page</b> or use Prev/Next &middot; <b>&larr; &rarr;</b> keys</div>
+</div>
+
+<div id="holo"><div class="holo-frame"><div class="holo-label">BINDER VALUE</div><div class="holo-val" id="holoVal">$0</div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+const gsap = window.gsap;
+
+/* ------------------------------------------------------------------ config */
+const PAGE_W = 2.10, PAGE_H = 2.86;       // page aspect ~ a real 9-pocket sheet
+const N_SHEETS = 6;
+const COLS = 3, ROWS = 3;
+let binderColor = new THREE.Color('#0c0d11');   // onyx black (default for now)
+let finish = 'gloss';
+let cardNo = 1;                                  // sequential card numbering across pages
+const PALS = [['#2f6fb0','#a9d0f2'],['#a23b52','#efb6c4'],['#37a06a','#a8e7c6'],['#7d5bd6','#cdb6f0'],
+              ['#c98a2b','#f0d39a'],['#2bb6c0','#aee6ee'],['#b0823b','#ecd6a8'],['#4f566a','#c0c8d6']];
+let binderTotal = 0; const pageSubtotals = [];   // pageSubtotals ready for per-page selection later
+const CARD_SET = 'base1', CARD_COUNT = 102;      // real Pokémon TCG art (CORS-enabled CDN)
+const cardUrl = i => `https://images.pokemontcg.io/${CARD_SET}/${(i % CARD_COUNT)+1}.png`;
+const cardLoads = [], allCards = []; const CARDDB = {};
+
+/* ------------------------------------------------------------------ renderer */
+const app = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+app.appendChild(renderer.domElement);
+RectAreaLightUniformsLib.init();
+
+const scene = new THREE.Scene();
+scene.background = makeBackdrop();
+
+const camera = new THREE.PerspectiveCamera(31, innerWidth/innerHeight, 0.1, 100);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.07;
+controls.target.set(0, 0.02, 0);
+controls.minDistance = 4.8; controls.maxDistance = 16;
+controls.maxPolarAngle = Math.PI * 0.56; controls.minPolarAngle = Math.PI * 0.10;
+function frameCamera(){
+  const aspect = innerWidth/innerHeight;
+  const dist = THREE.MathUtils.clamp(9.4 / Math.min(1.3, aspect), 8.0, 15);
+  camera.position.set(0.10, 0.80, 1).normalize().multiplyScalar(dist);   // higher elevation => crisp top-down 3/4 view
+  camera.lookAt(controls.target); controls.update();
+}
+frameCamera();
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.42;
+
+/* ------------------------------------------------------------------ studio lights */
+const key = new THREE.DirectionalLight(0xffffff, 2.6);
+key.position.set(4, 8.5, 5); key.castShadow = true;
+key.shadow.mapSize.set(2048,2048); key.shadow.camera.near=1; key.shadow.camera.far=30;
+key.shadow.camera.left=-6; key.shadow.camera.right=6; key.shadow.camera.top=6; key.shadow.camera.bottom=-6;
+key.shadow.bias=-0.0004; key.shadow.radius=7; scene.add(key);
+
+// soft-box reflections (product-photography look) — these glint across leather + pockets
+const box1 = new THREE.RectAreaLight(0xffffff, 1.3, 6, 4); box1.position.set(-4.5, 5.5, 4.5); box1.lookAt(0,0,0); scene.add(box1);
+const box2 = new THREE.RectAreaLight(0xcfe2ff, 0.8, 5, 3); box2.position.set(5, 3.5, 3); box2.lookAt(0,0,0); scene.add(box2);
+scene.add(new THREE.AmbientLight(0xffffff, 0.07));
+const fill = new THREE.DirectionalLight(0xffffff, 0.25); fill.position.set(-3, 3, 6); scene.add(fill);  // gentle off-axis fill
+
+// (no floor plane — the binder free-floats over the background, no grey ground)
+
+/* ------------------------------------------------------------------ textures */
+const coverBump = makeCoverBump();        // multi-octave grain + stitched perimeter groove
+
+/* ------------------------------------------------------------------ binder cover (ringless, stitched, padded) */
+const binder = new THREE.Group();
+binder.rotation.x = -0.40; scene.add(binder);   // laid back flatter (more top-down, table-like)
+
+const coverMat = new THREE.MeshPhysicalMaterial({
+  color: binderColor, roughness: 0.54, metalness: 0.0,
+  clearcoat: 0.45, clearcoatRoughness: 0.5,
+  sheen: 0.5, sheenRoughness: 0.55, sheenColor: new THREE.Color('#ffffff'),
+  bumpMap: coverBump, bumpScale: 0.02
+});
+const COVER_W = PAGE_W + 0.20, COVER_H = PAGE_H + 0.22, COVER_T = 0.12;
+function makeCover(sign){
+  const m = new THREE.Mesh(new RoundedBoxGeometry(COVER_W, COVER_H, COVER_T, 8, 0.09), coverMat);
+  m.castShadow = m.receiveShadow = true;
+  m.position.set(sign*(COVER_W/2 + 0.04), 0, -0.18); m.rotation.y = sign*0.045;
+  return m;
+}
+binder.add(makeCover(-1), makeCover(1));
+
+// padded spine (stitched, no rings)
+const spineMat = coverMat.clone(); spineMat.color = binderColor.clone().multiplyScalar(0.72);
+const spine = new THREE.Mesh(new RoundedBoxGeometry(0.34, COVER_H, 0.22, 6, 0.08), spineMat);
+spine.position.set(0,0,-0.21); spine.castShadow = spine.receiveShadow = true; binder.add(spine);
+
+// subtle foil corner accent on the front cover (kept minimal/clean)
+const foilMat = new THREE.MeshPhysicalMaterial({ color:0xd8c48a, metalness:1.0, roughness:0.28, clearcoat:0.5 });
+const foil = new THREE.Mesh(new THREE.CircleGeometry(0.085, 48), foilMat);
+foil.position.set(COVER_W*0.5 + 0.04, -COVER_H*0.34, -0.115); binder.add(foil);
+
+/* ------------------------------------------------------------------ pages (black backing, side-load pockets, true 2-sided) */
+const pivot = new THREE.Group(); binder.add(pivot);
+
+function pageMaterial(frontTex, backTex){
+  const mat = new THREE.MeshPhysicalMaterial({
+    map: frontTex, roughness: 0.82, metalness: 0.0,
+    clearcoat: 0.0,                              // fully matte page => crisp, vibrant card art, no glare wash
+    side: THREE.DoubleSide
+  });
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uBackMap = { value: backTex };
+    shader.fragmentShader = ('uniform sampler2D uBackMap;\n' + shader.fragmentShader)
+      .replace('#include <map_fragment>', `
+        #ifdef USE_MAP
+          vec4 sampledDiffuseColor = gl_FrontFacing
+            ? texture2D( map, vMapUv )
+            : texture2D( uBackMap, vec2(1.0 - vMapUv.x, vMapUv.y) );
+          diffuseColor *= sampledDiffuseColor;
+        #endif
+      `);
+  };
+  mat.customProgramCacheKey = () => 'page2sided';
+  return mat;
+}
+function makeLeaf(side){
+  const geo = new THREE.PlaneGeometry(PAGE_W, PAGE_H, 26, 34);
+  geo.translate(side > 0 ? PAGE_W/2 : -PAGE_W/2, 0, 0);
+  const f = makeCardPage(), b = makeCardPage();
+  const mesh = new THREE.Mesh(geo, pageMaterial(f, b));
+  mesh.castShadow = mesh.receiveShadow = true;
+  mesh.userData.orig = geo.attributes.position.array.slice(0);
+  mesh.userData.front = f.userData.cards; mesh.userData.back = b.userData.cards;
+  return mesh;
+}
+
+const leftBase  = makeLeaf(-1); leftBase.position.z  = -0.006; binder.add(leftBase);
+const rightBase = makeLeaf(+1); rightBase.position.z = -0.006; binder.add(rightBase);
+applyRest(leftBase); applyRest(rightBase);
+
+const sheets = [];
+for (let i=0;i<N_SHEETS;i++){
+  const g = new THREE.Group();
+  const leaf = makeLeaf(+1);
+  g.add(leaf); g.userData = { leaf, index:i };
+  pivot.add(g); sheets.push(g);
+}
+function restack(){
+  sheets.forEach((s,i)=>{ s.position.z = (i<flipped) ? 0.001 + i*0.0016 : 0.001 + (N_SHEETS-1-i)*0.0016; });
+}
+
+/* ------------------------------------------------------------------ holographic value readout (no projector cone) */
+const holoAnchor = new THREE.Vector3(0, 2.12, 0), _camDir = new THREE.Vector3();
+const holoEl = document.getElementById('holo');
+function updateHolo(){
+  const v = holoAnchor.clone().project(camera);
+  camera.getWorldDirection(_camDir);
+  holoEl.style.display = (holoAnchor.clone().sub(camera.position).dot(_camDir) > 0) ? 'block' : 'none';
+  holoEl.style.left = ((v.x*0.5+0.5)*innerWidth) + 'px';
+  holoEl.style.top  = ((-v.y*0.5+0.5)*innerHeight) + 'px';
+}
+function fmtMoney(n){ return '$' + Math.round(n).toLocaleString('en-US'); }
+document.getElementById('holoVal').textContent = fmtMoney(binderTotal);
+
+/* ------------------------------------------------------------------ turn engine (GSAP-driven + draggable) */
+let flipped = 0, busy = false, drag = null;
+const REST_RIGHT = 0, REST_LEFT = -Math.PI;   // negative => the page arcs through the FRONT (toward camera), not behind
+function layout(){ sheets.forEach((s,i)=>{ s.rotation.y = (i<flipped)?REST_LEFT:REST_RIGHT; flattenSheet(s); }); restack(); updateHUD(); }
+function canNext(){ return flipped < N_SHEETS && !busy && !drag; }
+function canPrev(){ return flipped > 0 && !busy && !drag; }
+
+// p: 0 = at rest start side, 1 = fully turned. dir +1 = next (right->left), -1 = prev (left->right)
+function applyProgress(sheet, dir, p){
+  const from = dir>0 ? REST_RIGHT : REST_LEFT, to = dir>0 ? REST_LEFT : REST_RIGHT;
+  sheet.rotation.y = from + (to-from)*p;
+  bendSheet(sheet, p);
+  sheet.position.z = 0.03 + 0.16*Math.sin(p*Math.PI);
+}
+function commitTurn(sheet, dir){ flattenSheet(sheet); flipped += dir; layout(); }
+function settle(sheet, dir, fromP, toP, dur, after, ease){
+  busy = true; const proxy = { p: fromP };
+  gsap.to(proxy, { p: toP, duration: dur, ease: ease || 'power3.inOut',
+    onUpdate: ()=>applyProgress(sheet, dir, proxy.p),
+    onComplete: ()=>{ after(); busy = false; } });
+}
+function turn(dir){
+  if(dir>0 ? !canNext() : !canPrev()) return;
+  const sheet = dir>0 ? sheets[flipped] : sheets[flipped-1];
+  settle(sheet, dir, 0, 1, 0.82, ()=>commitTurn(sheet, dir));
+}
+function next(){ turn(+1); } function prev(){ turn(-1); }
+
+function applyRest(m){              // gentle resting bow so pages aren't dead flat
+  const pos=m.geometry.attributes.position, o=m.userData.orig;
+  for(let k=0;k<pos.array.length;k+=3){
+    const u=Math.abs(o[k])/PAGE_W;   // 0 spine .. 1 free edge
+    pos.array[k]=o[k]; pos.array[k+1]=o[k+1];
+    pos.array[k+2]=o[k+2] + Math.sin(u*Math.PI)*0.055;
+  }
+  pos.needsUpdate=true; m.geometry.computeVertexNormals();
+}
+function flattenSheet(s){ applyRest(s.userData.leaf); }
+function bendSheet(s, p){
+  const m=s.userData.leaf, pos=m.geometry.attributes.position, o=m.userData.orig;
+  // flex grows as the page lifts then eases as it lands; the free edge flops like real paper
+  const env = Math.sin(p*Math.PI);            // 0 at ends, 1 mid-turn
+  const lead = Math.sin(Math.min(1,p*1.25)*Math.PI); // free-edge flop leads/lags the motion a touch
+  for(let k=0;k<pos.array.length;k+=3){
+    const u = Math.abs(o[k])/PAGE_W;          // 0 spine .. 1 free edge
+    const arc  = Math.sin(u*Math.PI) * 0.40 * env;        // soft overall bow
+    const flop = Math.pow(u, 2.3) * 0.95 * lead;          // pronounced, floppy free-edge curl
+    pos.array[k+2] = o[k+2] + arc + flop;
+  }
+  pos.needsUpdate=true; m.geometry.computeVertexNormals();
+}
+/* ------------------------------------------------------------------ interaction: grab-and-drag page turns */
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+const el = renderer.domElement;
+const GRAB = 0.55;   // grab the outer part of a page (past the gutter) to turn it; gutter/cover => orbit
+function pick(e){
+  ptr.x=(e.clientX/innerWidth)*2-1; ptr.y=-(e.clientY/innerHeight)*2+1; ray.setFromCamera(ptr,camera);
+  return ray.intersectObjects(pivot.children,true)[0] || ray.intersectObjects(binder.children,true)[0];
+}
+// capture phase on window => runs BEFORE OrbitControls' canvas handler, so we can pre-empt orbit cleanly
+window.addEventListener('pointerdown', e=>{
+  if(e.target!==el || busy || drag) return;
+  const hit = pick(e); if(!hit || Math.abs(hit.point.x) < GRAB) return;
+  const dir = hit.point.x>=0 ? +1 : -1;
+  if(dir>0 ? !canNext() : !canPrev()) return;
+  drag = { sheet: dir>0 ? sheets[flipped] : sheets[flipped-1], dir, startX:e.clientX, p:0, moved:false };
+  controls.enabled = false;
+}, true);
+window.addEventListener('pointermove', e=>{
+  if(!drag) return;
+  const dx = e.clientX - drag.startX, raw = drag.dir>0 ? -dx : dx;
+  drag.p = THREE.MathUtils.clamp(raw/(innerWidth*0.42), 0, 1);
+  if(Math.abs(dx)>5) drag.moved = true;
+  applyProgress(drag.sheet, drag.dir, drag.p);
+});
+window.addEventListener('pointerup', ()=>{
+  if(!drag) return;
+  const { sheet, dir, p, moved } = drag; drag = null; controls.enabled = true;
+  if(!moved){ turn(dir); return; }                                  // a tap = full turn
+  if(p > 0.45) settle(sheet, dir, p, 1, 0.30+0.20*(1-p), ()=>commitTurn(sheet,dir), 'power2.out');
+  else settle(sheet, dir, p, 0, 0.26+0.20*p, ()=>{ flattenSheet(sheet); sheet.rotation.y = dir>0?REST_RIGHT:REST_LEFT; layout(); }, 'power2.out');
+});
+window.addEventListener('pointercancel', ()=>{
+  if(!drag) return; const { sheet, dir } = drag; drag = null; controls.enabled = true;
+  flattenSheet(sheet); sheet.rotation.y = dir>0?REST_RIGHT:REST_LEFT; layout();
+});
+// hover affordance over a turnable page edge
+el.addEventListener('pointermove', e=>{ if(drag) return; const h=pick(e); el.style.cursor=(h&&Math.abs(h.point.x)>GRAB)?'grab':'default'; });
+addEventListener('keydown', e=>{ if(e.key==='ArrowRight')next(); if(e.key==='ArrowLeft')prev(); });
+document.getElementById('next').onclick = next;
+document.getElementById('prev').onclick = prev;
+
+/* ------------------------------------------------------------------ per-card hover identify + live values */
+const leafInfo = new Map();
+leafInfo.set(leftBase,{base:true}); leafInfo.set(rightBase,{base:true});
+sheets.forEach((s,i)=> leafInfo.set(s.userData.leaf,{index:i}));
+const PADX=0.065, PADY=0.055, GAPX=0.02, GAPY=0.018;
+const CWF=(1-2*PADX-(COLS-1)*GAPX)/COLS, CHF=(1-2*PADY-(ROWS-1)*GAPY)/ROWS;
+function cellIndex(frac, pad, cellf, gapf, count){
+  const i=Math.floor((frac-pad)/(cellf+gapf));
+  if(i<0 || i>=count) return -1;
+  if((frac-pad) - i*(cellf+gapf) > cellf) return -1;   // pointer is in a gap
+  return i;
+}
+function cardAt(hit){
+  const leaf=hit.object, info=leafInfo.get(leaf); if(!info) return null;
+  const lp=leaf.worldToLocal(hit.point.clone());
+  const u = lp.x>=0 ? lp.x/PAGE_W : (lp.x+PAGE_W)/PAGE_W;   // geometry/canvas-x fraction
+  const v = (lp.y+PAGE_H/2)/PAGE_H;
+  const isBack = !info.base && info.index < flipped;         // a turned sheet shows its (x-flipped) back
+  const col=cellIndex(isBack ? 1-u : u, PADX, CWF, GAPX, COLS);
+  const row=cellIndex(1-v, PADY, CHF, GAPY, ROWS);           // flipY: canvasY = 1 - v
+  if(col<0 || row<0) return null;
+  const arr = isBack ? leaf.userData.back : leaf.userData.front;
+  return arr ? arr[row*COLS+col] : null;
+}
+const ciName=document.getElementById('ciName'), ciVal=document.getElementById('ciVal'),
+      ciSub=document.getElementById('ciSub'), ciBox=document.getElementById('cardinfo');
+function fmtCard(n){ return n>=100 ? '$'+Math.round(n).toLocaleString('en-US') : '$'+n.toFixed(2); }
+let _hoverNum=null;
+function showCard(card){
+  if(card.num!==_hoverNum){
+    _hoverNum=card.num; const real=CARDDB[card.num];
+    ciName.textContent = real ? real.name : `Card #${card.num}`;
+    ciVal.textContent  = fmtCard((real && real.price) ? real.price : card.price);
+    ciSub.textContent  = `Base Set · #${card.num}`;
+  }
+  ciBox.classList.add('show');
+}
+function hideCard(){ _hoverNum=null; ciBox.classList.remove('show'); }
+
+/* live market values from the Pokémon TCG API (graceful fallback to the procedural value) */
+function realPrice(c){
+  const tp=(c.tcgplayer&&c.tcgplayer.prices)||{};
+  for(const k of ['holofoil','reverseHolofoil','normal','unlimitedHolofoil','1stEditionHolofoil']){ if(tp[k]&&(tp[k].market||tp[k].mid)) return tp[k].market||tp[k].mid; }
+  const cm=c.cardmarket&&c.cardmarket.prices; if(cm&&cm.averageSellPrice) return cm.averageSellPrice;
+  return 0;
+}
+fetch('https://api.pokemontcg.io/v2/cards?q=set.id:base1&pageSize=250&select=number,name,tcgplayer,cardmarket')
+  .then(r=>r.json()).then(d=>{
+    (d.data||[]).forEach(c=>{ const num=parseInt(c.number,10); if(num) CARDDB[num]={ name:c.name, price:realPrice(c) }; });
+    let tot=0; for(const c of allCards) tot += (CARDDB[c.num] && CARDDB[c.num].price) || c.price;
+    binderTotal=tot; document.getElementById('holoVal').textContent=fmtMoney(binderTotal);
+  }).catch(()=>{});
+
+/* recolor */
+const SWATCHES = [
+  ['#0c0d11','Onyx'], ['#10243f','Navy'], ['#5a1822','Oxblood'],
+  ['#1c3b2c','Forest'], ['#3a3f47','Graphite'], ['#6a4a2c','Cognac'], ['#e9e6df','Bone']
+];
+const swWrap = document.getElementById('swatches');
+SWATCHES.forEach(([hex,name],i)=>{
+  const b=document.createElement('div'); b.className='sw'+(i===0?' on':''); b.style.background=hex; b.title=name;
+  b.onclick=()=>{ setColor(hex); swWrap.querySelectorAll('.sw').forEach(x=>x.classList.remove('on')); b.classList.add('on'); };
+  swWrap.appendChild(b);
+});
+const custom=document.createElement('label'); custom.className='sw custom'; custom.title='Custom';
+custom.innerHTML='<span>+</span><input type="color" value="#10243f">';
+custom.querySelector('input').oninput=e=>{ setColor(e.target.value); swWrap.querySelectorAll('.sw').forEach(x=>x.classList.remove('on')); };
+swWrap.appendChild(custom);
+function setColor(hex){
+  const c=new THREE.Color(hex), s=c.clone().multiplyScalar(0.72); binderColor=c;
+  gsap.to(coverMat.color,{ r:c.r, g:c.g, b:c.b, duration:0.5, ease:'power2.out' });
+  gsap.to(spineMat.color,{ r:s.r, g:s.g, b:s.b, duration:0.5, ease:'power2.out' });
+}
+
+/* finishes */
+document.querySelectorAll('#finishSeg .seg').forEach(seg=>{
+  seg.onclick=()=>{ document.querySelectorAll('#finishSeg .seg').forEach(s=>s.classList.remove('on')); seg.classList.add('on'); finish=seg.dataset.finish; applyFinish(); };
+});
+function applyFinish(){
+  if(finish==='leather'){ coverMat.roughness=0.54; coverMat.clearcoat=0.45; coverMat.clearcoatRoughness=0.5; coverMat.sheen=0.5; coverMat.bumpScale=0.028; }
+  if(finish==='matte'){ coverMat.roughness=0.82; coverMat.clearcoat=0.0; coverMat.sheen=0.2; coverMat.bumpScale=0.034; }
+  if(finish==='gloss'){ coverMat.roughness=0.24; coverMat.clearcoat=0.72; coverMat.clearcoatRoughness=0.13; coverMat.sheen=0.0; coverMat.bumpScale=0.01; }
+  coverMat.needsUpdate=true;
+}
+
+/* HUD */
+function updateHUD(){
+  const L=flipped*2+1; document.getElementById('pageno').innerHTML=`${L} &ndash; ${L+1}`;
+  document.getElementById('prev').disabled = flipped<=0;
+  document.getElementById('next').disabled = flipped>=N_SHEETS;
+}
+
+/* ------------------------------------------------------------------ loop */
+function tick(){ controls.update(); updateHolo(); renderer.render(scene,camera); requestAnimationFrame(tick); }
+addEventListener('resize', ()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); frameCamera(); });
+cardLoads.forEach(loadCard);
+layout(); applyFinish(); tick();
+gsap.from(binder.rotation, { y:-0.6, duration:1.3, ease:'power3.out' });
+gsap.from(binder.scale, { x:0.94, y:0.94, z:0.94, duration:1.3, ease:'power3.out' });
+setTimeout(()=>document.getElementById('boot').classList.add('hide'), 350);
+
+/* ================================================================== texture factories */
+function loadCard(e){
+  const img=new Image(); img.crossOrigin='anonymous';
+  img.onload=()=>{
+    const g=e.ctx; g.save();
+    g.fillStyle='rgba(0,0,0,.5)'; rr(g,e.cx+3,e.cy+5,e.ccw,e.cch,12); g.fill();        // contact shadow
+    g.beginPath(); rr(g,e.cx,e.cy,e.ccw,e.cch,12); g.clip(); g.drawImage(img,e.cx,e.cy,e.ccw,e.cch); g.restore();
+    if(e.tex) e.tex.needsUpdate=true;
+  };
+  img.src=e.url;
+}
+function makeBackdrop(){
+  const c=document.createElement('canvas'); c.width=c.height=512; const x=c.getContext('2d');
+  const g=x.createRadialGradient(256,205,30,256,270,470);
+  g.addColorStop(0,'#161b25'); g.addColorStop(0.5,'#0a0d13'); g.addColorStop(1,'#040507');
+  x.fillStyle=g; x.fillRect(0,0,512,512);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t;
+}
+function noiseGrain(x,N,base,amp,count,rMax){
+  for(let i=0;i<count;i++){ const v=base+(Math.random()*2-1)*amp; x.fillStyle=`rgb(${v|0},${v|0},${v|0})`;
+    x.beginPath(); x.arc(Math.random()*N,Math.random()*N,1+Math.random()*rMax,0,7); x.fill(); }
+}
+function makeCoverBump(){
+  const N=1024,c=document.createElement('canvas'); c.width=c.height=N; const x=c.getContext('2d');
+  x.fillStyle='#808080'; x.fillRect(0,0,N,N);
+  noiseGrain(x,N,128,16,7000,6.5);    // large soft pores (leather pebble)
+  noiseGrain(x,N,128,30,30000,2.2);   // medium grain
+  noiseGrain(x,N,128,42,60000,1.1);   // fine speckle
+  // stitched perimeter: a dashed groove inset from the edge
+  const pad=N*0.055, r=N*0.05;
+  x.strokeStyle='#3a3a3a'; x.lineWidth=4; x.setLineDash([14,12]); x.lineCap='round';
+  rr(x,pad,pad,N-2*pad,N-2*pad,r); x.stroke();
+  x.strokeStyle='#d2d2d2'; x.lineWidth=2; x.setLineDash([14,12]); x.lineDashOffset=2;
+  rr(x,pad,pad,N-2*pad,N-2*pad,r); x.stroke(); x.setLineDash([]);
+  const t=new THREE.CanvasTexture(c); return t;
+}
+
+/* one black side-loading page with a 3x3 grid of pocketed cards */
+function priceFor(no, holo){ const base = 1 + (no*37 % 14); return holo ? base + 40 + (no*53 % 360) : base; }
+function makeCardPage(){
+  const W=1024, H=Math.round(W*(PAGE_H/PAGE_W)); const c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d');
+  // black low-friction backing with a faint vertical sheen
+  const bg=g.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#141519'); bg.addColorStop(0.5,'#0b0c0f'); bg.addColorStop(1,'#101115');
+  g.fillStyle=bg; g.fillRect(0,0,W,H);
+  // spine-side shadow
+  const sh=g.createLinearGradient(0,0,W*0.09,0); sh.addColorStop(0,'rgba(0,0,0,.45)'); sh.addColorStop(1,'rgba(0,0,0,0)');
+  g.fillStyle=sh; g.fillRect(0,0,W*0.09,H);
+
+  const padX=W*0.065, padY=H*0.055;
+  const gw=W-2*padX, gh=H-2*padY;
+  const gapx=W*0.02, gapy=H*0.018;
+  const cw=(gw-(COLS-1)*gapx)/COLS, ch=(gh-(ROWS-1)*gapy)/ROWS;
+  let n=0, pageSum=0; const startLoad=cardLoads.length, cards=[];
+  for(let r=0;r<ROWS;r++) for(let col=0;col<COLS;col++){
+    const rx=padX+col*(cw+gapx), ry=padY+r*(ch+gapy);
+    const m=Math.min(cw,ch)*0.05, cx=rx+m, cy=ry+m, ccw=cw-2*m, cch=ch-2*m;
+    const pal=PALS[(cardNo*5+n*3)%PALS.length], holo=(cardNo+n)%7===0;
+    const price=priceFor(cardNo+n, holo); pageSum+=price; binderTotal+=price;
+    const num=((cardNo+n)%CARD_COUNT)+1; cards.push({num,price}); allCards.push({num,price});
+    cardLoads.push({ ctx:g, cx, cy, ccw, cch, rx, ry, cw, ch, url:cardUrl(cardNo+n) });
+    // drop shadow of card on the black backing
+    g.fillStyle='rgba(0,0,0,.45)'; rr(g,cx+3,cy+5,ccw,cch,12); g.fill();
+    // card
+    const cg=g.createLinearGradient(cx,cy,cx,cy+cch); cg.addColorStop(0,pal[1]); cg.addColorStop(1,pal[0]);
+    g.fillStyle=cg; rr(g,cx,cy,ccw,cch,12); g.fill();
+    if(holo){ const hg=g.createLinearGradient(cx,cy,cx+ccw,cy+cch);
+      ['#ff8bd0','#ffd36e','#8bffb0','#7ad7ff','#c79bff'].forEach((cc,i,a)=>hg.addColorStop(i/(a.length-1),cc));
+      g.globalAlpha=0.32; g.fillStyle=hg; rr(g,cx,cy,ccw,cch,12); g.fill(); g.globalAlpha=1; }
+    // art window + title plate + frame
+    g.fillStyle='rgba(255,255,255,.18)'; rr(g,cx+ccw*0.10,cy+cch*0.10,ccw*0.80,cch*0.52,7); g.fill();
+    g.fillStyle='rgba(0,0,0,.22)'; rr(g,cx+ccw*0.10,cy+cch*0.70,ccw*0.80,cch*0.10,5); g.fill();
+    g.lineWidth=Math.max(2,ccw*0.02); g.strokeStyle='rgba(255,255,255,.30)'; rr(g,cx,cy,ccw,cch,12); g.stroke();
+    g.fillStyle='rgba(255,255,255,.92)'; g.font=`bold ${Math.round(cch*0.12)}px Archivo, sans-serif`; g.textAlign='right';
+    g.fillText(String(cardNo+n).padStart(3,'0'), cx+ccw-10, cy+cch-9);
+    // glossy pocket: diagonal specular streak + lip
+    const pg=g.createLinearGradient(rx,ry,rx+cw,ry+ch);
+    pg.addColorStop(0,'rgba(255,255,255,0)'); pg.addColorStop(0.45,'rgba(255,255,255,.03)');
+    pg.addColorStop(0.5,'rgba(255,255,255,.07)'); pg.addColorStop(0.55,'rgba(255,255,255,.02)'); pg.addColorStop(1,'rgba(255,255,255,0)');
+    g.fillStyle=pg; rr(g,rx,ry,cw,ch,10); g.fill();
+    g.lineWidth=2; g.strokeStyle='rgba(255,255,255,.10)'; rr(g,rx,ry,cw,ch,10); g.stroke();
+    n++;
+  }
+  pageSubtotals.push(pageSum); cardNo += COLS*ROWS;
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=16; t.userData={cards};
+  for(let i=startLoad;i<cardLoads.length;i++) cardLoads[i].tex=t;
+  return t;
+}
+function rr(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
+</script>
+</body>
+</html>

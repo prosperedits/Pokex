@@ -64,7 +64,19 @@
   // 404s and leaves an empty, dark set button. Deriving fixes that whole class.
   // tcgdex carries no set LOGO for a few sets (only a symbol) — supply the
   // wordmark locally so the dropdown + selector never fall back to a glyph.
-  const SET_LOGO_OVERRIDE = { sv05: 'assets/setlogos/sv05.png' }; // Temporal Forces
+  const SET_LOGO_OVERRIDE = {
+    sv05: 'assets/setlogos/sv05.png', // Temporal Forces (tcgdex gap)
+    // Disney Lorcana set wordmarks — transparent logos from card-binder.com
+    'lor-1': 'assets/setlogos/lor-1.webp', 'lor-2': 'assets/setlogos/lor-2.webp',
+    'lor-3': 'assets/setlogos/lor-3.webp', 'lor-4': 'assets/setlogos/lor-4.webp',
+    'lor-5': 'assets/setlogos/lor-5.webp', 'lor-6': 'assets/setlogos/lor-6.webp',
+    'lor-7': 'assets/setlogos/lor-7.webp', 'lor-8': 'assets/setlogos/lor-8.webp',
+    'lor-9': 'assets/setlogos/lor-9.webp', 'lor-10': 'assets/setlogos/lor-10.webp',
+    'lor-11': 'assets/setlogos/lor-11.webp',
+    // user-supplied (drop the file at the path → it lights up automatically):
+    'lor-12': 'assets/setlogos/lor-12.webp',   // Wilds Unknown (webp)
+    'mtg-sos': 'assets/setlogos/mtg-sos.png',  // Secrets of Strixhaven
+  };
   const setLogoPng = (set) => {
     const id = set && set.id ? String(set.id) : '';
     if (SET_LOGO_OVERRIDE[id]) return SET_LOGO_OVERRIDE[id];
@@ -260,19 +272,17 @@
   const dialPt = (th, R) => [R * Math.sin(th), -R * (1 - Math.cos(th))];
   function buildDial() {
     const w = Math.round(rail.clientWidth) || 1000;
-    const chord = Math.min(w * 0.42, 900);
-    const R = chord * 0.62;                                  // small R vs chord → pronounced curve
-    const A = Math.asin(Math.min(1, chord / (2 * R)));       // ~54° half-angle: the ends sweep deep into z
+    const chord = Math.min(w * 0.5, 780);                    // flat track span
     const n = Math.min(N, 240);
-    let s = '<div class="dial-stage">';
+    let s = `<div class="dial-stage" style="--dial-w:${chord.toFixed(0)}px">`;
     for (let i = 0; i < n; i++) {
-      const f = n > 1 ? i / (n - 1) : 0.5, th = (f - 0.5) * 2 * A, k = (f - 0.5) * 2, bow = 1 - k * k;
-      const [x, z] = dialPt(th, R), len = 7 + 16 * bow;     // taller in the middle, tapering to the ends
-      s += `<i class="dtick" data-i="${i}" style="transform:translate3d(${x.toFixed(1)}px,0,${z.toFixed(1)}px);height:${len.toFixed(1)}px;opacity:${(0.22 + 0.45 * bow).toFixed(2)}"></i>`;
+      const f = n > 1 ? i / (n - 1) : 0.5, x = (f - 0.5) * chord, edge = 1 - Math.abs(f - 0.5) * 2;
+      const len = 4 + 6 * edge;                              // a touch taller toward the middle, tapering at the ends
+      s += `<i class="dtick" data-i="${i}" style="transform:translate3d(${x.toFixed(1)}px,0,0);height:${len.toFixed(1)}px;opacity:${(0.2 + 0.3 * edge).toFixed(2)}"></i>`;
     }
     s += '<i class="dknob"></i></div>';
     railArc.innerHTML = s;
-    dial = { R, A, chord, n, _cur: -1, _curEl: null };
+    dial = { chord, n, _cur: -1, _curEl: null };
   }
   // Arc-dial geometry. Single source of truth = the --arc-depth/--arc-rot CSS
   // vars on .minimap (the media query shrinks them on small screens); read them
@@ -552,10 +562,10 @@
 
     // dial: ride the knob along the 3D arc + light the current segment
     if (dial) {
-      const f = N > 1 ? idx / (N - 1) : 0.5, th = (f - 0.5) * 2 * dial.A;
-      const [kx, kz] = dialPt(th, dial.R);
+      const f = N > 1 ? idx / (N - 1) : 0.5;
+      const kx = (f - 0.5) * dial.chord;
       const knob = railArc.querySelector('.dknob');
-      if (knob) knob.style.transform = `translate3d(${kx.toFixed(1)}px,0,${kz.toFixed(1)}px)`;
+      if (knob) knob.style.transform = `translate3d(${kx.toFixed(1)}px,0,0)`;
       const ti = Math.round(f * (dial.n - 1));
       if (ti !== dial._cur) {
         if (dial._curEl) dial._curEl.classList.remove('cur');
@@ -598,14 +608,14 @@
   function driftBg(ms) {
     const t = ms / 1000;
     bgGlass.style.transform =
-      `translate3d(${(Math.sin(t * TAU / 28) * 3.2).toFixed(3)}%, ${(Math.cos(t * TAU / 23) * 2).toFixed(3)}%, 0)` +
+      `translate3d(${(Math.sin(t * TAU / 28) * 3.2).toFixed(3)}%, ${(Math.cos(t * TAU / 23) * 0.6).toFixed(3)}%, 0)` +
       ` scale(${(1.06 + Math.sin(t * TAU / 37) * 0.05).toFixed(4)})`;
     bgGrain.style.transform =
-      `translate3d(${(Math.sin(t * TAU / 50 + 2) * 2).toFixed(3)}%, ${(Math.cos(t * TAU / 41) * 1.3).toFixed(3)}%, 0)`;
-    // the keylight sways slowly and breathes a touch harder than the glass
+      `translate3d(${(Math.sin(t * TAU / 50 + 2) * 2).toFixed(3)}%, ${(Math.cos(t * TAU / 41) * 0.5).toFixed(3)}%, 0)`;
+    // keylight sways mostly horizontally — no vertical bob that reads as a moving line at the top
     bgLight.style.transform =
-      `translate3d(${(Math.sin(t * TAU / 45 + 1) * 4).toFixed(3)}%, ${(Math.cos(t * TAU / 38) * 3).toFixed(3)}%, 0)`;
-    bgLight.style.opacity = (0.78 + 0.22 * Math.sin(t * TAU / 17)).toFixed(3);
+      `translate3d(${(Math.sin(t * TAU / 45 + 1) * 4).toFixed(3)}%, ${(Math.cos(t * TAU / 38) * 0.7).toFixed(3)}%, 0)`;
+    bgLight.style.opacity = (0.88 + 0.12 * Math.sin(t * TAU / 17)).toFixed(3);
     const k = (1 + Math.sin(t * TAU / 9)) / 2;
     stageGlow.style.opacity = (0.74 + 0.26 * k).toFixed(3);
     stageGlow.style.transform = `scale(${(1 + 0.08 * k).toFixed(4)})`;
@@ -622,6 +632,7 @@
     // every 2nd frame: the drift is slow, 30fps is invisible, churn halves
     if (!REDUCED && (driftFrame++ & 1)) driftBg(ms || performance.now());
     if (zoom.open) holoRender(ms || performance.now()); // animated inspect backdrop
+    if (topo && document.body.dataset.game === 'pokemon') topo.render(ms || performance.now()); // Pokémon topo drift
     if (mode === 'gliding' || mode === 'wheeling') {
       position += velocity;
       velocity *= FRICTION;
@@ -696,10 +707,17 @@
   };
   function applyAmbience(cols) {
     const [a, b, c] = [cols[0], cols[1] ?? cols[0], cols[2] ?? cols[1] ?? cols[0]];
+    // feed the per-set signature colour to the themed backdrops:
+    // Lorcana bottom glow (--set-glow), One Piece rain tint (--op-rain*), Pokémon topo hue
+    const bs = document.body.style;
+    bs.setProperty('--set-glow', a);
+    bs.setProperty('--op-rain', a);
+    bs.setProperty('--op-rain2', c);
+    if (topo) topo.color.set(a);
     bgLight.style.background =
-      `radial-gradient(100% 78% at 50% -14%, ${hexA(a, 0.26)} 0%, transparent 64%),` +
-      ` radial-gradient(78% 100% at 106% 82%, ${hexA(b, 0.19)} 0%, transparent 60%),` +
-      ` linear-gradient(118deg, transparent 34%, ${hexA(c, 0.12)} 50%, transparent 66%)`;
+      `radial-gradient(100% 88% at 50% -22%, ${hexA(a, 0.5)} 0%, transparent 66%),` +
+      ` radial-gradient(78% 100% at 106% 82%, ${hexA(b, 0.4)} 0%, transparent 60%),` +
+      ` linear-gradient(118deg, transparent 34%, ${hexA(c, 0.26)} 50%, transparent 66%)`;
     // the glass streaks are baked ice-blue (hue ≈205): rotate toward the primary
     const n = parseInt(cols[0].slice(1), 16);
     const r = (n >> 16) & 255, g = (n >> 8) & 255, bl = n & 255;
@@ -765,7 +783,15 @@
     if (meta) return new URL(`assets/logos/${meta.game}.png`, location.href).href;
     return null;
   }
+  // hand-picked backdrop colours for sets the auto-sampler reads wrong (3 colours = the 3 ambience layers)
+  const AMBIENCE_OVERRIDE = {
+    'mtg-sos': ['#46a049', '#7fcf6a', '#2f7d3a'],   // Secrets of Strixhaven — green, not red
+    'mtg-tmt': ['#5cb44a', '#8fd86a', '#357a2e'],   // Teenage Mutant Ninja Turtles — turtle green
+    'mtg-ecl': ['#8a5cd8', '#b48cf0', '#5a3a9e'],   // Lorwyn Eclipsed — mystical purple
+    'mtg-tla': ['#39b0e0', '#e0892e', '#5fbf6a'],   // Avatar: TLA — water / fire / earth, four-element wash
+  };
   function setAmbience(id) {
+    if (AMBIENCE_OVERRIDE[id]) { applyAmbience(AMBIENCE_OVERRIDE[id]); return; }
     const pre = (window.SET_COLORS || {})[id];     // precomputed from the set LOGO
     if (pre && pre.length) { applyAmbience(pre); return; }
     extractLogoColors(localSetImage(id), (cols) => {   // external sets: read the box
@@ -775,8 +801,66 @@
   }
 
   // --- Set switching -----------------------------------------------------------------
+  // generate the Lorcana starfield once (each star duplicated +2000px for a seamless scroll)
+  let starsBuilt = false;
+  function buildStarfield() {
+    if (starsBuilt) return; starsBuilt = true;
+    const W = 3440; // span ultrawide so the field fills the full viewport, edge to edge
+    const mk = (n) => { let s = ''; for (let i = 0; i < n; i++) { const x = Math.floor(Math.random() * W), y = Math.floor(Math.random() * 2000); s += `${x}px ${y}px #fff, ${x}px ${y + 2000}px #fff`; if (i < n - 1) s += ', '; } return s; };
+    const a = document.getElementById('stars'), b = document.getElementById('stars2'), c = document.getElementById('stars3');
+    if (a) a.style.boxShadow = mk(900);
+    if (b) b.style.boxShadow = mk(380);
+    if (c) c.style.boxShadow = mk(210);
+  }
+
+  // ---- Pokémon carousel topographic background (same shader as the homepage).
+  //      Recolored per set by applyAmbience(), which already samples each set's
+  //      signature colour (precomputed for Pokémon, read off the box for others).
+  //      Built lazily on the first Pokémon set. ----
+  let topo = null;
+  function buildTopo() {
+    if (topo || !window.THREE) return;
+    const canvas = document.getElementById('bgTopo'); if (!canvas) return;
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+    const scene = new THREE.Scene();
+    const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const uni = { uTime: { value: 0 }, uRes: { value: new THREE.Vector2() }, uColor: { value: new THREE.Color(0.33, 0.55, 1.0) } };
+    const mat = new THREE.ShaderMaterial({
+      uniforms: uni, transparent: true,
+      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+      fragmentShader: `
+        precision highp float; varying vec2 vUv; uniform vec2 uRes; uniform vec3 uColor; uniform float uTime;
+        float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453123); }
+        float noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+          return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x), mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x), f.y); }
+        float fbm(vec2 p){ float v=0.0, a=0.55; for(int i=0;i<6;i++){ v+=a*noise(p); p=p*2.03+vec2(11.3,7.7); a*=0.5; } return v; }
+        void main(){
+          vec2 uv = vUv; vec2 p = uv; p.x *= uRes.x / max(uRes.y, 1.0);
+          p = p * 3.1; float n = fbm(p + vec2(uTime * 0.016, uTime * 0.011));
+          float f = n * 8.5; float fr = fract(f); float d = min(fr, 1.0 - fr);
+          float line = 1.0 - smoothstep(0.0, 0.052, d);
+          float g = clamp(uv.x * 0.45 + (1.0 - uv.y) * 0.7, 0.0, 1.0);
+          vec3 base = mix(uColor * 0.16, uColor * 0.035, g);
+          float major = 1.0 - step(0.5, mod(floor(f), 5.0));
+          vec3 lineCol = mix(uColor * 0.55, clamp(uColor * 1.3 + 0.12, 0.0, 1.0), major);
+          float lineStr = line * (0.30 + 0.20 * (1.0 - g)) * (1.0 + major * 0.55);
+          vec3 col = mix(base, lineCol, lineStr);
+          gl_FragColor = vec4(col, 1.0);
+        }`,
+    });
+    scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
+    const rs = () => { renderer.setSize(innerWidth, innerHeight, false); uni.uRes.value.set(innerWidth, innerHeight); };
+    rs(); addEventListener('resize', rs);
+    topo = { render: (t) => { uni.uTime.value = t * 0.001; renderer.render(scene, cam); }, color: uni.uColor.value };
+  }
   function loadSet(id) {
     DATA = SETS[id];
+    // per-universe carousel backdrop (stars / rain), switched via body[data-game]
+    const universe = id.startsWith('lor-') ? 'lorcana' : id.startsWith('op-') ? 'onepiece' : id.startsWith('mtg-') ? 'magic' : 'pokemon';
+    document.body.dataset.game = universe;
+    if (universe === 'lorcana') buildStarfield();
+    else if (universe === 'pokemon') buildTopo();
     CARDS = setCardList(id); // numbered singles + sealed products
     N = CARDS.length;
     const dom = buildSetDom(id);
@@ -883,11 +967,11 @@
       { id: 'lor-1', code: '1', name: 'The First Chapter' },
     ] },
     { game: 'onepiece', label: 'One Piece', sets: [
-      { id: 'op-OP16', code: 'OP16', name: 'OP16' },
-      { id: 'op-OP15', code: 'OP15', name: 'OP15' },
-      { id: 'op-OP14', code: 'OP14', name: 'OP14' },
-      { id: 'op-OP13', code: 'OP13', name: 'OP13' },
-      { id: 'op-OP12', code: 'OP12', name: 'OP12' },
+      { id: 'op-OP16', code: 'OP16', name: 'The Time of Battle' },
+      { id: 'op-OP15', code: 'OP15', name: "Adventure on Kami's Island" },
+      { id: 'op-OP14', code: 'OP14', name: "The Azure Sea's Seven" },
+      { id: 'op-OP13', code: 'OP13', name: 'Carrying on his Will' },
+      { id: 'op-OP12', code: 'OP12', name: 'Legacy of the Master' },
       { id: 'op-OP11', code: 'OP11', name: 'A Fist of Divine Speed' },
       { id: 'op-OP10', code: 'OP10', name: 'Royal Blood' },
       { id: 'op-OP09', code: 'OP09', name: 'Emperors in the New World' },
@@ -912,11 +996,19 @@
     onepiece: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 14.5C4.5 10.4 7.9 7 12 7s7.5 3.4 7.5 7.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 15.2h18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
   };
   // per-set mark: Pokémon = tcgdex set logo, Magic = Scryfall set symbol, else null
-  const setMarkSrc = (game, s) => {
-    if (game === 'pokemon') return setLogoPng({ id: s.id });
-    if (game === 'magic' && s.code) return safeImg(`https://svgs.scryfall.io/sets/${s.code}.svg`);
-    return `assets/logos/${game}.png?v=79`; // Lorcana / One Piece: the game logo as the set sigil
+  // ordered logo candidates for a set: local override → game source (tcgdex / Scryfall
+  // symbol) → sealed booster-box image → game logo. markEl walks this on <img> error.
+  const setMarkChain = (game, s) => {
+    const out = [];
+    if (SET_LOGO_OVERRIDE[s.id]) out.push(SET_LOGO_OVERRIDE[s.id]);
+    if (game === 'pokemon') out.push(setLogoPng({ id: s.id }));
+    else if (game === 'magic' && s.code) out.push(safeImg(`https://svgs.scryfall.io/sets/${s.code}.svg`));
+    const box = localSetImage(s.id);
+    if (box) out.push(box);
+    out.push(`assets/logos/${game}.png?v=79`);
+    return [...new Set(out.filter(Boolean))];
   };
+  const setMarkSrc = (game, s) => setMarkChain(game, s)[0];
   // --- Categorised, searchable set picker: games as tabs, sets in a scroll list --
   function buildSetPicker() {
     const NAV = [{
@@ -933,18 +1025,18 @@
     function markEl(game, s) {
       const mark = document.createElement('span');
       mark.className = 'sm-set-mark';
-      if (game === 'lorcana' && s.code) { // no clean per-set symbol source → numbered chapter sigil
-        mark.innerHTML = `<span class="lor-sigil">${s.code}</span>`;
-        return mark;
-      }
-      const src = setMarkSrc(game, s);
-      if (src) {
-        const img = document.createElement('img');
-        img.className = game === 'magic' ? 'sym' : 'logo'; img.alt = ''; img.loading = 'lazy';
-        img.onerror = () => { mark.innerHTML = GAME_GLYPH[game] || ''; }; // tcgdex gap → glyph
-        img.src = src;
-        mark.appendChild(img);
-      } else { mark.innerHTML = GAME_GLYPH[game] || ''; }
+      const cands = setMarkChain(game, s);
+      if (!cands.length) { mark.innerHTML = GAME_GLYPH[game] || ''; return mark; }
+      const cls = (u) => (u.indexOf('svgs.scryfall.io') !== -1 ? 'sym' : 'logo');
+      const img = document.createElement('img');
+      img.alt = ''; img.loading = 'lazy'; img.className = cls(cands[0]);
+      let i = 0;
+      img.onerror = () => { // walk the chain: logo → symbol → sealed box → game logo → glyph
+        if (++i < cands.length) { img.className = cls(cands[i]); img.src = cands[i]; }
+        else mark.innerHTML = GAME_GLYPH[game] || '';
+      };
+      img.src = cands[0];
+      mark.appendChild(img);
       return mark;
     }
     function renderList() {
@@ -1331,6 +1423,10 @@
   $('moreCardsBtn').addEventListener('click', () => openGallery());
   $('galleryBack').addEventListener('click', () => closeGallery());
 
+  $('lightBtn').addEventListener('click', () => {   // whole-card light wash, sudden + soft
+    const lit = cardFaces.classList.toggle('lit');
+    $('lightBtn').setAttribute('aria-pressed', lit ? 'true' : 'false');
+  });
   $('wishBtn').addEventListener('click', () => {
     const card = cardAt(current);
     wishlist.has(card.id) ? wishlist.delete(card.id) : wishlist.add(card.id);
@@ -2043,6 +2139,7 @@
 
   let zoomClosing = false;
   function closeZoom() {
+    cardFaces.classList.remove('lit'); $('lightBtn').setAttribute('aria-pressed', 'false'); // light off on close
     if (zoomReturnEl) zoomReturnEl.style.visibility = ''; // any close path re-shows the wheel card
     // no card to fly back to (closed before any open) → just close, don't deref null
     if (REDUCED || !zoomReturnEl) { zoomClosing = false; zoom.close(); return; }
@@ -2227,6 +2324,7 @@
   let homeBuilt = false, pickGame = 'pokemon';
   function buildHome() {
     if (homeBuilt) return; homeBuilt = true;
+    const UNI_ORDER = ['pokemon', 'lorcana', 'onepiece', 'magic'].map((id) => HOME_GAMES.find((g) => g.game === id)).filter(Boolean);
     homeScroll.innerHTML = `<div class="home-stage" id="homeStageEl">
         <div class="hv hv-hero" id="hvHero">
           <div class="hero-glow" aria-hidden="true"></div>
@@ -2236,20 +2334,38 @@
           <button type="button" class="get-started" id="getStarted">Get started <span aria-hidden="true">&rarr;</span></button>
         </div>
         <div class="hv hv-pick" id="hvPick" hidden>
-          <p class="pick-prompt">Pick a universe</p>
-          <div class="pick-logos" id="pickLogos">${HOME_GAMES.map((g) => `<button type="button" class="pick-logo" data-game="${g.game}" style="--accent:${g.accent}" aria-label="${g.name}"><span class="pl-glow" aria-hidden="true"></span><img src="assets/logos/${g.game}.png?v=79" alt="${g.name}"></button>`).join('')}</div>
+          <div class="uni-cols" id="pickLogos">${UNI_ORDER.map((g) => `<button type="button" class="uni-col" data-game="${g.game}" style="--accent:${g.accent}" aria-label="${g.name}"><span class="uc-wash" aria-hidden="true"></span><span class="uc-glow" aria-hidden="true"></span><span class="uc-inner"><img class="uc-logo" src="assets/logos/${g.game}.png?v=79" alt="${g.name}"><span class="uc-go">Browse sets <i aria-hidden="true">&rarr;</i></span></span></button>`).join('')}</div>
+          <span class="uni-head">Choose your universe</span>
         </div>
         <div class="hv hv-sets" id="hvSets" hidden>
           <p class="pick-prompt" id="setsTitle">Choose a set</p>
           <div class="set-grid" id="setGrid"></div>
-          <button type="button" class="pick-back" id="setsBack">&larr; universes</button>
+          <button type="button" class="pick-back" id="setsBack"><span class="pb-arrow" aria-hidden="true">&larr;</span> All universes</button>
         </div>
       </div>`;
-    $('pickLogos').addEventListener('click', (e) => { const b = e.target.closest('[data-game]'); if (b) goSets(b.dataset.game); });
+    $('pickLogos').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-game]'); if (!b) return;
+      const cols = [...$('pickLogos').children];
+      if (!window.gsap || REDUCED) { revealSetsInPlace(b.dataset.game); return; }
+      // the chosen column expands to fill the screen; its logo fades away and the set
+      // list resolves IN-PLACE over that same coloured frame — no blink, no snap-back.
+      gsap.timeline({ onComplete: () => {
+        revealSetsInPlace(b.dataset.game);
+        gsap.set(cols, { clearProps: 'flexGrow,opacity,scale' });
+        gsap.set('#pickLogos .uc-logo, #pickLogos .uc-go', { clearProps: 'all' });   // reset so the picker is clean on return
+      } })
+        .to(b.querySelector('.uc-glow'), { opacity: 0.95, scale: 1.25, duration: 0.55, ease: 'power2.out' }, 0)
+        .to(b.querySelector('.uc-logo'), { opacity: 0, scale: 0.82, duration: 0.42, ease: 'power2.in' }, 0.1)
+        .to(b.querySelector('.uc-go'), { opacity: 0, y: 8, duration: 0.3, ease: 'power2.in' }, 0)
+        .to(b, { flexGrow: 30, duration: 0.62, ease: 'power3.inOut' }, 0)
+        .to(cols.filter((c) => c !== b), { flexGrow: 0.001, opacity: 0, duration: 0.5, ease: 'power3.inOut' }, 0);
+    });
     $('getStarted').addEventListener('click', goPick);
     $('setsBack').addEventListener('click', () => switchView('hvSets', 'hvPick'));
     $('setGrid').addEventListener('click', (e) => { const b = e.target.closest('[data-set]'); if (b) enterSet(pickGame, b.dataset.set); });
-    initHomeParallax();
+    // subtle living accent glow per universe column (runs regardless of reduced-motion)
+    if (window.gsap) gsap.to('#pickLogos .uc-glow',
+      { opacity: 0.55, scale: 1.09, duration: 4.5, ease: 'sine.inOut', yoyo: true, repeat: -1, transformOrigin: '50% 34%', stagger: { each: 0.8, from: 'random' } });
     HOME_GAMES.forEach((g) => { const im = new Image(); im.src = g.card; }); // preload hallway cards
   }
   // generic crossfade/scale between two home views
@@ -2302,15 +2418,51 @@
     });
     tl.to(prompt, { opacity: 1, duration: 0.5, ease: 'power2.out' }, '>-0.2');
   }
-  function goSets(game) {
+  function buildSetGrid(game) {
     pickGame = game;
+    const sets = setsForGame(game);
+    $('setsTitle').textContent = (HOME_GAMES.find((g) => g.game === game)?.name || '') + ' — choose a set';
+    $('hvSets').style.setProperty('--accent', HOME_GAMES.find((g) => g.game === game)?.accent || '#7fd4f4');
+    const grid = $('setGrid');
+    grid.innerHTML = (() => {
+      const tile = (s) => {
+        const cands = setMarkChain(game, s); // real per-set logo → symbol → sealed box → game logo
+        const sig = String(s.code || s.name).slice(0, 4);
+        const art = cands.length
+          ? `<img class="st-logo ${game}" src="${cands[0]}" data-fb='${JSON.stringify(cands.slice(1))}' alt="" loading="lazy"><span class="st-fallback" aria-hidden="true">${GAME_GLYPH[game] || ''}</span>`
+          : `<span class="st-sigil">${sig}</span>`;
+        const nameLine = (s.name && s.name !== s.code && s.name !== sig) ? `<span class="st-name">${s.name}</span>` : '';
+        return `<button type="button" class="set-tile" data-set="${s.id}"><span class="st-art">${art}</span>${nameLine}${s.count ? `<span class="st-count">${s.count} cards</span>` : ''}</button>`;
+      };
+      const isPromo = (s) => game === 'pokemon' && /promo|partner/i.test(s.name);
+      const regular = sets.filter((s) => !isPromo(s)), promos = sets.filter(isPromo);
+      let html = regular.map(tile).join('');
+      if (promos.length) html += `<button type="button" class="set-tile set-tile-promos" data-set="${promos[0].id}"><span class="st-art"><span class="st-sigil">✦</span></span><span class="st-name">Promos</span><span class="st-count">${promos.length} sets</span></button>`;
+      return html;
+    })();
+    grid.querySelectorAll('img.st-logo').forEach((img) => { // walk the logo fallback chain on error
+      let fb; try { fb = JSON.parse(img.dataset.fb || '[]'); } catch (e) { fb = []; }
+      img.onerror = () => { if (fb.length) img.src = fb.shift(); else img.classList.add('st-hide'); };
+    });
+  }
+  // the chosen column has already expanded to fill the screen — reveal its set list
+  // right there in the same frame (sets stagger up; the picker is hidden underneath).
+  function revealSetsInPlace(game) {
+    buildSetGrid(game);
+    $('hvPick').hidden = true;
+    $('hvSets').hidden = false;
+    if (window.gsap) gsap.set('#hvSets', { clearProps: 'opacity' });
+    if (window.gsap && !REDUCED) {
+      gsap.from('#hvSets .pick-prompt', { opacity: 0, y: -12, duration: 0.5, ease: 'power2.out' });
+      gsap.fromTo('#setGrid .set-tile', { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.026, delay: 0.04, clearProps: 'transform' });
+      gsap.from('#setsBack', { opacity: 0, x: -10, duration: 0.5, delay: 0.12, clearProps: 'opacity,transform' });
+    }
+  }
+  // deep-link path (no column to expand): plain crossfade into the set list
+  function goSets(game) {
     switchView('hvPick', 'hvSets', () => {
-      const sets = setsForGame(game);
-      $('setsTitle').textContent = (HOME_GAMES.find((g) => g.game === game)?.name || '') + ' — choose a set';
-      $('hvSets').style.setProperty('--accent', HOME_GAMES.find((g) => g.game === game)?.accent || '#7fd4f4');
-      $('setGrid').innerHTML = sets.map((s) => `<button type="button" class="set-pick" data-set="${s.id}"><span class="sp-name">${s.name}</span>${s.count ? `<span class="sp-count">${s.count}</span>` : ''}</button>`).join('');
-      // clearProps:transform so the leftover inline transform can't block :hover lift
-      if (window.gsap && !REDUCED) gsap.fromTo('#setGrid .set-pick', { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.022, delay: 0.06, clearProps: 'transform' });
+      buildSetGrid(game);
+      if (window.gsap && !REDUCED) gsap.fromTo('#setGrid .set-tile', { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.022, delay: 0.06, clearProps: 'transform' });
     });
   }
   function goHero() { switchView('hvPick', 'hvHero'); }
@@ -2318,6 +2470,9 @@
     hideHome();
     if (game === 'pokemon') { loadSet(setId); landOnFirstCard(); }
     else { await loadExternalSet(setId); landOnFirstCard(); }
+    // a clean flourish that leads into the set's carousel
+    if (window.gsap && !REDUCED) gsap.fromTo('main', { opacity: 0.35, scale: 0.985 },
+      { opacity: 1, scale: 1, duration: 0.55, ease: 'power3.out', transformOrigin: '50% 50%', clearProps: 'transform' });
   }
   // drop the wheel on the set's FIRST card (lowest collector number), not the priciest
   function landOnFirstCard() {
@@ -2347,13 +2502,13 @@
     buildHome();
     // straight to the universe picker — the "Every card / One wheel" splash is gone
     $('hvHero').hidden = true; $('hvPick').hidden = false; $('hvSets').hidden = true;
-    if (window.gsap && !REDUCED) {
-      gsap.fromTo('#hvPick .pick-prompt', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' });
-      gsap.fromTo('#hvPick .pick-logo', { opacity: 0, y: 30, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: 'power3.out', stagger: 0.08, delay: 0.05, clearProps: 'transform' });
+    if (window.gsap) {
+      gsap.fromTo('#hvPick .uni-col', { opacity: 0, yPercent: 6 }, { opacity: 1, yPercent: 0, duration: 0.7, ease: 'power3.out', stagger: 0.08, clearProps: 'transform' });
+      gsap.fromTo('#hvPick .uni-head', { opacity: 0 }, { opacity: 1, duration: 0.6, delay: 0.34 });
     }
   }
   function hideHome() { homeEl.hidden = true; document.body.classList.remove('home-open'); }
-  document.querySelector('.lockup').addEventListener('click', showHome); // brand mark → home
+  document.querySelector('.lockup').addEventListener('click', () => { location.href = 'index.html'; }); // brand mark → real homepage
 
   // --- Boot --------------------------------------------------------------------------------
   measure();
@@ -2363,23 +2518,30 @@
   const qs = new URLSearchParams(location.search);
   const reqSet = qs.get('set');
   const deepCard = parseInt(qs.get('card'), 10);
+  const reqGame = qs.get('game');
+  const validGame = reqGame && HOME_GAMES.some((g) => g.game === reqGame);
   const isExternalReq = reqSet && gameSetMeta(reqSet);
-  if (isExternalReq) {
-    loadExternalSet(reqSet); // external game set (Magic/Lorcana) — loads async
-  } else {
-    loadSet(SETS[reqSet] ? reqSet : HOME_SET); // ?set=me02.5 deep-links a Pokemon set
-    // ?card=N deep-links a card (by collector number) and opens its inspect
-    if (deepCard >= 1 && deepCard <= N) {
-      position = slotOf[deepCard - 1];
-      current = -1;
-      render(true);
+  // open the deep-linked card's inspect (by collector number) once its set is loaded
+  const openDeep = () => {
+    if (deepCard >= 1 && deepCard <= N && slotOf[deepCard - 1] != null) {
+      position = slotOf[deepCard - 1]; current = -1; render(true);
+      setTimeout(() => openZoomFor(slotOf[deepCard - 1]), 450);
     }
-  }
-  requestAnimationFrame(tick);
-  if (!isExternalReq && deepCard >= 1 && deepCard <= N) setTimeout(() => openZoomFor(slotOf[deepCard - 1]), 450);
-  const reqGame = qs.get('game'); // ?game=pokemon → straight into that universe's set-selector (from the new homepage)
-  if (reqGame && HOME_GAMES.some((g) => g.game === reqGame)) {
+  };
+  // a set we don't carry (or no set) → drop into that universe's set picker
+  const toUniverse = () => {
     homeEl.hidden = false; document.body.classList.add('home-open'); buildHome();
     $('hvHero').hidden = true; $('hvPick').hidden = true; goSets(reqGame);
-  } else if (!reqSet) showHome(); // no deep-link → land on the home deck first
+  };
+  requestAnimationFrame(tick);
+  if (isExternalReq) {
+    Promise.resolve(loadExternalSet(reqSet)).then(() => { if (deepCard >= 1) openDeep(); });
+  } else if (reqSet && SETS[reqSet]) {
+    loadSet(reqSet); openDeep();
+  } else if (reqSet && validGame) {
+    loadSet(HOME_SET); toUniverse();
+  } else {
+    loadSet(HOME_SET);
+    if (validGame) toUniverse(); else showHome();
+  }
 })();

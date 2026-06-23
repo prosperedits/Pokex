@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POKEX — Phantasmal Flames</title>
+<title>Crowns — Phantasmal Flames</title>
 <meta name="description" content="Every card of the Pokémon TCG Phantasmal Flames set, on one wheel. Market-price heatmap included.">
 <link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=49">
-<link rel="stylesheet" href="style.css?v=87">
+<link rel="stylesheet" href="style.css?v=100">
+<link rel="stylesheet" href="universe-bg.css?v=2">
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -21,11 +22,14 @@
     <div id="bgGrain" class="bg-grain"></div>
     <div id="bgGlass" class="bg-glass"></div>
     <div id="bgLight" class="bg-light"></div>
+    <canvas id="bgTopo"></canvas>
+    <div id="bgStars" class="bg-stars"><div id="stars"></div><div id="stars2"></div><div id="stars3"></div></div>
+    <div id="bgRain" class="bg-rain"></div>
   </div>
 
   <header class="chrome">
     <div class="lockup">
-      <span class="logo-pokex"><span class="lx" aria-label="POKEX">X</span></span>
+      <span class="logo-pokex" aria-label="Crowns">Crowns</span>
     </div>
 
     <!-- set selector: current set logo opens an era-grouped menu (built by app.js) -->
@@ -139,6 +143,7 @@
                 <div class="face face-front">
                   <img id="zoomImg" alt="">
                   <div id="shine" class="shine" aria-hidden="true"></div>
+                  <div class="z-lightwash" aria-hidden="true"></div>
                   <div id="cardFx" class="card-fx" aria-hidden="true" hidden></div>
                 </div>
                 <div class="face face-back" aria-hidden="true"></div>
@@ -146,6 +151,8 @@
             </div>
           </div>
           <div id="cardActions" class="card-actions">
+            <button type="button" id="lightBtn" aria-pressed="false" aria-label="Toggle light">
+              <span class="ic">☀</span><span class="lb">Light</span></button>
             <button type="button" id="wishBtn" aria-pressed="false" aria-label="Toggle wishlist">
               <span class="ic">♡</span><span class="lb">Wishlist</span></button>
             <button type="button" id="collBtn" aria-pressed="false" aria-label="Toggle collection">
@@ -188,9 +195,7 @@
   </dialog>
 
   <footer class="site-foot">
-    <div class="foot-left">
-      <a class="foot-link" href="faq.html">FAQ</a>
-    </div>
+    <div class="foot-left"></div>
     <div class="foot-right">
       <span id="snapshotLabel" class="snapshot"></span>
       <span id="staleNotice" class="stale" hidden>snapshot is over a week old — re-run scripts/refresh-data.mjs</span>
@@ -236,6 +241,6 @@
   <script src="data/sealed.js?v=62"></script>
   <script src="data/set-colors.js?v=63"></script>
   <script src="data/magic-prices.js?v=74"></script>
-  <script src="app.js?v=88"></script>
+  <script src="app.js?v=106"></script>
 </body>
 </html>
