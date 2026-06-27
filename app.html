@@ -10,8 +10,9 @@
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=49">
-<link rel="stylesheet" href="style.css?v=100">
-<link rel="stylesheet" href="universe-bg.css?v=2">
+<link rel="stylesheet" href="style.css?v=108">
+<link rel="stylesheet" href="universe-bg.css?v=3">
+<script src="crown-spin.js?v=3" defer></script>
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -29,7 +30,8 @@
 
   <header class="chrome">
     <div class="lockup">
-      <span class="logo-pokex" aria-label="Crowns">Crowns</span>
+      <span class="lockup-crown" aria-hidden="true"></span>
+      <img class="lockup-logo" src="assets/crowns-logo.png?v=1" alt="Crowns" width="127" height="43">
     </div>
 
     <!-- set selector: current set logo opens an era-grouped menu (built by app.js) -->
@@ -43,7 +45,7 @@
     </div>
 
     <div class="chrome-right">
-      <input id="search" class="search" type="search" list="cardNames" placeholder="Search" aria-label="Search cards">
+      <input id="search" class="search" type="search" placeholder="Search every set…" aria-label="Search cards across all sets">
       <datalist id="cardNames"></datalist>
       <span class="ctrl-div" aria-hidden="true"></span>
       <a id="listCounts" class="ctrl list-counts" href="collection.html" title="Open your collection" aria-label="Wishlist and collection — open collection">
@@ -122,6 +124,8 @@
   <dialog id="zoom" class="zoom" aria-labelledby="zTitle">
     <canvas id="holoBg" class="holo-bg" aria-hidden="true"></canvas>
     <div id="zoomBg" class="zoom-bg" aria-hidden="true">
+      <div class="zoom-uni"></div>
+      <canvas id="zoomTopo" class="zoom-topo" aria-hidden="true"></canvas>
       <img id="zoomBgArt" alt="">
       <video id="zoomVideo" class="zoom-video" muted loop playsinline preload="auto"></video>
       <div class="zoom-grain"></div>
@@ -241,6 +245,116 @@
   <script src="data/sealed.js?v=62"></script>
   <script src="data/set-colors.js?v=63"></script>
   <script src="data/magic-prices.js?v=74"></script>
-  <script src="app.js?v=106"></script>
+  <script src="data/card-index.js?v=3"></script>   <!-- global card index (tcgcsv): Pokémon, real prices + TCGplayer images, all 217 sets -->
+  <script src="app.js?v=115"></script>
+
+  <!-- ===== Global cross-set search (index-backed) ===== -->
+  <style>
+  .gsr{position:fixed;z-index:1200;width:min(400px,92vw);max-height:64vh;overflow-y:auto;border-radius:14px;
+    background:linear-gradient(180deg,rgba(14,24,48,.97),rgba(8,13,28,.98));border:1px solid rgba(106,168,255,.22);
+    box-shadow:0 30px 72px -20px rgba(0,0,0,.85);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);padding:6px;display:none}
+  .gsr.on{display:block}
+  .gsr-head{font:600 10.5px/1 'DM Sans',system-ui,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#8aa2cc;padding:9px 10px 7px}
+  .gsr-item{display:flex;align-items:center;gap:11px;padding:6px 8px;border-radius:9px;cursor:pointer;text-decoration:none}
+  .gsr-item:hover{background:rgba(106,168,255,.13)}
+  .gsr-item img{width:38px;height:53px;object-fit:cover;border-radius:5px;background:#0b1838;flex:none}
+  .gsr-item .nm{font:600 14px/1.2 'DM Sans',system-ui,sans-serif;color:#eaf2ff}
+  .gsr-item .st{font:500 11.5px/1.3 'DM Sans',system-ui,sans-serif;color:#8aa2cc;margin-top:2px}
+  .gsr-more{font:500 11px 'DM Sans',sans-serif;color:#8aa2cc;text-align:center;padding:9px}
+  .gsr-pr{margin-left:auto;font:700 13px 'DM Sans',sans-serif;color:#4ade80;flex:none;padding-left:8px}
+  .gsd{position:fixed;inset:0;z-index:1300;display:none;place-items:center;background:rgba(4,7,18,.84);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)}
+  .gsd.on{display:grid}
+  .gsd-card{display:flex;flex-direction:column;align-items:center;gap:15px;max-width:90vw;padding:20px}
+  .gsd-imgwrap{position:relative;height:min(68vh,540px);aspect-ratio:734/1024;max-width:88vw}
+  .gsd-imgwrap img{height:100%;width:100%;object-fit:contain;display:block;border-radius:14px;box-shadow:0 40px 90px -28px #000}
+  .gsd-ph{position:absolute;inset:0;display:none;place-items:center;border-radius:14px;border:1px solid rgba(106,168,255,.22);background:linear-gradient(160deg,#16213f,#0a1326)}
+  .gsd-ph.on{display:grid}
+  .gsd-ph span{font:700 19px 'DM Sans',sans-serif;color:#7d93bd;text-align:center;padding:24px;line-height:1.4}
+  .gsr-ph{width:38px;height:53px;border-radius:5px;background:linear-gradient(160deg,#1a2746,#0b1430);flex:none}
+  .gsd-meta{text-align:center;font-family:'DM Sans',system-ui,sans-serif}
+  .gsd-meta .gnm{font-weight:700;font-size:23px;color:#fff;letter-spacing:.01em}
+  .gsd-meta .gst{font-size:13px;color:#9bb0d0;margin-top:5px}
+  .gsd-meta .gpr{font-weight:700;font-size:24px;color:#4ade80;margin-top:10px;min-height:26px}
+  .gvar{font:500 12.5px/1.7 'DM Sans',sans-serif;color:#9bb0d0;margin-top:7px}
+  .gsd-go{display:inline-block;margin-top:17px;padding:10px 20px;border-radius:11px;background:linear-gradient(180deg,#ffe9a8,#ffd24a);color:#1a1205;font:700 13px 'DM Sans',sans-serif;text-decoration:none;box-shadow:0 10px 26px -10px rgba(255,210,74,.5)}
+  .gsd-go:hover{filter:brightness(1.06)}
+  .gsd-x{position:fixed;top:18px;right:20px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(8,14,30,.72);color:#fff;font-size:21px;line-height:1;cursor:pointer}
+  .gsd-x:hover{border-color:#ffd24a;color:#ffd24a}
+  </style>
+  <div id="gsr" class="gsr" role="listbox" aria-label="Search results"></div>
+  <div id="gsd" class="gsd" aria-hidden="true"><button id="gsdX" class="gsd-x" aria-label="Close">×</button>
+    <div class="gsd-card"><div class="gsd-imgwrap"><img id="gsdImg" alt=""><div id="gsdPh" class="gsd-ph"><span></span></div></div>
+      <div class="gsd-meta"><div class="gnm" id="gsdNm"></div><div class="gst" id="gsdSt"></div><div class="gpr" id="gsdPr"></div><div class="gvar" id="gsdVar"></div><a id="gsdGo" class="gsd-go" href="#" style="display:none">Open in 3D tracker →</a></div></div></div>
+  <script>
+  (() => {
+    const IDX = window.CARD_INDEX || [];
+    const search = document.getElementById('search'), box = document.getElementById('gsr'), dt = document.getElementById('gsd');
+    if (!search || !IDX.length) return;
+    const bundledIdFor = (setName) => {   // map a tcgcsv set name → a bundled (3D-loadable) set id, loosely
+      if (!window.CARD_SETS || !setName) return null;
+      const s = setName.toLowerCase();
+      for (const id in window.CARD_SETS) { const nm = ((window.CARD_SETS[id].set || {}).name || '').toLowerCase(); if (nm && (s === nm || s.includes(nm) || nm.includes(s))) return id; }
+      return null;
+    };
+    const fpInfo = (c) => {   // First Partner Illustration cards live under the Mega Evo Promo group (24451), #037–054
+      if (String(c.s) !== '24451' || /staff|cosmos|exclusive|prerelease/i.test(c.n)) return null;
+      const n = parseInt(c.num, 10);
+      if (n >= 37 && n <= 45) return { sid: 'fpic1', sn: 'First Partner Illustration · Series 1', pos: n - 36 };
+      if (n >= 46 && n <= 54) return { sid: 'fpic2', sn: 'First Partner Illustration · Series 2', pos: n - 45 };
+      if (n >= 55 && n <= 63) return { sid: 'fpic3', sn: 'First Partner Illustration · Series 3', pos: n - 54 };
+      return null;
+    };
+    const UNIV = { pokemon: 'Pokémon', magic: 'Magic', lorcana: 'Lorcana', onepiece: 'One Piece' };
+    let universesLoaded = false;
+    const loadUniverses = () => {   // every universe searchable: Magic/Lorcana/One Piece load on first search (Magic ~21 MB)
+      if (universesLoaded) return; universesLoaded = true;
+      ['card-index-lor.js?v=1', 'card-index-op.js?v=1', 'card-index-mtg.js?v=1'].forEach((f) => {
+        const sc = document.createElement('script'); sc.src = 'data/' + f; sc.async = true;
+        sc.onload = () => { if (box.classList.contains('on')) render(); };   // refresh results as each universe's cards arrive
+        document.head.appendChild(sc);
+      });
+    };
+    const position = () => { const r = search.getBoundingClientRect(); box.style.top = (r.bottom + 7) + 'px'; box.style.left = Math.max(8, Math.min(innerWidth - 408, r.right - 400)) + 'px'; };
+    let shown = [];
+    function render() {
+      const q = search.value.trim().toLowerCase();
+      if (q.length < 2) { box.classList.remove('on'); return; }
+      const ex = [], sw = [], inc = [], setm = [];
+      for (const c of (window.CARD_INDEX || IDX)) { const n = c.n.toLowerCase(); if (n === q) ex.push(c); else if (n.startsWith(q)) sw.push(c); else if (n.includes(q)) inc.push(c); else { const fp = fpInfo(c); const esn = (fp ? fp.sn : (c.sn || '')).toLowerCase(); if (esn.includes(q)) setm.push(c); } /* live read so lazy-loaded universes appear; set-name match incl. First Partner alias */ if (ex.length + sw.length + inc.length + setm.length > 700) break; }
+      const all = [...ex, ...sw, ...inc, ...setm]; shown = all.slice(0, 60);
+      box.innerHTML = `<div class="gsr-head">${all.length} card${all.length === 1 ? '' : 's'} across every universe</div>` +
+        shown.map((c, i) => { const f = fpInfo(c); const nm = f ? c.n.replace(/\s+\d{1,3}$/, '') : c.n; return `<a class="gsr-item" data-i="${i}" href="#">${c.img ? `<img loading="lazy" src="${c.img}" alt="" onerror="this.removeAttribute('src');this.className='gsr-ph'">` : '<div class="gsr-ph"></div>'}<div><div class="nm">${nm}</div><div class="st">${UNIV[c.g] ? UNIV[c.g] + ' · ' : ''}${f ? f.sn : c.sn}${c.num ? ' · ' + c.num : ''}</div></div>${c.p != null ? `<span class="gsr-pr">$${(+c.p).toFixed(2)}</span>` : ''}</a>`; }).join('') +
+        (all.length > 60 ? `<div class="gsr-more">+${all.length - 60} more — keep typing to narrow</div>` : '');
+      box.querySelectorAll('.gsr-item').forEach((el) => el.addEventListener('click', (e) => { e.preventDefault(); openDetail(shown[+el.dataset.i]); }));
+      position(); box.classList.add('on');
+    }
+    function openDetail(c) {
+      box.classList.remove('on');
+      const fp = fpInfo(c);
+      const gi = document.getElementById('gsdImg'), ph = document.getElementById('gsdPh'), u = c.img ? c.img.replace('_200w', '_400w') : '';   // bigger TCGplayer render
+      const nm = fp ? c.n.replace(/\s+\d{1,3}$/, '') : c.n;
+      const showPh = () => { gi.style.display = 'none'; ph.querySelector('span').textContent = nm; ph.classList.add('on'); };
+      if (u) { gi.style.display = 'block'; ph.classList.remove('on'); gi.onerror = showPh; gi.src = u; } else { gi.removeAttribute('src'); showPh(); }
+      document.getElementById('gsdNm').textContent = nm;
+      document.getElementById('gsdSt').textContent = (UNIV[c.g] ? UNIV[c.g] + ' · ' : '') + (fp ? fp.sn : c.sn) + (c.num ? ' · ' + c.num : '');
+      const pr = document.getElementById('gsdPr'), gv = document.getElementById('gsdVar'), go = document.getElementById('gsdGo');
+      pr.textContent = c.p != null ? '$' + (+c.p).toFixed(2) : 'Unpriced';   // real TCGplayer market price, straight from the index
+      gv.textContent = c.rar || '';
+      const cn = fp ? fp.pos : parseInt(c.num, 10);
+      let bid = (fp && fp.sid) || bundledIdFor(c.sn);
+      if (!bid && (!c.g || c.g === 'pokemon')) bid = c.s;   // Pokémon builds from the index by group; other universes deep-link only when the set is bundled (live API)
+      if (c.img && bid) { go.style.display = 'inline-block'; go.href = 'app.html?set=' + encodeURIComponent(bid) + (cn ? '&card=' + cn : ''); }
+      else go.style.display = 'none';
+      dt.classList.add('on');
+    }
+    search.addEventListener('input', () => { loadUniverses(); render(); });
+    search.addEventListener('focus', () => { loadUniverses(); if (search.value.trim().length >= 2) render(); });
+    document.addEventListener('click', (e) => { if (!box.contains(e.target) && e.target !== search) box.classList.remove('on'); });
+    addEventListener('resize', () => { if (box.classList.contains('on')) position(); });
+    document.getElementById('gsdX').addEventListener('click', () => dt.classList.remove('on'));
+    dt.addEventListener('click', (e) => { if (e.target === dt) dt.classList.remove('on'); });
+    addEventListener('keydown', (e) => { if (e.key === 'Escape') { box.classList.remove('on'); dt.classList.remove('on'); } });
+  })();
+  </script>
 </body>
 </html>

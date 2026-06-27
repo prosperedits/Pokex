@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Crowns — Home</title>
 <meta name="description" content="Crowns — the ultimate card tracker.">
+<script src="crown-spin.js?v=3" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -33,19 +34,18 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 
 /* top bar */
 .topbar{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:18px clamp(20px,4vw,54px)}
-.brand{display:inline-flex;align-items:center;border:2px solid var(--blue-bright);font-family:var(--font-display);padding:8px 13px 5px;letter-spacing:.16em;font-size:19px;line-height:1;text-transform:uppercase;color:var(--gold);background:rgba(7,13,32,.55);backdrop-filter:blur(10px);text-shadow:0 0 12px rgba(255,210,74,.35);box-shadow:0 0 16px -4px rgba(106,168,255,.4)}
-.brand .k{color:var(--blue-bright);text-shadow:0 0 12px rgba(106,168,255,.5)}
-.nav{display:flex;align-items:center;gap:clamp(40px,5.3vw,102px);position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:11px clamp(18px,1.9vw,28px)}
-/* premium frosted-glass HUD bar — floats just under the top edge and blurs the topo behind it.
-   thin gold hairline + uppercase, wide-tracked type → modern, understated, not a banner */
-.nav::before{content:'';position:absolute;inset:0;z-index:-1;border-radius:14px;
-  background:linear-gradient(180deg,rgba(23,33,62,.5),rgba(8,14,32,.58));
-  -webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4);
-  border:1px solid rgba(255,214,102,.22);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.15), inset 0 -1px 0 rgba(0,0,0,.45), 0 26px 56px -28px rgba(0,0,0,.72)}
-.nav a{color:rgba(245,239,226,.9);text-decoration:none;font-family:var(--font);font-size:14px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;transition:color .22s, background .22s;position:relative;cursor:none;
-  background:none;border:none;border-radius:10px;padding:9px 13px}
-.nav a:hover,.nav a.on{color:var(--gold);background:rgba(255,214,102,.11)}
+/* crest-lockup brand — gold crown + boxed CROWNS wordmark */
+.brand{display:inline-flex;align-items:center;gap:11px;text-decoration:none;padding:2px}
+.crown-spin{width:48px;height:48px;flex:none;background:url(assets/crown-spin.png?v=2) 0 center/auto 100% no-repeat;background-position-x:0;filter:drop-shadow(0 3px 7px rgba(0,0,0,.5))}
+.brand-logo{height:clamp(30px,3vw,40px);width:auto;display:block;filter:drop-shadow(0 2px 7px rgba(0,0,0,.5)) drop-shadow(0 0 16px rgba(255,200,70,.22))}
+.brand-crown{width:1em;height:1em;flex:none;color:var(--gold);filter:drop-shadow(0 0 7px rgba(255,210,74,.45));margin-top:-2px}
+.topbar-right{display:flex;align-items:center;gap:clamp(16px,2.1vw,32px)}
+.topbar-div{width:1px;height:26px;flex:none;background:linear-gradient(180deg,transparent,rgba(255,214,102,.55),transparent)}
+/* crest-lockup nav — right-aligned, no box; a gold underline grows on hover/active */
+.nav{display:flex;align-items:center;gap:clamp(18px,2vw,34px)}
+.nav a{color:rgba(245,239,226,.92);text-decoration:none;font-family:var(--font);font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;transition:color .2s, background-size .25s ease;position:relative;cursor:none;padding:6px 1px;
+  background-image:linear-gradient(var(--gold),var(--gold));background-repeat:no-repeat;background-position:0 100%;background-size:0% 2px}
+.nav a:hover,.nav a.on{color:var(--gold);background-size:100% 2px}
 /* Sets dropdown */
 .nav-item{position:relative;display:inline-flex;align-items:center}
 .nav-item > a::after{content:'';display:inline-block;margin-left:9px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid currentColor;vertical-align:middle;transition:transform .2s}
@@ -176,31 +176,33 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .explore-btn span{transition:transform .2s}
 .explore-btn:hover span{transform:translateX(5px)}
 /* card of the month — the real card, angled, hover-reactive, stats to the right */
-.cotm-section{position:relative;z-index:10;display:flex;justify-content:center;padding:clamp(40px,8vh,96px) clamp(22px,5vw,40px)}
-.cotm2{display:flex;align-items:center;gap:clamp(30px,5vw,76px);max-width:1080px;width:100%}
-.cotm2-cardwrap{position:relative;flex:none;perspective:1300px;cursor:pointer}
-.cotm2-card{position:relative;width:min(40vw,430px);aspect-ratio:.717;border-radius:20px;background:#0a1430 center/cover no-repeat;transform-style:preserve-3d;
-  transform:rotateX(var(--rx,7deg)) rotateY(var(--ry,24deg));transition:transform .5s cubic-bezier(.16,1,.3,1);
-  box-shadow:0 60px 110px -38px rgba(11,24,56,.7), 0 0 84px -16px color-mix(in srgb,var(--accent,#82b4ff) 55%,transparent)}
-.cotm2-card.live{transition:transform .08s ease-out}
-.cotm2-shine{position:absolute;inset:0;border-radius:18px;pointer-events:none;mix-blend-mode:screen;opacity:.55;
-  background:radial-gradient(58% 42% at var(--sx,40%) var(--sy,32%), rgba(255,255,255,.6), transparent 60%)}
-.cotm2-info{flex:1;min-width:0}
-.cotm2-label{font-family:var(--font-display);font-size:clamp(24px,3.2vw,40px);letter-spacing:.02em;text-transform:uppercase;color:var(--gold);text-shadow:0 0 24px rgba(255,210,74,.32);line-height:1;display:block}
-.cotm2-name{font-family:var(--font);font-weight:700;font-size:clamp(19px,2.2vw,28px);line-height:1.12;color:#fff;margin:8px 0 2px;letter-spacing:0}
-.cotm2-pred{font-family:var(--font);font-size:13.5px;color:#aab9d8;line-height:1.55;margin:2px 0 18px;max-width:340px}
-.cotm2-pred b{color:#fff;font-weight:700}
-.cotm2-price-row{display:flex;align-items:center;gap:14px;margin:18px 0 8px}
-.cotm2-price{font-family:var(--font-display);font-size:clamp(30px,3.6vw,46px);color:#fff;line-height:1}
-.cotm2-trend{font-family:var(--font);font-weight:700;font-size:15px;padding:4px 11px;border-radius:20px}
-.cotm2-trend.up{color:#56ff9b;background:rgba(86,255,155,.12)}.cotm2-trend.down{color:#ff6b6b;background:rgba(255,107,107,.12)}
-.cotm2-spark{width:100%;max-width:360px;height:60px;display:block;margin:6px 0 18px}
-.cotm2-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 22px;margin:6px 0 22px;max-width:340px}
-.cotm2-stat .k{font-family:var(--font);font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
-.cotm2-stat .v{font-family:var(--font-display);font-size:18px;color:#fff;margin-top:2px}
-.cotm2-open{display:inline-flex;align-items:center;gap:7px;font-family:var(--font);font-weight:700;font-size:15px;letter-spacing:.01em;color:var(--gold);background:none;padding:5px 0;border-bottom:2px solid color-mix(in srgb,var(--gold) 45%,transparent);text-decoration:none;cursor:pointer;transition:gap .2s, border-color .2s}
-.cotm2-open:hover{gap:11px;border-color:var(--gold)}
-@media(max-width:780px){ .cotm2{flex-direction:column;text-align:center} .cotm2-card{width:min(62vw,260px)} .cotm2-stats{margin-inline:auto} }
+/* —— Spotlight: the PSD's lit elements (glow/floor/beams/confetti) over the page's dark bg, animated —— */
+.spotlight-section{position:relative;z-index:10;height:clamp(640px,98vh,1060px);overflow:hidden;background:transparent}
+/* === animated Three.js background: glow + grid floor + gold embers, transparent so it blends into the page === */
+.spotlight-section .sp-gl{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.spotlight-section .sp-particles{position:absolute;inset:0;z-index:2;pointer-events:none}
+.spotlight-section .sp-stage{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(16px,3vh,38px);padding:clamp(22px,4.5vh,56px) 16px clamp(34px,7vh,90px)}
+.spotlight-section .sp-cardarea{margin-top:clamp(60px,10vh,150px)}
+.spotlight-section .sp-title-wrap{position:relative;flex:none;line-height:0;filter:drop-shadow(0 14px 22px rgba(0,0,0,.55))}
+.spotlight-section .sp-title-img{display:block;width:min(44vw,610px);height:auto}
+.spotlight-section .sp-title-sheen{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(108deg,transparent 45%,rgba(255,255,255,.5) 50%,transparent 55%);background-size:300% 100%;background-position-x:180%;-webkit-mask-image:url(assets/spotlight-title.png?v=1);mask-image:url(assets/spotlight-title.png?v=1);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.spotlight-section .sp-crown{position:absolute;left:50%;bottom:98%;transform:translateX(-50%);width:clamp(122px,14.5vw,194px);height:clamp(122px,14.5vw,194px);z-index:4;filter:drop-shadow(0 9px 17px rgba(0,0,0,.5)) saturate(1.34) brightness(1.04) sepia(.2) hue-rotate(-7deg)}
+.spotlight-section .sp-cardarea{position:relative;flex:none;display:flex;justify-content:center}
+.spotlight-section .sp-card-btn{flex:none;position:relative;z-index:3;border:0;background:none;padding:0;cursor:pointer;width:clamp(206px,21vw,320px);perspective:1400px}
+.spotlight-section .sp-cardinner{display:block;position:relative;transform:rotateY(-4deg) rotateX(2deg)}
+.spotlight-section .sp-card{display:block;width:100%;height:auto;border-radius:9px;filter:drop-shadow(0 22px 30px rgba(0,0,0,.55))}
+.spotlight-section .sp-card-btn:hover .sp-card{filter:drop-shadow(0 26px 38px rgba(0,0,0,.6))}
+.spotlight-section .sp-cap{flex:none;text-align:center;z-index:5}
+.spotlight-section .sp-cap .nm{font-family:var(--font-display);font-weight:400;font-size:clamp(24px,3vw,40px);text-transform:uppercase;letter-spacing:.02em;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.7);line-height:1}
+.spotlight-section .sp-cap .sub{font-family:var(--font);font-size:13px;color:#e6d2f7;letter-spacing:.05em;margin-top:7px}
+.spotlight-section .sp-cap .sub.sp-stats{display:inline-flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:center;margin-top:14px}
+.spotlight-section .sp-price{font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3vw,40px);color:#fff;letter-spacing:.01em;line-height:1;text-shadow:0 2px 12px rgba(0,0,0,.55)}
+.spotlight-section .sp-chg{font-family:var(--font);font-weight:800;font-size:15px;padding:5px 12px;border-radius:999px;line-height:1}
+.spotlight-section .sp-chg.up{color:#06190f;background:#46e08a} .spotlight-section .sp-chg.down{color:#2a0a0a;background:#ff6b6b}
+.spotlight-section .sp-stat.dim{font-family:var(--font);font-weight:600;color:#9fb0d0;text-transform:uppercase;font-size:11px;letter-spacing:.16em}
+.spotlight-section .sp-cta{display:inline-flex;align-items:center;gap:8px;margin-top:14px;font-family:var(--font);font-weight:700;font-size:14px;letter-spacing:.02em;color:#5fdcff;text-decoration:none;border-bottom:2px solid color-mix(in srgb,#46d6ff 45%,transparent);padding-bottom:3px;transition:gap .2s}
+.spotlight-section .sp-cta:hover{gap:12px}
+@media(max-width:860px){ .spotlight-section{height:clamp(520px,84vh,760px)} .spotlight-section .sp-title-img{width:78vw} .spotlight-section .sp-card-btn{width:clamp(150px,42vw,220px)} }
 
 /* ===== scroll sections ===== */
 .band{position:relative;z-index:10;padding:clamp(118px,17vh,220px) 0 clamp(56px,10vh,120px);display:flex;flex-direction:column;gap:14px;overflow:hidden}
@@ -217,6 +219,10 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .mw.dim{color:rgba(234,242,255,.16);-webkit-text-stroke:1px rgba(234,242,255,.4)}
 .mw .star,.mw.star{color:var(--gold);font-size:.5em}
 .mw-logo{height:.92em;width:auto;display:inline-block;vertical-align:middle;object-fit:contain;filter:drop-shadow(0 2px 9px rgba(0,0,0,.45))}
+/* per-universe optical balance — logos differ in aspect ratio, so equal height ≠ equal size.
+   One Piece (AR 3.9) is far wider; scale by height so every logo's footprint matches. */
+.mw-logo[data-g="onepiece"]{height:.64em}
+.mw-logo[data-g="lorcana"]{height:1em}
 
 /* infographic */
 .info{position:relative;z-index:10;max-width:1080px;margin:0 auto;padding:clamp(20px,5vh,60px) clamp(22px,5vw,40px) 120px}
@@ -248,9 +254,16 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .index-title{font-family:var(--font-display);font-size:clamp(22px,3vw,38px);text-transform:uppercase;letter-spacing:.01em;color:#fff;text-shadow:0 0 26px rgba(255,210,74,.18)}
 .index-chg{font-family:var(--font);font-weight:700;font-size:16px;color:#56ff9b}
 .index-chg i{color:var(--dim);font-style:normal;font-weight:500;font-size:13px;letter-spacing:.04em}
-.radar-wrap{position:relative;width:min(88vw,540px);perspective:1000px}
-.radar{width:100%;height:auto;display:block;overflow:visible;transform-style:preserve-3d;will-change:transform}
-.feed-dot{transition:filter .2s}.feed-dot:hover{filter:drop-shadow(0 0 8px currentColor)}
+.index-bars{width:min(94vw,560px);display:flex;flex-direction:column;gap:clamp(8px,1.5vh,14px)}
+.ib-row{display:grid;grid-template-columns:minmax(0,1fr) clamp(108px,32%,220px) 46px;align-items:center;gap:clamp(10px,2vw,22px);padding:7px 9px;border-radius:11px;transition:background .2s}
+.ib-row:hover{background:rgba(150,180,230,.07)}
+.ib-id{display:flex;align-items:center;gap:11px;min-width:0;text-align:left}
+.ib-dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 10px 1px currentColor}
+.ib-name{font-family:var(--font-display);font-size:clamp(14px,1.7vw,18px);text-transform:uppercase;letter-spacing:.02em;color:#fff;line-height:1.12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib-what{font-family:var(--font);font-size:11.5px;color:#8fa1c4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.ib-track{height:9px;border-radius:6px;background:rgba(150,180,230,.13);overflow:hidden}
+.ib-fill{height:100%;border-radius:6px;width:0;transition:width 1.05s cubic-bezier(.16,1,.3,1)}
+.ib-pct{font-family:var(--font-display);font-size:clamp(15px,1.8vw,20px);text-align:right;line-height:1}
 .radar-readout{margin-top:clamp(10px,2vh,18px);min-height:52px;display:flex;flex-direction:column;align-items:center;gap:4px;max-width:480px}
 .rr-name{font-family:var(--font-display);font-size:clamp(16px,1.9vw,21px);text-transform:uppercase;letter-spacing:.04em;color:var(--gold);transition:color .2s}
 .rr-what{font-family:var(--font);font-size:14px;color:#aab9d8;line-height:1.5}
@@ -268,6 +281,8 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 /* pricing — Free = white panel · Premium = navy glow · Collector = solid gold */
 .pricing{position:relative;z-index:10;max-width:1080px;margin:0 auto;padding:clamp(30px,7vh,80px) clamp(22px,5vw,40px) 130px}
 .emph-booster{color:var(--gold)}
+/* pricing headline: lighter, sentence-case, easy to read (Anton was too heavy/blocky here) */
+.pricing .info-head h2{font-family:var(--font);font-weight:700;font-size:clamp(26px,3.5vw,44px);line-height:1.2;letter-spacing:0;text-transform:none}
 .pricing .price-card.ultra{position:relative;transform:translateY(-10px)}
 /* crisp static gloss — a single glass-reflection sheen across the gold, no animation.
    soft-light keeps the dark text/CTA readable while brightening only the gold. */
@@ -335,8 +350,8 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .ld-pct{font-size:.3em;color:var(--gold);margin:.45em 0 0 .12em}
 .ld-line{width:min(260px,54vw);height:2px;background:rgba(106,168,255,.16);overflow:hidden;border-radius:2px}
 .ld-line i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue-bright),var(--gold));box-shadow:0 0 12px var(--gold)}
-.ld-rotor{font-family:var(--font);font-weight:600;font-size:clamp(22px,3.4vw,40px);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);min-height:1.4em;display:flex;align-items:center;gap:.45em;justify-content:center}
-.ld-roll{height:1.5em;width:auto;max-width:7.5em;display:inline-block;vertical-align:middle;object-fit:contain;filter:drop-shadow(0 2px 9px rgba(0,0,0,.5))}
+.ld-rotor{font-family:var(--font);font-weight:600;font-size:clamp(17px,2.1vw,26px);letter-spacing:.2em;text-transform:uppercase;color:var(--dim);min-height:2.6em;display:flex;align-items:center;gap:.7em;justify-content:center}
+.ld-roll{height:2em;width:auto;max-width:10.5em;display:inline-block;vertical-align:middle;object-fit:contain;filter:drop-shadow(0 2px 9px rgba(0,0,0,.5))}
 
 /* ===== below the band the busy topo settles into a calm opaque navy ===== */
 .fade-to-white{height:clamp(170px,26vh,300px);position:relative;z-index:10;background:linear-gradient(180deg,transparent,#0c1a3c)}
@@ -375,24 +390,29 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
   <div class="vign"></div>
 
   <header class="topbar">
-    <span class="brand">Crowns</span>
-    <nav class="nav">
-      <span class="nav-item"><a href="app.html">Sets</a>
-        <span class="nav-drop">
-          <a href="app.html?game=pokemon">Pok&eacute;mon</a>
-          <a href="app.html?game=magic">Magic</a>
-          <a href="app.html?game=lorcana">Lorcana</a>
-          <a href="app.html?game=onepiece">One Piece</a>
-          <a class="nd-all" href="app.html">All sets &rarr;</a>
+    <a class="brand" href="#top" aria-label="Crowns home">
+      <img class="brand-logo" src="assets/crowns-logo.png?v=1" alt="Crowns" width="127" height="43">
+    </a>
+    <div class="topbar-right">
+      <nav class="nav">
+        <span class="nav-item"><a href="app.html">Sets</a>
+          <span class="nav-drop">
+            <a href="app.html?game=pokemon">Pok&eacute;mon</a>
+            <a href="app.html?game=magic">Magic</a>
+            <a href="app.html?game=lorcana">Lorcana</a>
+            <a href="app.html?game=onepiece">One Piece</a>
+            <a class="nd-all" href="app.html">All sets &rarr;</a>
+          </span>
         </span>
-      </span>
-      <a href="rip.html">Rip Lab</a>
-      <a href="binder.html">Binder</a>
-      <a href="#pricing">Pricing</a>
-      <a href="#faq">FAQ</a>
-      <a>Arbitrage</a>
-    </nav>
-    <a class="join-now" href="app.html">Join now</a>
+        <a href="rip.html">Rip Lab</a>
+        <a href="binder.html">Binder</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+        <a>Arbitrage</a>
+      </nav>
+      <span class="topbar-div" aria-hidden="true"></span>
+      <a class="join-now" href="app.html">Join now</a>
+    </div>
   </header>
 
   <main>
@@ -410,6 +430,35 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
     <div class="fade-to-white" aria-hidden="true"></div>
     <div class="lightzone">
 
+    <section class="spotlight-section" id="spotlight">
+      <canvas class="sp-gl" id="spotGL" aria-hidden="true"></canvas>
+      <canvas class="sp-particles" id="spotParticles" aria-hidden="true"></canvas>
+      <div class="sp-stage">
+        <div class="sp-title-wrap">
+          <img class="sp-title-img" src="assets/spotlight-title.png?v=1" alt="Spotlight">
+          <span class="sp-title-sheen" aria-hidden="true"></span>
+        </div>
+        <div class="sp-cardarea">
+          <button class="sp-card-btn" type="button" aria-label="Inspect the top trending card">
+            <span class="sp-cardinner">
+              <span class="crown-spin sp-crown" aria-hidden="true"></span>
+              <img class="sp-card" src="assets/fpic1/mep-38.png" alt="Top trending card">
+            </span>
+          </button>
+        </div>
+        <div class="sp-cap">
+          <div class="nm" id="spName">—</div>
+          <div class="sub sp-stats" id="spStats"></div>
+          <a class="sp-cta" id="spCta" href="app.html">Inspect this card <span aria-hidden="true">&rarr;</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="marquee"><div class="mtrack" id="mq"></div></div>
+      <div class="marquee"><div class="mtrack" id="mq2"></div></div>
+    </section>
+
     <section class="info">
       <div class="info-head reveal">
         <div class="info-kicker">How Crowns tracks</div>
@@ -424,12 +473,10 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
           <span class="index-title">Highly accurate index</span>
           <span class="index-chg">&#9650; 18.4% <i>past 90 days</i></span>
         </div>
-        <div class="radar-wrap" id="radarWrap">
-          <svg class="radar" id="radar" viewBox="0 0 340 300" aria-hidden="true"></svg>
-        </div>
+        <div class="index-bars" id="indexBars"></div>
         <div class="radar-readout" id="radarReadout">
           <span class="rr-name">Five live sources</span>
-          <span class="rr-what">Hover a source to see how it scores into the index.</span>
+          <span class="rr-what">Each is scored on how closely it tracks real sale prices &mdash; blended, they are your index.</span>
         </div>
       </div>
       <div class="stat-row reveal">
@@ -437,27 +484,6 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
         <div class="stat2"><b>5</b><span>Live sources</span></div>
         <div class="stat2"><b>Daily</b><span>Snapshots</span></div>
         <div class="stat2 fx"><b>USD / EUR</b><span>Dual market</span></div>
-      </div>
-    </section>
-
-    <section class="band">
-      <div class="marquee"><div class="mtrack" id="mq"></div></div>
-      <div class="marquee"><div class="mtrack" id="mq2"></div></div>
-    </section>
-
-    <section class="cotm-section">
-      <div class="cotm2">
-        <div class="cotm2-cardwrap" id="cotmWrap">
-          <div class="cotm2-card" id="cotmCard"><span class="cotm2-shine"></span></div>
-        </div>
-        <div class="cotm2-info">
-          <span class="cotm2-label">Card of the Month</span>
-          <h3 class="cotm2-name" id="cotmName"></h3>
-          <div class="cotm2-price-row"><span class="cotm2-price" id="cotmPrice"></span><span class="cotm2-trend" id="cotmTrend"></span></div>
-          <svg class="cotm2-spark" id="cotmSpark" viewBox="0 0 360 60" preserveAspectRatio="none" aria-hidden="true"></svg>
-          <div class="cotm2-pred" id="cotmPred"></div>
-          <a class="cotm2-open" id="cotmOpen">See more <span aria-hidden="true">&rarr;</span></a>
-        </div>
       </div>
     </section>
 
@@ -619,6 +645,24 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
     const seed = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
     const rng = (s) => () => { s |= 0; s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
     ALL.forEach((c) => { c.pct = +((rng(seed(c.name))() * 19) - 6).toFixed(1); });
+    // the month's leader genuinely breaks away from the pack so it reads as clearly #1
+    const cotmLead = ALL.reduce((a, b) => (b.pct > a.pct ? b : a));
+    cotmLead.pct = +(cotmLead.pct + 12 + rng(seed(cotmLead.name + 'boost'))() * 10).toFixed(1);
+
+    // ---- Spotlight: feature the live top-trending card (high-res + stats) ----
+    (() => {
+      const c = cotmLead, GL = { pokemon: 'Pokémon', magic: 'Magic', lorcana: 'Lorcana', onepiece: 'One Piece' };
+      const img = document.querySelector('.sp-card'); if (img) { img.src = c.img; img.alt = c.name; }
+      const nm = document.getElementById('spName'); if (nm) nm.textContent = c.name;
+      const st = document.getElementById('spStats');
+      if (st) {
+        const up = c.pct >= 0;
+        st.innerHTML = `<span class="sp-price">${fmt0(c.price)}</span>`
+          + `<span class="sp-chg ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(c.pct).toFixed(1)}%</span>`
+          + `<span class="sp-stat dim">Top trending &middot; ${GL[c.game] || c.game}</span>`;
+      }
+      const cta = document.getElementById('spCta'); if (cta) cta.addEventListener('click', (e) => { e.preventDefault(); openInspect(c); });
+    })();
 
     // ---- 3D wheel (a recycling cylinder of cards) ----
     const tape = $('#tape'), hero = $('#hero');
@@ -821,7 +865,7 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
             float d = min(fr, 1.0 - fr);                  // distance to nearest contour line
             float line = 1.0 - smoothstep(0.0, 0.038, d); // crisp, thin lines
             float g = clamp(uv.x * 0.45 + (1.0 - uv.y) * 0.7, 0.0, 1.0);
-            vec3 base = mix(vec3(0.13,0.19,0.48), vec3(0.015,0.025,0.11), g);   // royal-blue → deep navy field
+            vec3 base = mix(vec3(0.055,0.085,0.24), vec3(0.008,0.015,0.06), g);   // deep navy → near-black field
             vec3 lineWhite = mix(vec3(0.9,0.94,1.0), vec3(0.5,0.58,0.78), g);   // white, less pronounced, dims with depth
             float lineStr = line * (0.3 + 0.14 * (1.0 - g));  // softer; no glow halo → no blotches
             vec3 col = mix(base, lineWhite, clamp(lineStr, 0.0, 1.0));
@@ -842,6 +886,14 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 
     let last = 0, mqX = 0, mq2X = 0, tkX = 0;
     const DEG = Math.PI / 180;
+    // ---- Spotlight interactivity: cursor-parallax card + rAF title sheen (CSS anims freeze on this machine) ----
+    const spSection = $('.spotlight-section'), spCard = $('.sp-cardinner'), spBtn = $('.sp-card-btn');
+    let spTX = 0, spTY = 0, spCX = 0, spCY = 0;
+    if (spSection) {
+      spSection.addEventListener('mousemove', (e) => { const r = spSection.getBoundingClientRect(); spTX = ((e.clientX - r.left) / r.width - .5) * 2; spTY = ((e.clientY - r.top) / r.height - .5) * 2; });
+      spSection.addEventListener('mouseleave', () => { spTX = 0; spTY = 0; });
+    }
+    if (spBtn) spBtn.addEventListener('click', () => openInspect(cotmLead));
     function frame(now) {
       const dt = last ? Math.min((now - last) / 1000, 0.05) : 0; last = now;
       spinWheel(dt);
@@ -852,6 +904,9 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
       mqTrack.style.transform = `translateX(${mqX}px)`;
       mqTrack2.style.transform = `translateX(${mq2X}px)`;
       tkTrack.style.transform = `translateX(${tkX}px)`;
+      // spotlight: ease cursor parallax + gentle float on the card (background is the Three.js scene)
+      spCX += (spTX - spCX) * .08; spCY += (spTY - spCY) * .08;
+      if (spCard) spCard.style.transform = `rotateY(${spCX * 11 - 4}deg) rotateX(${2 - spCY * 7}deg) translateY(${Math.sin(now / 1000) * 16}px)`;
       bgRender(now);
       requestAnimationFrame(frame);
     }
@@ -859,7 +914,7 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
     // marquee — two rows
     const MWORDS = [['pokemon','logo'],['magic','logo'],['onepiece','logo'],['lorcana','logo'],['THE ULTIMATE CARD TRACKER','dim'],['THE INDEX — EVERY UNIVERSE, ONE FEED','gold']];
     const mw = (arr) => arr.map(([w, c]) => (c === 'logo'
-      ? `<img class="mw mw-logo" src="assets/logos/${w}.png?v=79" alt="">`
+      ? `<img class="mw mw-logo" data-g="${w}" src="assets/logos/${w}.png?v=79" alt="">`
       : `<span class="mw ${c}">${w}</span>`) + `<span class="mw star">✦</span>`).join('');
     const mqTrack = $('#mq'), mqTrack2 = $('#mq2');
     mqTrack.innerHTML = mw(MWORDS) + mw(MWORDS);
@@ -874,55 +929,90 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
     }).join('');
     tkTrack.innerHTML = tkHTML + tkHTML;
 
-    // ---- card of the month — the hardest-trending card ----
+    // ---- Spotlight background — Three.js: scrolling grid floor + soft glow + gold embers, transparent so it blends with the page ----
     (() => {
-      const top = [...ALL].sort((a, b) => b.pct - a.pct)[0];
-      const card = $('#cotmCard'); if (!card || !top) return;
-      card.style.backgroundImage = `url('${top.img}')`;
-      card.style.setProperty('--accent', ACCENTS[top.game] || '#82b4ff');
-      $('#cotmName').textContent = top.name;
-      $('#cotmPrice').textContent = top.price != null ? fmt0(top.price) : 'Untracked';
-      const up = top.pct >= 0, tr = $('#cotmTrend');
-      tr.textContent = `${up ? '▲' : '▼'} ${Math.abs(top.pct).toFixed(1)}%`;
-      tr.className = 'cotm2-trend ' + (up ? 'up' : 'down');
-      if (top.price != null) {   // simple momentum forecast off the 30-day trend
-        const p30 = top.price * (1 + top.pct / 100), p1y = top.price * (1 + (top.pct / 100) * 3.4);
-        $('#cotmPred').innerHTML = `Projected &middot; <b>${fmt0(p30)}</b> in 30 days &middot; <b>${fmt0(p1y)}</b> in 1 year`;
-      }
-      (() => {   // trend sparkline (seeded so it matches the card)
-        const sr = rng(seed(top.name + 'spk')); let v = 36; const pts = [];
-        for (let i = 0; i <= 36; i++) { v += (sr() - 0.46) * 9; v = Math.max(8, Math.min(56, v)); pts.push(v); }
-        pts[pts.length - 1] = up ? Math.max(pts[pts.length - 1], 46) : Math.min(pts[pts.length - 1], 20);
-        const X = (i) => (i / 36) * 360, Y = (val) => 58 - val;
-        let d = `M0 ${Y(pts[0]).toFixed(1)}`; pts.forEach((p, i) => d += ` L${X(i).toFixed(1)} ${Y(p).toFixed(1)}`);
-        const col = up ? '#56ff9b' : '#ff6b6b';
-        $('#cotmSpark').innerHTML = `<path d="${d} L360 60 L0 60 Z" fill="${col}" fill-opacity=".14"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.6" stroke-linejoin="round"/>`;
+      const cv = document.getElementById('spotGL'); if (!cv || !window.THREE) return;
+      const T = window.THREE;
+      const renderer = new T.WebGLRenderer({ canvas: cv, alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+      const scene = new T.Scene();
+      const camera = new T.PerspectiveCamera(46, 1, 0.1, 120);
+      camera.position.set(0, 2.5, 18); camera.lookAt(0, 1.2, -12);   // zoomed out but low + level = stronger floor perspective receding to a horizon
+
+      // grid floor — derivative-based crisp lines (no aliasing), scrolling, fading near & far by true distance
+      const floorMat = new T.ShaderMaterial({
+        transparent: true, depthWrite: false, extensions: { derivatives: true },
+        uniforms: { uTime: { value: 0 }, uColor: { value: new T.Color('#5b8cff') }, uCam: { value: new T.Vector3() } },
+        vertexShader: 'varying vec2 vUv; varying float vDist; uniform vec3 uCam; void main(){ vUv=uv; vec4 wp=modelMatrix*vec4(position,1.0); vDist=length(wp.xyz-uCam); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+        fragmentShader:
+          'varying vec2 vUv; varying float vDist; uniform float uTime; uniform vec3 uColor;\n' +
+          'void main(){\n' +
+          '  vec2 c = vec2(vUv.x*64.0, vUv.y*64.0 + uTime*0.5);\n' +
+          '  vec2 gr = abs(fract(c-0.5)-0.5) / fwidth(c);\n' +
+          '  float line = 1.0 - min(min(gr.x, gr.y), 1.0);\n' +
+          '  float near = smoothstep(7.0, 20.0, vDist);\n' +     // the lines closer to us fade away
+          '  float far  = 1.0 - smoothstep(34.0, 56.0, vDist);\n' +
+          '  gl_FragColor = vec4(uColor, line * near * far * 0.62);\n' +
+          '}'
+      });
+      const floor = new T.Mesh(new T.PlaneGeometry(64, 64), floorMat);
+      floor.rotation.x = -Math.PI / 2; floor.position.set(0, -1.8, -16);
+      floorMat.uniforms.uCam.value.copy(camera.position);
+      scene.add(floor);
+
+      // soft additive glow behind the card
+      const gc = document.createElement('canvas'); gc.width = gc.height = 256;
+      const gx = gc.getContext('2d'); const gg = gx.createRadialGradient(128, 128, 0, 128, 128, 128);
+      gg.addColorStop(0, 'rgba(120,150,255,0.62)'); gg.addColorStop(0.45, 'rgba(70,95,210,0.26)'); gg.addColorStop(1, 'rgba(0,0,0,0)');
+      gx.fillStyle = gg; gx.fillRect(0, 0, 256, 256);
+      const glow = new T.Mesh(new T.PlaneGeometry(22, 15), new T.MeshBasicMaterial({ map: new T.CanvasTexture(gc), transparent: true, blending: T.AdditiveBlending, depthWrite: false }));
+      glow.position.set(0, 2.2, -9); scene.add(glow);
+
+      function resize() { const r = cv.parentElement.getBoundingClientRect(); const w = Math.max(2, r.width | 0), h = Math.max(2, r.height | 0); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+      resize(); addEventListener('resize', resize); if (window.ResizeObserver) new ResizeObserver(resize).observe(cv.parentElement);
+      let vis = true; if ('IntersectionObserver' in window) new IntersectionObserver((e) => { vis = e[0].isIntersecting; }, { rootMargin: '200px' }).observe(cv.parentElement);
+      const clock = new T.Clock();
+      (function tick() {
+        if (vis) { floorMat.uniforms.uTime.value = clock.getElapsedTime(); renderer.render(scene, camera); }
+        requestAnimationFrame(tick);
       })();
-      const wrap = $('#cotmWrap');
-      wrap.addEventListener('pointermove', (e) => {
-        const r = wrap.getBoundingClientRect();
-        const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5;
-        card.classList.add('live');
-        card.style.setProperty('--ry', (24 + px * 26).toFixed(1) + 'deg');
-        card.style.setProperty('--rx', (7 - py * 22).toFixed(1) + 'deg');
-        card.style.setProperty('--sx', (40 + px * 60) + '%'); card.style.setProperty('--sy', (32 + py * 60) + '%');
-      });
-      wrap.addEventListener('pointerleave', () => {
-        card.classList.remove('live');                       // smooth return to the resting angle
-        card.style.setProperty('--ry', '24deg'); card.style.setProperty('--rx', '7deg');
-        card.style.setProperty('--sx', '40%'); card.style.setProperty('--sy', '32%');
-      });
-      const open = () => openInspect(top);
-      $('#cotmOpen').addEventListener('click', open);
-      card.addEventListener('click', open);
+
+      // chrome title: slow gentle float + a very subtle, slow sheen sweep (GSAP; CSS keyframes freeze here)
+      const titleEl = document.querySelector('.sp-title-wrap'), sheenEl = document.querySelector('.sp-title-sheen');
+      if (titleEl && window.gsap) gsap.to(titleEl, { y: -8, duration: 3.8, ease: 'sine.inOut', repeat: -1, yoyo: true });
+      if (sheenEl && window.gsap) gsap.fromTo(sheenEl, { backgroundPositionX: '180%' }, { backgroundPositionX: '-80%', duration: 2.4, ease: 'power1.inOut', repeat: -1, repeatDelay: 6 });
+    })();
+
+    // ---- Spotlight embers — soft gold motes drifting up (the original 2D embers, recolored gold) ----
+    (() => {
+      const cv = document.getElementById('spotParticles'); if (!cv) return;
+      const ctx = cv.getContext('2d'); let W = 2, H = 2; const parts = [];
+      const resize = () => { const p = cv.parentElement, r = p.getBoundingClientRect(); cv.width = W = Math.max(2, r.width | 0); cv.height = H = Math.max(2, r.height | 0); };
+      resize(); addEventListener('resize', resize); if (window.ResizeObserver) new ResizeObserver(resize).observe(cv.parentElement);
+      const COLORS = ['#ffe39a', '#ffd166', '#ffc23d', '#fff0c4'];
+      for (let i = 0; i < 34; i++) parts.push({ x: Math.random(), y: Math.random(), vy: -0.05 - Math.random() * 0.09, sway: 0.2 + Math.random() * 0.7, ph: Math.random() * 6.28, s: 0.9 + Math.random() * 2.4, a: 0.2 + Math.random() * 0.55, c: COLORS[Math.random() * COLORS.length | 0] });
+      let vis = true;
+      if ('IntersectionObserver' in window) new IntersectionObserver((e) => { vis = e[0].isIntersecting; }, { rootMargin: '200px' }).observe(cv.parentElement);
+      (function tick() {
+        if (vis) {
+          ctx.clearRect(0, 0, W, H);
+          for (const p of parts) {
+            p.y += p.vy / 100; p.ph += 0.02;
+            if (p.y < -0.03) { p.y = 1.03; p.x = Math.random(); }
+            const px = (p.x + Math.sin(p.ph) * p.sway * 0.04) * W, py = p.y * H;
+            ctx.save(); ctx.globalAlpha = Math.max(0, p.a * (0.55 + 0.45 * Math.sin(p.ph * 1.7))); ctx.fillStyle = p.c; ctx.shadowColor = p.c; ctx.shadowBlur = 8;
+            ctx.beginPath(); ctx.arc(px, py, p.s, 0, 6.2832); ctx.fill(); ctx.restore();
+          }
+        }
+        requestAnimationFrame(tick);
+      })();
     })();
     requestAnimationFrame(frame);
 
     // ---- index radar: 5 live feeds → their average; free-floating, 3D & interactive ----
     (() => {
-      const radar = $('#radar'), wrap = $('#radarWrap'), readout = $('#radarReadout');
+      const radar = $('#indexBars'), readout = $('#radarReadout');
       if (!radar) return;
-      const cx = 170, cy = 138, R = 104, DTR = Math.PI / 180;
       const feeds = [
         { name: 'TCGdex', what: 'Pokémon cards &amp; sets', v: 0.88, c: '#ffcf1a' },
         { name: 'Scryfall', what: 'Magic: The Gathering', v: 0.72, c: '#ff9a52' },
@@ -930,39 +1020,21 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
         { name: 'dotGG', what: 'One Piece TCG', v: 0.66, c: '#ff5b6b' },
         { name: 'TCGCSV', what: 'Market prices &amp; sealed', v: 0.84, c: '#b18cff' },
       ];
-      const Nf = feeds.length;
-      const ang = (i) => (-90 + i * (360 / Nf)) * DTR;
-      const pt = (i, r) => [cx + r * Math.cos(ang(i)), cy + r * Math.sin(ang(i))];
-      const poly = (rFn) => feeds.map((f, i) => { const [x, y] = pt(i, rFn(f, i)); return `${x.toFixed(1)},${y.toFixed(1)}`; }).join(' ');
-      const avg = feeds.reduce((s, f) => s + f.v, 0) / Nf;
-      let s = `<defs><filter id="radGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
-      [0.25, 0.5, 0.75, 1].forEach((L) => { s += `<polygon points="${poly(() => R * L)}" fill="none" stroke="rgba(150,180,230,.12)" stroke-width="1"/>`; });
-      feeds.forEach((f, i) => { const [x, y] = pt(i, R); s += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(150,180,230,.12)" stroke-width="1"/>`; });
-      s += `<polygon points="${poly(() => R * avg)}" fill="rgba(255,210,74,.05)" stroke="rgba(255,210,74,.5)" stroke-width="1.4" stroke-dasharray="5 4"/>`;
-      s += `<polygon points="${poly((f) => R * f.v)}" fill="rgba(232,183,62,.2)" stroke="#ffd24a" stroke-width="2.4" stroke-linejoin="round" filter="url(#radGlow)"/>`;
-      feeds.forEach((f, i) => { const [x, y] = pt(i, R * f.v); s += `<circle class="feed-dot" data-i="${i}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="${f.c}" style="color:${f.c};cursor:pointer"/>`; });
-      feeds.forEach((f, i) => {
-        const [x, y] = pt(i, R + 20), c = Math.cos(ang(i)), si = Math.sin(ang(i));
-        const anchor = Math.abs(c) < 0.3 ? 'middle' : (c > 0 ? 'start' : 'end');
-        const dy = si > 0.3 ? '0.72em' : (si < -0.3 ? '-0.2em' : '0.32em');
-        s += `<text class="feed-label" data-i="${i}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="${anchor}" dy="${dy}" fill="#b3c2e0" font-family="DM Sans, sans-serif" font-size="11" font-weight="600" style="cursor:pointer">${f.name}</text>`;
-      });
-      s += `<circle cx="${cx}" cy="${cy}" r="3" fill="#ffd24a"/>`;
-      radar.innerHTML = s;
-      const base = `<span class="rr-name">Five live sources</span><span class="rr-what">Hover a source to see how it scores into the index.</span>`;
+      // ranked horizontal bars — far clearer than a radar: each source, what it covers, how well it tracks market
+      const sorted = feeds.map((f, i) => ({ ...f, i })).sort((a, b) => b.v - a.v);
+      radar.innerHTML = sorted.map((f) => {
+        const pct = Math.round(f.v * 100);
+        return `<div class="ib-row" data-i="${f.i}"><div class="ib-id"><span class="ib-dot" style="color:${f.c};background:${f.c}"></span><div class="ib-meta"><div class="ib-name">${f.name}</div><div class="ib-what">${f.what}</div></div></div><div class="ib-track"><div class="ib-fill" style="width:${pct}%;background:linear-gradient(90deg,${f.c}99,${f.c})"></div></div><div class="ib-pct" style="color:${f.c}">${pct}%</div></div>`;
+      }).join('');
+      // bars carry their final width inline (robust — no dependency on rAF/animation firing); the CSS transition animates any later change
+      const base = `<span class="rr-name">Five live sources</span><span class="rr-what">Each is scored on how closely it tracks real sale prices &mdash; blended, they are your index.</span>`;
+      readout.innerHTML = base;
       const show = (i) => {
         if (i == null) { readout.innerHTML = base; return; }
         const f = feeds[i];
         readout.innerHTML = `<span class="rr-name" style="color:${f.c}">${f.name}</span><span class="rr-what">${f.what} &middot; <b>${Math.round(f.v * 100)}% market match</b></span>`;
       };
-      const hi = (i) => { radar.querySelectorAll('.feed-dot').forEach((d) => d.setAttribute('r', +d.dataset.i === i ? '9.5' : '6')); };
-      radar.querySelectorAll('.feed-dot, .feed-label').forEach((el) => {
-        const i = +el.dataset.i;
-        el.addEventListener('mouseenter', () => { show(i); hi(i); });
-        el.addEventListener('mouseleave', () => { show(null); hi(-1); });
-      });
-      // a gentle static 3D tilt (lies back like a table top) — no mouse-follow
-      if (window.gsap) gsap.set(radar, { transformPerspective: 950, transformOrigin: '50% 56%', rotateX: 13 });
+      radar.querySelectorAll('.ib-row').forEach((row) => { const i = +row.dataset.i; row.addEventListener('mouseenter', () => show(i)); row.addEventListener('mouseleave', () => show(null)); });
     })();
 
     // ---- scroll reveal ----
@@ -978,16 +1050,19 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
     // rotating "Loading <universe>" words on the loader
     (() => {
       const roll = $('#ldRoll'); if (!roll || !window.gsap) return;
-      const logos = ['pokemon', 'magic', 'lorcana', 'onepiece'].map((g) => `assets/logos/${g}.png?v=79`);
+      const order = ['pokemon', 'magic', 'lorcana', 'onepiece'];
+      const logos = order.map((g) => `assets/logos/${g}.png?v=79`);
+      const HEM = { pokemon: 1.5, magic: 1.8, lorcana: 1.8, onepiece: 1.28 };   // per-universe heights (em): optically equal — Pokémon reads big at uniform height, Magic/Lorcana small, One Piece runs wide
       logos.forEach((s) => { const im = new Image(); im.src = s; });   // preload so swaps don't flash
+      roll.style.height = HEM[order[0]] + 'em';
       let i = 0;
       const t = setInterval(() => {
         gsap.to(roll, { y: -14, opacity: 0, duration: 0.26, ease: 'power2.in', onComplete: () => {
-          i = (i + 1) % logos.length; roll.src = logos[i];
+          i = (i + 1) % logos.length; roll.src = logos[i]; roll.style.height = HEM[order[i]] + 'em';
           gsap.fromTo(roll, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.32, ease: 'power2.out' });
         } });
       }, 900);
-      setTimeout(() => clearInterval(t), 7000);
+      setTimeout(() => clearInterval(t), 7500);
     })();
     // slow, seamless gold shimmer on "Ultimate" only (repeating gradient → no visible reset)
     gsap.to('.headline .em', { filter: 'drop-shadow(0 1px 1px rgba(130,85,10,.5)) drop-shadow(0 0 8px rgba(255,212,90,.36))', duration: 2.6, ease: 'sine.inOut', repeat: -1, yoyo: true });
@@ -996,7 +1071,7 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
       gsap.set('.ld-stack', { opacity: 0, y: 16 });
       gsap.timeline()
         .to('.ld-stack', { opacity: 1, y: 0, duration: .8, ease: 'power3.out' })
-        .to('#loader', { autoAlpha: 0, scale: 1.05, filter: 'blur(9px)', duration: .9, ease: 'power2.inOut' }, '+=1.7')
+        .to('#loader', { autoAlpha: 0, scale: 1.05, filter: 'blur(9px)', duration: .9, ease: 'power2.inOut' }, '+=2.2')
         .to('.topbar', { opacity: 1, duration: .6 }, '-=.55')
         .to('.hero', { opacity: 1, duration: .7 }, '-=.55')
         .from('.tape-wrap', { opacity: 0, duration: 1.1, ease: 'power3.out' }, '<')
@@ -1006,7 +1081,7 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
     let booted = false; const boot = () => { if (booted) return; booted = true; intro(); };
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(boot, 40));
     setTimeout(boot, 600);
-    setTimeout(() => { if (getComputedStyle($('#loader')).opacity !== '0') { gsap.set('#loader', { autoAlpha: 0 }); gsap.set(['.topbar', '.hero', '.ticker'], { opacity: 1 }); } }, 4800);
+    setTimeout(() => { if (getComputedStyle($('#loader')).opacity !== '0') { gsap.set('#loader', { autoAlpha: 0 }); gsap.set(['.topbar', '.hero', '.ticker'], { opacity: 1 }); } }, 5300);
   })();
   </script>
 </body>

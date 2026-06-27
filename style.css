@@ -121,8 +121,10 @@ body {
   padding: var(--s-3) var(--s-5);
   min-height: 64px;
 }
-.lockup { display: flex; align-items: center; cursor: pointer; }
+.lockup { display: flex; align-items: center; gap: 11px; cursor: pointer; }
 .lockup:hover { filter: brightness(1.15); }
+.lockup-crown { width: 48px; height: 48px; flex: none; background: url(assets/crown-spin.png?v=2) 0 center / auto 100% no-repeat; background-position-x: 0; filter: drop-shadow(0 3px 7px rgba(0,0,0,.5)); }
+.lockup-logo { height: clamp(30px, 3vw, 40px); width: auto; display: block; filter: drop-shadow(0 2px 7px rgba(0,0,0,.5)) drop-shadow(0 0 16px rgba(255,200,70,.22)); }
 /* the POKEX wordmark — blue-bordered box, gold letters, blue KE (matches the homepage) */
 .logo-pokex { display: inline-flex; align-items: center; line-height: 1; user-select: none; text-transform: uppercase;
   font-family: var(--font-display); font-size: 20px; letter-spacing: 0.16em; padding: 8px 13px 5px;
@@ -598,14 +600,17 @@ main {
   z-index: 0; /* over the holo canvas (also z0, earlier in DOM) but transparent */
   background: transparent;
 }
-.zoom-bg img:first-child {
+/* the blurred card-art wash — target by ID (it's no longer the first child of .zoom-bg,
+   so the old `img:first-child` selector stopped matching and it rendered SHARP & full-size,
+   showing as a duplicate card off to one side). Heavy blur + low opacity = ambient only. */
+#zoomBgArt {
   position: absolute;
   inset: -12%;
   width: 124%;
   height: 124%;
   object-fit: cover;
-  opacity: 0.26; /* faint — the animated holo shimmers through behind it */
-  filter: blur(80px) saturate(1.3) brightness(0.55);
+  opacity: 0.22; /* faint — just a soft colour wash, never a recognizable card */
+  filter: blur(90px) saturate(1.3) brightness(0.55);
 }
 /* per-card animation layer: crossfades in over the blurred art after the reveal.
    Full prominence — the animation IS the backdrop; the scrim protects text. */
@@ -626,6 +631,23 @@ main {
   opacity: 0.55;
 }
 .zoom-bg::after { content: ''; position: absolute; inset: 0; background: var(--vignette); }
+/* card inspection backdrop mimics the carousel's per-universe background */
+.zoom-uni { position: absolute; inset: 0; z-index: 0; background: radial-gradient(130% 120% at 50% -8%, var(--ins-lit,#14285c) 0%, var(--ins-deep,#05091a) 62%); transition: background .4s ease; }
+.zoom-uni::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+body[data-game="pokemon"] .zoom-uni { background: radial-gradient(130% 120% at 50% -8%, var(--ins-lit,#14285c) 0%, var(--ins-deep,#05091a) 62%); }
+body[data-game="pokemon"] .zoom-uni::after { opacity: 0.14; background: repeating-radial-gradient(circle at 50% 38%, transparent 0 27px, rgba(255,255,255,0.55) 27px 28px); }
+body[data-game="lorcana"] .zoom-uni { background: radial-gradient(ellipse at bottom, var(--ins-lit,#1b2735) 0%, var(--ins-deep,#05080f) 100%); }
+body[data-game="lorcana"] .zoom-uni::after { opacity: 0.55; background-size: 200px 200px;
+  background-image: radial-gradient(1.6px 1.6px at 18% 28%, #fff, transparent), radial-gradient(1.4px 1.4px at 62% 58%, #fff, transparent), radial-gradient(1px 1px at 38% 78%, #fff, transparent), radial-gradient(1.6px 1.6px at 82% 18%, #fff, transparent), radial-gradient(1.2px 1.2px at 50% 42%, #fff, transparent), radial-gradient(1px 1px at 8% 64%, #fff, transparent), radial-gradient(1.3px 1.3px at 92% 72%, #fff, transparent); }
+body[data-game="onepiece"] .zoom-uni { background: radial-gradient(120% 120% at 50% 100%, var(--ins-lit,#2a1206) 0%, var(--ins-deep,#050404) 66%); }
+body[data-game="onepiece"] .zoom-uni::after { opacity: 0.3; background-size: 9px 9px;
+  background-image: radial-gradient(circle at 50% 50%, #ffaa00 0, #ffaa00 1px, transparent 1.6px); }
+body[data-game="magic"] .zoom-uni { background: radial-gradient(120% 120% at 50% 0%, var(--ins-lit,#3a2410) 0%, var(--ins-deep,#0a0806) 64%); }
+/* Pokémon inspect: the real topo shader (same as the carousel / homepage) replaces the CSS rings */
+.zoom-topo { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; display: none; }
+body[data-game="pokemon"] .zoom-topo { display: block; }
+body[data-game="pokemon"] .zoom-uni::after { background: none; }   /* drop the concentric rings — the shader is the backdrop now */
+body[data-game="pokemon"] #zoomBgArt { opacity: 0.16; }            /* card art = faint colour wash floating over the topo */
 /* animated three.js holographic backdrop (canvas) — under everything */
 .holo-bg {
   position: fixed;

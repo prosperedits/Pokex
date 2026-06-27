@@ -25,13 +25,16 @@ body[data-game="pokemon"] #bgTopo { opacity: 1; visibility: visible; }
 body[data-game="pokemon"] #bgLight { opacity: 0.22; }
 
 /* ---------- Lorcana: drifting starfield ---------- */
-.bg-stars { background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%); }
-/* per-set color glow rising from the bottom edge (set in app.js via --set-glow) */
+/* base nebula tinted to the SET's signature colour (genuine per-set), darkened so stars read */
+.bg-stars { background:
+  radial-gradient(ellipse at bottom, color-mix(in srgb, var(--set-glow, #7fd4f4) 30%, #070a10) 0%, #06070d 72%, #050609 100%);
+  transition: background 0.6s ease; }
+/* per-set color glow rising from the bottom edge (set in app.js via --set-glow) — stronger */
 .bg-stars::after {
-  content: ""; position: absolute; left: -10%; right: -10%; bottom: -8%; height: 60%;
+  content: ""; position: absolute; left: -10%; right: -10%; bottom: -8%; height: 68%;
   pointer-events: none; z-index: 0;
-  background: radial-gradient(125% 100% at 50% 100%, var(--set-glow, #7fd4f4) 0%, transparent 68%);
-  opacity: 0.4; mix-blend-mode: screen;
+  background: radial-gradient(125% 100% at 50% 100%, var(--set-glow, #7fd4f4) 0%, transparent 70%);
+  opacity: 0.55; mix-blend-mode: screen;
   transition: background 0.6s ease;
 }
 .bg-stars #stars,
@@ -51,7 +54,7 @@ html.motion-reduced .bg-stars #stars3 { animation: none; }
   content: ""; position: absolute; inset: 0; z-index: 1;
   background-image: radial-gradient(circle at 50% 50%, #0000 0, #0000 2px, hsl(0 0 4%) 2px);
   background-size: 8px 8px;
-  animation: 16s ease-in-out rainHue infinite;
+  animation: 26s ease-in-out rainHue infinite;
   --f: blur(3em) brightness(7.5);
 }
 /* gentle, subtle hue drift — no staccato lightning flicker */
@@ -107,7 +110,7 @@ html.motion-reduced .bg-stars #stars3 { animation: none; }
     300px 179px, 300px 179px, 300px 179px, 300px 299px, 300px 299px, 300px 299px,
     300px 215px, 300px 215px, 300px 215px, 300px 281px, 300px 281px, 300px 281px,
     300px 158px, 300px 158px, 300px 158px, 300px 210px, 300px 210px, 300px 210px;
-  animation: rainFall 150s linear infinite;
+  animation: rainFall 260s linear infinite;
 }
 @keyframes rainFall {
   0% {

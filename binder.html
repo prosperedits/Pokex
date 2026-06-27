@@ -150,24 +150,80 @@ body.bank-open .bank-handle { opacity: 0; pointer-events: none; }
 .binder3d-frame { position: fixed; left: 0; top: 64px; width: 100%; height: calc(100vh - 64px); border: 0; display: none; z-index: 30; background: #04071a; }
 body.view-3d .binder3d-frame { display: block; }
 body.view-3d .stage, body.view-3d .bank, body.view-3d .bank-handle { display: none !important; }
+
+/* ============ Ten-Years-Away-style book intro ============ */
+#binderIntro{ position:fixed; inset:0; z-index:9998; overflow:hidden;
+  background:radial-gradient(120% 92% at 50% 36%, #28314f 0%, #1c2440 46%, #131930 100%);
+  transition:opacity .85s ease, visibility .85s; }
+#binderIntro.bx-gone{ opacity:0; visibility:hidden; pointer-events:none; }
+.bx-grain{ position:absolute; inset:0; pointer-events:none; opacity:.42; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:160px 160px; }
+.bx-corner{ position:absolute; top:clamp(16px,3.4vh,40px); font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:rgba(206,220,228,.5); z-index:3; }
+.bx-corner.l{ left:clamp(18px,4vw,56px); } .bx-corner.r{ right:clamp(18px,4vw,56px); text-align:right; }
+.bx-top{ position:absolute; left:0; right:0; top:clamp(40px,8vh,90px); text-align:center; z-index:3;
+  font-family:'Bricolage Grotesque',sans-serif; font-weight:800; letter-spacing:.01em; text-transform:uppercase;
+  color:#dfe9ec; font-size:clamp(40px,8.4vw,128px); line-height:.86; text-shadow:0 4px 40px rgba(0,0,0,.45); }
+.bx-flank{ position:absolute; bottom:clamp(20px,5vh,64px); z-index:2;
+  font-family:'Bricolage Grotesque',sans-serif; font-weight:800; line-height:.78; letter-spacing:.01em;
+  font-size:clamp(44px,9.6vw,150px); color:transparent; -webkit-text-stroke:1.4px rgba(202,216,226,.34); }
+.bx-flank.l{ left:clamp(16px,4vw,64px); } .bx-flank.r{ right:clamp(16px,4vw,64px); text-align:right; }
+.bx-flank .lab{ display:block; -webkit-text-stroke:0; color:rgba(202,216,226,.55); font-size:.2em; letter-spacing:.22em; margin-top:.7em; }
+.bx-scene{ position:absolute; inset:0; display:grid; place-items:center; perspective:2200px; z-index:2; }
+.bx-book{ position:relative; width:clamp(196px,19vw,288px); aspect-ratio:1/1.4; transform-style:preserve-3d; cursor:pointer; border:0; background:none; padding:0; will-change:transform; }
+.bx-book > *{ position:absolute; }
+.bx-backcover{ inset:0; transform:translateZ(-9px); border-radius:4px 10px 10px 4px; background:linear-gradient(135deg,#2c2238,#1a1426); box-shadow:inset 0 0 0 1px rgba(255,255,255,.05); }
+.bx-pageblock{ inset:4px; transform:translateZ(0); border-radius:2px 5px 5px 2px; background:linear-gradient(90deg,#d9cba8 0 2%,#f3ecda 6% 94%,#e7dcc0 100%); }
+.bx-pageblock .wm{ position:absolute; inset:0; display:grid; place-items:center; opacity:.16; }
+.bx-pageblock .wm img{ width:64%; filter:grayscale(1) brightness(.4); }
+.bx-edge-r{ top:0; right:0; width:18px; height:100%; transform-origin:right center; transform:rotateY(90deg);
+  background:repeating-linear-gradient(0deg,#efe7d4 0 2px,#d4c7a6 2px 3px); border-radius:0 2px 2px 0; }
+.bx-edge-b{ left:0; bottom:0; height:18px; width:100%; transform-origin:bottom center; transform:rotateX(-90deg);
+  background:repeating-linear-gradient(90deg,#efe7d4 0 2px,#d4c7a6 2px 3px); }
+.bx-frontcover{ inset:0; transform:translateZ(9px); transform-origin:left center; transform-style:preserve-3d;
+  border-radius:4px 10px 10px 4px; will-change:transform; }
+.bx-cover-face{ position:absolute; inset:0; border-radius:4px 10px 10px 4px; overflow:hidden; backface-visibility:hidden;
+  background:linear-gradient(140deg,#3c2c4b 0%,#2a1f38 52%,#1f1730 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07), inset 0 0 70px rgba(0,0,0,.5), 0 26px 50px -18px rgba(0,0,0,.7); }
+.bx-cover-face::before{ content:""; position:absolute; inset:13px; border-radius:3px; border:1px solid rgba(214,196,150,.32);
+  box-shadow:inset 0 0 0 3px rgba(0,0,0,.18); }
+.bx-cover-face::after{ content:""; position:absolute; inset:0; background:linear-gradient(125deg,rgba(255,255,255,.14) 0%,transparent 26%,transparent 72%,rgba(255,255,255,.05) 100%); }
+.bx-cover-art{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:11px; padding:14% 12%; }
+.bx-cover-art img{ width:78%; filter:drop-shadow(0 3px 10px rgba(0,0,0,.6)); }
+.bx-cover-art .cap{ font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.34em; text-transform:uppercase; color:rgba(220,200,150,.66); }
+.bx-cover-inner{ position:absolute; inset:0; border-radius:4px 10px 10px 4px; transform:rotateY(180deg); backface-visibility:hidden;
+  background:linear-gradient(140deg,#241a30,#181222); box-shadow:inset 0 0 0 1px rgba(255,255,255,.04); }
+.bx-shadow{ position:absolute; left:50%; top:63%; width:clamp(176px,17vw,260px); height:40px; transform:translateX(-50%); z-index:1; pointer-events:none;
+  background:radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.5), transparent 72%); filter:blur(11px); }
+.bx-hint{ position:absolute; left:0; right:0; bottom:clamp(46px,13vh,124px); text-align:center; z-index:3; pointer-events:none;
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.34em; text-transform:uppercase; color:rgba(212,224,232,.62);
+  transition:opacity .4s ease; }
+@media(max-width:760px){ .bx-flank{ font-size:clamp(34px,13vw,72px); } .bx-top{ font-size:clamp(30px,11vw,60px); } }
 </style>
 </head>
 <body>
-  <div id="binderLoader" class="binder-loader">
-    <div class="loader">
-      <div>
-        <ul>
-          <li><svg viewBox="0 0 90 120" xmlns="http://www.w3.org/2000/svg"><rect width="90" height="120" rx="5" fill="currentColor"/></svg></li>
-          <li><svg viewBox="0 0 90 120" xmlns="http://www.w3.org/2000/svg"><rect width="90" height="120" rx="5" fill="currentColor"/></svg></li>
-          <li><svg viewBox="0 0 90 120" xmlns="http://www.w3.org/2000/svg"><rect width="90" height="120" rx="5" fill="currentColor"/></svg></li>
-          <li><svg viewBox="0 0 90 120" xmlns="http://www.w3.org/2000/svg"><rect width="90" height="120" rx="5" fill="currentColor"/></svg></li>
-          <li><svg viewBox="0 0 90 120" xmlns="http://www.w3.org/2000/svg"><rect width="90" height="120" rx="5" fill="currentColor"/></svg></li>
-        </ul>
-      </div>
-      <span>Loading your binder</span>
+  <div id="binderIntro">
+    <div class="bx-grain"></div>
+    <div class="bx-corner l">Crowns · your collection, bound</div>
+    <div class="bx-corner r">2025 Edition</div>
+    <div class="bx-top">The Binder</div>
+    <div class="bx-flank l"><span id="bxCount">0</span><span class="lab">Cards bound</span></div>
+    <div class="bx-flank r"><span id="bxValue">$0</span><span class="lab">Collection value</span></div>
+    <div class="bx-shadow"></div>
+    <div class="bx-scene">
+      <button class="bx-book" id="bxBook" type="button" aria-label="Open your binder">
+        <span class="bx-backcover"></span>
+        <span class="bx-pageblock"><span class="wm"><img src="assets/crowns-logo.png?v=1" alt=""></span></span>
+        <span class="bx-edge-r"></span>
+        <span class="bx-edge-b"></span>
+        <span class="bx-frontcover">
+          <span class="bx-cover-face"><span class="bx-cover-art"><img src="assets/crowns-logo.png?v=1" alt="Crowns"><span class="cap">The Binder</span></span></span>
+          <span class="bx-cover-inner"></span>
+        </span>
+      </button>
     </div>
+    <div class="bx-hint" id="bxHint">Click to open</div>
   </div>
-  <script>window.addEventListener('load', () => { const el = document.getElementById('binderLoader'); setTimeout(() => el && el.classList.add('hide'), 1200); });</script>
 
   <header class="chrome">
     <a class="logo-pokex" href="index.html" aria-label="Crowns home" style="color:#ffd24a;font-weight:800;letter-spacing:.12em;font-size:18px;text-transform:uppercase">Crowns</a>
@@ -458,9 +514,50 @@ body.view-3d .stage, body.view-3d .bank, body.view-3d .bank-handle { display: no
 
   <script>
   (() => {
-    // 3D is the only view now — load the WebGL binder straight away
+    // 3D is the only view now — load the WebGL binder straight away (behind the intro)
     document.body.classList.add('view-3d');
     document.getElementById('binder3dFrame').src = 'binder3d.html?t=' + Date.now();   // always-fresh while iterating (no stale cache)
+  })();
+  </script>
+
+  <!-- Ten-Years-Away-style intro: closed Crowns book → click → opens into the 3D binder -->
+  <script>
+  (() => {
+    const intro = document.getElementById('binderIntro'); if (!intro) return;
+    const book = document.getElementById('bxBook');
+    const cover = book.querySelector('.bx-frontcover');
+    const hint = document.getElementById('bxHint');
+
+    // flanking stats pulled from the saved binder
+    try {
+      const b = JSON.parse(localStorage.getItem('pokex.binder'));
+      const all = (b && Array.isArray(b.pages)) ? b.pages.flat().filter(Boolean) : [];
+      const v = all.reduce((s, c) => s + ((c && c.priceUsd) || 0), 0);
+      document.getElementById('bxCount').textContent = String(all.length);
+      document.getElementById('bxValue').textContent = '$' + (v >= 1000 ? Math.round(v).toLocaleString() : v.toFixed(0));
+    } catch (e) {}
+
+    const ease = (t) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2); // easeInOutCubic
+    let opening = false, openT = 0, t0 = 0, faded = false;
+    function frame(ts) {
+      if (!t0) t0 = ts;
+      const time = (ts - t0) / 1000;
+      if (opening) {
+        openT = Math.min(1, openT + 1 / 95); // ~1.6s
+        const e = ease(openT);
+        cover.style.transform = `translateZ(9px) rotateY(${-164 * e}deg)`;
+        book.style.transform = `translateY(${-10 * e}px) rotateX(${8 - 5 * e}deg) rotateY(${-24 + 24 * e}deg) scale(${1 + 0.62 * e})`;
+        if (openT >= 1 && !faded) { faded = true; setTimeout(() => intro.classList.add('bx-gone'), 240); }
+      } else {
+        const fy = Math.sin(time * 0.7) * 6, ry = Math.sin(time * 0.45) * 4.5;
+        book.style.transform = `translateY(${fy}px) rotateX(8deg) rotateY(${-24 + ry}deg)`;
+        cover.style.transform = 'translateZ(9px) rotateY(0deg)';
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    book.addEventListener('click', () => { if (opening) return; opening = true; book.style.cursor = 'default'; if (hint) hint.style.opacity = '0'; });
   })();
   </script>
 </body>

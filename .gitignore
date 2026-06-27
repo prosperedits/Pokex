@@ -20,3 +20,15 @@ desktop.ini
 # scratch / temp screenshots
 _*.png
 *.tmp
+
+# scratch / source-only — not referenced at runtime (keep the deploy lean)
+assets/psd-layers/
+assets/crown.glb
+assets/crowns-src.webp
+assets/spotlight-room.png
+assets/spotlight-bg.jpg
+assets/spotlight-fg.png
+.claude/
+PLAN.md
+PLAN-REVIEW-LOG.md
+spotlight-test.html

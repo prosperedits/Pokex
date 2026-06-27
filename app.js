@@ -633,6 +633,7 @@
     if (!REDUCED && (driftFrame++ & 1)) driftBg(ms || performance.now());
     if (zoom.open) holoRender(ms || performance.now()); // animated inspect backdrop
     if (topo && document.body.dataset.game === 'pokemon') topo.render(ms || performance.now()); // Pokémon topo drift
+    if (zoom.open && document.body.dataset.game === 'pokemon') { if (!zoomTopo) buildZoomTopo(); if (zoomTopo) { zoomTopo.color.set(insColor); zoomTopo.render(ms || performance.now()); } } // Pokémon inspect topo, tinted to the card
     if (mode === 'gliding' || mode === 'wheeling') {
       position += velocity;
       velocity *= FRICTION;
@@ -776,6 +777,10 @@
   // a canvas: its sealed box render (authentic Pokémon PNG / cut-out webp), else
   // the game logo. Cross-origin card/logo URLs taint the canvas, so they're out.
   function localSetImage(id) {
+    // a LOCAL set logo (assets/setlogos/*) is the most genuine signature colour and is
+    // same-origin, so the canvas read isn't tainted — prefer it over the box / game logo
+    const ov = SET_LOGO_OVERRIDE[id];
+    if (ov && ov.startsWith('assets/')) return new URL(ov.split('?')[0], location.href).href;
     const prods = (window.SEALED_PRODUCTS || {})[id] || [];
     const p = prods.find((x) => x.img && x.img.startsWith('assets/'));
     if (p) return new URL(p.img.split('?')[0], location.href).href;
@@ -789,6 +794,19 @@
     'mtg-tmt': ['#5cb44a', '#8fd86a', '#357a2e'],   // Teenage Mutant Ninja Turtles — turtle green
     'mtg-ecl': ['#8a5cd8', '#b48cf0', '#5a3a9e'],   // Lorwyn Eclipsed — mystical purple
     'mtg-tla': ['#39b0e0', '#e0892e', '#5fbf6a'],   // Avatar: TLA — water / fire / earth, four-element wash
+    // Lorcana — genuine per-set signature colours (P wants the universe strongly colour-coded)
+    'lor-12': ['#e0892e', '#86c24a', '#c4631e'],    // Wilds Unknown — orange + wild green
+    'lor-11': ['#56a8e6', '#a6d6f4', '#3f7fc8'],    // Winterspell — icy winter blue
+    'lor-10': ['#2f9f8a', '#5fc4a6', '#246f6a'],    // Whispers in the Well — deep teal
+    'lor-9':  ['#d8a83a', '#ffd472', '#b07f2a'],    // Fabled — storybook gold
+    'lor-8':  ['#cc3a3a', '#e0a040', '#9c2a2a'],    // Reign of Jafar — crimson + gold
+    'lor-7':  ['#5ab84a', '#9fd86a', '#caa24a'],    // Archazia's Island — jungle green
+    'lor-6':  ['#2f7fd0', '#5fb0e8', '#1f5fa0'],    // Azurite Sea — deep azure
+    'lor-5':  ['#5ec6e8', '#ffe49a', '#7fb0e0'],    // Shimmering Skies — sky cyan + sun
+    'lor-4':  ['#8a5cd8', '#c06fe0', '#c84fa8'],    // Ursula's Return — sea-witch violet
+    'lor-3':  ['#39b07a', '#7fd8a0', '#2f8f6a'],    // Into the Inklands — emerald ink
+    'lor-2':  ['#3aa9d4', '#6fd0e0', '#2f6fb0'],    // Rise of the Floodborn — water blue
+    'lor-1':  ['#6db8d6', '#caa24a', '#7b5fb0'],    // The First Chapter — teal / amber / amethyst
   };
   function setAmbience(id) {
     if (AMBIENCE_OVERRIDE[id]) { applyAmbience(AMBIENCE_OVERRIDE[id]); return; }
@@ -817,10 +835,12 @@
   //      Recolored per set by applyAmbience(), which already samples each set's
   //      signature colour (precomputed for Pokémon, read off the box for others).
   //      Built lazily on the first Pokémon set. ----
-  let topo = null;
-  function buildTopo() {
-    if (topo || !window.THREE) return;
-    const canvas = document.getElementById('bgTopo'); if (!canvas) return;
+  let topo = null, zoomTopo = null;
+  // Shared topo factory — identical look to the homepage: zoomed-out (p*4.6) crisp white
+  // contours on a deep-navy field, no glow, no gold. `big` oversizes the canvas past the
+  // viewport for the inspect backdrop (.zoom-bg is inset:-56px). Used for the carousel
+  // background (#bgTopo) and the Pokémon card inspect (#zoomTopo).
+  function makeTopo(canvas, big) {
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
     const scene = new THREE.Scene();
@@ -837,22 +857,68 @@
         float fbm(vec2 p){ float v=0.0, a=0.55; for(int i=0;i<6;i++){ v+=a*noise(p); p=p*2.03+vec2(11.3,7.7); a*=0.5; } return v; }
         void main(){
           vec2 uv = vUv; vec2 p = uv; p.x *= uRes.x / max(uRes.y, 1.0);
-          p = p * 3.1; float n = fbm(p + vec2(uTime * 0.016, uTime * 0.011));
+          p = p * 4.6; float n = fbm(p + vec2(uTime * 0.018, uTime * 0.012));    // zoomed out → more of the pattern (matches homepage)
           float f = n * 8.5; float fr = fract(f); float d = min(fr, 1.0 - fr);
-          float line = 1.0 - smoothstep(0.0, 0.052, d);
+          float line = 1.0 - smoothstep(0.0, 0.038, d);                          // crisp, thin lines
           float g = clamp(uv.x * 0.45 + (1.0 - uv.y) * 0.7, 0.0, 1.0);
-          vec3 base = mix(uColor * 0.16, uColor * 0.035, g);
-          float major = 1.0 - step(0.5, mod(floor(f), 5.0));
-          vec3 lineCol = mix(uColor * 0.55, clamp(uColor * 1.3 + 0.12, 0.0, 1.0), major);
-          float lineStr = line * (0.30 + 0.20 * (1.0 - g)) * (1.0 + major * 0.55);
-          vec3 col = mix(base, lineCol, lineStr);
+          vec3 base = mix(uColor * 0.19, uColor * 0.05, g);                       // field tinted to the set/card colour (navy by default)
+          vec3 lineWhite = mix(vec3(0.9,0.94,1.0), vec3(0.5,0.58,0.78), g);      // white contours, dims with depth, no glow halo
+          float lineStr = line * (0.3 + 0.14 * (1.0 - g));
+          vec3 col = mix(base, lineWhite, clamp(lineStr, 0.0, 1.0));
           gl_FragColor = vec4(col, 1.0);
         }`,
     });
     scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
-    const rs = () => { renderer.setSize(innerWidth, innerHeight, false); uni.uRes.value.set(innerWidth, innerHeight); };
+    const W = () => big ? innerWidth + 112 : innerWidth, H = () => big ? innerHeight + 112 : innerHeight;
+    const rs = () => { renderer.setSize(W(), H(), false); uni.uRes.value.set(W(), H()); };
     rs(); addEventListener('resize', rs);
-    topo = { render: (t) => { uni.uTime.value = t * 0.001; renderer.render(scene, cam); }, color: uni.uColor.value };
+    return { render: (t) => { uni.uTime.value = t * 0.001; renderer.render(scene, cam); }, color: uni.uColor.value };
+  }
+  function buildTopo() {
+    if (topo || !window.THREE) return;
+    const canvas = document.getElementById('bgTopo'); if (!canvas) return;
+    topo = makeTopo(canvas, false);
+  }
+  function buildZoomTopo() {                       // lazy — first Pokémon inspect
+    if (zoomTopo || !window.THREE) return;
+    const canvas = document.getElementById('zoomTopo'); if (!canvas) return;
+    zoomTopo = makeTopo(canvas, true);
+  }
+  // RULE: the inspect backdrop takes the inspected CARD's own colour (style unchanged).
+  // Sample the card art → feed --ins-lit/--ins-deep (the .zoom-uni gradient, all universes)
+  // and insColor (the Pokémon #zoomTopo shader base, applied each frame in tick()).
+  const INS_ACCENT = { pokemon: '#3b62b8', magic: '#8a5a2e', lorcana: '#2f6f9e', onepiece: '#9e3a30' };
+  let insColor = '#1a2746';
+  function tintInspect(card) {
+    if (!card) return;
+    const bs = document.body.style;
+    const apply = (r, g, b) => {
+      const cl = (k) => `rgb(${Math.min(255, Math.round(r * k))},${Math.min(255, Math.round(g * k))},${Math.min(255, Math.round(b * k))})`;
+      bs.setProperty('--ins-lit', cl(0.34));        // brighter stop of the inspect gradient
+      bs.setProperty('--ins-deep', cl(0.075));      // near-black stop, keeps text/card readable
+      insColor = `rgb(${r},${g},${b})`;
+    };
+    // instant = the card's intrinsic colour (Lorcana ink / Magic mana / Pokémon type) — always
+    // available, genuinely "the card's colour", and needs no CORS. Art-sampling refines it below.
+    const base = (typeof cardTintColor === 'function' && cardTintColor(card)) || INS_ACCENT[document.body.dataset.game] || '#33508c';
+    const bn = parseInt(base.slice(1), 16);
+    apply((bn >> 16) & 255, (bn >> 8) & 255, bn & 255);
+    const url = card.sealed ? card.image : (typeof cardImg === 'function' ? cardImg(card, 'low.webp') : null);
+    if (!url) return;
+    // CORS blob → ImageBitmap → canvas is untainted, so pixels are readable (CDNs that block CORS keep the fallback)
+    fetch(url, { mode: 'cors' }).then((res) => res.ok ? res.blob() : Promise.reject()).then(createImageBitmap).then((bm) => {
+      const cv = document.createElement('canvas'); cv.width = 18; cv.height = 25;
+      const x = cv.getContext('2d'); x.drawImage(bm, 0, 0, 18, 25);
+      const d = x.getImageData(0, 0, 18, 25).data;
+      let r = 0, g = 0, b = 0, w = 0;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i + 3] < 200) continue;
+        const R = d[i], G = d[i + 1], B = d[i + 2], mx = Math.max(R, G, B), mn = Math.min(R, G, B);
+        const k = 0.18 + (mx ? (mx - mn) / mx : 0);       // vivid pixels weigh more → the card's true colour
+        r += R * k; g += G * k; b += B * k; w += k;
+      }
+      if (w) apply(Math.round(r / w), Math.round(g / w), Math.round(b / w));
+    }).catch(() => {});
   }
   function loadSet(id) {
     DATA = SETS[id];
@@ -909,9 +975,10 @@
 
   // Era-grouped dropdown, newest sets first. Only sets with data appear.
   const SET_GROUPS = [
+    { series: 'First Partner Illustration', ids: ['fpic3', 'fpic2', 'fpic1'] },
     { series: 'Mega Evolution', ids: ['me04', 'me03', 'me02.5', 'me02', 'me01'] },
     { series: 'Scarlet & Violet', ids: ['sv10.5w', 'sv10.5b', 'sv10', 'sv09', 'sv08.5', 'sv08', 'sv07', 'sv06.5', 'sv06', 'sv05', 'sv04.5', 'sv04', 'sv03.5', 'sv03', 'sv02', 'sv01'] },
-    { series: 'Promos', ids: ['fpic1', 'fpp', 'svp', 'swshp', 'smp', 'xyp', 'bwp', 'dpp', 'hgssp', 'np', 'basep'] },
+    { series: 'Promos', ids: ['fpp', 'svp', 'swshp', 'smp', 'xyp', 'bwp', 'dpp', 'hgssp', 'np', 'basep'] },
   ];
   const setBtn = $('setBtn'), setMenu = $('setMenu');
   function toggleSetMenu(open) {
@@ -1190,6 +1257,69 @@
     } catch (e) {
       btnName.textContent = `Couldn't load ${meta.name}`;
     } finally { loadingGame = false; }
+  }
+
+  // ---- load ANY of the 217 sets into the wheel, built straight from the in-memory tcgcsv
+  //      index (window.CARD_INDEX) — no fetch, no CORS. The index already carries image,
+  //      number, rarity and price for every card, which is all the wheel/inspect need. ----
+  function buildSetFromIndex(groupId) {
+    const IDX = window.CARD_INDEX; if (!Array.isArray(IDX)) return null;
+    const rows = IDX.filter((c) => c.s === groupId);
+    if (!rows.length) return null;
+    const setName = rows[0].sn || groupId;
+    const cards = rows.map((c, i) => {
+      const local = (c.num || '').split('/')[0] || String(i + 1);   // "114/147" → "114"
+      return {
+        id: c.i, num: parseInt(local, 10) || (i + 1), localId: local,
+        name: c.n, rarity: c.rar || '', category: 'Pokemon', types: [],
+        image: (c.img || '').replace('_200w', '_400w'), fullImg: true,
+        priceUsd: c.p != null ? c.p : null, priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true,
+        illustrator: '', meta: [['Set', setName]], flavor: '',
+      };
+    });
+    const official = parseInt((rows[0].num || '').split('/')[1], 10) || cards.length;   // set size from the "x/y" denominator
+    return { set: { id: groupId, name: setName, total: cards.length, official, logo: '', external: true }, cards, snapshotAt: new Date().toISOString(), source: 'TCGplayer' };
+  }
+  async function loadPokemonSet(id) {
+    if (SETS[id]) { loadSet(id); return true; }
+    const built = buildSetFromIndex(id);
+    if (!built) return false;
+    SETS[id] = built; loadSet(id); return true;
+  }
+
+  // --- Curated "First Partner Illustration Collection" sets --------------------
+  // These 2026 promos aren't cataloged as singles on TCGplayer yet, but their cards
+  // live in the index under the Mega Evolution Promo group (24451): #037–045 are
+  // Series 1, #046–054 are Series 2. Series 3 (#055–063) isn't released (Aug 2026).
+  // Surface each released series as its own browsable/inspectable set, box-art tile.
+  const CURATED_FP = [
+    { id: 'fpic1', name: 'First Partner Illustration · Series 1', group: '24451', lo: 37, hi: 45, box: '673436' },
+    { id: 'fpic2', name: 'First Partner Illustration · Series 2', group: '24451', lo: 46, hi: 54, box: '688712' },
+    { id: 'fpic3', name: 'First Partner Illustration · Series 3', group: '24451', lo: 55, hi: 63, box: '695400' },   // releases Aug 2026 — auto-activates once tcgcsv catalogues #055–063
+  ];
+  function buildCuratedSet(def) {
+    const IDX = window.CARD_INDEX; if (!Array.isArray(IDX)) return null;
+    const rows = IDX.filter((c) => {
+      const n = parseInt(c.num, 10);
+      return c.s === def.group && n >= def.lo && n <= def.hi && !/staff|cosmos|exclusive|prerelease|pok[eé]mon center/i.test(c.n);
+    });
+    if (rows.length < (def.hi - def.lo + 1) * 0.5) return null;          // not enough of the series catalogued yet
+    const byNum = {}; for (const c of rows) { const k = parseInt(c.num, 10); if (!byNum[k]) byNum[k] = c; }
+    const cards = Object.keys(byNum).map(Number).sort((a, b) => a - b).map((k, i) => {
+      const c = byNum[k];
+      return {
+        id: c.i, num: i + 1, localId: String(i + 1).padStart(3, '0'), name: c.n.replace(/\s+\d{1,3}$/, ''),   // in-collection 1..9 (matches bundled Series 1)
+        rarity: c.rar || 'Promo', category: 'Pokemon', types: [],
+        image: (c.img || '').replace('_200w', '_400w'), fullImg: true,
+        priceUsd: c.p != null ? c.p : null, priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true,
+        illustrator: '', meta: [['Set', def.name], ['Promo', 'MEP ' + String(k).padStart(3, '0')]], flavor: '',
+      };
+    });
+    return { set: { id: def.id, name: def.name, total: cards.length, official: cards.length, logo: '', external: true, curated: true }, cards, snapshotAt: new Date().toISOString(), source: 'TCGplayer' };
+  }
+  for (const def of CURATED_FP) {
+    if (!(SETS[def.id] && (SETS[def.id].cards || []).length)) { const built = buildCuratedSet(def); if (built) SETS[def.id] = built; }  // Series 1 already bundled with local art — keep it
+    if (SETS[def.id]) SET_LOGO_OVERRIDE[def.id] = 'https://tcgplayer-cdn.tcgplayer.com/product/' + def.box + '_400w.jpg';
   }
 
   // --- Sealed-product price tracker (per active set; verified snapshots only) -
@@ -1940,6 +2070,7 @@
     const ig = ++imgGen;
     tiltCard.classList.toggle('sealed', !!card.sealed); // floats the render, no frame
     tiltCard.classList.toggle('ext-card', !!card.fullImg); // Magic/Lorcana = square-corner JPGs, round them more
+    tintInspect(card);   // inspect backdrop takes on the card's own colour (style unchanged)
     // SHARED-ELEMENT CONTINUITY: open the featured card on the EXACT bytes the
     // wheel card is already painting, so frame 1 of the morph is pixel-identical
     // (no decode flash, no blur-up). Then sharpen on the SAME element with NO
@@ -2434,7 +2565,7 @@
         const nameLine = (s.name && s.name !== s.code && s.name !== sig) ? `<span class="st-name">${s.name}</span>` : '';
         return `<button type="button" class="set-tile" data-set="${s.id}"><span class="st-art">${art}</span>${nameLine}${s.count ? `<span class="st-count">${s.count} cards</span>` : ''}</button>`;
       };
-      const isPromo = (s) => game === 'pokemon' && /promo|partner/i.test(s.name);
+      const isPromo = (s) => game === 'pokemon' && /promo|partner/i.test(s.name) && !/illustration/i.test(s.name);
       const regular = sets.filter((s) => !isPromo(s)), promos = sets.filter(isPromo);
       let html = regular.map(tile).join('');
       if (promos.length) html += `<button type="button" class="set-tile set-tile-promos" data-set="${promos[0].id}"><span class="st-art"><span class="st-sigil">✦</span></span><span class="st-name">Promos</span><span class="st-count">${promos.length} sets</span></button>`;
@@ -2523,9 +2654,11 @@
   const isExternalReq = reqSet && gameSetMeta(reqSet);
   // open the deep-linked card's inspect (by collector number) once its set is loaded
   const openDeep = () => {
-    if (deepCard >= 1 && deepCard <= N && slotOf[deepCard - 1] != null) {
-      position = slotOf[deepCard - 1]; current = -1; render(true);
-      setTimeout(() => openZoomFor(slotOf[deepCard - 1]), 450);
+    let ci = CARDS.findIndex((c) => c.num === deepCard);     // match by collector number (correct for lazy/tcgdex sets too)
+    if (ci < 0 && deepCard >= 1 && deepCard <= N) ci = deepCard - 1;   // fallback: positional
+    if (ci >= 0 && slotOf[ci] != null) {
+      position = slotOf[ci]; current = -1; render(true);
+      setTimeout(() => openZoomFor(slotOf[ci]), 450);
     }
   };
   // a set we don't carry (or no set) → drop into that universe's set picker
@@ -2538,8 +2671,8 @@
     Promise.resolve(loadExternalSet(reqSet)).then(() => { if (deepCard >= 1) openDeep(); });
   } else if (reqSet && SETS[reqSet]) {
     loadSet(reqSet); openDeep();
-  } else if (reqSet && validGame) {
-    loadSet(HOME_SET); toUniverse();
+  } else if (reqSet) {                                   // unrecognized id → lazy-fetch the tcgdex Pokémon set into the wheel
+    loadPokemonSet(reqSet).then((ok) => { if (ok) { if (deepCard >= 1) openDeep(); } else { loadSet(HOME_SET); if (validGame) toUniverse(); else showHome(); } });
   } else {
     loadSet(HOME_SET);
     if (validGame) toUniverse(); else showHome();
