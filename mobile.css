@@ -1,0 +1,234 @@
+/* ============================================================================
+   Crowns — mobile / PWA layer.
+   A purpose-built phone view: the 3D wheel doesn't translate to a small touch
+   screen, so on phones we hide it and drive a clean horizontal snap-carousel
+   instead (built by the MOBILE section of app.js). Loaded AFTER style.css so
+   `body.mobile` / `.m-*` rules win the cascade. Every rule here is scoped to
+   body.mobile or .m-* — desktop is never touched.
+   ============================================================================ */
+
+.m-stage { display: none; }          /* never shown on desktop */
+
+@media (max-width: 760px) {
+
+  /* ---- column shell: header / carousel / caption / scrubber, no page scroll */
+  body.mobile {
+    display: flex;
+    flex-direction: column;
+    height: 100svh;
+    overflow: hidden;
+  }
+  body.mobile > nav.minimap,
+  body.mobile > .site-foot { display: none; }
+  body.mobile #wheel,
+  body.mobile #stageGlow { display: none; }   /* the 3D wheel is replaced here */
+
+  /* ---- compact header: brand · set switcher · search ---------------------- */
+  body.mobile > header.chrome {
+    position: relative;
+    z-index: 30;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: auto;
+    min-height: 0;
+    padding: calc(9px + env(safe-area-inset-top)) 14px 9px;
+    background: linear-gradient(180deg, rgba(9, 16, 36, .94) 0%, rgba(9, 16, 36, 0) 100%);
+  }
+  body.mobile .lockup { flex: 0 0 auto; gap: 0; }
+  body.mobile .lockup-crown { display: none; }
+  body.mobile .lockup-logo { width: 92px; height: auto; }
+  body.mobile .set-dropdown { margin: 0 auto; }          /* set switcher centred */
+  body.mobile .set-btn { padding: 4px 8px; }
+  body.mobile .set-btn img { height: 38px; }
+  body.mobile .chrome-right { margin-left: auto; gap: 6px; }
+  /* declutter: counts, dividers, counter, sealed all move out of the top bar */
+  body.mobile .chrome-right .list-counts,
+  body.mobile .chrome-right .ctrl-div,
+  body.mobile #counter,
+  body.mobile #sealedBtn { display: none; }
+
+  /* search 🔍 toggle (created by app.js) drops the existing #search field into
+     a full-width bar under the header — no cramped inline input, no clash */
+  body.mobile .m-searchtgl {
+    flex: 0 0 auto;
+    width: 40px; height: 40px;
+    display: grid; place-items: center;
+    border: 1px solid rgba(140, 168, 224, .26);
+    border-radius: 11px;
+    background: rgba(20, 32, 64, .5);
+    color: #cdddff;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body.mobile .m-searchtgl svg { width: 19px; height: 19px; }
+  body.mobile .search {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 12px; right: 12px;
+    width: auto;
+    max-width: none;
+    z-index: 40;
+    display: none;
+    font-size: 16px;                 /* ≥16px so iOS doesn't zoom on focus */
+    padding: 13px 16px;
+  }
+  body.mobile.msearch-open .search { display: block; }
+
+  /* ---- the carousel ------------------------------------------------------- */
+  body.mobile > main { flex: 0 0 auto; display: block; }
+  body.mobile .m-stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    overflow: hidden;
+  }
+  .m-car {
+    --mcw: min(67vw, 43svh);
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    padding: 0 calc(50vw - var(--mcw) / 2);
+    scrollbar-width: none;
+  }
+  .m-car::-webkit-scrollbar { display: none; }
+  .m-card {
+    flex: 0 0 var(--mcw);
+    width: var(--mcw);
+    aspect-ratio: 734 / 1024;
+    scroll-snap-align: center;
+    display: grid;
+    place-items: center;
+    margin: 0; padding: 0; border: 0; background: none;
+    cursor: pointer;
+    opacity: .42;
+    transform: scale(.84);
+    transition: opacity .32s ease, transform .32s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .m-card.on { opacity: 1; transform: scale(1); }
+  .m-card img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    border-radius: 4.6% / 3.3%;
+    filter: drop-shadow(0 16px 32px rgba(0, 0, 0, .52));
+  }
+  .m-card.sealed img { border-radius: 0; filter: drop-shadow(0 16px 28px rgba(0, 0, 0, .55)); }
+
+  /* ---- caption (reuses the existing .caption els, recompacted) ------------ */
+  body.mobile .caption {
+    padding: 2px 18px max(8px, env(safe-area-inset-bottom));
+    text-align: center;
+    gap: 2px;
+  }
+  body.mobile .cap-name {
+    font-size: clamp(19px, 6vw, 28px);
+    line-height: 1.05;
+    margin: 0;
+  }
+  body.mobile .cap-sub { min-height: 0; }
+  body.mobile .cap-meta { font-size: 12.5px; margin: 1px 0 0; }
+  body.mobile .cap-price-row {
+    justify-content: center;
+    align-items: baseline;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  body.mobile .cap-price { font-size: clamp(22px, 7vw, 30px); }
+  body.mobile .cap-trend { font-size: 14px; }
+  body.mobile .cap-tags { margin-top: 4px; gap: 12px; }
+  body.mobile .cap-rarity-top { font-size: 11px; }
+  body.mobile .cap-number-top { font-size: 11px; }
+  body.mobile .cap-share { transform: none; }
+
+  /* ---- scrubber: drag to fly through the whole set ------------------------ */
+  .m-scrub {
+    position: relative;
+    flex: 0 0 auto;
+    padding: 6px 26px calc(12px + env(safe-area-inset-bottom));
+    touch-action: none;
+  }
+  .m-scrub-track {
+    position: relative;
+    height: 26px;
+    display: flex;
+    align-items: center;
+  }
+  .m-scrub-track::before {            /* the rail */
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(140, 168, 224, .22);
+  }
+  .m-scrub-fill {
+    position: absolute;
+    left: 0;
+    height: 4px;
+    width: 0;
+    border-radius: 999px;
+    background: rgba(126, 180, 255, .7);
+  }
+  .m-scrub-thumb {
+    position: absolute;
+    left: 0;
+    width: 18px; height: 18px;
+    margin-left: -9px;
+    border-radius: 50%;
+    background: #eaf1ff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+  }
+  .m-scrub-bubble {
+    position: absolute;
+    bottom: calc(100% - 2px);
+    transform: translateX(-50%);
+    padding: 4px 9px;
+    border-radius: 8px;
+    background: rgba(12, 22, 48, .96);
+    border: 1px solid rgba(140, 168, 224, .3);
+    color: #eaf1ff;
+    font: 600 12px/1 'JetBrains Mono', ui-monospace, monospace;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .m-scrub-bubble[hidden] { display: none; }
+
+  /* ---- inspect dialog: stack the two columns + scroll on a phone --------- */
+  body.mobile .zoom-body { padding: 0; }
+  body.mobile .z-stage {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 14px calc(22px + env(safe-area-inset-bottom));
+    -webkit-overflow-scrolling: touch;
+  }
+  body.mobile #cardCol { flex: 0 0 auto; margin: 0 auto; }
+  body.mobile #cardActions {                /* 4 actions → tidy 2×2 grid, never clipped */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    max-width: 304px;
+    margin: 0 auto;
+  }
+  body.mobile #cardActions > * { min-width: 0; }
+  body.mobile #zoomPanel {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+  body.mobile #zGallery { width: 100%; }
+}

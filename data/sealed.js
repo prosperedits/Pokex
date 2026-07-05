@@ -457,7 +457,7 @@ window.SEALED_PRODUCTS = {
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
-      "img": "assets/sealed/sv08-bundle.png",
+      "img": "assets/sealed/tcg/679564.webp?v=62",
       "marketUsd": 62.34,
       "source": "TCGplayer",
       "checked": "2026-06-16"
@@ -480,6 +480,22 @@ window.SEALED_PRODUCTS = {
     }
   ],
   "sv08.5": [
+    {
+      "name": "Super-Premium Collection",
+      "detail": "15 packs + Eevee figure + extras",
+      "img": "assets/sealed/tcg/622770.webp?v=62",
+      "marketUsd": 327.75,
+      "source": "TCGplayer",
+      "checked": "2026-06-27"
+    },
+    {
+      "name": "Premium Figure Collection",
+      "detail": "Espeon & Umbreon figures + 6 packs",
+      "img": "assets/sealed/tcg/650799.webp?v=62",
+      "marketUsd": 239.17,
+      "source": "TCGplayer",
+      "checked": "2026-06-27"
+    },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
@@ -601,7 +617,7 @@ window.SEALED_PRODUCTS = {
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
-      "img": "assets/sealed/tcg/630686.webp?v=61",
+      "img": "assets/sealed/tcg/630686.webp?v=62",
       "marketUsd": 160.69,
       "source": "TCGplayer",
       "checked": "2026-06-16"
@@ -609,7 +625,7 @@ window.SEALED_PRODUCTS = {
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
-      "img": "assets/sealed/tcg/630431.webp?v=61",
+      "img": "assets/sealed/tcg/630431.webp?v=62",
       "marketUsd": 88.02,
       "source": "TCGplayer",
       "checked": "2026-06-16"
@@ -619,7 +635,7 @@ window.SEALED_PRODUCTS = {
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
-      "img": "assets/sealed/tcg/630688.webp?v=61",
+      "img": "assets/sealed/tcg/630688.webp?v=62",
       "marketUsd": 249.61,
       "source": "TCGplayer",
       "checked": "2026-06-16"
@@ -627,7 +643,7 @@ window.SEALED_PRODUCTS = {
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
-      "img": "assets/sealed/tcg/630689.webp?v=61",
+      "img": "assets/sealed/tcg/630689.webp?v=62",
       "marketUsd": 140.53,
       "source": "TCGplayer",
       "checked": "2026-06-16"
@@ -635,7 +651,7 @@ window.SEALED_PRODUCTS = {
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
-      "img": "assets/sealed/tcg/630696.webp?v=61",
+      "img": "assets/sealed/tcg/630696.webp?v=62",
       "marketUsd": 77.84,
       "source": "TCGplayer",
       "checked": "2026-06-16"
@@ -661,7 +677,7 @@ window.SEALED_PRODUCTS = {
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
-      "img": "assets/sealed/tcg/644279.webp?v=61",
+      "img": "assets/sealed/tcg/644279.webp?v=62",
       "marketUsd": 107.95,
       "source": "TCGplayer",
       "checked": "2026-06-16"
@@ -753,7 +769,7 @@ window.SEALED_PRODUCTS = {
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
-      "img": "assets/sealed/tcg/668541.webp?v=61",
+      "img": "assets/sealed/tcg/668541.webp?v=62",
       "marketUsd": 104.14,
       "source": "TCGplayer",
       "checked": "2026-06-16"

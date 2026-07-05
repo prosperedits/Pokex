@@ -2,17 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Crowns — Phantasmal Flames</title>
 <meta name="description" content="Every card of the Pokémon TCG Phantasmal Flames set, on one wheel. Market-price heatmap included.">
 <link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
+<!-- PWA / installable app -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0c1a3c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Crowns">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<script>if('serviceWorker' in navigator){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=49">
-<link rel="stylesheet" href="style.css?v=108">
+<link rel="stylesheet" href="style.css?v=110">
 <link rel="stylesheet" href="universe-bg.css?v=3">
-<script src="crown-spin.js?v=3" defer></script>
+<link rel="stylesheet" href="mobile.css?v=4">
+<script src="crown-spin.js?v=4" defer></script>
 </head>
 <body>
   <!-- background layers driven by the rAF loop in app.js (CSS animation
@@ -26,6 +36,7 @@
     <canvas id="bgTopo"></canvas>
     <div id="bgStars" class="bg-stars"><div id="stars"></div><div id="stars2"></div><div id="stars3"></div></div>
     <div id="bgRain" class="bg-rain"></div>
+    <canvas id="stageFloor"></canvas>
   </div>
 
   <header class="chrome">
@@ -63,18 +74,6 @@
         <svg class="ctrl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="3" width="11" height="18" rx="1.6"/><path d="M6.5 7.5h11" stroke-linecap="round"/></svg>
         <span>Sealed</span>
       </button>
-      <a id="ripBtn" class="ctrl ctrl-btn" href="rip.html" title="Rip Lab — sealed pack ROI &amp; pull odds">
-        <svg class="ctrl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="1.4"/><path d="M6 8l2-1 2 1 2-1 2 1 2-1"/><path d="M12 12.5v5M9.5 15h5"/></svg>
-        <span>Rip</span>
-      </a>
-      <a id="binderBtn" class="ctrl ctrl-btn" href="binder.html" title="Open your binder">
-        <svg class="ctrl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="1.5"/><path d="M9 3.5v17" stroke-linecap="round"/><path d="M6.6 8h1.1M6.6 12h1.1M6.6 16h1.1" stroke-linecap="round"/></svg>
-        <span>Binder</span>
-      </a>
-      <a id="faqBtn" class="ctrl ctrl-btn" href="faq.html" title="FAQ — help &amp; answers">
-        <svg class="ctrl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.4 9.2a2.6 2.6 0 0 1 5 1c0 1.7-2.4 2.1-2.4 3.8"/><path d="M12 17.2h.01"/></svg>
-        <span>FAQ</span>
-      </a>
       <div id="counter" class="counter" aria-hidden="true">001<span>/130</span></div>
     </div>
   </header>
@@ -87,9 +86,6 @@
 
   <main>
     <div id="stageGlow" class="stage-glow" aria-hidden="true"></div>
-    <!-- the rarity, then the card number directly beneath it, ride the TOP line -->
-    <p id="capRarity" class="cap-rarity-top" aria-hidden="true">&nbsp;</p>
-    <p id="capNumber" class="cap-number-top" aria-hidden="true"></p>
     <section id="wheel" class="wheel" aria-label="Card carousel" aria-roledescription="carousel">
       <div id="track" class="track"></div>
       <!-- share rides the TOP of the focused card (P: top, not bottom) -->
@@ -107,6 +103,11 @@
       <div class="cap-price-row">
         <div id="capPrice" class="cap-price"></div>
         <span id="capTrend" class="cap-trend" hidden></span>
+      </div>
+      <!-- rarity + card number now ride the BOTTOM, by the price (P) -->
+      <div class="cap-tags">
+        <p id="capRarity" class="cap-rarity-top" aria-hidden="true">&nbsp;</p>
+        <p id="capNumber" class="cap-number-top" aria-hidden="true"></p>
       </div>
     </section>
   </main>
@@ -232,6 +233,7 @@
   <script src="data/cards-me03.js"></script>
   <script src="data/cards-me04.js"></script>
   <script src="data/cards-fpic1.js"></script>
+  <script src="data/cards-fpic2.js"></script>
   <script src="data/cards-fpp.js"></script>
   <script src="data/cards-svp.js"></script>
   <script src="data/cards-swshp.js"></script>
@@ -246,7 +248,7 @@
   <script src="data/set-colors.js?v=63"></script>
   <script src="data/magic-prices.js?v=74"></script>
   <script src="data/card-index.js?v=3"></script>   <!-- global card index (tcgcsv): Pokémon, real prices + TCGplayer images, all 217 sets -->
-  <script src="app.js?v=115"></script>
+  <script src="app.js?v=123"></script>
 
   <!-- ===== Global cross-set search (index-backed) ===== -->
   <style>

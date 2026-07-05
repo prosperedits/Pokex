@@ -24,6 +24,10 @@
   let DATA = SETS[HOME_SET];
   let CARDS = DATA.cards;
   let N = CARDS.length;
+  // MOBILE (PWA) view state — see the MOBILE section just before the boot.
+  const MQ_MOBILE = matchMedia('(max-width: 760px)');
+  let MOBILE = MQ_MOBILE.matches;
+  let mViewport = null, mcar = null, mscrub = null, mProg = false, mProgT = 0, mScrollT = 0;
   // Owner's call (P, 2026-06-10): POKEX defaults to FULL motion — the OS
   // reduced-motion flag is ignored because this machine reports it from a
   // Windows performance tweak, not an accessibility need. ?motion=reduced is
@@ -57,6 +61,16 @@
     if (card.sealed) return card.image;          // local path, used directly
     if (card.fullImg) return card.image.startsWith('assets/') ? card.image : safeImg(card.image); // bundled-local OR external full url (whitelisted host)
     return safeImg(card.image + '/' + quality);   // tcgdex base + quality
+  };
+  // Last-ditch art for a card whose primary image is a dead upstream asset. The
+  // merge (mergeFullSet) stamps `fallbackImage` on special-pattern reprints
+  // (Master Ball / Poké Ball Pattern) — TCGplayer lists the product but never
+  // uploaded its scan, so the _Nw.jpg 404s. The pattern card shares the base
+  // printing's illustration, so we fall back to that base card's tcgdex art
+  // (same collector number) and the card shows correct artwork instead of a gap.
+  const cardImgFallback = (card, quality) => {
+    if (!card || !card.fallbackImage) return '';
+    return safeImg(card.fallbackImage + '/' + quality); // base card is always a tcgdex base url
   };
   // tcgdex set logos live at /en/<series>/<id>/logo; the series is the set id's
   // alpha prefix (sv05 -> sv, me03 -> me). Derive it instead of trusting
@@ -252,6 +266,23 @@
   const SNAP_K = 0.14;          // spring constant for snap/jump easing
   const MAX_VEL = 0.6;
 
+  // Belt sweep-in: a VISUAL-ONLY offset added to each card's d in render() —
+  // GSAP tweens it 1 → 0 on set load so the whole belt sweeps in from the right
+  // (same motion language as the homepage wheel). position/setCurrent untouched.
+  const introOff = { v: 0 };
+  function kickWheelIntro() {
+    if (MOBILE || REDUCED || !window.gsap || document.hidden) { introOff.v = 0; return; }
+    gsap.killTweensOf(introOff);
+    introOff.v = 1;
+    gsap.to(introOff, { v: 0, duration: 1.45, ease: 'expo.out', overwrite: true,
+      onUpdate: () => render(), onComplete: () => { introOff.v = 0; render(); } });
+    // caption + dial ride in behind the belt
+    gsap.fromTo('.caption > *', { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.07, delay: 0.22, clearProps: 'opacity,transform' });
+    gsap.fromTo('.minimap', { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', delay: 0.4, clearProps: 'opacity,transform' });
+  }
+
   // --- State -------------------------------------------------------------------
   let mode = 'idle';
   let position = 0;             // float, card units
@@ -278,11 +309,25 @@
     for (let i = 0; i < n; i++) {
       const f = n > 1 ? i / (n - 1) : 0.5, x = (f - 0.5) * chord, edge = 1 - Math.abs(f - 0.5) * 2;
       const len = 4 + 6 * edge;                              // a touch taller toward the middle, tapering at the ends
-      s += `<i class="dtick" data-i="${i}" style="transform:translate3d(${x.toFixed(1)}px,0,0);height:${len.toFixed(1)}px;opacity:${(0.2 + 0.3 * edge).toFixed(2)}"></i>`;
+      s += `<i class="dtick" data-i="${i}" style="transform:translate3d(${x.toFixed(1)}px,0,0);height:${len.toFixed(1)}px;opacity:${(0.32 + 0.34 * edge).toFixed(2)}"></i>`;
     }
     s += '<i class="dknob"></i></div>';
     railArc.innerHTML = s;
     dial = { chord, n, _cur: -1, _curEl: null };
+    recolorDial();
+  }
+  // paint each dial bar in its card's price-tier colour (the dial doubles as a
+  // heat strip). view[] must be valid for the ACTIVE set — applySort re-calls this.
+  function recolorDial() {
+    if (!dial || view.length !== N) return;
+    railArc.querySelectorAll('.dtick').forEach((t) => {
+      const slot = Math.round((+t.dataset.i) / (dial.n - 1 || 1) * (N - 1));
+      const card = cardAt(slot);
+      if (!card) return;
+      const c = tierColor(tierOf(card).var);
+      t.style.color = c;
+      t.style.background = `linear-gradient(to top, transparent, ${c})`;
+    });
   }
   // Arc-dial geometry. Single source of truth = the --arc-depth/--arc-rot CSS
   // vars on .minimap (the media query shrinks them on small screens); read them
@@ -344,10 +389,17 @@
       el.dataset.i = i;
       el.tabIndex = -1;
       el.setAttribute('aria-hidden', 'true');
-      el.inert = true;
+      // NOTE: do NOT set `inert` on off-center cards. `inert` removes the element
+      // from hit-testing, so elementFromPoint() skips it and the click handler
+      // can't resolve which card was clicked — only the centered card stayed
+      // clickable. aria-hidden + tabIndex=-1 already keep non-focused cards out
+      // of the tab order / AT tree; mouse clicks on them must still work.
       const img = document.createElement('img');
       img.alt = card.sealed ? `${card.name} — sealed product` : `${card.name} — card ${card.localId} of ${data.set.name}`;
       img.draggable = false;
+      img.decoding = 'async';           // never block the wheel on image decode
+      if (!card.sealed) img.loading = 'lazy'; // browser skips offscreen fetches until near view
+      const slot = { el, img, loaded: card.sealed ? 'high' : null }; // declared early so the error handler can settle its load state
       const ph = document.createElement('div');
       ph.className = 'ph';
       ph.textContent = card.name;
@@ -356,10 +408,19 @@
         img.src = card.image;           // local PNG — no webp quality ladder
       } else {
         img.addEventListener('error', () => {
-          if (img.dataset.q === 'high') {            // high failed -> drop to low
+          // primary failed. tcgdex cards step high.webp -> low.webp first; a
+          // full-url (index/external) card has no quality ladder, so it skips
+          // straight to the fallback. Either way, when the primary art is dead
+          // we try the base printing's tcgdex art (stamped by mergeFullSet on
+          // Master Ball / Poké Ball Pattern reprints) before the placeholder.
+          if (!card.fullImg && img.dataset.q === 'high') { // tcgdex high failed -> drop to low
             img.dataset.q = 'low';
             img.src = cardImg(card, 'low.webp');
-          } else {                                    // low failed -> placeholder
+          } else if (card.fallbackImage && img.dataset.q !== 'fallback') { // dead asset -> base printing's art
+            img.dataset.q = 'fallback';
+            slot.loaded = 'high';        // fallback IS hi-res tcgdex; stop the upgrade ladder
+            img.src = cardImgFallback(card, 'high.webp');
+          } else {                       // nothing left -> placeholder
             el.classList.add('noimg');
           }
         });
@@ -369,7 +430,7 @@
       tag.textContent = 'inspect';
       tag.setAttribute('aria-hidden', 'true'); // the card itself is the button
       el.append(img, ph, tag);
-      return { el, img, loaded: card.sealed ? 'high' : null };
+      return slot;
     });
     const ticks = list.map((card) => {
       const t = document.createElement('i');
@@ -397,10 +458,29 @@
     const slot = els[i];
     if (slot.loaded === 'high' || slot.loaded === q) return;
     const card = CARDS[i];
+    // full-url cards (index / Magic / Lorcana / One Piece) carry ONE image with no
+    // webp quality ladder — cardImg returns the same url for high/low. Point the
+    // VISIBLE img straight at it so, if the asset is dead (TCGplayer never uploaded
+    // the pattern reprint's scan), the img's own onerror fires and swaps to the
+    // base printing's art. A hidden preloader would only ever fire onload, so a
+    // dead asset would silently leave the card blank — this is what broke them.
+    if (card.fullImg) {
+      if (slot.loaded === 'full') return;
+      slot.img.dataset.q = 'high';
+      slot.img.src = cardImg(card, 'high.webp');
+      slot.loaded = 'full';
+      return;
+    }
     if (q === 'high' && card.imageOk === false) q = 'low';
     if (q === 'high') {
       const pre = new Image();
+      pre.decoding = 'async';
       pre.onload = () => { slot.img.dataset.q = 'high'; slot.img.src = pre.src; slot.loaded = 'high'; };
+      // tcgdex high.webp missing -> fall back to the base printing's art, else low
+      pre.onerror = () => {
+        const fb = cardImgFallback(card, 'high.webp');
+        if (fb) { slot.img.dataset.q = 'fallback'; slot.img.src = fb; slot.loaded = 'high'; }
+      };
       pre.src = cardImg(card, 'high.webp');
     } else if (!slot.loaded) {
       slot.img.dataset.q = 'low';
@@ -430,7 +510,7 @@
       if (el !== zoomReturnEl) el.style.visibility = 'hidden'; // never cull the open inspect's source card
     }
     for (let i = lo; i <= hi; i++) {
-      const d = i - position;
+      const d = i - position + introOff.v * 6; // sweep-in shift (0 when settled)
       const ad = Math.abs(d);
       // premium curve (aristidebenoist-style): one smooth gaussian "bump" —
       // scale, lift, brightness and tilt all ride the same continuous pocket,
@@ -477,7 +557,8 @@
       prev.tabIndex = -1;
       prev.classList.remove('center');
       prev.setAttribute('aria-hidden', 'true');
-      prev.inert = true;
+      prev.removeAttribute('role');       // drop the button semantics it got while centered
+      prev.removeAttribute('aria-label'); // (it's clickable for the mouse, but hidden from AT again)
     }
     current = idx;
     const card = cardAt(idx);
@@ -495,7 +576,6 @@
     cEl.tabIndex = 0;
     cEl.classList.add('center');
     cEl.removeAttribute('aria-hidden');
-    cEl.inert = false;
     cEl.setAttribute('role', 'button');
     cEl.setAttribute('aria-label', `Inspect ${card.name}`);
 
@@ -592,6 +672,9 @@
         pre.decoding = 'async';
         pre.src = cardImg(card, 'high.png');
       }
+      // the wheel settled on a new card — re-centre the idle prefetch so the cards
+      // the user is now near get warmed first (cheap: no-op if already scheduled)
+      if (typeof schedulePrefetch === 'function') schedulePrefetch();
     }
   }
   const pngWarm = new Set();
@@ -634,6 +717,8 @@
     if (zoom.open) holoRender(ms || performance.now()); // animated inspect backdrop
     if (topo && document.body.dataset.game === 'pokemon') topo.render(ms || performance.now()); // Pokémon topo drift
     if (zoom.open && document.body.dataset.game === 'pokemon') { if (!zoomTopo) buildZoomTopo(); if (zoomTopo) { zoomTopo.color.set(insColor); zoomTopo.render(ms || performance.now()); } } // Pokémon inspect topo, tinted to the card
+    if (floorFX && !zoom.open && !document.body.classList.contains('home-open')) floorFX.render(ms || performance.now()); // stage floor under the wheel
+    if (pickerFX && pickerFX.live()) pickerFX.render(ms || performance.now()); // picker ember-dust
     if (mode === 'gliding' || mode === 'wheeling') {
       position += velocity;
       velocity *= FRICTION;
@@ -653,7 +738,10 @@
   }
 
   function goTo(idx, instant) {
-    target = Math.max(0, Math.min(N - 1, idx));
+    idx = Math.max(0, Math.min(N - 1, idx));
+    // mobile: there is no wheel spring — scroll the snap-carousel to the slot instead
+    if (MOBILE && mcar) { mScrollTo(idx, !(instant || document.hidden)); return; }
+    target = idx;
     velocity = 0;
     // hidden tabs freeze rAF — the spring would never integrate, so land instantly
     if (REDUCED || instant || document.hidden) { position = target; mode = 'idle'; render(true); }
@@ -694,6 +782,7 @@
     mode = 'idle';
     current = -1;
     render(true);
+    if (MOBILE) mobileBuild();   // rebuild the mobile carousel in the new order
   }
   // the wheel is fixed to value order (priciest first); the sort control was removed
   const sortMode = 'value-desc';
@@ -715,6 +804,7 @@
     bs.setProperty('--op-rain', a);
     bs.setProperty('--op-rain2', c);
     if (topo) topo.color.set(a);
+    if (floorFX) { floorFX.color.set(a); if (REDUCED) floorFX.render(0); } // stage floor rides the set colour too
     bgLight.style.background =
       `radial-gradient(100% 88% at 50% -22%, ${hexA(a, 0.5)} 0%, transparent 66%),` +
       ` radial-gradient(78% 100% at 106% 82%, ${hexA(b, 0.4)} 0%, transparent 60%),` +
@@ -788,6 +878,14 @@
     if (meta) return new URL(`assets/logos/${meta.game}.png`, location.href).href;
     return null;
   }
+  // per-UNIVERSE signature gradient (P: Magic=green, One Piece=red, Lorcana=purple-blue, Pokémon=red+blue).
+  // 3 colours feed the 3 ambience layers (keylight / kicker / sweep) → reads as that universe's gradient.
+  const UNIVERSE_AMB = {
+    pokemon:  ['#e63946', '#3b82f6', '#7a2231'],   // red + blue gradient
+    magic:    ['#36b24a', '#8fe39a', '#1e7a30'],   // green → light green
+    lorcana:  ['#5b46c8', '#3a52d6', '#2a2a7a'],   // dark purple → blue
+    onepiece: ['#ef4b3a', '#ff8467', '#9e1f15'],   // light red → dark red
+  };
   // hand-picked backdrop colours for sets the auto-sampler reads wrong (3 colours = the 3 ambience layers)
   const AMBIENCE_OVERRIDE = {
     'mtg-sos': ['#46a049', '#7fcf6a', '#2f7d3a'],   // Secrets of Strixhaven — green, not red
@@ -809,6 +907,8 @@
     'lor-1':  ['#6db8d6', '#caa24a', '#7b5fb0'],    // The First Chapter — teal / amber / amethyst
   };
   function setAmbience(id) {
+    const uni = document.body.dataset.game;          // per-universe gradient wins (set on body just before this call)
+    if (UNIVERSE_AMB[uni]) { applyAmbience(UNIVERSE_AMB[uni]); return; }
     if (AMBIENCE_OVERRIDE[id]) { applyAmbience(AMBIENCE_OVERRIDE[id]); return; }
     const pre = (window.SET_COLORS || {})[id];     // precomputed from the set LOGO
     if (pre && pre.length) { applyAmbience(pre); return; }
@@ -884,6 +984,65 @@
     const canvas = document.getElementById('zoomTopo'); if (!canvas) return;
     zoomTopo = makeTopo(canvas, true);
   }
+
+  // --- Stage floor: a Three.js lit pool + receding grid grounding the wheel ---
+  // Follows the makeTopo pattern (shader quad, own resize, {render,color} API);
+  // tinted per set via applyAmbience; rendered from tick() — never CSS animation
+  // (CSS animation timelines are frozen on this machine).
+  let floorFX = null;
+  const FLOOR_FRAG = `
+    precision mediump float;
+    uniform float uTime; uniform vec2 uRes; uniform vec3 uColor;
+    void main() {
+      vec2 uv = gl_FragCoord.xy / uRes;
+      float horizon = 0.97;
+      float v = clamp((horizon - uv.y) / horizon, 0.0008, 1.0);
+      float z = 1.0 / v;                                 // scene depth
+      // receding rows drifting toward the viewer + converging columns
+      float row = abs(fract(z * 1.7 - uTime * 0.22) - 0.5);
+      float col = abs(fract((uv.x - 0.5) * z * 1.15) - 0.5);
+      float lines = smoothstep(0.052, 0.0, row) + smoothstep(0.045, 0.0, col) * 0.7;
+      float depthFade = smoothstep(7.5, 1.6, z);         // fade toward the horizon
+      float frontFade = smoothstep(0.0, 0.34, uv.y);     // and toward the viewer — the front NEVER hard-edges
+      float grid = lines * depthFade * frontFade * 0.30;
+      // the light pool under the focused card, breathing gently
+      vec2 pc = vec2(0.5, 0.58);
+      vec2 pd = (uv - pc) * vec2(uRes.x / uRes.y * 0.62, 1.45);
+      float pool = exp(-dot(pd, pd) * 3.4) * (0.86 + 0.14 * sin(uTime * 0.8));
+      vec3 colr = uColor * (pool * 0.62 + grid * (0.5 + pool * 0.8)) + vec3(1.0) * pool * 0.05;
+      float a = clamp(pool * 0.62 + grid, 0.0, 1.0);
+      gl_FragColor = vec4(colr, a * 0.85);
+    }`;
+  function buildFloor() {
+    if (floorFX !== null || !window.THREE) return;
+    const canvas = $('stageFloor');
+    if (!canvas) { floorFX = false; return; }
+    try {
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: 'low-power' });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+      const scene = new THREE.Scene();
+      const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      const uni = {
+        uTime: { value: 0 },
+        uRes: { value: new THREE.Vector2(2, 2) },
+        uColor: { value: new THREE.Color('#7FD4F4') },
+      };
+      const size = () => {
+        const w = canvas.clientWidth || innerWidth, h = canvas.clientHeight || Math.round(innerHeight * 0.46);
+        renderer.setSize(w, h, false);
+        const pr = renderer.getPixelRatio();
+        uni.uRes.value.set(w * pr, h * pr);
+      };
+      size();
+      scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2),
+        new THREE.ShaderMaterial({ fragmentShader: FLOOR_FRAG, uniforms: uni, transparent: true, depthWrite: false })));
+      addEventListener('resize', size);
+      floorFX = {
+        color: uni.uColor.value,
+        render: (t) => { uni.uTime.value = REDUCED ? 26.0 : t * 0.001; renderer.render(scene, cam); },
+      };
+    } catch { floorFX = false; }
+  }
   // RULE: the inspect backdrop takes the inspected CARD's own colour (style unchanged).
   // Sample the card art → feed --ins-lit/--ins-deep (the .zoom-uni gradient, all universes)
   // and insColor (the Pokémon #zoomTopo shader base, applied each frame in tick()).
@@ -921,6 +1080,9 @@
     }).catch(() => {});
   }
   function loadSet(id) {
+    // Pokémon bundled sets: fold in the full TCGplayer catalogue (all printings)
+    // before anything reads the card list. Idempotent + no-op for unmapped sets.
+    if (typeof mergeFullSet === 'function') mergeFullSet(id);
     DATA = SETS[id];
     // per-universe carousel backdrop (stars / rain), switched via body[data-game]
     const universe = id.startsWith('lor-') ? 'lorcana' : id.startsWith('op-') ? 'onepiece' : id.startsWith('mtg-') ? 'magic' : 'pokemon';
@@ -963,14 +1125,18 @@
     setMenu.querySelectorAll('.sm-set').forEach((b) => {
       b.classList.toggle('active', b.dataset.set === id);
     });
-    pfNext = 0; // restart idle prefetch for this set
+    pfNext = 0; // restart idle prefetch for this set (re-centres on the new set's cards)
+    if (typeof schedulePrefetch === 'function') schedulePrefetch();
     current = -1;
     painted = new Set();
     buildDial();          // redraw the arced dial for this set's card count
     applySort(sortMode); // rebuilds view/ticks order and lands per mode
+    recolorDial();       // dial heat-strip colours need the NEW view order
+    buildFloor();        // stage floor (all universes) — lazy singleton
     // relight the stage in THIS set's signature colour, read from its local
     // sealed render (Perfect Order → green, etc.); async, guards re-switch
     setAmbience(id);
+    kickWheelIntro();    // belt sweeps in from the right + caption/dial entrance
   }
 
   // Era-grouped dropdown, newest sets first. Only sets with data appear.
@@ -1287,6 +1453,85 @@
     SETS[id] = built; loadSet(id); return true;
   }
 
+  // ---- Full-set merge (bundled ∪ index) for bundled Pokémon sets --------------
+  // The bundled data/cards-<set>.js files carry only ONE printing per card number,
+  // but TCGplayer's catalogue (the in-memory index) also lists the special-pattern
+  // reprints (Poké Ball / Master Ball Pattern, Holiday Calendar, secret rares above
+  // the set total). P wants EVERY card of the set on the wheel, so for the sets
+  // below we rebuild the card list as the union: every index row of the group is
+  // kept (nothing dropped), and the base printing of each number is enriched with
+  // the richer bundled record (tcgdex high-res art, types for the tint, Cardmarket
+  // trend, illustrator, variant prices). Bundled-only sets / other games are
+  // untouched, and the ?set=<groupId> index path (already full) never hits this.
+  //
+  // Map = bundled set id → verified TCGplayer group id (the index `s` field). Only
+  // sets confirmed to be a strict subset of a single clean group are listed; fpp
+  // (different numbering) and the Black Star Promo sets are intentionally absent so
+  // their bundled cards are never dropped.
+  const POKE_SET_GROUP = {
+    'sv01': '22873', 'sv02': '23120', 'sv03': '23228', 'sv03.5': '23237',
+    'sv04': '23286', 'sv04.5': '23353', 'sv05': '23381', 'sv06': '23473',
+    'sv06.5': '23529', 'sv07': '23537', 'sv08': '23651', 'sv08.5': '23821',
+    'sv09': '24073', 'sv10': '24269', 'sv10.5b': '24325', 'sv10.5w': '24326',
+    'me01': '24380', 'me02': '24448', 'me02.5': '24541', 'me03': '24587', 'me04': '24655',
+  };
+  // strip a baked-in "093 131" / "093/131" out of an index name, then lowercase —
+  // so "Amarys 093 131" matches the bundled "Amarys" when picking the base printing
+  const idxNameNorm = (n) => (n || '').replace(/\b\d{1,4}\s*[\/ ]\s*\d{1,4}\b/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+  function mergeFullSet(id) {
+    const gid = POKE_SET_GROUP[id];
+    const IDX = window.CARD_INDEX;
+    if (!gid || !SETS[id] || SETS[id]._merged || !Array.isArray(IDX)) return;
+    const rows = IDX.filter((c) => c.s === gid);
+    if (rows.length <= SETS[id].cards.length) { SETS[id]._merged = true; return; } // index adds nothing → keep bundled
+    const setName = SETS[id].set.name;
+    // bundled cards grouped by number, so the base printing of each number can be enriched
+    const bundledByNum = new Map();
+    for (const b of SETS[id].cards) { if (!bundledByNum.has(b.num)) bundledByNum.set(b.num, []); bundledByNum.get(b.num).push(b); }
+    // base tcgdex art per number — the shortest-named bundled printing (= the plain
+    // base card). Special-pattern index reprints (Master Ball / Poké Ball Pattern)
+    // whose TCGplayer scan is missing fall back to THIS so they show real artwork.
+    const baseArtByNum = new Map();
+    for (const [num, list2] of bundledByNum) {
+      const base = list2.filter((b) => !b.fullImg && !b.sealed && typeof b.image === 'string' && b.image.startsWith('https://assets.tcgdex.net/'))
+        .sort((x, y) => x.name.length - y.name.length)[0];
+      if (base) baseArtByNum.set(num, base.image);
+    }
+    const used = new Set();
+    const cards = rows.map((c, i) => {
+      const local = (c.num || '').split('/')[0] || String(i + 1);
+      const num = parseInt(local, 10) || (i + 1);
+      // base card built straight from the index row (same shape buildSetFromIndex uses)
+      const idxCard = {
+        id: c.i, num, localId: local,
+        name: c.n, rarity: c.rar || '', category: 'Pokemon', types: [],
+        image: (c.img || '').replace('_200w', '_400w'), fullImg: true,
+        priceUsd: c.p != null ? c.p : null, priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true,
+        illustrator: '', meta: [['Set', setName]], flavor: '',
+        fallbackImage: baseArtByNum.get(num) || null, // base printing's tcgdex art if the TCGplayer scan 404s
+      };
+      // enrich the base printing of this number from the bundled record (richer art +
+      // metadata). Match the bundled card by normalized name; fall back to the
+      // shortest-named (= base) bundled card. Each bundled card enriches at most once.
+      const pool = (bundledByNum.get(num) || []).filter((b) => !used.has(b));
+      if (pool.length) {
+        const nn = idxNameNorm(c.n);
+        let b = pool.find((x) => idxNameNorm(x.name) === nn) ||
+                pool.slice().sort((x, y) => x.name.length - y.name.length)[0];
+        used.add(b);
+        return { ...b, priceUsd: typeof b.priceUsd === 'number' ? b.priceUsd : idxCard.priceUsd };
+      }
+      return idxCard;
+    });
+    // sensible order: by card number, base printing before its variant reprints
+    cards.sort((a, b) => (a.num - b.num) || (String(a.id).length - String(b.id).length) || String(a.id).localeCompare(String(b.id)));
+    SETS[id].cards = cards;
+    SETS[id].set.total = cards.length;
+    SETS[id]._merged = true;
+    // drop any caches built from the old (bundled-only) list so the wheel rebuilds full
+    delete cardListCache[id]; delete domCache[id]; _speciesIndex = null;
+  }
+
   // --- Curated "First Partner Illustration Collection" sets --------------------
   // These 2026 promos aren't cataloged as singles on TCGplayer yet, but their cards
   // live in the index under the Mega Evolution Promo group (24451): #037–045 are
@@ -1412,8 +1657,10 @@
       mode = 'idle';
       if (cardEl) {
         const slot = slotOf[Number(cardEl.dataset.i)];
-        if (slot === current) openZoomFor(slot, cardEl); // focused card → inspect
-        else goTo(slot);                                  // any other → glide it to focus
+        // ANY clicked card opens its OWN inspect — centered or off to the side.
+        // openZoomFor repositions the wheel behind the modal when slot!==current,
+        // and uses the clicked element as the FLIP source for the morph.
+        openZoomFor(slot, cardEl);
       } else {
         mode = 'snapping'; target = Math.round(position);
       }
@@ -1496,6 +1743,27 @@
   rail.addEventListener('pointermove', (e) => { if (scrubbing) goTo(railIndex(e)); });
   rail.addEventListener('pointerup', () => { scrubbing = false; });
   rail.addEventListener('pointercancel', () => { scrubbing = false; });
+
+  // hover tooltip: number + name of the card under the pointer (shown via CSS
+  // .rail:hover; built lazily so buildDial can rebuild railArc freely)
+  let dialTip = null;
+  const dialTipShow = (e) => {
+    if (zoom.open || MOBILE) return;
+    if (!dialTip || !dialTip.isConnected) {
+      dialTip = document.createElement('span');
+      dialTip.className = 'dial-tip';
+      rail.appendChild(dialTip);
+    }
+    const card = cardAt(railIndex(e));
+    if (!card) return;
+    const num = document.createElement('b');
+    num.textContent = card.sealed ? 'SEALED' : String(card.localId ?? '');
+    dialTip.replaceChildren(num, document.createTextNode(card.name));
+    const r = rail.getBoundingClientRect();
+    dialTip.style.left = `${Math.max(70, Math.min(r.width - 70, e.clientX - r.left)).toFixed(0)}px`;
+  };
+  rail.addEventListener('pointerenter', dialTipShow);
+  rail.addEventListener('pointermove', dialTipShow);
 
   // --- Zoom view ------------------------------------------------------------------------
   const fmt = (v, cur) => (typeof v === 'number' ? (cur === 'EUR' ? '€' : '$') + v.toFixed(2) : '—');
@@ -2055,7 +2323,7 @@
     // FLIP source = the card the user actually clicked, captured before any reposition
     const flipSrc = (srcEl ?? els[view[i]].el).getBoundingClientRect();
     if (i !== current) goTo(i, true); // reposition behind the modal; close returns here
-    zoomReturnEl = els[view[i]].el;
+    zoomReturnEl = (MOBILE && srcEl) ? srcEl : els[view[i]].el;   // mobile: morph back to the carousel card, not the hidden wheel el
     // pin the featured card's width so the action row + "more cards" button can
     // cap to it (computed from the CSS sizing formula — no layout needed yet)
     const _cardW = innerWidth < 1024
@@ -2080,7 +2348,10 @@
     if (card.sealed) {
       zoomImg.src = card.image; // local transparent product render
     } else {
-      zoomImg.src = liveSrc || cardImg(card, 'low.webp');
+      // open on the wheel's live bytes; if the wheel never resolved this card
+      // (deep-link straight to inspect) and its primary art is a dead asset,
+      // start on the base-printing fallback rather than a broken full url.
+      zoomImg.src = liveSrc || cardImg(card, 'low.webp') || cardImgFallback(card, 'high.webp');
       if (card.imageOk !== false) {
         const webp = new Image();
         webp.onload = () => {
@@ -2090,10 +2361,16 @@
           png.onload = () => { if (ig === imgGen) zoomImg.src = png.src; };
           png.src = cardImg(card, 'high.png');
         };
+        // dead primary (e.g. missing TCGplayer pattern scan) -> sharpen to the base art instead
+        webp.onerror = () => {
+          if (ig !== imgGen) return;
+          const fb = cardImgFallback(card, 'high.webp');
+          if (fb) zoomImg.src = fb;
+        };
         webp.src = cardImg(card, 'high.webp');
       }
     }
-    $('zoomBgArt').src = card.sealed ? card.image : cardImg(card, 'low.webp');
+    $('zoomBgArt').src = card.sealed ? card.image : (cardImg(card, 'low.webp') || cardImgFallback(card, 'low.webp'));
     paintZoomScene(card); // editorial title + holo badge + backdrop tint
     updateListButtons(card);
     // share link: a real anchor — click copies, right-click/long-press works too
@@ -2425,18 +2702,55 @@
   });
   tiltZone.addEventListener('pointerleave', () => { if (!magOn && !rotating) tiltCard.style.transform = ''; });
 
-  // --- Idle prefetch: warm the cache with every high.webp so the wheel is crisp anywhere ---
-  let pfNext = 0;
-  function prefetchChain() {
-    while (pfNext < N && (els[pfNext].loaded === 'high' || CARDS[pfNext].imageOk === false)) pfNext++;
-    if (pfNext >= N) return;
-    const i = pfNext++;
-    const im = new Image();
-    im.decoding = 'async';
-    im.onload = im.onerror = () => setTimeout(prefetchChain, 60);
-    im.src = cardImg(CARDS[i], 'high.webp');
+  // --- Idle prefetch: warm high.webp so the wheel stays crisp anywhere, WITHOUT a
+  // boot-time request storm. The old version fired the WHOLE set (3 chains over
+  // every card) ~1.5s after load — on a merged 300+ card set that's 300 image
+  // requests at once, saturating the connection and stalling the on-screen cards'
+  // own high-res upgrades. Instead we warm cards in PROXIMITY order around the
+  // current position, one request at a time, on requestIdleCallback — near cards
+  // first, only as the browser is idle, and re-centred whenever the user moves.
+  // The visible window (±10) is already eager-loaded by render()/wantImage.
+  const ric = window.requestIdleCallback || ((fn) => setTimeout(() => fn({ timeRemaining: () => 8 }), 200));
+  const PF_RADIUS = 60;        // warm up to ±60 cards out from where the user is sitting
+  let pfScheduled = false;
+  const pfDone = new Set();    // card indices whose high.webp request has been issued (cache warm)
+  // pfDone tracks PREFETCH progress only; els[].loaded stays the visible-img state.
+  // pick the nearest not-yet-warmed card within the radius of the current centre
+  function pfPick() {
+    const c = Math.max(0, Math.min(N - 1, Math.round(position)));
+    const want = (i) => i >= 0 && i < N && els[i] && !pfDone.has(i)
+      && els[i].loaded !== 'high' && els[i].loaded !== 'full' && els[i].loaded !== 'fallback'
+      && CARDS[i].imageOk !== false;
+    for (let d = 0; d <= PF_RADIUS; d++) {
+      if (want(c + d)) return c + d;
+      if (d && want(c - d)) return c - d;
+    }
+    return -1;
   }
-  setTimeout(() => { prefetchChain(); prefetchChain(); prefetchChain(); }, 1500);
+  function pfStep(deadline) {
+    pfScheduled = false;
+    let budget = 3; // a few per idle slice, then yield
+    while (budget-- > 0 && (!deadline || deadline.timeRemaining() > 2)) {
+      const i = pfPick();
+      if (i < 0) return;          // nothing left near the user — wait for them to move
+      pfDone.add(i);              // mark issued so we never re-pick (cache, not visible state)
+      const im = new Image();
+      im.decoding = 'async';
+      im.onload = im.onerror = () => schedulePrefetch(); // chain the next on completion
+      // for full-url cards there's no quality ladder; warming the same url primes the cache
+      im.src = cardImg(CARDS[i], 'high.webp');
+    }
+    schedulePrefetch();
+  }
+  function schedulePrefetch() {
+    if (pfScheduled) return;
+    pfScheduled = true;
+    ric(pfStep);
+  }
+  // expose the trigger loadSet() already calls via `pfNext = 0` (kept for compatibility);
+  // re-centre + resume warming whenever a set loads or the wheel settles on a new card.
+  let pfNext = 0; // legacy flag loadSet() pokes; we re-arm prefetch on it
+  setTimeout(schedulePrefetch, 1200);
 
   // --- HOME: hero → "Get started" → pick a GAME (bare logos floating in 3D) →
   // pick a SET → drop into that set on its first card. GSAP for every transition.
@@ -2465,8 +2779,9 @@
           <button type="button" class="get-started" id="getStarted">Get started <span aria-hidden="true">&rarr;</span></button>
         </div>
         <div class="hv hv-pick" id="hvPick" hidden>
-          <div class="uni-cols" id="pickLogos">${UNI_ORDER.map((g) => `<button type="button" class="uni-col" data-game="${g.game}" style="--accent:${g.accent}" aria-label="${g.name}"><span class="uc-wash" aria-hidden="true"></span><span class="uc-glow" aria-hidden="true"></span><span class="uc-inner"><img class="uc-logo" src="assets/logos/${g.game}.png?v=79" alt="${g.name}"><span class="uc-go">Browse sets <i aria-hidden="true">&rarr;</i></span></span></button>`).join('')}</div>
-          <span class="uni-head">Choose your universe</span>
+          <div class="uni-cols" id="pickLogos">${UNI_ORDER.map((g) => `<button type="button" class="uni-col" data-game="${g.game}" style="--accent:${g.accent}" aria-label="${g.name}"><span class="uc-wash" aria-hidden="true"></span><span class="uc-glow" aria-hidden="true"></span><span class="uc-inner"><img class="uc-logo" src="assets/logos/${g.game}.png?v=79" alt="${g.name}"><span class="uc-stats"><b>${setsForGame(g.game).length}</b> sets &middot; live prices</span><span class="uc-go">Browse sets <i aria-hidden="true">&rarr;</i></span></span></button>`).join('')}</div>
+          <canvas class="uni-fx" id="uniFX" aria-hidden="true"></canvas>
+          <div class="uni-head"><span class="uh-kick">Crowns &middot; live market</span><span class="uh-title">Choose your universe</span></div>
         </div>
         <div class="hv hv-sets" id="hvSets" hidden>
           <p class="pick-prompt" id="setsTitle">Choose a set</p>
@@ -2483,11 +2798,11 @@
       gsap.timeline({ onComplete: () => {
         revealSetsInPlace(b.dataset.game);
         gsap.set(cols, { clearProps: 'flexGrow,opacity,scale' });
-        gsap.set('#pickLogos .uc-logo, #pickLogos .uc-go', { clearProps: 'all' });   // reset so the picker is clean on return
+        gsap.set('#pickLogos .uc-logo, #pickLogos .uc-go, #pickLogos .uc-stats', { clearProps: 'all' });   // reset so the picker is clean on return
       } })
         .to(b.querySelector('.uc-glow'), { opacity: 0.95, scale: 1.25, duration: 0.55, ease: 'power2.out' }, 0)
         .to(b.querySelector('.uc-logo'), { opacity: 0, scale: 0.82, duration: 0.42, ease: 'power2.in' }, 0.1)
-        .to(b.querySelector('.uc-go'), { opacity: 0, y: 8, duration: 0.3, ease: 'power2.in' }, 0)
+        .to(b.querySelectorAll('.uc-go, .uc-stats'), { opacity: 0, y: 8, duration: 0.3, ease: 'power2.in' }, 0)
         .to(b, { flexGrow: 30, duration: 0.62, ease: 'power3.inOut' }, 0)
         .to(cols.filter((c) => c !== b), { flexGrow: 0.001, opacity: 0, duration: 0.5, ease: 'power3.inOut' }, 0);
     });
@@ -2498,6 +2813,102 @@
     if (window.gsap) gsap.to('#pickLogos .uc-glow',
       { opacity: 0.55, scale: 1.09, duration: 4.5, ease: 'sine.inOut', yoyo: true, repeat: -1, transformOrigin: '50% 34%', stagger: { each: 0.8, from: 'random' } });
     HOME_GAMES.forEach((g) => { const im = new Image(); im.src = g.card; }); // preload hallway cards
+    buildPickerFX(UNI_ORDER);
+    // hovering a universe wakes ITS dust (index into the boost uniform)
+    $('pickLogos').addEventListener('pointerover', (e) => {
+      const b = e.target.closest('.uni-col');
+      if (pickerFX && b) pickerFX.hover([...$('pickLogos').children].indexOf(b));
+    });
+    $('pickLogos').addEventListener('pointerleave', () => { if (pickerFX) pickerFX.hover(-1); });
+  }
+
+  // --- Picker ember-dust: one Three.js Points layer floating over the four
+  // columns. Uniform arrays carry the LIVE column rects each frame, so the dust
+  // stretches with a column as it flex-grows on hover, and hovering brightens
+  // that universe's embers. Rendered from tick() while the picker is visible.
+  let pickerFX = null;
+  function buildPickerFX(games) {
+    if (pickerFX !== null || !window.THREE) return;
+    const canvas = $('uniFX');
+    const hvPickEl = $('hvPick'), colsEl = $('pickLogos');
+    if (!canvas || !colsEl) { pickerFX = false; return; }
+    try {
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: 'low-power' });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+      const scene = new THREE.Scene();
+      const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      const COUNT = 560;
+      const local = new Float32Array(COUNT * 3), tint = new Float32Array(COUNT * 3),
+        colIx = new Float32Array(COUNT), seed = new Float32Array(COUNT);
+      const cTmp = new THREE.Color(), white = new THREE.Color('#ffffff');
+      for (let i = 0; i < COUNT; i++) {
+        const c = i % 4;
+        local[i * 3] = Math.random(); local[i * 3 + 1] = Math.random();
+        colIx[i] = c; seed[i] = Math.random();
+        cTmp.set(games[c].accent).lerp(white, 0.3);
+        tint[i * 3] = cTmp.r; tint[i * 3 + 1] = cTmp.g; tint[i * 3 + 2] = cTmp.b;
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(local, 3));
+      geo.setAttribute('aTint', new THREE.BufferAttribute(tint, 3));
+      geo.setAttribute('aCol', new THREE.BufferAttribute(colIx, 1));
+      geo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+      const uni = {
+        uTime: { value: 0 }, uDpr: { value: Math.min(devicePixelRatio, 1.5) },
+        uColL: { value: [0, 0.25, 0.5, 0.75] }, uColW: { value: [0.25, 0.25, 0.25, 0.25] },
+        uColT: { value: [0, 0, 0, 0] }, uColH: { value: [1, 1, 1, 1] },
+        uBoost: { value: [0, 0, 0, 0] },
+      };
+      const mat = new THREE.ShaderMaterial({
+        uniforms: uni, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        vertexShader: `
+          uniform float uTime; uniform float uDpr;
+          uniform float uColL[4]; uniform float uColW[4]; uniform float uColT[4]; uniform float uColH[4]; uniform float uBoost[4];
+          attribute vec3 aTint; attribute float aCol; attribute float aSeed;
+          varying vec3 vTint; varying float vA;
+          void main() {
+            int ci = int(aCol + 0.5);
+            float yy = fract(position.y + uTime * (0.012 + aSeed * 0.022));
+            float xx = position.x + sin(uTime * (0.25 + aSeed * 0.6) + aSeed * 43.0) * 0.05;
+            float x = uColL[ci] + xx * uColW[ci];
+            float y = uColT[ci] + yy * uColH[ci];
+            float boost = uBoost[ci];
+            float tw = 0.6 + 0.4 * sin(uTime * (0.7 + aSeed * 2.2) + aSeed * 31.0);
+            vA = (0.26 + 0.6 * boost) * tw * smoothstep(0.0, 0.14, yy) * smoothstep(1.0, 0.86, yy);
+            vTint = aTint;
+            gl_Position = vec4(x * 2.0 - 1.0, 1.0 - y * 2.0, 0.0, 1.0);
+            gl_PointSize = (1.4 + aSeed * 2.4 + boost * 1.8) * uDpr;
+          }`,
+        fragmentShader: `
+          precision mediump float;
+          varying vec3 vTint; varying float vA;
+          void main() {
+            float d = length(gl_PointCoord - 0.5);
+            gl_FragColor = vec4(vTint, smoothstep(0.5, 0.06, d) * vA);
+          }`,
+      });
+      scene.add(new THREE.Points(geo, mat));
+      const boostTarget = [0, 0, 0, 0];
+      let W = 0, H = 0;
+      pickerFX = {
+        hover(ix) { for (let i = 0; i < 4; i++) boostTarget[i] = i === ix ? 1 : 0; },
+        live: () => !homeEl.hidden && !hvPickEl.hidden,
+        render(ms) {
+          const w = canvas.clientWidth || 2, h = canvas.clientHeight || 2;
+          if (w !== W || h !== H) { W = w; H = h; renderer.setSize(w, h, false); }
+          const cols = colsEl.children;
+          for (let i = 0; i < 4 && i < cols.length; i++) {
+            const r = cols[i].getBoundingClientRect();
+            uni.uColL.value[i] = r.left / w; uni.uColW.value[i] = Math.max(r.width, 1) / w;
+            uni.uColT.value[i] = r.top / h; uni.uColH.value[i] = Math.max(r.height, 1) / h;
+            uni.uBoost.value[i] += (boostTarget[i] - uni.uBoost.value[i]) * 0.08;
+          }
+          uni.uTime.value = REDUCED ? 18.0 : ms * 0.001;
+          renderer.render(scene, cam);
+        },
+      };
+      pickerFX.render(0); // paint frame 1 even under reduced motion
+    } catch { pickerFX = false; }
   }
   // generic crossfade/scale between two home views
   // clean opacity crossfade — NO container scale/blur (that made the whole grid
@@ -2552,7 +2963,7 @@
   function buildSetGrid(game) {
     pickGame = game;
     const sets = setsForGame(game);
-    $('setsTitle').textContent = (HOME_GAMES.find((g) => g.game === game)?.name || '') + ' — choose a set';
+    { const nm = HOME_GAMES.find((g) => g.game === game)?.name || ''; const SH = { pokemon: 60, magic: 74, lorcana: 74, onepiece: 52 }; $('setsTitle').innerHTML = `<img class="sets-logo" src="assets/logos/${game}.png?v=79" alt="${nm}" style="height:${SH[game] || 62}px">`; }
     $('hvSets').style.setProperty('--accent', HOME_GAMES.find((g) => g.game === game)?.accent || '#7fd4f4');
     const grid = $('setGrid');
     grid.innerHTML = (() => {
@@ -2615,6 +3026,7 @@
     }
     if (bestCi < 0 || slotOf[bestCi] == null) return;
     position = target = slotOf[bestCi]; velocity = 0; mode = 'idle'; current = -1; render(true);
+    if (MOBILE && mcar) mScrollTo(slotOf[bestCi], false);   // mobile carousel lands on the first card too
   }
   // mouse-parallax: the floating logos tilt with the cursor, giving real depth
   let homeParallax = false;
@@ -2635,11 +3047,165 @@
     $('hvHero').hidden = true; $('hvPick').hidden = false; $('hvSets').hidden = true;
     if (window.gsap) {
       gsap.fromTo('#hvPick .uni-col', { opacity: 0, yPercent: 6 }, { opacity: 1, yPercent: 0, duration: 0.7, ease: 'power3.out', stagger: 0.08, clearProps: 'transform' });
-      gsap.fromTo('#hvPick .uni-head', { opacity: 0 }, { opacity: 1, duration: 0.6, delay: 0.34 });
+      gsap.fromTo('#hvPick .uc-logo', { opacity: 0, y: 22, scale: 0.93 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'power3.out', stagger: 0.09, delay: 0.16, clearProps: 'all' });
+      gsap.fromTo('#hvPick .uc-stats', { opacity: 0, y: 10 },
+        { opacity: 0.62, y: 0, duration: 0.55, ease: 'power3.out', stagger: 0.09, delay: 0.34, clearProps: 'opacity,transform' });
+      gsap.fromTo('#hvPick .uni-head > *', { opacity: 0, y: -10 },
+        { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.09, delay: 0.3, clearProps: 'opacity,transform' });
     }
   }
   function hideHome() { homeEl.hidden = true; document.body.classList.remove('home-open'); }
   document.querySelector('.lockup').addEventListener('click', () => { location.href = 'index.html'; }); // brand mark → real homepage
+
+  // ========================================================================
+  // MOBILE — purpose-built phone view (PWA). The 3D wheel doesn't translate to
+  // a small touch screen, so on phones we hide it (CSS) and drive a clean
+  // horizontal snap-carousel instead, reusing view[] / setCurrent / cardImg /
+  // openZoomFor. The wheel stays in the DOM but never animates here: goTo() is
+  // rerouted to scroll the carousel, so search, the keyboard, the scrubber and
+  // deep-links keep working. Everything is gated on MOBILE / body.mobile — the
+  // desktop wheel is untouched.
+  // ------------------------------------------------------------------------
+  function mStride() {                        // centre-to-centre distance of one card
+    const a = mcar.children[0], b = mcar.children[1];
+    return (a && b) ? (b.offsetLeft - a.offsetLeft) : (a ? a.offsetWidth : (mcar.clientWidth || 1));
+  }
+  function mCenteredSlot() {
+    return Math.max(0, Math.min(view.length - 1, Math.round(mcar.scrollLeft / mStride())));
+  }
+  function mLoadImg(img, card, q) {
+    if (card.sealed) { img.dataset.q = 'high'; img.src = card.image; return; }
+    if (card.fullImg) {                       // Magic/Lorcana/index — one url, no quality ladder
+      img.dataset.q = 'high'; img.src = cardImg(card, 'high.webp');
+      img.onerror = () => { if (img.dataset.q === 'fb') return; const fb = cardImgFallback(card, 'high.webp'); if (fb) { img.dataset.q = 'fb'; img.src = fb; } };
+      return;
+    }
+    if (q === 'high') {                       // preload hi-res, swap in when ready (no flash)
+      const pre = new Image(); pre.decoding = 'async';
+      pre.onload = () => { img.dataset.q = 'high'; img.src = pre.src; };
+      pre.onerror = () => { const fb = cardImgFallback(card, 'high.webp'); if (fb) { img.dataset.q = 'high'; img.src = fb; } };
+      pre.src = cardImg(card, 'high.webp');
+    } else {
+      img.dataset.q = 'low'; img.src = cardImg(card, 'low.webp');
+    }
+  }
+  function mLazyAround(slot) {                 // hi-res the centred card, low-res its neighbours
+    if (!mcar) return;
+    const R = 4;
+    for (let s = Math.max(0, slot - R); s <= Math.min(view.length - 1, slot + R); s++) {
+      const b = mcar.children[s]; if (!b) continue;
+      const img = b.firstElementChild, card = CARDS[view[s]];
+      const want = (s === slot) ? 'high' : 'low';
+      if (img.dataset.q === 'high' || (img.dataset.q === 'low' && want === 'low')) continue;
+      mLoadImg(img, card, want);
+    }
+  }
+  function mSyncCurrent(slot) {                // a card centred → drive the shared state + caption
+    position = target = slot; velocity = 0; mode = 'idle';
+    setCurrent(slot);                          // reuses the full caption / counter / dial logic
+    const kids = mcar ? mcar.children : [];
+    for (let s = 0; s < kids.length; s++) kids[s].classList.toggle('on', s === slot);
+    if (mscrub) {
+      const f = N > 1 ? slot / (N - 1) : 0.5;
+      mscrub.querySelector('.m-scrub-fill').style.width = (f * 100) + '%';
+      mscrub.querySelector('.m-scrub-thumb').style.left = (f * 100) + '%';
+    }
+  }
+  function mScrollTo(slot, smooth) {           // programmatic move (goTo / scrubber / search / land)
+    if (!mcar || !mcar.children.length) return;
+    mProg = true;                              // suppress the swipe-settle handler while we drive it
+    mcar.scrollTo({ left: slot * mStride(), behavior: smooth ? 'smooth' : 'auto' });
+    mSyncCurrent(slot); mLazyAround(slot);
+    clearTimeout(mProgT); mProgT = setTimeout(() => { mProg = false; }, smooth ? 540 : 110);
+  }
+  function onMScroll() {                        // user swipe → snap settle → sync
+    if (mProg) return;
+    clearTimeout(mScrollT);
+    mScrollT = setTimeout(() => {
+      const slot = mCenteredSlot();
+      if (slot !== current) mSyncCurrent(slot);
+      mLazyAround(slot);
+    }, 80);
+  }
+  function mobileBuild() {                      // (re)build the strip in the current view order
+    if (!MOBILE || !mcar) return;
+    mcar.replaceChildren(...view.map((ci, slot) => {
+      const card = CARDS[ci];
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'm-card' + (card.sealed ? ' sealed' : '');
+      b.dataset.slot = slot;
+      b.setAttribute('aria-label', 'Inspect ' + card.name);
+      const img = document.createElement('img');
+      img.alt = card.name; img.draggable = false; img.decoding = 'async';
+      b.appendChild(img);
+      return b;
+    }));
+    const s = current >= 0 ? current : 0;
+    requestAnimationFrame(() => mScrollTo(s, false));
+  }
+  function bindScrub() {                        // drag the scrubber to fly through the set
+    const track = mscrub.querySelector('.m-scrub-track');
+    const bubble = mscrub.querySelector('.m-scrub-bubble');
+    let dragging = false;
+    const fracAt = (e) => { const r = track.getBoundingClientRect(); return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); };
+    const move = (e) => {
+      const f = fracAt(e), slot = Math.round(f * (N - 1));
+      const card = CARDS[view[slot]];
+      bubble.hidden = false;
+      bubble.style.left = (f * 100) + '%';
+      bubble.textContent = card.sealed ? 'Sealed' : ('#' + card.localId);
+      mScrollTo(slot, false);
+    };
+    track.addEventListener('pointerdown', (e) => { dragging = true; try { track.setPointerCapture(e.pointerId); } catch (err) { /* inactive pointer */ } move(e); });
+    track.addEventListener('pointermove', (e) => { if (dragging) move(e); });
+    const end = () => { dragging = false; setTimeout(() => { bubble.hidden = true; }, 450); };
+    track.addEventListener('pointerup', end);
+    track.addEventListener('pointercancel', end);
+  }
+  function mobileInit() {
+    document.body.classList.toggle('mobile', MOBILE);
+    if (!MOBILE || mViewport) return;
+    // carousel stage, inserted just above <main> so the caption sits beneath it
+    mViewport = document.createElement('div');
+    mViewport.className = 'm-stage';
+    mcar = document.createElement('div');
+    mcar.id = 'mcar'; mcar.className = 'm-car';
+    mcar.setAttribute('aria-roledescription', 'carousel');
+    mcar.setAttribute('aria-label', 'Cards');
+    mViewport.appendChild(mcar);
+    document.querySelector('main').before(mViewport);
+    mcar.addEventListener('scroll', onMScroll, { passive: true });
+    mcar.addEventListener('click', (e) => {
+      const b = e.target.closest('.m-card'); if (!b) return;
+      const slot = +b.dataset.slot;
+      if (slot !== current) { mScrollTo(slot, true); return; }  // tap a peek card → centre it
+      openZoomFor(slot, b);                                     // tap the focused card → inspect
+    });
+    // search: a 🔍 toggle drops the existing #search field into a full-width bar
+    const tgl = document.createElement('button');
+    tgl.type = 'button'; tgl.className = 'm-searchtgl'; tgl.setAttribute('aria-label', 'Search cards');
+    tgl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>';
+    tgl.addEventListener('click', () => {
+      const open = document.body.classList.toggle('msearch-open');
+      if (open) searchEl.focus(); else searchEl.blur();
+    });
+    document.querySelector('.chrome-right').appendChild(tgl);
+    searchEl.addEventListener('change', () => document.body.classList.remove('msearch-open'));
+    // scrubber — drag to fly through the whole set
+    mscrub = document.createElement('div');
+    mscrub.className = 'm-scrub';
+    mscrub.innerHTML = '<div class="m-scrub-track"><div class="m-scrub-fill"></div><div class="m-scrub-thumb"></div></div><div class="m-scrub-bubble" hidden></div>';
+    document.querySelector('main').after(mscrub);
+    bindScrub();
+    mobileBuild();
+  }
+  MQ_MOBILE.addEventListener('change', (e) => {
+    MOBILE = e.matches;
+    document.body.classList.toggle('mobile', MOBILE);
+    if (MOBILE) { mobileInit(); mobileBuild(); }
+  });
 
   // --- Boot --------------------------------------------------------------------------------
   measure();
@@ -2667,6 +3233,7 @@
     $('hvHero').hidden = true; $('hvPick').hidden = true; goSets(reqGame);
   };
   requestAnimationFrame(tick);
+  mobileInit();   // on phones: build the snap-carousel before the first set loads
   if (isExternalReq) {
     Promise.resolve(loadExternalSet(reqSet)).then(() => { if (deepCard >= 1) openDeep(); });
   } else if (reqSet && SETS[reqSet]) {

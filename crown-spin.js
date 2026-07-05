@@ -6,9 +6,9 @@
 (function () {
   var els = document.querySelectorAll('.crown-spin, .lockup-crown');
   if (!els.length) return;
-  var FRAMES = 90, DUR = 3200, lastF = -1;              // 90 frames (4° steps) for a smooth turntable
+  var FRAMES = 90, DUR = 5800, lastF = -1;              // 90 frames; slower turntable
   function tick(now) {
-    var f = (now / DUR % 1 * FRAMES) | 0;               // 0..89 over a 3.2s loop
+    var f = (FRAMES - 1) - ((now / DUR % 1 * FRAMES) | 0); // reversed frame order = clockwise spin
     if (f !== lastF) {
       lastF = f;
       // each sprite frame is square, drawn at `auto 100%`, so its display width == the element's height

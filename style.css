@@ -55,6 +55,9 @@ body {
   mix-blend-mode: screen;
   will-change: transform, opacity;
 }
+/* Three.js stage floor — a lit pool + receding grid grounding the focused card,
+   tinted per set by applyAmbience and rendered from the rAF loop (buildFloor) */
+#stageFloor { position: absolute; left: 0; bottom: 0; width: 100%; height: 46%; }
 
 /* ---------- Minimap (bottom arc dial, inset from the edges) ----------
    The heat-bar strip is bent into a shallow concave-up arc that tapers to
@@ -108,6 +111,17 @@ body {
   background: radial-gradient(circle at 36% 30%, #fff, #ffe08a 50%, #e0a834);
   box-shadow: 0 0 12px rgba(255, 210, 90, 0.9), 0 2px 6px rgba(0, 0, 0, 0.5);
 }
+/* hover tooltip: card number + name under the pointer (built lazily by app.js) */
+.dial-tip {
+  position: absolute; bottom: 46px; left: 50%; transform: translateX(-50%);
+  padding: 5px 12px; border-radius: 8px; pointer-events: none; white-space: nowrap; z-index: 4;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; color: #eaf1ff;
+  background: rgba(10, 14, 30, 0.94); border: 1px solid rgba(140, 168, 224, 0.28);
+  box-shadow: 0 10px 26px -12px rgba(0, 0, 0, 0.8);
+  opacity: 0; transition: opacity 0.18s;
+}
+.rail:hover .dial-tip { opacity: 1; }
+.dial-tip b { color: var(--ember-glint); font-weight: 600; margin-right: 7px; }
 .rail:focus-visible { outline: 1px solid var(--spectral); outline-offset: 4px; border-radius: 8px; }
 
 /* ---------- Header chrome ---------- */
@@ -123,7 +137,7 @@ body {
 }
 .lockup { display: flex; align-items: center; gap: 11px; cursor: pointer; }
 .lockup:hover { filter: brightness(1.15); }
-.lockup-crown { width: 48px; height: 48px; flex: none; background: url(assets/crown-spin.png?v=2) 0 center / auto 100% no-repeat; background-position-x: 0; filter: drop-shadow(0 3px 7px rgba(0,0,0,.5)); }
+.lockup-crown { width: 48px; height: 48px; flex: none; background: url(assets/crown-spin.png?v=3) 0 center / auto 100% no-repeat; background-position-x: 0; filter: drop-shadow(0 3px 7px rgba(0,0,0,.5)); }
 .lockup-logo { height: clamp(30px, 3vw, 40px); width: auto; display: block; filter: drop-shadow(0 2px 7px rgba(0,0,0,.5)) drop-shadow(0 0 16px rgba(255,200,70,.22)); }
 /* the POKEX wordmark — blue-bordered box, gold letters, blue KE (matches the homepage) */
 .logo-pokex { display: inline-flex; align-items: center; line-height: 1; user-select: none; text-transform: uppercase;
@@ -151,7 +165,7 @@ body {
   clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
 }
 .set-btn:hover, .set-btn:focus-visible { background: rgba(38, 35, 51, 0.55); }
-.set-btn img { height: 42px; filter: drop-shadow(0 0 14px rgba(108, 46, 166, 0.55)); }
+.set-btn img { height: 60px; filter: drop-shadow(0 0 14px rgba(108, 46, 166, 0.55)); }
 /* shown in place of the logo when a set has no logo asset (e.g. Temporal Forces) */
 .set-btn-name {
   font-family: var(--font-display);
@@ -499,6 +513,15 @@ main {
   font-variant-numeric: tabular-nums;
   min-height: 14px;
 }
+.cap-tags { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 12px; }
+/* rarity + number as proper spec chips by the price (P: they live at the bottom) */
+.cap-tags .cap-rarity-top, .cap-tags .cap-number-top {
+  min-height: 0; display: inline-flex; align-items: center; line-height: 1;
+  padding: 6px 14px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, currentColor 32%, transparent);
+  background: color-mix(in srgb, currentColor 7%, rgba(10, 14, 28, 0.5));
+}
+.cap-tags .cap-number-top { border-color: rgba(140, 168, 224, 0.22); background: rgba(10, 14, 28, 0.5); }
 /* the price — the dopamine hit: large, money-green, glowing on the chase tier */
 /* the money number — a living green: gradient sheen + glow (a little dopamine) */
 .cap-price {
@@ -1508,6 +1531,7 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
 .hero-title span { display: block; }
 .hero-title .ht2 { background: linear-gradient(100deg, var(--spectral-bright), var(--phantom), var(--ember-glint)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
 .hero-sub { position: relative; margin-top: 24px; font-family: var(--font-ui); font-size: clamp(14px, 1.7vw, 19px); color: var(--text-dim); letter-spacing: 0.03em; }
+.pick-prompt .sets-logo { display: block; margin: 0 auto; width: auto; filter: drop-shadow(0 3px 12px rgba(0,0,0,.55)); }
 .get-started { position: relative; margin-top: clamp(28px, 5vh, 54px); font-family: var(--font-ui); font-weight: 600; font-size: 16px; color: #06121a; background: linear-gradient(100deg, var(--spectral-bright), #c9b3ff); border: none; border-radius: 999px; padding: 15px 34px; cursor: pointer; display: inline-flex; align-items: center; gap: 9px; box-shadow: 0 16px 40px rgba(127,212,244,0.3); transition: transform 0.2s, box-shadow 0.2s; }
 .get-started span { transition: transform 0.2s; }
 .get-started:hover { transform: translateY(-2px); box-shadow: 0 22px 52px rgba(127,212,244,0.46); }
@@ -1579,7 +1603,7 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
   color: color-mix(in srgb, var(--accent, #7fd4f4) 80%, #fff); text-shadow: 0 0 22px color-mix(in srgb, var(--accent, #7fd4f4) 55%, transparent); }
 .st-name { position: relative; z-index: 1; font-family: var(--font-display); font-size: 15px; font-weight: 600; color: #fff; line-height: 1.12; }
 .st-count { position: relative; z-index: 1; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
-.pick-back { position: absolute; top: clamp(18px, 4vh, 40px); left: clamp(18px, 4vw, 46px); z-index: 6; margin: 0; display: inline-flex; align-items: center; gap: 10px;
+.pick-back { position: absolute; top: clamp(78px, 11vh, 104px); left: clamp(18px, 4vw, 46px); z-index: 6; margin: 0; display: inline-flex; align-items: center; gap: 10px;
   font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff;
   background: color-mix(in srgb, var(--accent, #7fd4f4) 16%, rgba(8, 13, 30, 0.55)); border: 1px solid color-mix(in srgb, var(--accent, #7fd4f4) 50%, transparent);
   border-radius: 30px; padding: 11px 20px 11px 16px; cursor: pointer; backdrop-filter: blur(6px);
@@ -1596,9 +1620,16 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
 /* ===== four-universe picker — full-bleed columns ===== */
 .hv-pick { padding: 0; pointer-events: auto; perspective: none; }
 .uni-cols { display: flex; width: 100%; height: 100%; pointer-events: auto; }
-.uni-head { position: absolute; top: clamp(18px, 4vh, 42px); left: 50%; transform: translateX(-50%); z-index: 5; pointer-events: none;
-  font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.24em; font-size: clamp(11px, 1.2vw, 15px);
-  color: rgba(255, 255, 255, 0.84); text-shadow: 0 2px 16px rgba(0, 0, 0, 0.75); }
+/* ember-dust canvas: Three.js Points floating OVER the columns (buildPickerFX);
+   z-4 = above the washes/content, below the title (5) — never intercepts input */
+.uni-fx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; }
+/* title block: gold mono kicker over the display-face headline */
+.uni-head { position: absolute; top: clamp(20px, 4.5vh, 48px); left: 50%; transform: translateX(-50%); z-index: 5; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.uh-kick { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.34em; text-transform: uppercase;
+  color: var(--ember-glint); opacity: 0.9; text-shadow: 0 1px 12px rgba(0, 0, 0, 0.7); }
+.uh-title { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.22em;
+  font-size: clamp(13px, 1.5vw, 19px); color: rgba(255, 255, 255, 0.92); text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8); }
 .uni-col { position: relative; flex: 1 1 0; height: 100%; min-width: 0; overflow: hidden; border: 0; padding: 0; margin: 0;
   background: #060c1e; cursor: pointer; border-right: 1px solid rgba(255, 255, 255, 0.07);
   transition: flex-grow 0.55s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -1608,9 +1639,16 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
 .uc-glow { position: absolute; inset: 0; will-change: opacity, transform;
   background: radial-gradient(68% 46% at 50% 34%, color-mix(in srgb, var(--accent) 52%, transparent) 0%, transparent 60%); }
 .uc-inner { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: clamp(18px, 3vh, 30px); padding: 32px; }
+  gap: clamp(14px, 2.4vh, 24px); padding: 32px; }
 .uc-logo { width: min(70%, 250px); max-height: clamp(110px, 18vh, 180px); object-fit: contain;
   filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.75)); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+/* optical balance: wide/short wordmarks read small at uniform width — give them more */
+.uni-col[data-game="magic"] .uc-logo { width: min(78%, 290px); }
+.uni-col[data-game="onepiece"] .uc-logo { width: min(74%, 265px); }
+/* live stat line under each logo — quiet at rest, full on hover */
+.uc-stats { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-dim); opacity: 0.62; transition: opacity 0.4s; }
+.uc-stats b { font-weight: 600; color: #fff; }
 .uc-go { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-display); font-weight: 600; text-transform: uppercase;
   letter-spacing: 0.16em; font-size: 12px; color: #fff; border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
   background: color-mix(in srgb, var(--accent) 16%, transparent); padding: 10px 20px; border-radius: 30px;
@@ -1620,6 +1658,7 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
 .uni-col:hover { flex-grow: 1.55; }
 .uni-col:hover .uc-wash { filter: brightness(1.18) saturate(1.1); }
 .uni-col:hover .uc-logo { transform: scale(1.08); }
+.uni-col:hover .uc-stats { opacity: 1; }
 .uni-col:hover .uc-go { opacity: 1; transform: translateY(0); }
 .uni-col:hover .uc-go i { transform: translateX(4px); }
 .uni-col:hover::after { box-shadow: inset 0 -5px 0 0 var(--accent), inset 0 0 90px -26px color-mix(in srgb, var(--accent) 85%, transparent); }

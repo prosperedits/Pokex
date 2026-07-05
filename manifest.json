@@ -1,0 +1,15 @@
+{
+  "name": "Crowns — TCG Tracker",
+  "short_name": "Crowns",
+  "description": "Every card, one place. Pokémon, Magic, Lorcana, One Piece — live prices and trends.",
+  "start_url": "./app.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c1a3c",
+  "theme_color": "#0c1a3c",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
