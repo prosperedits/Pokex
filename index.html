@@ -33,14 +33,20 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .cursor.hide{opacity:0}
 
 /* top bar */
-.topbar{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:18px clamp(20px,4vw,54px)}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:18px clamp(20px,4vw,54px);
+  transition:background .4s ease, backdrop-filter .4s ease}
+/* scrolled: the bar gains a soft veil + a gold hairline that fades in (simple, special) */
+.topbar::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;pointer-events:none;opacity:0;transition:opacity .45s;
+  background:linear-gradient(90deg,transparent 4%,rgba(255,210,74,.34) 30%,rgba(255,210,74,.5) 50%,rgba(255,210,74,.34) 70%,transparent 96%)}
+.topbar.scrolled{background:linear-gradient(180deg,rgba(5,10,26,.86),rgba(5,10,26,.55) 70%,transparent);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)}
+.topbar.scrolled::after{opacity:1}
 /* crest-lockup brand — gold crown + boxed CROWNS wordmark */
 .brand{display:inline-flex;align-items:center;gap:11px;text-decoration:none;padding:2px}
 .crown-spin{width:48px;height:48px;flex:none;background:url(assets/crown-spin.png?v=3) 0 center/auto 100% no-repeat;background-position-x:0;filter:drop-shadow(0 3px 7px rgba(0,0,0,.5))}
 .brand-logo{height:clamp(30px,3vw,40px);width:auto;display:block;filter:drop-shadow(0 2px 7px rgba(0,0,0,.5)) drop-shadow(0 0 16px rgba(255,200,70,.22))}
 .brand-crown{width:clamp(90px,9vw,140px);height:clamp(90px,9vw,140px);flex:none;filter:drop-shadow(0 5px 13px rgba(0,0,0,.5)) saturate(1.12) brightness(1.05) contrast(1.03)}
 .topbar-right{display:flex;align-items:center;gap:clamp(16px,2.1vw,32px)}
-.topbar-div{width:1px;height:26px;flex:none;background:linear-gradient(180deg,transparent,rgba(255,214,102,.55),transparent)}
+.topbar-div{width:1px;height:26px;flex:none;background:linear-gradient(180deg,transparent,rgba(190,205,235,.4),transparent)}
 /* crest-lockup nav — right-aligned, no box; a gold underline grows on hover/active */
 .nav{display:flex;align-items:center;gap:clamp(18px,2vw,34px)}
 .nav a{color:rgba(245,239,226,.92);text-decoration:none;font-family:var(--font);font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;transition:color .2s, background-size .25s ease;position:relative;cursor:none;padding:6px 1px;
@@ -63,7 +69,7 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .join-now{display:inline-flex;align-items:center;font-family:var(--font);font-weight:700;font-size:14.5px;letter-spacing:.01em;
   color:#10131f;background:linear-gradient(180deg,#ffe79a,#ffc63a);border-radius:30px;padding:11px 24px;text-decoration:none;cursor:none;
   box-shadow:0 10px 26px -10px rgba(255,200,60,.5), inset 0 1px 0 rgba(255,255,255,.5);transition:transform .2s, box-shadow .2s}
-.join-now:hover{transform:translateY(-2px) scale(1.06);box-shadow:0 18px 40px -10px rgba(255,200,60,.7)}
+.join-now:hover{box-shadow:0 18px 40px -10px rgba(255,200,60,.7)} /* motion comes from the magnetic JS, not CSS */
 .join-now:active{transform:scale(.93);transition:transform .08s}
 .live{display:inline-flex;align-items:center;gap:7px;font-family:var(--font);font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 .live .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold)}
@@ -159,13 +165,13 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 /* headline (left) — white, with gold only on "Ultimate" */
 .intro-copy{position:absolute;left:clamp(20px,4vw,64px);bottom:clamp(56px,9vh,104px);z-index:25;max-width:min(62vw,760px);pointer-events:none;display:flex;align-items:flex-end;gap:clamp(16px,2.2vw,38px);flex-wrap:wrap}
 /* no dark backing blob behind the headline (it hard-edged); legibility is a soft text-shadow only */
-.headline{font-family:var(--font-display);font-size:clamp(40px,5.4vw,86px);line-height:.9;letter-spacing:.004em;text-transform:uppercase;
+.headline{font-family:var(--font-display);font-size:clamp(40px,5.2vw,112px);line-height:.9;letter-spacing:.004em;text-transform:uppercase;
   color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.55), 0 4px 20px rgba(0,0,0,.42)}
 .headline .em{display:inline-block;font-size:1.12em;line-height:.86;text-shadow:none;
   background:linear-gradient(176deg,#ffeebf 3%,#f6cf57 38%,#e3a92f 72%,#c98a1c 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
   filter:drop-shadow(0 1px 1px rgba(120,75,10,.45)) drop-shadow(0 0 5px rgba(238,184,66,.25))}
 .scrolldown{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);z-index:25;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:7px;
-  font-family:var(--font);font-weight:600;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:rgba(244,197,68,.7)}
+  font-family:var(--font);font-weight:600;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:rgba(174,197,238,.75)}
 .scrolldown .arw{font-size:15px;line-height:1}
 /* primary explore CTA + card of the month */
 .explore-btn{display:inline-flex;align-items:center;gap:10px;pointer-events:auto;
@@ -236,7 +242,7 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .mtrack{display:inline-flex;align-items:center;gap:46px;white-space:nowrap;will-change:transform}
 .mw{font-family:var(--font-display);text-transform:uppercase;line-height:1;letter-spacing:.01em;font-size:clamp(34px,5vw,72px);color:#fff}
 .mw.tag{color:var(--blue-bright)}
-.mw.gold{background:linear-gradient(176deg,#ffeebf,#f3c84a 55%,#e0a82e);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 18px rgba(240,190,70,.4))}
+.mw.gold{background:linear-gradient(176deg,#f2f7ff,#bcd2ff 55%,#8fb4ff);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 18px rgba(140,180,255,.35))} /* blue-white now — gold stays reserved for the brand moments */
 .mw.dim{color:rgba(234,242,255,.16);-webkit-text-stroke:1px rgba(234,242,255,.4)}
 .mw .star,.mw.star{color:var(--gold);font-size:.5em}
 .mw-logo{height:.92em;width:auto;display:inline-block;vertical-align:middle;object-fit:contain;filter:drop-shadow(0 2px 9px rgba(0,0,0,.45))}
@@ -246,8 +252,8 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .mw-logo[data-g="lorcana"]{height:1em}
 
 /* infographic */
-.info{position:relative;z-index:10;max-width:1080px;margin:0 auto;padding:clamp(20px,5vh,60px) clamp(22px,5vw,40px) 120px}
-.info-head{max-width:680px;margin:0 auto;text-align:center}
+.info{position:relative;z-index:10;max-width:min(1400px,88vw);margin:0 auto;padding:clamp(20px,5vh,60px) clamp(22px,5vw,40px) 120px}
+.info-head{max-width:760px;margin:0 auto;text-align:center}
 .info-head p{margin-left:auto;margin-right:auto}
 .info-kicker{font-family:var(--font);font-weight:600;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
 .info-head h2{font-family:var(--font-display);font-size:clamp(30px,4.4vw,54px);line-height:.98;text-transform:uppercase;letter-spacing:.01em}
@@ -269,62 +275,59 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .stat .n{font-family:var(--font-display);font-size:clamp(24px,3vw,34px);color:var(--gold);line-height:1}
 .stat .l{font-family:var(--font);font-weight:500;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:8px}
 .reveal{opacity:0;transform:translateY(26px)}
-/* free-floating, interactive index radar (no panel) */
-.index-stage{display:flex;flex-direction:column;align-items:center;text-align:center;margin:clamp(24px,6vh,64px) 0 clamp(20px,4vh,44px);position:relative;z-index:1}
-.index-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:clamp(6px,2vh,20px)}
-.index-title{font-family:var(--font-display);font-size:clamp(22px,3vw,38px);text-transform:uppercase;letter-spacing:.01em;color:#fff;text-shadow:0 0 26px rgba(255,210,74,.18)}
-.index-chg{font-family:var(--font);font-weight:700;font-size:16px;color:#56ff9b}
-.index-chg i{color:var(--dim);font-style:normal;font-weight:500;font-size:13px;letter-spacing:.04em}
-.index-bars{width:min(94vw,560px);display:flex;flex-direction:column;gap:clamp(8px,1.5vh,14px)}
-.ib-row{display:grid;grid-template-columns:minmax(0,1fr) clamp(108px,32%,220px) 46px;align-items:center;gap:clamp(10px,2vw,22px);padding:7px 9px;border-radius:11px;transition:background .2s}
-.ib-row:hover{background:rgba(150,180,230,.07)}
-.ib-id{display:flex;align-items:center;gap:11px;min-width:0;text-align:left}
-.ib-dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 10px 1px currentColor}
-.ib-name{font-family:var(--font-display);font-size:clamp(14px,1.7vw,18px);text-transform:uppercase;letter-spacing:.02em;color:#fff;line-height:1.12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ib-what{font-family:var(--font);font-size:11.5px;color:#8fa1c4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-.ib-track{height:9px;border-radius:6px;background:rgba(150,180,230,.13);overflow:hidden}
-.ib-fill{height:100%;border-radius:6px;width:0;transition:width 1.05s cubic-bezier(.16,1,.3,1)}
-.ib-pct{font-family:var(--font-display);font-size:clamp(15px,1.8vw,20px);text-align:right;line-height:1}
-.radar-readout{margin-top:clamp(10px,2vh,18px);min-height:52px;display:flex;flex-direction:column;align-items:center;gap:4px;max-width:480px}
-.rr-name{font-family:var(--font-display);font-size:clamp(16px,1.9vw,21px);text-transform:uppercase;letter-spacing:.04em;color:var(--gold);transition:color .2s}
-.rr-what{font-family:var(--font);font-size:14px;color:#aab9d8;line-height:1.5}
-.rr-what b{color:#fff;font-weight:700}
+/* the section headline — big, white, "Priced live." in blue (the old bar-table read weak) */
+h2.ih2{font-family:var(--font-display);font-weight:400;font-size:clamp(38px,5vw,84px);line-height:.94;letter-spacing:.012em;text-transform:uppercase;color:#fff}
+h2.ih2 .lk2{color:var(--blue-bright)}
+/* live sources — five clean chips, each in its feed's colour */
+.src-strip{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin:clamp(26px,5vh,54px) auto clamp(8px,2vh,18px)}
+.srcchip{display:inline-flex;align-items:center;gap:11px;padding:13px 20px;border-radius:999px;
+  background:linear-gradient(180deg,rgba(20,38,79,.5),rgba(8,16,40,.55));border:1px solid rgba(106,168,255,.14);backdrop-filter:blur(8px);
+  transition:transform .3s cubic-bezier(.16,1,.3,1), border-color .3s, box-shadow .3s}
+.srcchip:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--c) 55%,transparent);box-shadow:0 18px 40px -18px color-mix(in srgb,var(--c) 60%,transparent)}
+.srcchip .sc-dot{width:11px;height:11px;border-radius:50%;background:var(--c);box-shadow:0 0 14px var(--c), 0 0 4px var(--c);flex:none}
+.srcchip b{font-family:var(--font);font-weight:700;font-size:14px;color:#fff;letter-spacing:.01em}
+.srcchip em{font-style:normal;font-family:var(--font);font-size:12px;color:var(--dim)}
 /* inline stat row (no boxes) */
 .stat-row{display:flex;align-items:center;justify-content:center;gap:clamp(18px,4vw,56px);flex-wrap:wrap;margin-top:clamp(14px,3vh,30px)}
 .stat2{display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;padding:0 4px}
-.stat2 b{font-family:var(--font-display);font-weight:400;font-size:clamp(28px,3.4vw,42px);color:var(--gold);line-height:1;text-shadow:0 0 22px rgba(255,210,74,.25)}
+.stat2 b{font-family:var(--font-display);font-weight:400;font-size:clamp(28px,3.4vw,42px);color:#fff;line-height:1;text-shadow:0 0 22px rgba(140,180,255,.3)}
 .stat2.fx b{color:#56ff9b;text-shadow:0 0 22px rgba(86,255,155,.28)}
 .stat2 span{font-family:var(--font);font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
-.stat2:not(:last-child)::after{content:'';position:absolute;right:calc(-1 * clamp(9px,2vw,28px));top:14%;height:72%;width:1px;background:rgba(150,180,230,.2)}
+.stat2:not(:last-child)::after{content:'';position:absolute;right:calc(-1 * clamp(9px,2vw,28px));top:14%;height:72%;width:1px;
+  background:linear-gradient(180deg,transparent,rgba(150,180,230,.28),transparent)} /* soft fade, no hard edge */
 @media(max-width:600px){.stat2:not(:last-child)::after{display:none}}
 
 /* pricing */
 /* pricing — Free = white panel · Premium = navy glow · Collector = solid gold */
-.pricing{position:relative;z-index:10;max-width:1080px;margin:0 auto;padding:clamp(30px,7vh,80px) clamp(22px,5vw,40px) 130px}
+.pricing{position:relative;z-index:10;max-width:min(1400px,88vw);margin:0 auto;padding:clamp(30px,7vh,80px) clamp(22px,5vw,40px) 130px}
 .emph-booster{color:var(--gold)}
 /* pricing headline: lighter, sentence-case, easy to read (Anton was too heavy/blocky here) */
 .pricing .info-head h2{font-family:var(--font);font-weight:700;font-size:clamp(26px,3.5vw,44px);line-height:1.2;letter-spacing:0;text-transform:none}
-.pricing .price-card.ultra{position:relative;transform:translateY(-10px)}
+.pricing .price-card.ultra{position:relative;margin-top:-10px} /* lift via margin — GSAP owns the transform */
 /* soft top gloss (static) + a traveling diagonal sheen streak (.pc-sheen, GSAP-driven via
    backgroundPositionX — CSS @keyframes freeze on this machine). soft-light keeps the dark
    text/CTA readable while the gold catches the light. */
 .pricing .price-card.ultra::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:4;
   background:linear-gradient(180deg, rgba(255,255,255,.30), transparent 26%);mix-blend-mode:soft-light}
 .pricing .price-card.ultra .pc-sheen{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:5;
-  background:linear-gradient(118deg, transparent 39%, rgba(255,255,255,.42) 47%, rgba(255,255,255,.92) 50%, rgba(255,255,255,.42) 53%, transparent 61%);
-  background-size:260% 100%;background-position-x:185%;background-repeat:no-repeat;mix-blend-mode:soft-light}
-.pricing .price-card.featured{box-shadow:0 30px 72px -28px rgba(217,154,46,.5), 0 0 0 1px rgba(230,173,58,.4), 0 0 64px -22px rgba(240,190,70,.45)}
-/* Free = clean white panel (intentionally plain next to the gold) */
-.price-card.free{background:#f4f3ee;border:1px solid rgba(11,24,56,.14);backdrop-filter:none}
-.price-card.free .pc-name,.price-card.free .pc-price{color:#0b1838}
-.price-card.free .pc-price span{color:#7a879e}
-.price-card.free .pc-feat li{color:#3d4d68}
-.price-card.free .pc-feat li::before{color:#c79220}
-.price-card.free .pc-cta.ghost{color:#0b1838;border:1px solid rgba(11,24,56,.24);background:transparent}
+  background:linear-gradient(118deg, transparent 39%, rgba(255,220,120,.2) 47%, rgba(255,235,170,.45) 50%, rgba(255,220,120,.2) 53%, transparent 61%);
+  background-size:260% 100%;background-position-x:185%;background-repeat:no-repeat;mix-blend-mode:screen} /* gold foil streak over the onyx */
+/* Free = quiet ghost tier (transparent, soft outline) */
+.price-card.free{background:rgba(10,18,42,.35);border:1px solid rgba(150,178,230,.15);backdrop-filter:blur(6px)}
+.price-card.free .pc-price{color:#eaf2ff}
+.price-card.free .pc-feat li::before{color:#8fa9d6}
+.price-card.free .pc-cta.ghost{color:#fff;border:1px solid rgba(190,210,245,.28);background:rgba(255,255,255,.04)}
 .price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch}
 .price-card{position:relative;display:flex;flex-direction:column;gap:15px;padding:32px 26px;border-radius:18px;
   background:linear-gradient(180deg,rgba(20,38,79,.5),rgba(8,16,40,.55));border:1px solid rgba(106,168,255,.16);backdrop-filter:blur(8px)}
-.price-card.featured{border-color:color-mix(in srgb,var(--gold) 50%,transparent);box-shadow:0 24px 60px -24px rgba(255,200,60,.4), inset 0 0 0 1px color-mix(in srgb,var(--gold) 18%,transparent)}
+/* Premium = the light blue-white anchor card (most popular) */
+.price-card.featured{background:linear-gradient(180deg,#f8fbff 0%,#dfe9fb 100%);border:1px solid rgba(255,255,255,.85);backdrop-filter:none;
+  box-shadow:0 34px 80px -30px rgba(70,120,255,.45), 0 0 0 1px rgba(150,190,255,.35), 0 0 70px -24px rgba(106,168,255,.5)}
+.price-card.featured .pc-name{color:#0b1838}
+.price-card.featured .pc-price{color:#0b1838}
+.price-card.featured .pc-price span{color:#5b6b8c}
+.price-card.featured .pc-feat li{color:#2e3f60}
+.price-card.featured .pc-feat li::before{color:#c79220}
 .pc-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);white-space:nowrap;font-family:var(--font);font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#10131f;background:linear-gradient(180deg,#ffe79a,#ffc63a);padding:5px 14px;border-radius:20px}
 .pc-name{font-family:var(--font-display);font-size:22px;text-transform:uppercase;letter-spacing:.04em;color:#fff}
 .pc-price{font-family:var(--font-display);font-size:clamp(34px,4vw,48px);color:var(--gold);line-height:1}
@@ -337,13 +340,13 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .pc-cta{display:inline-flex;align-items:center;justify-content:center;padding:13px;border-radius:30px;font-family:var(--font-display);font-size:15px;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;transition:transform .2s, box-shadow .2s;margin-top:6px}
 .pc-cta.gold{color:#10131f;background:linear-gradient(180deg,#ffe79a,#ffc63a);box-shadow:0 12px 30px -10px rgba(255,200,60,.5)}
 .pc-cta.ghost{color:#fff;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.03)}
-.pc-cta:hover{transform:translateY(-2px)}
+.pc-cta:hover{filter:brightness(1.06)} /* motion comes from the magnetic JS */
 @media (max-width:760px){ .price-grid{grid-template-columns:1fr} }
 
 /* FAQ */
-.faq{position:relative;z-index:10;max-width:880px;margin:0 auto;padding:clamp(20px,5vh,60px) clamp(22px,5vw,40px) 100px}
+.faq{position:relative;z-index:10;max-width:min(1060px,82vw);margin:0 auto;padding:clamp(20px,5vh,60px) clamp(22px,5vw,40px) 100px}
 .faq-list{display:flex;flex-direction:column;gap:12px}
-.faq-item{background:linear-gradient(180deg,rgba(20,38,79,.5),rgba(8,16,40,.5));border:1px solid rgba(106,168,255,.16);border-radius:14px;overflow:hidden;transition:border-color .25s}
+.faq-item{background:linear-gradient(180deg,rgba(20,38,79,.5),rgba(8,16,40,.5));border:1px solid rgba(106,168,255,.13);border-radius:16px;overflow:hidden;transition:border-color .25s}
 .faq-item[open]{border-color:color-mix(in srgb,var(--gold) 40%,transparent)}
 .faq-item summary{list-style:none;cursor:pointer;padding:18px 22px;font-family:var(--font-display);font-size:clamp(16px,1.7vw,21px);letter-spacing:.01em;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:16px}
 .faq-item summary::-webkit-details-marker{display:none}
@@ -376,31 +379,24 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .ld-roll{height:2em;width:auto;max-width:10.5em;display:inline-block;vertical-align:middle;object-fit:contain;filter:drop-shadow(0 2px 9px rgba(0,0,0,.5))}
 
 /* ===== below the band the busy topo settles into a calm opaque navy ===== */
-.fade-to-white{height:clamp(170px,26vh,300px);position:relative;z-index:10;background:linear-gradient(180deg,transparent,#0c1a3c)}
+.fade-to-white{height:clamp(240px,34vh,420px);position:relative;z-index:10;
+  background:linear-gradient(180deg,transparent 0%,rgba(12,26,60,.4) 46%,rgba(12,26,60,.82) 74%,#0c1a3c 100%)} /* longer, eased hand-off — no visible band edge */
 .lightzone{position:relative;z-index:10;background:#0c1a3c}
 .lightzone .info-head h2{letter-spacing:.018em;line-height:1.04}
 .lightzone .info-head h2 .lk{color:var(--blue-bright);text-decoration:underline;text-decoration-color:rgba(106,168,255,.6);text-decoration-thickness:3px;text-underline-offset:5px}
-/* full-bleed kinetic title — ONE WHEEL over FIVE LIVE SOURCES, each spanning the whole screen */
-/* big, centred — NOT stretched edge to edge; both lines share one scale */
-.bigtitle{width:max-content;max-width:96vw;position:relative;left:50%;transform:translateX(-50%);margin:6px 0 16px;
-  text-align:center;line-height:.9;font-family:var(--font-display);font-weight:400;text-transform:uppercase;letter-spacing:.012em}
-.bt-line{display:block;font-size:clamp(44px,8.4vw,138px);white-space:nowrap}
-.bt-1{color:#fff}
-.bt-2 .bt-white{color:#fff}
-.bt-2 .bt-link{color:var(--blue-bright);text-decoration:underline;text-decoration-thickness:.055em;text-underline-offset:.09em;text-decoration-color:rgba(106,168,255,.6)}
 .lightzone .stat.fx .n{color:#56ff9b}
-/* premium "Pro" tier — the gold-framed anchor card */
-.price-card.ultra{background:linear-gradient(165deg,#ffe9a8 0%,#f4c948 44%,#dca328 100%);
-  border:1px solid #c8920f;
-  box-shadow:0 40px 92px -30px rgba(120,80,10,.6), 0 0 0 1px rgba(255,236,176,.5), inset 0 2px 0 rgba(255,255,255,.7)}
-.price-card.ultra .pc-name{color:#3a2a05}
-.price-card.ultra .pc-price{color:#241804}
-.price-card.ultra .pc-price span{color:#6a4f12}
-.price-card.ultra .pc-price s{color:#8a6a18}
-.price-card.ultra .pc-note{color:#6a4f12}
-.price-card.ultra .pc-feat li{color:#4a3608}
-.price-card.ultra .pc-feat li::before{color:#7a5a0e}
-.price-card.ultra .pc-cta.gold{background:linear-gradient(180deg,#1a2436,#0b1322);color:#ffe6a0;box-shadow:0 14px 30px -10px rgba(0,0,0,.55)}
+/* Collector — onyx card with gold foil (the luxe tier, not a yellow slab) */
+.price-card.ultra{background:linear-gradient(170deg,#141b30 0%,#0a0f20 68%,#0d1426 100%);
+  border:1px solid rgba(255,210,74,.55);backdrop-filter:none;
+  box-shadow:0 40px 92px -30px rgba(0,0,0,.7), 0 0 0 1px rgba(255,210,74,.22), 0 0 54px -18px rgba(255,200,60,.28), inset 0 1px 0 rgba(255,235,170,.25)}
+.price-card.ultra .pc-name{color:var(--gold-lt)}
+.price-card.ultra .pc-price{color:var(--gold)}
+.price-card.ultra .pc-price span{color:#a08a4e}
+.price-card.ultra .pc-price s{color:#8a7846}
+.price-card.ultra .pc-note{color:#a08a4e}
+.price-card.ultra .pc-feat li{color:#d9c99a}
+.price-card.ultra .pc-feat li::before{color:var(--gold)}
+.price-card.ultra .pc-cta.gold{background:linear-gradient(180deg,#ffe79a,#ffc63a);color:#10131f;box-shadow:0 12px 30px -10px rgba(255,200,60,.4)}
 .pc-badge.dark{background:linear-gradient(180deg,#1a2436,#0b1322);color:var(--gold);border:1px solid rgba(255,210,74,.5)}
 
 @media (pointer:coarse){ *{cursor:auto} .cursor{display:none} }
@@ -487,23 +483,10 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
     <section class="info">
       <div class="info-head reveal">
         <div class="info-kicker">How Crowns tracks</div>
-        <h2 class="bigtitle" aria-label="Every card. Five live sources.">
-          <span class="bt-line bt-1">Every card</span>
-          <span class="bt-line bt-2"><span class="bt-white">Five live </span><span class="bt-link">sources</span></span>
-        </h2>
+        <h2 class="ih2">Every card. <span class="lk2">Priced live.</span></h2>
         <p>Every card is matched to its market and re-priced from public catalog data — daily snapshots in USD and EUR, charted so you can see a card heat up before it moves.</p>
       </div>
-      <div class="index-stage reveal">
-        <div class="index-head">
-          <span class="index-title">Highly accurate index</span>
-          <span class="index-chg">&#9650; 18.4% <i>past 90 days</i></span>
-        </div>
-        <div class="index-bars" id="indexBars"></div>
-        <div class="radar-readout" id="radarReadout">
-          <span class="rr-name">Five live sources</span>
-          <span class="rr-what">Each is scored on how closely it tracks real sale prices &mdash; blended, they are your index.</span>
-        </div>
-      </div>
+      <div class="src-strip reveal" id="srcStrip"></div>
       <div class="stat-row reveal">
         <div class="stat2"><b>4</b><span>Universes</span></div>
         <div class="stat2"><b>5</b><span>Live sources</span></div>
@@ -1052,32 +1035,19 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
     })();
     requestAnimationFrame(frame);
 
-    // ---- index radar: 5 live feeds → their average; free-floating, 3D & interactive ----
+    // ---- live sources strip: the five feeds as clean chips (the bar-table read weak) ----
     (() => {
-      const radar = $('#indexBars'), readout = $('#radarReadout');
-      if (!radar) return;
+      const strip = $('#srcStrip');
+      if (!strip) return;
       const feeds = [
-        { name: 'TCGdex', what: 'Pokémon cards &amp; sets', v: 0.88, c: '#ffcf1a' },
-        { name: 'Scryfall', what: 'Magic: The Gathering', v: 0.72, c: '#ff9a52' },
-        { name: 'Ravensburger', what: 'Disney Lorcana', v: 0.81, c: '#5ec6f5' },
-        { name: 'dotGG', what: 'One Piece TCG', v: 0.66, c: '#ff5b6b' },
-        { name: 'TCGCSV', what: 'Market prices &amp; sealed', v: 0.84, c: '#b18cff' },
+        { name: 'TCGdex', what: 'Pokémon cards &amp; sets', c: '#ffcf1a' },
+        { name: 'Scryfall', what: 'Magic: The Gathering', c: '#ff9a52' },
+        { name: 'Ravensburger', what: 'Disney Lorcana', c: '#5ec6f5' },
+        { name: 'dotGG', what: 'One Piece TCG', c: '#ff5b6b' },
+        { name: 'TCGCSV', what: 'Market prices &amp; sealed', c: '#b18cff' },
       ];
-      // ranked horizontal bars — far clearer than a radar: each source, what it covers, how well it tracks market
-      const sorted = feeds.map((f, i) => ({ ...f, i })).sort((a, b) => b.v - a.v);
-      radar.innerHTML = sorted.map((f) => {
-        const pct = Math.round(f.v * 100);
-        return `<div class="ib-row" data-i="${f.i}"><div class="ib-id"><span class="ib-dot" style="color:${f.c};background:${f.c}"></span><div class="ib-meta"><div class="ib-name">${f.name}</div><div class="ib-what">${f.what}</div></div></div><div class="ib-track"><div class="ib-fill" style="width:${pct}%;background:linear-gradient(90deg,${f.c}99,${f.c})"></div></div><div class="ib-pct" style="color:${f.c}">${pct}%</div></div>`;
-      }).join('');
-      // bars carry their final width inline (robust — no dependency on rAF/animation firing); the CSS transition animates any later change
-      const base = `<span class="rr-name">Five live sources</span><span class="rr-what">Each is scored on how closely it tracks real sale prices &mdash; blended, they are your index.</span>`;
-      readout.innerHTML = base;
-      const show = (i) => {
-        if (i == null) { readout.innerHTML = base; return; }
-        const f = feeds[i];
-        readout.innerHTML = `<span class="rr-name" style="color:${f.c}">${f.name}</span><span class="rr-what">${f.what} &middot; <b>${Math.round(f.v * 100)}% market match</b></span>`;
-      };
-      radar.querySelectorAll('.ib-row').forEach((row) => { const i = +row.dataset.i; row.addEventListener('mouseenter', () => show(i)); row.addEventListener('mouseleave', () => show(null)); });
+      strip.innerHTML = feeds.map((f) =>
+        `<span class="srcchip" style="--c:${f.c}"><i class="sc-dot" aria-hidden="true"></i><b>${f.name}</b><em>${f.what}</em></span>`).join('');
     })();
 
     // ---- scroll choreography: elegant, staged reveal of every section (GSAP + ScrollTrigger) ----
@@ -1091,7 +1061,7 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 
       // generic .reveal (info copy, stat row, faq) = a clean fade-up; the specially
       // choreographed blocks (index stage, price cards) are handled below.
-      const special = new Set([...document.querySelectorAll('.index-stage, .price-card')]);
+      const special = new Set([...document.querySelectorAll('.src-strip, .price-card')]);
       document.querySelectorAll('.reveal').forEach((el) => { if (special.has(el)) return; onView(el, () => gsap.to(el, { opacity: 1, y: 0, duration: .8, ease: 'power3.out' })); });
 
       // SPOTLIGHT — the showpiece. .sp-cardinner / #mq / tape cards have live rAF transforms;
@@ -1121,12 +1091,11 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
       rows.forEach((r) => gsap.set(r, { opacity: 0 }));
       onView('.band', () => rows.forEach((r, i) => gsap.fromTo(r, { x: i ? 110 : -110, opacity: 0 }, { x: 0, opacity: 1, duration: 1.0, ease: 'power3.out', clearProps: 'transform' })), 'top 90%');
 
-      // INDEX — the stage lifts in and each source-bar grows from the left.
-      const idx = q('.index-stage');
-      if (idx) onView(idx, () => {
-        gsap.to(idx, { opacity: 1, y: 0, duration: .8, ease: 'power3.out' });
-        gsap.from('.index-stage .ib-fill', { scaleX: 0, transformOrigin: 'left center', duration: 1.0, stagger: .1, ease: 'power3.out', delay: .12 });
-        gsap.from('.index-stage .ib-row', { opacity: 0, x: -18, duration: .6, stagger: .1, ease: 'power3.out' });
+      // SOURCES — the strip lifts in and the five feed chips cascade.
+      const strip = q('.src-strip');
+      if (strip) onView(strip, () => {
+        gsap.to(strip, { opacity: 1, y: 0, duration: .7, ease: 'power3.out' });
+        gsap.from('.srcchip', { opacity: 0, y: 16, duration: .6, stagger: .07, ease: 'power3.out', delay: .08, clearProps: 'opacity,transform' });
       });
 
       // PRICING — Free / Premium / Collector scale + fade in, in sequence (FAQ stays calm).
@@ -1136,6 +1105,34 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 
       addEventListener('load', () => ST.refresh());
       ST.refresh();
+    })();
+
+    // ---- micro-interactions: header scroll veil, magnetic CTAs, pricing tilt ----
+    (() => {
+      const topbar = $('.topbar');
+      const onScroll = () => topbar && topbar.classList.toggle('scrolled', scrollY > 40);
+      addEventListener('scroll', onScroll, { passive: true }); onScroll();
+      if (!window.gsap) return;
+      // magnetic buttons — they lean toward the cursor and spring back on leave
+      document.querySelectorAll('.join-now, .explore-btn, .pc-cta').forEach((b) => {
+        b.addEventListener('pointerenter', () => cursor.classList.add('hover'));
+        b.addEventListener('pointerleave', () => { cursor.classList.remove('hover'); gsap.to(b, { x: 0, y: 0, duration: .55, ease: 'elastic.out(1,0.55)' }); });
+        b.addEventListener('pointermove', (e) => {
+          const r = b.getBoundingClientRect();
+          gsap.to(b, { x: (e.clientX - r.left - r.width / 2) * .22, y: (e.clientY - r.top - r.height / 2) * .3, duration: .4, ease: 'power2.out' });
+        });
+      });
+      // pricing cards tilt toward the cursor (GSAP owns the transform after entrance)
+      document.querySelectorAll('.price-card').forEach((c) => {
+        c.addEventListener('pointermove', (e) => {
+          const r = c.getBoundingClientRect();
+          gsap.to(c, { rotateY: (e.clientX - r.left - r.width / 2) / r.width * 7, rotateX: -(e.clientY - r.top - r.height / 2) / r.height * 6, transformPerspective: 900, duration: .45, ease: 'power2.out' });
+        });
+        c.addEventListener('pointerleave', () => gsap.to(c, { rotateX: 0, rotateY: 0, duration: .6, ease: 'power3.out' }));
+      });
+      // source chips read as interactive to the custom cursor
+      document.addEventListener('pointerover', (e) => { if (e.target.closest && e.target.closest('.srcchip')) cursor.classList.add('hover'); });
+      document.addEventListener('pointerout', (e) => { if (e.target.closest && e.target.closest('.srcchip')) cursor.classList.remove('hover'); });
     })();
 
     // ---- loader / intro ----

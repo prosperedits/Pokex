@@ -89,10 +89,8 @@ body {
 /* the dial: one bar per card on an arc that curves INTO the screen. Each bar is
    placed with translate3d; perspective shrinks the receding ends = real depth. */
 .rail-arc { position: absolute; inset: 0; transform-style: preserve-3d; }
-.dial-stage { position: absolute; left: 50%; bottom: 22px; }
-.dial-stage::before { content: ''; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
-  width: var(--dial-w, 760px); height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(170,205,255,0.22) 18%, rgba(170,205,255,0.22) 82%, transparent); }
+.dial-stage { position: absolute; left: 50%; bottom: 40px; } /* raised so the dial's falling tips stay inside the rail */
+.dial-arc { position: absolute; pointer-events: none; overflow: visible; } /* curved baseline drawn by buildDial */
 .dtick {
   position: absolute; bottom: 0; left: 0; width: 2px; margin-left: -1px;
   border-radius: 2px; transform-origin: bottom center;
@@ -1645,6 +1643,18 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
 /* optical balance: wide/short wordmarks read small at uniform width — give them more */
 .uni-col[data-game="magic"] .uc-logo { width: min(78%, 290px); }
 .uni-col[data-game="onepiece"] .uc-logo { width: min(74%, 265px); }
+/* universe characters — Pikachu / Mickey / Luffy / Chandra rise from each column's foot,
+   behind the logo/stats (z1 < uc-inner z2). Entrance + expand handled by GSAP in app.js. */
+.uc-char { position: absolute; left: 50%; bottom: -2%; transform: translateX(-50%); z-index: 1;
+  height: clamp(190px, 30vh, 360px); max-width: 86%; object-fit: contain; object-position: bottom;
+  pointer-events: none; user-select: none; opacity: 0.92;
+  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.6));
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s; }
+.uni-col:hover .uc-char { transform: translateX(-50%) translateY(-14px) scale(1.05);
+  filter: drop-shadow(0 26px 44px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 30px color-mix(in srgb, var(--accent) 55%, transparent)); }
+/* Chandra's render is cut on the right + bottom — anchor her into the corner so the cuts vanish */
+.uni-col[data-game="magic"] .uc-char { left: auto; right: -3%; transform: none; transform-origin: bottom right; max-width: 94%; }
+.uni-col[data-game="magic"]:hover .uc-char { transform: translateY(-10px) scale(1.04); }
 /* live stat line under each logo — quiet at rest, full on hover */
 .uc-stats { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--text-dim); opacity: 0.62; transition: opacity 0.4s; }

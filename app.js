@@ -303,17 +303,27 @@
   const dialPt = (th, R) => [R * Math.sin(th), -R * (1 - Math.cos(th))];
   function buildDial() {
     const w = Math.round(rail.clientWidth) || 1000;
-    const chord = Math.min(w * 0.5, 780);                    // flat track span
+    const chord = Math.min(w * 0.5, 780);                    // dial span
+    // a real DIAL face: the strip rides the crown of a circle — centre high,
+    // tips falling away, every tick rotated to its tangent (speedometer read)
+    const drop = Math.min(30, chord * 0.042);                // how far the tips fall below the crown
+    const R = ((chord / 2) ** 2 + drop ** 2) / (2 * drop);   // circle through crown + tips
+    const arcY = (x) => R - Math.sqrt(Math.max(0, R * R - x * x));                    // y-down from the crown
+    const arcRot = (x) => Math.asin(Math.max(-1, Math.min(1, x / R))) * 180 / Math.PI; // tangent tilt
     const n = Math.min(N, 240);
-    let s = `<div class="dial-stage" style="--dial-w:${chord.toFixed(0)}px">`;
+    let s = `<div class="dial-stage" style="--dial-w:${chord.toFixed(0)}px">`
+      + `<svg class="dial-arc" width="${chord.toFixed(0)}" height="${(drop + 6).toFixed(0)}" viewBox="0 0 ${chord.toFixed(0)} ${(drop + 6).toFixed(0)}"`
+      + ` style="left:${(-chord / 2).toFixed(0)}px;bottom:${(-(drop + 4)).toFixed(0)}px" aria-hidden="true">`
+      + `<path d="M0 ${(drop + 2).toFixed(1)} Q ${(chord / 2).toFixed(1)} ${(2 - drop).toFixed(1)} ${chord.toFixed(1)} ${(drop + 2).toFixed(1)}"`
+      + ` fill="none" stroke="rgba(170,205,255,0.24)" stroke-width="1"/></svg>`;
     for (let i = 0; i < n; i++) {
       const f = n > 1 ? i / (n - 1) : 0.5, x = (f - 0.5) * chord, edge = 1 - Math.abs(f - 0.5) * 2;
       const len = 4 + 6 * edge;                              // a touch taller toward the middle, tapering at the ends
-      s += `<i class="dtick" data-i="${i}" style="transform:translate3d(${x.toFixed(1)}px,0,0);height:${len.toFixed(1)}px;opacity:${(0.32 + 0.34 * edge).toFixed(2)}"></i>`;
+      s += `<i class="dtick" data-i="${i}" style="transform:translate3d(${x.toFixed(1)}px,${arcY(x).toFixed(1)}px,0) rotate(${arcRot(x).toFixed(2)}deg);height:${len.toFixed(1)}px;opacity:${(0.32 + 0.34 * edge).toFixed(2)}"></i>`;
     }
     s += '<i class="dknob"></i></div>';
     railArc.innerHTML = s;
-    dial = { chord, n, _cur: -1, _curEl: null };
+    dial = { chord, n, _cur: -1, _curEl: null, arcY, arcRot };
     recolorDial();
   }
   // paint each dial bar in its card's price-tier colour (the dial doubles as a
@@ -645,7 +655,7 @@
       const f = N > 1 ? idx / (N - 1) : 0.5;
       const kx = (f - 0.5) * dial.chord;
       const knob = railArc.querySelector('.dknob');
-      if (knob) knob.style.transform = `translate3d(${kx.toFixed(1)}px,0,0)`;
+      if (knob) knob.style.transform = `translate3d(${kx.toFixed(1)}px,${(dial.arcY ? dial.arcY(kx) : 0).toFixed(1)}px,0) rotate(${(dial.arcRot ? dial.arcRot(kx) : 0).toFixed(2)}deg)`; // knob rides the dial curve
       const ti = Math.round(f * (dial.n - 1));
       if (ti !== dial._cur) {
         if (dial._curEl) dial._curEl.classList.remove('cur');
@@ -2779,7 +2789,7 @@
           <button type="button" class="get-started" id="getStarted">Get started <span aria-hidden="true">&rarr;</span></button>
         </div>
         <div class="hv hv-pick" id="hvPick" hidden>
-          <div class="uni-cols" id="pickLogos">${UNI_ORDER.map((g) => `<button type="button" class="uni-col" data-game="${g.game}" style="--accent:${g.accent}" aria-label="${g.name}"><span class="uc-wash" aria-hidden="true"></span><span class="uc-glow" aria-hidden="true"></span><span class="uc-inner"><img class="uc-logo" src="assets/logos/${g.game}.png?v=79" alt="${g.name}"><span class="uc-stats"><b>${setsForGame(g.game).length}</b> sets &middot; live prices</span><span class="uc-go">Browse sets <i aria-hidden="true">&rarr;</i></span></span></button>`).join('')}</div>
+          <div class="uni-cols" id="pickLogos">${UNI_ORDER.map((g) => `<button type="button" class="uni-col" data-game="${g.game}" style="--accent:${g.accent}" aria-label="${g.name}"><span class="uc-wash" aria-hidden="true"></span><span class="uc-glow" aria-hidden="true"></span><img class="uc-char" src="assets/chars/${g.game}.png?v=1" alt="" aria-hidden="true" draggable="false"><span class="uc-inner"><img class="uc-logo" src="assets/logos/${g.game}.png?v=79" alt="${g.name}"><span class="uc-stats"><b>${setsForGame(g.game).length}</b> sets &middot; live prices</span><span class="uc-go">Browse sets <i aria-hidden="true">&rarr;</i></span></span></button>`).join('')}</div>
           <canvas class="uni-fx" id="uniFX" aria-hidden="true"></canvas>
           <div class="uni-head"><span class="uh-kick">Crowns &middot; live market</span><span class="uh-title">Choose your universe</span></div>
         </div>
@@ -2798,11 +2808,12 @@
       gsap.timeline({ onComplete: () => {
         revealSetsInPlace(b.dataset.game);
         gsap.set(cols, { clearProps: 'flexGrow,opacity,scale' });
-        gsap.set('#pickLogos .uc-logo, #pickLogos .uc-go, #pickLogos .uc-stats', { clearProps: 'all' });   // reset so the picker is clean on return
+        gsap.set('#pickLogos .uc-logo, #pickLogos .uc-go, #pickLogos .uc-stats, #pickLogos .uc-char', { clearProps: 'all' });   // reset so the picker is clean on return
       } })
         .to(b.querySelector('.uc-glow'), { opacity: 0.95, scale: 1.25, duration: 0.55, ease: 'power2.out' }, 0)
         .to(b.querySelector('.uc-logo'), { opacity: 0, scale: 0.82, duration: 0.42, ease: 'power2.in' }, 0.1)
         .to(b.querySelectorAll('.uc-go, .uc-stats'), { opacity: 0, y: 8, duration: 0.3, ease: 'power2.in' }, 0)
+        .to(b.querySelector('.uc-char'), { opacity: 0, y: 26, duration: 0.4, ease: 'power2.in' }, 0)
         .to(b, { flexGrow: 30, duration: 0.62, ease: 'power3.inOut' }, 0)
         .to(cols.filter((c) => c !== b), { flexGrow: 0.001, opacity: 0, duration: 0.5, ease: 'power3.inOut' }, 0);
     });
@@ -3049,6 +3060,9 @@
       gsap.fromTo('#hvPick .uni-col', { opacity: 0, yPercent: 6 }, { opacity: 1, yPercent: 0, duration: 0.7, ease: 'power3.out', stagger: 0.08, clearProps: 'transform' });
       gsap.fromTo('#hvPick .uc-logo', { opacity: 0, y: 22, scale: 0.93 },
         { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'power3.out', stagger: 0.09, delay: 0.16, clearProps: 'all' });
+      // the universe characters rise from each column's foot
+      gsap.fromTo('#hvPick .uc-char', { opacity: 0, yPercent: 24 },
+        { opacity: 0.92, yPercent: 0, duration: 0.9, ease: 'power3.out', stagger: 0.09, delay: 0.22, clearProps: 'opacity,transform' });
       gsap.fromTo('#hvPick .uc-stats', { opacity: 0, y: 10 },
         { opacity: 0.62, y: 0, duration: 0.55, ease: 'power3.out', stagger: 0.09, delay: 0.34, clearProps: 'opacity,transform' });
       gsap.fromTo('#hvPick .uni-head > *', { opacity: 0, y: -10 },
