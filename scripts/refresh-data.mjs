@@ -219,6 +219,9 @@ async function main() {
   writeFileSync(join(ROOT, 'data', `refresh-report-${SET_ID}.json`), JSON.stringify(report, null, 2));
   console.table ? console.table([report]) : console.log(report);
   console.log(`wrote data/cards-${SET_ID}.js (${cards.length} cards)`);
+  // homepage trending rides every refresh — real movers, zero manual work
+  try { (await import('node:child_process')).execSync(`node "${join(ROOT, 'scripts', 'build-home-trending.mjs')}"`, { stdio: 'inherit' }); }
+  catch { /* best-effort — homepage falls back to its static list */ }
 }
 
 main().catch((err) => {

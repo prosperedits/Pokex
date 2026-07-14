@@ -1615,6 +1615,12 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
   .set-grid { grid-template-columns: 1fr 1fr; }
 }
 
+/* auto-discovered set tiles wear a small gold NEW chip (top-right) */
+.set-tile { position: relative; }
+.st-new { position: absolute; top: 9px; right: 9px; font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; color: #10131f; line-height: 1;
+  background: linear-gradient(180deg, #ffe79a, #ffc63a); padding: 4px 9px; border-radius: 999px; pointer-events: none; }
+
 /* ===== four-universe picker — full-bleed columns ===== */
 .hv-pick { padding: 0; pointer-events: auto; perspective: none; }
 .uni-cols { display: flex; width: 100%; height: 100%; pointer-events: auto; }

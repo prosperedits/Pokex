@@ -1463,6 +1463,32 @@
     SETS[id] = built; loadSet(id); return true;
   }
 
+  // ---- live tcgdex fallback for AUTO-DISCOVERED sets the index doesn't carry
+  //      yet (day-one releases like the next "Pitch Black"): fetch the set list
+  //      straight from tcgdex and show it unpriced — prices arrive when the
+  //      catalogues catch up. Image urls are tcgdex bases, so the wheel's
+  //      normal quality ladder applies untouched. ----
+  async function fetchTcgdexSet(id) {
+    try {
+      const r = await fetch(`https://api.tcgdex.net/v2/en/sets/${encodeURIComponent(id)}`);
+      if (!r.ok) return false;
+      const d = await r.json();
+      const cards = (d.cards || []).map((c, i) => ({
+        id: c.id, localId: c.localId || String(i + 1), num: parseInt(c.localId, 10) || (i + 1),
+        name: c.name, rarity: '', category: 'Pokemon', types: [], illustrator: '',
+        image: c.image || '', priceUsd: null, priceVariant: 'normal', variants: {},
+        cardmarket: null, imageOk: !!c.image,
+      }));
+      if (!cards.length) return false;
+      SETS[id] = {
+        set: { id, name: d.name || id, total: cards.length, official: (d.cardCount && d.cardCount.official) || cards.length, logo: d.logo || '' },
+        cards, snapshotAt: new Date().toISOString(), source: 'TCGdex (unpriced — new release)',
+      };
+      loadSet(id);
+      return true;
+    } catch { return false; }
+  }
+
   // ---- Full-set merge (bundled ∪ index) for bundled Pokémon sets --------------
   // The bundled data/cards-<set>.js files carry only ONE printing per card number,
   // but TCGplayer's catalogue (the in-memory index) also lists the special-pattern
@@ -2772,9 +2798,51 @@
     { game: 'onepiece', name: 'One Piece', accent: '#ff5b4d', card: 'assets/hallway/onepiece.webp' },
   ];
   function setsForGame(game) {
-    if (game === 'pokemon') return SET_GROUPS.flatMap((grp) => grp.ids.filter((id) => SETS[id]).map((id) => ({ id, name: SETS[id].set.name, count: SETS[id].set.total })));
+    if (game === 'pokemon') {
+      const bundled = SET_GROUPS.flatMap((grp) => grp.ids.filter((id) => SETS[id]).map((id) => ({ id, name: SETS[id].set.name, count: SETS[id].set.total })));
+      const known = new Set(bundled.map((s) => s.id));
+      // auto-discovered sets (tcgdex) lead the grid — the next set drops in by itself
+      const fresh = NEW_SETS.filter((s) => !known.has(s.id) && !SETS[s.id])
+        .map((s) => ({ id: s.id, name: s.name, count: s.count, fresh: true }));
+      return [...fresh, ...bundled];
+    }
     const g = GAME_SETS.find((x) => x.game === game);
     return g ? g.sets.map((s) => ({ id: s.id, name: s.name, code: s.code })) : [];
+  }
+
+  // --- Auto set discovery: when tcgdex publishes a new Pokémon set (the next
+  // "Pitch Black"), it appears in the grid automatically — no data work, no
+  // redeploy. We scan the two NEWEST series (new mainline sets always land
+  // there), diff against what we bundle, and cache the result for 12h.
+  let NEW_SETS = [];
+  async function discoverSets() {
+    const KEY = 'pokex.freshSets2';   // v2: excludes TCG Pocket (mobile game, no physical prices)
+    const refreshGrid = () => {       // if the user is already ON the grid, drop the new tiles in
+      const hv = $('hvSets');
+      if (NEW_SETS.length && hv && !hv.hidden && pickGame === 'pokemon') buildSetGrid('pokemon');
+    };
+    try {
+      const c = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (c && Date.now() - c.at < 12 * 3600e3) { NEW_SETS = c.sets; return; }
+    } catch { /* cold cache */ }
+    try {
+      const rs = await fetch('https://api.tcgdex.net/v2/en/series');
+      if (!rs.ok) return;
+      const series = (await rs.json()).filter((s) => s.id !== 'tcgp');   // physical TCG only
+      const found = [];
+      for (const sid of series.slice(-2).map((s) => s.id)) {
+        const r = await fetch(`https://api.tcgdex.net/v2/en/series/${sid}`);
+        if (!r.ok) continue;
+        const d = await r.json();
+        (d.sets || []).forEach((s) => {
+          const count = (s.cardCount && (s.cardCount.official || s.cardCount.total)) || 0;
+          if (count > 0) found.push({ id: s.id, name: s.name, count });
+        });
+      }
+      NEW_SETS = found.reverse();   // newest first
+      try { localStorage.setItem(KEY, JSON.stringify({ at: Date.now(), sets: NEW_SETS })); } catch { /* storage full */ }
+      refreshGrid();
+    } catch { /* offline — the grid shows the bundled sets only */ }
   }
   let homeBuilt = false, pickGame = 'pokemon';
   function buildHome() {
@@ -2979,13 +3047,17 @@
     const grid = $('setGrid');
     grid.innerHTML = (() => {
       const tile = (s) => {
-        const cands = setMarkChain(game, s); // real per-set logo → symbol → sealed box → game logo
+        // auto-discovered sets pull their logo straight from tcgdex; bundled sets
+        // walk the usual chain (real per-set logo → symbol → sealed box → game logo)
+        const cands = s.fresh
+          ? [`https://assets.tcgdex.net/en/${(s.id.match(/^[a-z]+/i) || ['xx'])[0]}/${s.id}/logo.png`, `assets/logos/${game}.png?v=79`]
+          : setMarkChain(game, s);
         const sig = String(s.code || s.name).slice(0, 4);
         const art = cands.length
           ? `<img class="st-logo ${game}" src="${cands[0]}" data-fb='${JSON.stringify(cands.slice(1))}' alt="" loading="lazy"><span class="st-fallback" aria-hidden="true">${GAME_GLYPH[game] || ''}</span>`
           : `<span class="st-sigil">${sig}</span>`;
         const nameLine = (s.name && s.name !== s.code && s.name !== sig) ? `<span class="st-name">${s.name}</span>` : '';
-        return `<button type="button" class="set-tile" data-set="${s.id}"><span class="st-art">${art}</span>${nameLine}${s.count ? `<span class="st-count">${s.count} cards</span>` : ''}</button>`;
+        return `<button type="button" class="set-tile" data-set="${s.id}"><span class="st-art">${art}</span>${nameLine}${s.count ? `<span class="st-count">${s.count} cards</span>` : ''}${s.fresh ? '<span class="st-new">New</span>' : ''}</button>`;
       };
       const isPromo = (s) => game === 'pokemon' && /promo|partner/i.test(s.name) && !/illustration/i.test(s.name);
       const regular = sets.filter((s) => !isPromo(s)), promos = sets.filter(isPromo);
@@ -3021,7 +3093,13 @@
   function goHero() { switchView('hvPick', 'hvHero'); }
   async function enterSet(game, setId) {
     hideHome();
-    if (game === 'pokemon') { loadSet(setId); landOnFirstCard(); }
+    if (game === 'pokemon') {
+      // bundled → instant; in the price index → build from it; brand-new on
+      // tcgdex (auto-discovered) → live fetch, unpriced until the data lands
+      if (SETS[setId]) loadSet(setId);
+      else if (!(await loadPokemonSet(setId)) && !(await fetchTcgdexSet(setId))) loadSet(HOME_SET);
+      landOnFirstCard();
+    }
     else { await loadExternalSet(setId); landOnFirstCard(); }
     // a clean flourish that leads into the set's carousel
     if (window.gsap && !REDUCED) gsap.fromTo('main', { opacity: 0.35, scale: 0.985 },
@@ -3248,6 +3326,7 @@
   };
   requestAnimationFrame(tick);
   mobileInit();   // on phones: build the snap-carousel before the first set loads
+  discoverSets(); // fire-and-forget: new tcgdex sets appear in the grid automatically
   if (isExternalReq) {
     Promise.resolve(loadExternalSet(reqSet)).then(() => { if (deepCard >= 1) openDeep(); });
   } else if (reqSet && SETS[reqSet]) {
