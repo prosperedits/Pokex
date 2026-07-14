@@ -505,7 +505,7 @@
     cardW = h * (734 / 1024);
     spacing = cardW; // base unit; the focus-pocket curve shapes actual gaps
   }
-  addEventListener('resize', () => { syncArc(); measure(); buildDial(); render(true); });
+  addEventListener('resize', () => { syncArc(); measure(); buildDial(); render(true); fitMagicVideo(); });
 
   // --- Render ------------------------------------------------------------------
   const WINDOW = 10; // paint ±10 around position (smaller cards pack more in view)
@@ -698,6 +698,36 @@
   // frozen on this machine, but rAF demonstrably runs (the wheel moves).
   const TAU = Math.PI * 2;
   const bgGrain = $('bgGrain'), bgGlass = $('bgGlass'), bgLight = $('bgLight'), zoomBgArt = $('zoomBgArt');
+
+  // --- Magic stage video: a gauntlet thrusts a golden rune-card forward (P's
+  // Seedance clip). We scale/position the clip so ITS card sits exactly under
+  // the wheel's focused card — the hand presents whatever card you're viewing,
+  // the rune card peeking behind like a fanned pair. Measured from the source
+  // frames: card centre (630, 407), card height ≈ 350px in the 1280×720 clip.
+  const bgVideo = $('bgVideo');
+  const VIDEO_CARD = { cx: 630, cy: 407, h: 350, srcW: 1280, srcH: 720 };
+  function fitMagicVideo() {
+    if (!bgVideo || document.body.dataset.game !== 'magic') return;
+    if (MOBILE) { bgVideo.style.cssText = 'left:0;top:0;width:100%;height:100%;object-fit:cover'; return; }
+    const wr = wheel.getBoundingClientRect();
+    // the FOCUSED card renders at 1.32× base (render()'s sPocket peak at d=0)
+    const cardH = wr.height * L.WHEEL_CARD_HEIGHT_FACTOR * 1.32;
+    const s = (cardH * 1.02) / VIDEO_CARD.h;              // clip card ≈ the real focused card
+    const cx = innerWidth / 2, cy = wr.top + wr.height / 2;
+    bgVideo.style.cssText =
+      `left:${(cx - VIDEO_CARD.cx * s).toFixed(0)}px;top:${(cy - VIDEO_CARD.cy * s).toFixed(0)}px;` +
+      `width:${(VIDEO_CARD.srcW * s).toFixed(0)}px;height:${(VIDEO_CARD.srcH * s).toFixed(0)}px`;
+  }
+  function ensureMagicVideo() {
+    if (!bgVideo) return;
+    if (!bgVideo.getAttribute('src')) {
+      bgVideo.src = 'assets/bg/mtg-hand.mp4';
+      bgVideo.addEventListener('loadedmetadata', fitMagicVideo, { once: true });
+    }
+    fitMagicVideo();
+    if (!REDUCED) bgVideo.play().catch(() => { /* autoplay blocked → poster frame */ });
+    else { try { bgVideo.currentTime = 0; } catch { /* not loaded yet */ } }
+  }
   function driftBg(ms) {
     const t = ms / 1000;
     bgGlass.style.transform =
@@ -1099,6 +1129,8 @@
     document.body.dataset.game = universe;
     if (universe === 'lorcana') buildStarfield();
     else if (universe === 'pokemon') buildTopo();
+    if (universe === 'magic') ensureMagicVideo();
+    else if (bgVideo && !bgVideo.paused) bgVideo.pause();   // don't decode off-screen
     CARDS = setCardList(id); // numbered singles + sealed products
     N = CARDS.length;
     const dom = buildSetDom(id);

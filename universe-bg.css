@@ -134,3 +134,26 @@ html.motion-reduced .bg-stars #stars3 { animation: none; }
 }
 html.motion-reduced .bg-rain::before { animation: none; }
 html.motion-reduced .bg-rain::after { animation: none; }
+
+/* ---------- Magic: the gauntlet stage (Seedance clip) ----------
+   A hooded figure thrusts a golden rune-card forward; app.js (fitMagicVideo)
+   scales/positions the clip so ITS card sits exactly under the wheel's focused
+   card — the gauntlet is presenting whatever card you're viewing. The video
+   paints above every other bg layer, so those are hidden for magic. */
+.bg-video, .bg-video-shade { display: none; }
+body[data-game="magic"] .bg-stage {
+  background: radial-gradient(120% 90% at 50% 40%, #e8e4dd 0%, #c9c3ba 58%, #8f8a82 100%); /* continues the swirl's whites past the clip edges */
+}
+body[data-game="magic"] :is(.bg-grain, .bg-glass, .bg-light, #bgTopo, .bg-stars, .bg-rain, #stageFloor) { display: none; }
+body[data-game="magic"] .bg-video {
+  display: block; position: absolute;
+  filter: brightness(0.84) saturate(1.05);
+  -webkit-mask-image: radial-gradient(115% 100% at 50% 42%, #000 58%, transparent 97%);
+  mask-image: radial-gradient(115% 100% at 50% 42%, #000 58%, transparent 97%);
+}
+body[data-game="magic"] .bg-video-shade {
+  display: block; position: absolute; inset: 0;
+  background:
+    radial-gradient(85% 70% at 50% 40%, transparent 40%, rgba(12, 8, 10, 0.5) 100%),
+    linear-gradient(180deg, rgba(10, 8, 10, 0.5) 0%, transparent 20%, transparent 58%, rgba(8, 6, 8, 0.6) 100%);
+}
