@@ -1,18 +1,18 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crowns — Gauntlet Stage (demo)</title>
+<title>Crowns â€” Gauntlet Stage (demo)</title>
 <link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
 <style>
 /* ============================================================================
-   GAUNTLET STAGE — chroma-slot demo. One flat image, three layers:
+   GAUNTLET STAGE â€” chroma-slot demo. One flat image, three layers:
      1. the scene (green card visible underneath)
      2. the REAL Magic card, corner-pinned into the green card's oriented rect
-     3. the occluder cut (every non-green pixel inside the card region — the
+     3. the occluder cut (every non-green pixel inside the card region â€” the
         red-black tendrils + fingertip) so the energy passes IN FRONT of it.
-   Geometry measured by scripts (center 1384,865 · 466×668 · 12.28° in 2752×1536).
+   Geometry measured by scripts (center 1384,865 Â· 466Ã—668 Â· 12.28Â° in 2752Ã—1536).
    ============================================================================ */
 :root{--navy:#060c1e;--gold:#ffd24a;--dim:#90a6cc}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -23,7 +23,7 @@ body{background:#05070f;color:#eaf2ff;font-family:'DM Sans',system-ui,sans-serif
 .stage{position:relative;aspect-ratio:2752/1536;height:100vh;min-width:100vw;flex:none}
 @media (min-aspect-ratio:2752/1536){ .stage{height:auto;width:100vw;min-height:100vh} }
 .stage > img.scene{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;user-select:none;-webkit-user-drag:none}
-/* the live card — positioned in % of the stage so it scales with it */
+/* the live card â€” positioned in % of the stage so it scales with it */
 .cardslot{position:absolute;left:50.3052%;top:56.3264%;width:17.6200%;height:45.1950%;
   transform:translate(-50%,-50%) rotate(12.28deg);transform-style:preserve-3d;cursor:pointer;
   filter:drop-shadow(0 0 34px rgba(255,40,30,.45)) drop-shadow(0 14px 30px rgba(0,0,0,.5))}
@@ -61,7 +61,7 @@ body{background:#05070f;color:#eaf2ff;font-family:'DM Sans',system-ui,sans-serif
         </div>
         <span class="sheen" id="sheen"></span>
       </div>
-      <img class="occluder" src="assets/bg/gauntlet-occluder.png?v=4" alt="" draggable="false">
+      <img class="occluder" src="assets/bg/gauntlet-occluder.png?v=5" alt="" draggable="false">
     </div>
   </div>
 
@@ -80,7 +80,7 @@ body{background:#05070f;color:#eaf2ff;font-family:'DM Sans',system-ui,sans-serif
 <script>
 (() => {
   'use strict';
-  // the hand presents these — swap freely (Scryfall named API redirects to art)
+  // the hand presents these â€” swap freely (Scryfall named API redirects to art)
   const S = (q) => `https://api.scryfall.com/cards/named?format=image&version=large&fuzzy=${q}`;
   const CARDS = [
     { name: 'Sheoldred, the Apocalypse', src: S('sheoldred+the+apocalypse') },
@@ -99,7 +99,7 @@ body{background:#05070f;color:#eaf2ff;font-family:'DM Sans',system-ui,sans-serif
     i = (n + CARDS.length) % CARDS.length;
     const c = CARDS[i];
     if (!window.gsap) { art.src = c.src; cap.textContent = c.name; return; }
-    // quick half-flip out → swap → flip back in, then a sheen sweep sells the arrival
+    // quick half-flip out â†’ swap â†’ flip back in, then a sheen sweep sells the arrival
     gsap.to(flip, { rotateY: dir * 90, duration: 0.22, ease: 'power2.in', onComplete: () => {
       art.src = c.src; cap.textContent = c.name;
       gsap.fromTo(flip, { rotateY: -dir * 90 }, { rotateY: 0, duration: 0.34, ease: 'power3.out' });
@@ -116,7 +116,7 @@ body{background:#05070f;color:#eaf2ff;font-family:'DM Sans',system-ui,sans-serif
     // the card breathes in the grip + a slow ambient sheen every few seconds
     gsap.to(slot, { scale: 1.012, duration: 2.6, ease: 'sine.inOut', yoyo: true, repeat: -1 });
     gsap.fromTo(sheen, { backgroundPositionX: '-140%' }, { backgroundPositionX: '240%', duration: 1.6, ease: 'power1.inOut', repeat: -1, repeatDelay: 6, delay: 2 });
-    // cursor parallax: the card tilts in the hand (small — it must stay registered
+    // cursor parallax: the card tilts in the hand (small â€” it must stay registered
     // under the occluding tendrils), the whole stage leans a touch for depth
     addEventListener('pointermove', (e) => {
       const nx = e.clientX / innerWidth - 0.5, ny = e.clientY / innerHeight - 0.5;
