@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crowns — Gauntlet Stage (demo)</title>
+<link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
+<style>
+/* ============================================================================
+   GAUNTLET STAGE — chroma-slot demo. One flat image, three layers:
+     1. the scene (green card visible underneath)
+     2. the REAL Magic card, corner-pinned into the green card's oriented rect
+     3. the occluder cut (every non-green pixel inside the card region — the
+        red-black tendrils + fingertip) so the energy passes IN FRONT of it.
+   Geometry measured by scripts (center 1384,865 · 466×668 · 12.28° in 2752×1536).
+   ============================================================================ */
+:root{--navy:#060c1e;--gold:#ffd24a;--dim:#90a6cc}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:#05070f;color:#eaf2ff;font-family:'DM Sans',system-ui,sans-serif;overflow:hidden}
+.stagewrap{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 40%, #10131f 0%, #05070f 70%)}
+/* the stage keeps the source aspect and COVERS the viewport */
+.stage{position:relative;aspect-ratio:2752/1536;height:100vh;min-width:100vw;flex:none}
+@media (min-aspect-ratio:2752/1536){ .stage{height:auto;width:100vw;min-height:100vh} }
+.stage > img.scene{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;user-select:none;-webkit-user-drag:none}
+/* the live card — positioned in % of the stage so it scales with it */
+.cardslot{position:absolute;left:50.3052%;top:56.3264%;width:17.9563%;height:46.0623%;
+  transform:translate(-50%,-50%) rotate(12.28deg);transform-style:preserve-3d;cursor:pointer;
+  filter:drop-shadow(0 0 34px rgba(255,40,30,.45)) drop-shadow(0 14px 30px rgba(0,0,0,.5))}
+.cardslot .flip{position:absolute;inset:-3.2%;transform-style:preserve-3d}
+.cardslot img.art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:4.6%/3.4%;
+  backface-visibility:hidden;background:#141a2c}
+.cardslot .sheen{position:absolute;inset:-3.2%;border-radius:4.6%/3.4%;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(118deg,transparent 40%,rgba(255,235,200,.5) 50%,transparent 60%);
+  background-size:240% 100%;background-position-x:-140%;background-repeat:no-repeat}
+.occluder{position:absolute;left:38.5538%;top:29.9479%;width:23.4738%;height:52.6693%;pointer-events:none;user-select:none;-webkit-user-drag:none}
+/* chrome */
+.hud{position:fixed;left:0;right:0;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:18px clamp(18px,3vw,40px);
+  background:linear-gradient(180deg,rgba(4,6,12,.72),transparent)}
+.hud a{color:#eaf2ff;text-decoration:none;font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+.hud a:hover{color:var(--gold);opacity:1}
+.hud .tag{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
+.caption{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:0 20px calc(22px + env(safe-area-inset-bottom));background:linear-gradient(0deg,rgba(4,6,12,.78),transparent);pointer-events:none}
+.cap-name{font-weight:700;font-size:clamp(17px,2.4vw,26px);letter-spacing:.02em;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.7)}
+.cap-hint{font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+.arrows{position:fixed;top:50%;z-index:10;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;
+  border:1px solid rgba(190,210,245,.3);background:rgba(8,10,20,.55);color:#fff;font-size:20px;line-height:1;cursor:pointer;
+  display:grid;place-items:center;transition:background .2s,transform .2s;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.arrows:hover{background:rgba(255,210,74,.25);transform:translateY(-50%) scale(1.08)}
+#prev{left:clamp(14px,3vw,42px)} #next{right:clamp(14px,3vw,42px)}
+</style>
+</head>
+<body>
+  <div class="stagewrap">
+    <div class="stage" id="stage">
+      <img class="scene" src="assets/bg/gauntlet-stage.jpg" alt="" draggable="false">
+      <div class="cardslot" id="slot" title="Click to change the card">
+        <div class="flip" id="flip">
+          <img class="art" id="art" alt="Magic card" draggable="false">
+        </div>
+        <span class="sheen" id="sheen"></span>
+      </div>
+      <img class="occluder" src="assets/bg/gauntlet-occluder.png" alt="" draggable="false">
+    </div>
+  </div>
+
+  <header class="hud">
+    <span class="tag">Crowns &middot; Gauntlet stage</span>
+    <a href="index.html">&larr; Home</a>
+  </header>
+  <button class="arrows" id="prev" aria-label="Previous card">&#8249;</button>
+  <button class="arrows" id="next" aria-label="Next card">&#8250;</button>
+  <div class="caption">
+    <span class="cap-name" id="capName">&nbsp;</span>
+    <span class="cap-hint">Click the card &middot; move the cursor &middot; the energy stays in front</span>
+  </div>
+
+<script src="vendor/gsap.min.js"></script>
+<script>
+(() => {
+  'use strict';
+  // the hand presents these — swap freely (Scryfall named API redirects to art)
+  const S = (q) => `https://api.scryfall.com/cards/named?format=image&version=large&fuzzy=${q}`;
+  const CARDS = [
+    { name: 'Sheoldred, the Apocalypse', src: S('sheoldred+the+apocalypse') },
+    { name: 'Black Lotus', src: S('black+lotus') },
+    { name: 'Ragavan, Nimble Pilferer', src: S('ragavan+nimble+pilferer') },
+    { name: 'Chandra, Torch of Defiance', src: S('chandra+torch+of+defiance') },
+    { name: 'Sol Ring', src: S('sol+ring') },
+    { name: 'Atraxa, Grand Unifier', src: S('atraxa+grand+unifier') },
+  ];
+  const art = document.getElementById('art'), cap = document.getElementById('capName');
+  const slot = document.getElementById('slot'), flip = document.getElementById('flip'), sheen = document.getElementById('sheen');
+  const stage = document.getElementById('stage');
+  let i = 0;
+  CARDS.forEach((c) => { const im = new Image(); im.src = c.src; }); // warm all
+  function show(n, dir) {
+    i = (n + CARDS.length) % CARDS.length;
+    const c = CARDS[i];
+    if (!window.gsap) { art.src = c.src; cap.textContent = c.name; return; }
+    // quick half-flip out → swap → flip back in, then a sheen sweep sells the arrival
+    gsap.to(flip, { rotateY: dir * 90, duration: 0.22, ease: 'power2.in', onComplete: () => {
+      art.src = c.src; cap.textContent = c.name;
+      gsap.fromTo(flip, { rotateY: -dir * 90 }, { rotateY: 0, duration: 0.34, ease: 'power3.out' });
+      gsap.fromTo(sheen, { backgroundPositionX: '-140%' }, { backgroundPositionX: '240%', duration: 0.9, ease: 'power1.inOut', delay: 0.18 });
+    } });
+  }
+  art.src = CARDS[0].src; cap.textContent = CARDS[0].name;
+  slot.addEventListener('click', () => show(i + 1, 1));
+  document.getElementById('next').addEventListener('click', () => show(i + 1, 1));
+  document.getElementById('prev').addEventListener('click', () => show(i - 1, -1));
+  addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') show(i + 1, 1); if (e.key === 'ArrowLeft') show(i - 1, -1); });
+
+  if (window.gsap) {
+    // the card breathes in the grip + a slow ambient sheen every few seconds
+    gsap.to(slot, { scale: 1.012, duration: 2.6, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+    gsap.fromTo(sheen, { backgroundPositionX: '-140%' }, { backgroundPositionX: '240%', duration: 1.6, ease: 'power1.inOut', repeat: -1, repeatDelay: 6, delay: 2 });
+    // cursor parallax: the card tilts in the hand (small — it must stay registered
+    // under the occluding tendrils), the whole stage leans a touch for depth
+    addEventListener('pointermove', (e) => {
+      const nx = e.clientX / innerWidth - 0.5, ny = e.clientY / innerHeight - 0.5;
+      gsap.to(flip, { rotateY: nx * 7, rotateX: -ny * 5, duration: 0.5, ease: 'power2.out' });
+      gsap.to(stage, { x: -nx * 14, y: -ny * 8, duration: 0.8, ease: 'power2.out' });
+    });
+    // the energy glow behind the card pulses
+    gsap.to(slot, { filter: 'drop-shadow(0 0 52px rgba(255,50,30,.62)) drop-shadow(0 14px 30px rgba(0,0,0,.5))', duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+  }
+})();
+</script>
+</body>
+</html>
