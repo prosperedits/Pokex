@@ -1,31 +1,29 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crowns — Gauntlet Stage (demo)</title>
+<title>Crowns — Gauntlet Stage</title>
 <link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
 <style>
 /* ============================================================================
-   GAUNTLET STAGE — chroma-slot demo. One flat image, three layers:
-     1. the scene (green card visible underneath)
-     2. the REAL Magic card, corner-pinned into the green card's oriented rect
-     3. the occluder cut (every non-green pixel inside the card region — the
-        red-black tendrils + fingertip) so the energy passes IN FRONT of it.
-   Geometry measured by scripts (center 1384,865 · 466×668 · 12.28° in 2752×1536).
+   GAUNTLET STAGE — the layered LIVING version (multiplane, like a real one).
+     layer 1  canvas#glBack   Three.js plane: the PLATE (scene w/o front bits)
+     layer 2  DOM  .cardslot  the live Magic card (click/flip/cycle)
+     layer 3  canvas#glFront  Three.js mesh: the front tendrils, vertex-wobbled
+                              in a shader + additive glow — the energy is alive
+   One shared cover-fit camera window keeps all three registered; cursor
+   parallax moves them at different depths. Assets from scripts/gauntlet-
+   extract.py (difference-matte when the real plate exists, stand-in for now).
    ============================================================================ */
-:root{--navy:#060c1e;--gold:#ffd24a;--dim:#90a6cc}
+:root{--gold:#ffd24a;--dim:#90a6cc}
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{background:#05070f;color:#eaf2ff;font-family:'DM Sans',system-ui,sans-serif;overflow:hidden}
-.stagewrap{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 40%, #10131f 0%, #05070f 70%)}
-/* the stage keeps the source aspect and COVERS the viewport */
-.stage{position:relative;aspect-ratio:2752/1536;height:100vh;min-width:100vw;flex:none}
-@media (min-aspect-ratio:2752/1536){ .stage{height:auto;width:100vw;min-height:100vh} }
-.stage > img.scene{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;user-select:none;-webkit-user-drag:none}
-/* the live card — positioned in % of the stage so it scales with it */
-.cardslot{position:absolute;left:50.3059%;top:56.3264%;width:16.9432%;height:43.4582%;
-  transform:translate(-50%,-50%) rotate(12.28deg);transform-style:preserve-3d;cursor:pointer;
+canvas#glBack,canvas#glFront{position:fixed;inset:0;width:100vw;height:100vh;display:block}
+canvas#glBack{z-index:1}
+canvas#glFront{z-index:3;pointer-events:none}
+.cardslot{position:fixed;z-index:2;transform-style:preserve-3d;cursor:pointer;
   filter:drop-shadow(0 0 34px rgba(255,40,30,.45)) drop-shadow(0 14px 30px rgba(0,0,0,.5))}
 .cardslot .flip{position:absolute;inset:0;transform-style:preserve-3d}
 .cardslot img.art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:4.6%/3.4%;
@@ -33,8 +31,6 @@ body{background:#05070f;color:#eaf2ff;font-family:'DM Sans',system-ui,sans-serif
 .cardslot .sheen{position:absolute;inset:0;border-radius:4.6%/3.4%;pointer-events:none;mix-blend-mode:screen;
   background:linear-gradient(118deg,transparent 40%,rgba(255,235,200,.5) 50%,transparent 60%);
   background-size:240% 100%;background-position-x:-140%;background-repeat:no-repeat}
-.occluder{position:absolute;left:39.2805%;top:31.5755%;width:22.0203%;height:49.4141%;pointer-events:none;user-select:none;-webkit-user-drag:none}
-/* chrome */
 .hud{position:fixed;left:0;right:0;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:18px clamp(18px,3vw,40px);
   background:linear-gradient(180deg,rgba(4,6,12,.72),transparent)}
 .hud a{color:#eaf2ff;text-decoration:none;font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
@@ -52,18 +48,12 @@ body{background:#05070f;color:#eaf2ff;font-family:'DM Sans',system-ui,sans-serif
 </style>
 </head>
 <body>
-  <div class="stagewrap">
-    <div class="stage" id="stage">
-      <img class="scene" src="assets/bg/gauntlet-stage.jpg?v=4" alt="" draggable="false">
-      <div class="cardslot" id="slot" title="Click to change the card">
-        <div class="flip" id="flip">
-          <img class="art" id="art" alt="Magic card" draggable="false">
-        </div>
-        <span class="sheen" id="sheen"></span>
-      </div>
-      <img class="occluder" src="assets/bg/gauntlet-occluder.png?v=7" alt="" draggable="false">
-    </div>
+  <canvas id="glBack"></canvas>
+  <div class="cardslot" id="slot" title="Click to change the card">
+    <div class="flip" id="flip"><img class="art" id="art" alt="Magic card" draggable="false"></div>
+    <span class="sheen" id="sheen"></span>
   </div>
+  <canvas id="glFront"></canvas>
 
   <header class="hud">
     <span class="tag">Crowns &middot; Gauntlet stage</span>
@@ -73,14 +63,122 @@ body{background:#05070f;color:#eaf2ff;font-family:'DM Sans',system-ui,sans-serif
   <button class="arrows" id="next" aria-label="Next card">&#8250;</button>
   <div class="caption">
     <span class="cap-name" id="capName">&nbsp;</span>
-    <span class="cap-hint">Click the card &middot; move the cursor &middot; the energy stays in front</span>
+    <span class="cap-hint">The energy is alive &middot; move the cursor &middot; click the card</span>
   </div>
 
+<script src="vendor/three.min.js"></script>
 <script src="vendor/gsap.min.js"></script>
 <script>
-(() => {
+(async () => {
   'use strict';
-  // the hand presents these — swap freely (Scryfall named API redirects to art)
+  const V = 9; // asset version
+  const geom = await (await fetch(`assets/bg/gauntlet-geom.json?v=${V}`)).json();
+  const W = geom.imgW, H = geom.imgH, card = geom.card, fr = geom.front;
+
+  // ---- shared cover-fit window: source-pixel rect visible on screen ----
+  const view = { s: 1, ox: 0, oy: 0 };
+  function coverFit() {
+    view.s = Math.max(innerWidth / W, innerHeight / H);
+    view.ox = (innerWidth - W * view.s) / 2;
+    view.oy = (innerHeight - H * view.s) / 2;
+  }
+  const par = { x: 0, y: 0, tx: 0, ty: 0 };          // parallax state (screen px)
+  addEventListener('pointermove', (e) => {
+    par.tx = (e.clientX / innerWidth - 0.5) * 26;
+    par.ty = (e.clientY / innerHeight - 0.5) * 16;
+  });
+
+  // ---- the live card (DOM), registered to the tracked green rect ----
+  const slot = document.getElementById('slot'), flip = document.getElementById('flip'),
+        sheen = document.getElementById('sheen'), art = document.getElementById('art'),
+        cap = document.getElementById('capName');
+  function placeCard() {
+    const cw = card.w * view.s, ch = card.h * view.s;
+    const cx = card.cx * view.s + view.ox + par.x, cy = card.cy * view.s + view.oy + par.y;
+    slot.style.width = cw.toFixed(1) + 'px';
+    slot.style.height = ch.toFixed(1) + 'px';
+    slot.style.left = (cx - cw / 2).toFixed(1) + 'px';
+    slot.style.top = (cy - ch / 2).toFixed(1) + 'px';
+    slot.style.transform = `rotate(${card.angle}deg)`;
+  }
+
+  // ---- Three.js: one ortho camera window shared by both scenes ----
+  const mkRenderer = (id) => {
+    const r = new THREE.WebGLRenderer({ canvas: document.getElementById(id), alpha: true, antialias: true });
+    r.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+    r.setSize(innerWidth, innerHeight, false);
+    return r;
+  };
+  const back = mkRenderer('glBack'), front = mkRenderer('glFront');
+  const camB = new THREE.OrthographicCamera(0, 1, 0, 1, -100, 100);
+  const camF = new THREE.OrthographicCamera(0, 1, 0, 1, -100, 100);
+  function setCam(cam, k) {   // k = parallax depth factor
+    cam.left   = (-view.ox - par.x * k) / view.s;
+    cam.right  = (innerWidth - view.ox - par.x * k) / view.s;
+    cam.top    = (-view.oy - par.y * k) / view.s;
+    cam.bottom = (innerHeight - view.oy - par.y * k) / view.s;
+    cam.updateProjectionMatrix();
+  }
+  const loader = new THREE.TextureLoader();
+  const tex = (u) => new Promise((res) => loader.load(u, (t) => { t.minFilter = THREE.LinearFilter; res(t); }));
+
+  // back scene: the plate
+  const sceneB = new THREE.Scene();
+  const plateTex = await tex(`assets/bg/gauntlet-plate.jpg?v=${V}`);
+  {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(W, H),
+      new THREE.MeshBasicMaterial({ map: plateTex, side: THREE.DoubleSide }));
+    m.position.set(W / 2, H / 2, 0);
+    m.scale.y = -1;                                   // y-down source coords
+    sceneB.add(m);
+  }
+
+  // front scene: the tendrils, alive (vertex wobble + additive glow twin)
+  const sceneF = new THREE.Scene();
+  const frontTex = await tex(`assets/bg/gauntlet-front.png?v=${V}`);
+  const uni = { uTime: { value: 0 }, uAmp: { value: 4.5 }, uMap: { value: frontTex }, uTint: { value: new THREE.Color('#ffffff') }, uAlpha: { value: 1 } };
+  const wobbleMat = (tint, alpha, additive) => new THREE.ShaderMaterial({
+    uniforms: { uTime: uni.uTime, uAmp: uni.uAmp, uMap: { value: frontTex }, uTint: { value: new THREE.Color(tint) }, uAlpha: { value: alpha } },
+    transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
+    vertexShader: `
+      uniform float uTime; uniform float uAmp;
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        vec3 p = position;
+        // slow organic undulation — enough to live, small enough to stay
+        // registered where the strokes meet the card edge
+        float w1 = sin(uTime * 0.9 + uv.y * 7.0 + uv.x * 3.0);
+        float w2 = cos(uTime * 0.6 + uv.x * 9.0);
+        p.x += w1 * uAmp;
+        p.y += w2 * uAmp * 0.7;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+      }`,
+    fragmentShader: `
+      uniform sampler2D uMap; uniform vec3 uTint; uniform float uAlpha;
+      varying vec2 vUv;
+      void main() {
+        vec4 c = texture2D(uMap, vUv);
+        if (c.a < 0.01) discard;
+        gl_FragColor = vec4(c.rgb * uTint, c.a * uAlpha);
+      }`,
+  });
+  {
+    const g = new THREE.PlaneGeometry(fr.w, fr.h, 30, 30);
+    const main = new THREE.Mesh(g, wobbleMat('#ffffff', 1, false));
+    main.position.set(fr.x + fr.w / 2, fr.y + fr.h / 2, 1);
+    main.scale.y = -1;
+    sceneF.add(main);
+    const glow = new THREE.Mesh(g, wobbleMat('#ff3822', 0.0, true));   // opacity driven below
+    glow.position.copy(main.position); glow.position.z = 0.5;
+    glow.scale.set(1.035, -1.035, 1);
+    sceneF.add(glow);
+    // the glow breathes
+    if (window.gsap) gsap.to(glow.material.uniforms.uAlpha, { value: 0.34, duration: 1.7, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+  }
+
+  // ---- cards (unchanged interactions) ----
   const S = (q) => `https://api.scryfall.com/cards/named?format=image&version=large&fuzzy=${q}`;
   const CARDS = [
     { name: 'Sheoldred, the Apocalypse', src: S('sheoldred+the+apocalypse') },
@@ -90,20 +188,19 @@ body{background:#05070f;color:#eaf2ff;font-family:'DM Sans',system-ui,sans-serif
     { name: 'Sol Ring', src: S('sol+ring') },
     { name: 'Atraxa, Grand Unifier', src: S('atraxa+grand+unifier') },
   ];
-  const art = document.getElementById('art'), cap = document.getElementById('capName');
-  const slot = document.getElementById('slot'), flip = document.getElementById('flip'), sheen = document.getElementById('sheen');
-  const stage = document.getElementById('stage');
   let i = 0;
-  CARDS.forEach((c) => { const im = new Image(); im.src = c.src; }); // warm all
+  CARDS.forEach((c) => { const im = new Image(); im.src = c.src; });
   function show(n, dir) {
     i = (n + CARDS.length) % CARDS.length;
     const c = CARDS[i];
     if (!window.gsap) { art.src = c.src; cap.textContent = c.name; return; }
-    // quick half-flip out → swap → flip back in, then a sheen sweep sells the arrival
     gsap.to(flip, { rotateY: dir * 90, duration: 0.22, ease: 'power2.in', onComplete: () => {
       art.src = c.src; cap.textContent = c.name;
       gsap.fromTo(flip, { rotateY: -dir * 90 }, { rotateY: 0, duration: 0.34, ease: 'power3.out' });
       gsap.fromTo(sheen, { backgroundPositionX: '-140%' }, { backgroundPositionX: '240%', duration: 0.9, ease: 'power1.inOut', delay: 0.18 });
+      // the energy flares when the card changes
+      uni.uAmp.value = 9;
+      gsap.to(uni.uAmp, { value: 4.5, duration: 1.2, ease: 'power2.out' });
     } });
   }
   art.src = CARDS[0].src; cap.textContent = CARDS[0].name;
@@ -111,21 +208,35 @@ body{background:#05070f;color:#eaf2ff;font-family:'DM Sans',system-ui,sans-serif
   document.getElementById('next').addEventListener('click', () => show(i + 1, 1));
   document.getElementById('prev').addEventListener('click', () => show(i - 1, -1));
   addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') show(i + 1, 1); if (e.key === 'ArrowLeft') show(i - 1, -1); });
-
   if (window.gsap) {
-    // the card breathes in the grip + a slow ambient sheen every few seconds
-    gsap.to(slot, { scale: 1.012, duration: 2.6, ease: 'sine.inOut', yoyo: true, repeat: -1 });
     gsap.fromTo(sheen, { backgroundPositionX: '-140%' }, { backgroundPositionX: '240%', duration: 1.6, ease: 'power1.inOut', repeat: -1, repeatDelay: 6, delay: 2 });
-    // cursor parallax: the card tilts in the hand (small — it must stay registered
-    // under the occluding tendrils), the whole stage leans a touch for depth
+    gsap.to(slot, { filter: 'drop-shadow(0 0 52px rgba(255,50,30,.62)) drop-shadow(0 14px 30px rgba(0,0,0,.5))', duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: -1 });
     addEventListener('pointermove', (e) => {
       const nx = e.clientX / innerWidth - 0.5, ny = e.clientY / innerHeight - 0.5;
       gsap.to(flip, { rotateY: nx * 7, rotateX: -ny * 5, duration: 0.5, ease: 'power2.out' });
-      gsap.to(stage, { x: -nx * 14, y: -ny * 8, duration: 0.8, ease: 'power2.out' });
     });
-    // the energy glow behind the card pulses
-    gsap.to(slot, { filter: 'drop-shadow(0 0 52px rgba(255,50,30,.62)) drop-shadow(0 14px 30px rgba(0,0,0,.5))', duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: -1 });
   }
+
+  // ---- frame loop: parallax lerp, camera windows per depth, render ----
+  function resize() {
+    coverFit();
+    back.setSize(innerWidth, innerHeight, false);
+    front.setSize(innerWidth, innerHeight, false);
+  }
+  addEventListener('resize', resize);
+  resize();
+  function frame(ms) {
+    par.x += (par.tx - par.x) * 0.06;
+    par.y += (par.ty - par.y) * 0.06;
+    uni.uTime.value = ms * 0.001;
+    setCam(camB, 0.45);   // plate drifts least (far)
+    setCam(camF, 1.7);    // tendrils drift most (near)
+    placeCard();          // card rides depth 1.0 via par directly
+    back.render(sceneB, camB);
+    front.render(sceneF, camF);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 })();
 </script>
 </body>
