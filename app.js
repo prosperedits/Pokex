@@ -523,25 +523,24 @@
       const d = i - position + introOff.v * 6; // sweep-in shift (0 when settled)
       const ad = Math.abs(d);
       // premium curve (aristidebenoist-style): one smooth gaussian "bump" —
-      // scale, lift, brightness and tilt all ride the same continuous pocket,
+      // lift, brightness and tilt all ride the same continuous pocket,
       // so the swipe reads as one fluid wave instead of stepped keyframes
       const pocket = Math.exp(-(d * d) / 1.1); // wide: smooth depth/tilt/light
-      // scale rides a SHARP pocket so only the focused card grows — the field
-      // around it stays smaller (P: focused ~12% bigger, the rest ~10% smaller,
-      // so the centre card clearly dominates)
-      const sPocket = Math.exp(-(d * d) / 0.42);
-      const scale = 0.76 + 0.56 * sPocket;
+      // gacha-select geometry (P's reference): the focused card stands flat
+      // and dominant; its neighbours stay LARGE (~80% apparent) and bend
+      // hard inward around it, stacking tight like a held hand of cards
+      const scale = 0.98 + 0.34 * Math.exp(-(d * d) / 1.0);   // focus 1.32 (fitMagicVideo depends on it)
       const bright = 0.58 + 0.42 * pocket;
-      // spherical ring: side cards sink a touch, recede in Z, and turn away
-      // around Y — one shared vanishing point (perspective lives on .track)
-      const arcY = (1 - pocket) * spacing * 0.045;
-      const zRec = -(1 - pocket) * 110;
-      const yaw = Math.max(-26, Math.min(26, -d * 9)) * (1 - pocket * 0.5);
+      // the frame: side cards keep the centre's eye-line, dive back in Z, and
+      // turn toward the focused card — one shared vanishing point (.track)
+      const arcY = (1 - pocket) * spacing * 0.012;
+      const zRec = -Math.pow(1 - pocket, 1.6) * 240;   // neighbours stay near, the wall dives
+      const yaw = Math.max(-42, Math.min(42, -d * 38)) * (1 - pocket * 0.55);
       const el = els[view[i]].el;
       el.style.visibility = 'visible';
-      // deck fan: side cards overlap ~15% of their width; only the focused
-      // card gets full clearance (neighbor centers sit at 1.0 card out)
-      const xu = d * 0.66 + Math.sign(d) * Math.min(ad, 1) * 0.34;
+      // tight fan: the first neighbour sits ~0.73 card out (heavy overlap,
+      // the centre card covers its inner third), then thin ~0.32 slices
+      const xu = d * 0.32 + Math.sign(d) * Math.min(ad, 1) * 0.41;
       el.style.transform =
         `translate3d(${(xu * spacing - cardW / 2).toFixed(2)}px, -50%, 0)` +
         ` translateY(${arcY.toFixed(2)}px) translateZ(${zRec.toFixed(1)}px)` +
