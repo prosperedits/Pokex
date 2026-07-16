@@ -2914,6 +2914,7 @@
         <div class="hv hv-pick" id="hvPick" hidden>
           <div class="uni-scene" id="uniScene">
             <img class="us-bg" id="usBg" src="assets/bg/uniselect-bg.jpg?v=1" alt="" draggable="false">
+            <video class="us-video" id="usVideo" src="assets/bg/uniselect-commit.mp4?v=1" muted playsinline preload="auto" aria-hidden="true"></video>
             ${UNI_ORDER.map((g, i) => `<button type="button" class="us-card" data-game="${g.game}" data-slot="${i}" style="--accent:${g.accent}" aria-label="${g.name}"><img class="us-art" src="${g.card}" alt="" draggable="false"><span class="us-flash" aria-hidden="true"></span><span class="us-chip"><img src="assets/logos/${g.game}.png?v=79" alt=""><b>${setsForGame(g.game).length} sets</b></span></button>`).join('')}
             ${UNI_SCENE.slots.map((s, i) => s.occ ? `<img class="us-occ" data-slot="${i}" src="assets/bg/uniselect-occ-${i}.png?v=1" alt="" aria-hidden="true" draggable="false">` : '').join('')}
           </div>
@@ -2940,6 +2941,9 @@
       const bg = $('usBg');
       bg.style.left = ox + 'px'; bg.style.top = oy + 'px';
       bg.style.width = (W * s) + 'px'; bg.style.height = (H * s) + 'px';
+      // the commit video (16:9, near-identical aspect) wears the plate's rect
+      const vid = $('usVideo');
+      if (vid) { vid.style.left = ox + 'px'; vid.style.top = oy + 'px'; vid.style.width = (W * s) + 'px'; vid.style.height = (H * s) + 'px'; }
       usScene.querySelectorAll('.us-card').forEach((el) => {
         const sl = slots[+el.dataset.slot];
         // centre in PX (not translate(-50%,-50%)): GSAP re-serializes percent
@@ -2970,23 +2974,36 @@
         gsap.to(usScene, { x: nx * 16, y: ny * 11, rotateY: nx * 4, rotateX: -ny * 2.6, duration: 0.65, ease: 'power2.out', overwrite: 'auto' });
       });
     }
+    // COMMIT: P's Seedance transition. The video opens on this exact scene, so
+    // the real cards fade back into their magenta placeholders, the vortex
+    // spins the deck, hurls one card INTO the camera, and its chroma face
+    // floods the lens — that flood is the wipe under which the shelf resolves.
+    const VID = { rate: 2.6, revealAt: 9.35, guardMs: 5500 };
+    let committing = false;
+    function commitReveal(game, vid) {
+      if (!committing) return; committing = false;
+      revealSetsInPlace(game);
+      if (vid) { vid.pause(); gsap.to(vid, { opacity: 0, duration: 0.35, ease: 'power2.out', onComplete: () => gsap.set(vid, { clearProps: 'opacity,visibility' }) }); }
+      gsap.set('#uniScene .us-card, #uniScene .us-occ, #uniScene .us-chip', { clearProps: 'opacity,transform,visibility' });
+      usPlace();   // re-seat everything for the return trip
+    }
     usScene.addEventListener('click', (e) => {
-      const b = e.target.closest('.us-card'); if (!b) return;
-      if (!window.gsap || REDUCED || $('hvPick').classList.contains('us-fallback')) { revealSetsInPlace(b.dataset.game); return; }
-      // COMMIT: the card flashes its universe's light and the camera dives
-      // INTO it — the vortex swallows the screen, the shelf resolves beyond
-      const sl = UNI_SCENE.slots[+b.dataset.slot];
-      const others = [...usScene.querySelectorAll('.us-card')].filter((c) => c !== b);
-      usScene.style.transformOrigin = `${(sl.cx / UNI_SCENE.imgW) * 100}% ${(sl.cy / UNI_SCENE.imgH) * 100}%`;
-      gsap.timeline({ onComplete: () => {
-        revealSetsInPlace(b.dataset.game);
-        gsap.set([usScene, ...others, b.querySelector('.us-flash')], { clearProps: 'opacity,transform,scale,visibility' });
-        usPlace();   // re-seat every card (clearProps also wiped seat rotations)
-      } })
-        .fromTo(b.querySelector('.us-flash'), { opacity: 0 }, { opacity: 0.6, duration: 0.09, ease: 'power1.in' }, 0)
-        .to(b.querySelector('.us-flash'), { opacity: 0, duration: 0.45, ease: 'power2.out' }, 0.09)
-        .to(others, { opacity: 0, duration: 0.3, ease: 'power2.in' }, 0.05)
-        .to(usScene, { scale: 2.3, opacity: 0, duration: 0.7, ease: 'power3.in' }, 0.08);
+      const b = e.target.closest('.us-card'); if (!b || committing) return;
+      const vid = $('usVideo');
+      const canPlay = vid && vid.readyState >= 2 && window.gsap && !REDUCED && !$('hvPick').classList.contains('us-fallback');
+      if (!canPlay) { revealSetsInPlace(b.dataset.game); return; }
+      committing = true;
+      const game = b.dataset.game;
+      gsap.fromTo(b.querySelector('.us-flash'), { opacity: 0 }, { opacity: 0.55, duration: 0.1, ease: 'power1.in', yoyo: true, repeat: 1 });
+      gsap.to('#uniScene .us-card, #uniScene .us-occ', { opacity: 0, duration: 0.3, ease: 'power2.in', delay: 0.05 });
+      vid.currentTime = 0; vid.playbackRate = VID.rate;
+      gsap.set(vid, { visibility: 'visible' });
+      gsap.fromTo(vid, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power1.out' });
+      const onTime = () => { if (vid.currentTime >= VID.revealAt) { vid.removeEventListener('timeupdate', onTime); commitReveal(game, vid); } };
+      vid.addEventListener('timeupdate', onTime);
+      vid.addEventListener('ended', () => commitReveal(game, vid), { once: true });
+      const guard = setTimeout(() => { vid.removeEventListener('timeupdate', onTime); commitReveal(game, vid); }, VID.guardMs);
+      vid.play().then(() => {}).catch(() => { clearTimeout(guard); vid.removeEventListener('timeupdate', onTime); commitReveal(game, vid); });
     });
     // dpad: arrows walk the dealt cards, Enter commits (native button)
     usScene.addEventListener('keydown', (e) => {

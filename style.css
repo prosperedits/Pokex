@@ -1697,6 +1697,10 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
 .us-chip img { height: 15px; width: auto; display: block; }
 .us-card:hover .us-chip, .us-card:focus-visible .us-chip { opacity: 1; border-color: var(--accent); }
 .us-occ { position: absolute; pointer-events: none; user-select: none; }
+/* the commit transition video: hidden until a universe is chosen, then it
+   covers the whole scene (z4: over cards/occluders, under the uni-head) */
+.us-video { position: absolute; z-index: 4; object-fit: fill; visibility: hidden; opacity: 0; pointer-events: none; }
+.us-fallback .us-video { display: none; }
 /* phones / narrow: the cinematic crop would push seats offscreen — swap to a
    2x2 grid over the scene as wallpaper (usPlace clears all inline geometry) */
 .us-fallback .uni-scene { display: grid; grid-template-columns: 1fr 1fr; gap: 46px 16px; padding: 92px 18px 30px; align-content: center; }
