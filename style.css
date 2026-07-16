@@ -57,7 +57,7 @@ body {
 }
 /* Three.js stage floor — a lit pool + receding grid grounding the focused card,
    tinted per set by applyAmbience and rendered from the rAF loop (buildFloor) */
-#stageFloor { position: absolute; left: 0; bottom: 0; width: 100%; height: 46%; }
+#stageFloor { position: absolute; left: 0; bottom: 0; width: 100%; height: 33%; }   /* P: the floor lines sit LOW, under the caption zone */
 
 /* ---------- Minimap (bottom arc dial, inset from the edges) ----------
    The heat-bar strip is bent into a shallow concave-up arc that tapers to

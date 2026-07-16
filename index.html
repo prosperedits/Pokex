@@ -197,9 +197,15 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .spotlight-section .sp-particles{position:absolute;inset:0;z-index:2;pointer-events:none}
 .spotlight-section .sp-stage{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(16px,3vh,38px);padding:clamp(22px,4.5vh,56px) 16px clamp(34px,7vh,90px)}
 .spotlight-section .sp-cardarea{margin-top:clamp(20px,4vh,76px)}
-.spotlight-section .sp-title-wrap{position:relative;flex:none;line-height:0;filter:drop-shadow(0 14px 22px rgba(0,0,0,.55)) drop-shadow(0 20px 42px rgba(158,186,255,.22))}
-.spotlight-section .sp-title-img{display:block;width:min(44vw,610px);height:auto}
-.spotlight-section .sp-title-sheen{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(108deg,transparent 45%,rgba(255,255,255,.5) 50%,transparent 55%);background-size:300% 100%;background-position-x:180%;-webkit-mask-image:url(assets/spotlight-title.png?v=1);mask-image:url(assets/spotlight-title.png?v=1);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.spotlight-section .sp-title-wrap{position:relative;flex:none;filter:drop-shadow(0 14px 22px rgba(0,0,0,.55))}
+/* the wordmark: same chrome-comic energy as the old PSD, built in type — Anton
+   italic, cool steel face, blue rim + deep navy extrusion falling to the left */
+.spotlight-section .sp-title{font-family:var(--font-display);font-weight:400;font-style:italic;line-height:.94;margin:0;
+  font-size:clamp(52px,6.4vw,104px);letter-spacing:.035em;text-transform:uppercase;color:#eef4ff;
+  transform:skewX(-5deg) rotate(-2.2deg);
+  text-shadow:0 1px 0 #cdd9f2, 0 0 22px rgba(150,180,255,.28),
+    2px 2px 0 #3d5db8, 4px 4px 0 #23368a, 6px 6px 0 #16225e, 8px 8px 0 #0d1540,
+    10px 16px 30px rgba(0,0,0,.55)}
 .spotlight-section .sp-crown{position:absolute;left:50%;bottom:98%;transform:translateX(-50%);width:clamp(122px,14.5vw,194px);height:clamp(122px,14.5vw,194px);z-index:4;filter:drop-shadow(0 9px 17px rgba(0,0,0,.5)) saturate(1.12) brightness(1.06) contrast(1.03)}
 .spotlight-section .sp-cardarea{position:relative;flex:none;display:flex;justify-content:center}
 .spotlight-section .sp-card-btn{flex:none;position:relative;z-index:3;border:0;background:none;padding:0;cursor:pointer;width:clamp(206px,21vw,320px);perspective:1400px}
@@ -207,8 +213,11 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .spotlight-section .sp-card{display:block;width:100%;height:auto;border-radius:9px;filter:drop-shadow(0 22px 30px rgba(0,0,0,.55))}
 .spotlight-section .sp-card-btn:hover .sp-card{filter:drop-shadow(0 26px 38px rgba(0,0,0,.6))}
 .spotlight-section .sp-side{position:absolute;top:50%;left:50%;z-index:1;width:clamp(165px,17vw,250px);text-align:center;cursor:pointer}
-.spotlight-section .sp-side-l{transform:translate(-179%,-50%) rotate(-5deg)}
-.spotlight-section .sp-side-r{transform:translate(79%,-50%) rotate(5deg)}
+/* runners frame the champion like the wheel's fan: symmetric, tucked slightly
+   behind its edges, bending gently inward (centres at ±1.22 card-widths).
+   Their seats are set by GSAP (xPercent) — a CSS percent-translate here gets
+   parsed to PIXELS and then STACKS under the scrub's xPercent (the original
+   "Charizard drifts left" bug), so the class carries no transform at all. */
 .spotlight-section .sp-side-l2{transform:translate(-294%,-50%)}
 .spotlight-section .sp-side-r2{transform:translate(194%,-50%)}
 .spotlight-section .sp-side-cap2{margin-top:9px}
@@ -219,18 +228,17 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .spotlight-section .sp-side-cap .ssv{font-family:var(--font-display);font-weight:400;font-size:18px;color:#fff}
 .spotlight-section .sp-side-cap .ssc{display:inline-block;font-weight:800;font-size:13px;margin-top:5px;padding:3px 11px;border-radius:999px}
 .spotlight-section .sp-side-cap .ssc.up{color:#06190f;background:#46e08a} .spotlight-section .sp-side-cap .ssc.down{color:#2a0a0a;background:#ff6b6b}
-.spotlight-section .sp-downlight{position:absolute;left:50%;top:-36%;transform:translateX(-50%);width:130%;height:155%;pointer-events:none;z-index:0;background:radial-gradient(46% 66% at 50% 0%, rgba(210,222,255,.34), rgba(150,178,255,.12) 48%, transparent 73%);mix-blend-mode:screen;filter:blur(6px)}
-/* physical footlights: two beams rise from fixtures on the stage floor and
-   lean in over the centre card — hot at the lamp, dissolving upward. They live
-   on the SECTION (z3: over the GL room + particles, under the z5 stage). */
-.spotlight-section .sp-uplight{position:absolute;bottom:-1.5%;width:23%;height:82%;pointer-events:none;z-index:3;mix-blend-mode:screen;filter:blur(9px);
-  background:linear-gradient(to top, rgba(220,231,255,.5), rgba(163,191,255,.18) 46%, transparent 78%);
-  clip-path:polygon(45% 100%, 55% 100%, 98% 0%, 2% 0%)}
-.spotlight-section .sp-uplight-l{left:11%;transform:rotate(16deg);transform-origin:50% 100%}
-.spotlight-section .sp-uplight-r{right:11%;transform:rotate(-16deg);transform-origin:50% 100%}
-.spotlight-section .sp-uplight::after{content:'';position:absolute;left:50%;bottom:3%;width:58px;height:14px;transform:translateX(-50%);border-radius:50%;
-  background:radial-gradient(closest-side, #fff, rgba(206,222,255,.62) 48%, transparent);filter:blur(2px)}
-@media(max-width:860px){ .spotlight-section .sp-uplight{width:34%} .spotlight-section .sp-uplight-l{left:2%} .spotlight-section .sp-uplight-r{right:2%} }
+/* the volumetric spotlight lives in the Three.js room (spotGL) — one cone of
+   light from a lamp above, a hot pool where it lands. The card itself wears
+   curvature light: lit crown falling to a shaded foot, so the beam reads as
+   actually hitting it. */
+.spotlight-section .sp-cardinner::after{content:'';position:absolute;inset:0;border-radius:9px;pointer-events:none;z-index:2;
+  background:
+    radial-gradient(130% 55% at 50% -12%, rgba(205,222,255,.34), rgba(160,190,255,.10) 45%, transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,.10), transparent 26%, transparent 58%, rgba(5,9,24,.30) 100%)}
+/* the section dissolves into the page before the marquee — no hard seam */
+.spotlight-section::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:150px;pointer-events:none;z-index:6;
+  background:linear-gradient(180deg, transparent, rgba(7,13,34,.65) 62%, #070d22 96%)}
 .spotlight-section .sp-cap{flex:none;text-align:center;z-index:5;margin-top:clamp(-40px,-3vh,-16px)}
 .spotlight-section .sp-cap .sp-kicker{display:flex;flex-direction:column;align-items:center;gap:10px;font-family:var(--font);font-weight:800;font-size:13px;letter-spacing:.26em;text-transform:uppercase;color:#e7eefc;margin-bottom:13px;text-shadow:0 1px 8px rgba(0,0,0,.5)}
 .spotlight-section .uni-logo{display:block;width:auto;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}
@@ -470,15 +478,11 @@ h2.ih2 .lk2{color:var(--blue-bright)}
     <section class="spotlight-section" id="spotlight">
       <canvas class="sp-gl" id="spotGL" aria-hidden="true"></canvas>
       <canvas class="sp-particles" id="spotParticles" aria-hidden="true"></canvas>
-      <span class="sp-uplight sp-uplight-l" aria-hidden="true"></span>
-      <span class="sp-uplight sp-uplight-r" aria-hidden="true"></span>
       <div class="sp-stage">
         <div class="sp-title-wrap">
-          <img class="sp-title-img" src="assets/spotlight-title.png?v=1" alt="Spotlight">
-          <span class="sp-title-sheen" aria-hidden="true"></span>
+          <h2 class="sp-title">SPOTLIGHT</h2>
         </div>
         <div class="sp-cardarea">
-          <span class="sp-downlight" aria-hidden="true"></span>
           <div class="sp-side sp-side-l" id="spSideLW"><img class="sp-card-side" id="spSideL" alt=""><span class="sp-side-cap" id="spSideLcap"></span></div>
           <div class="sp-side sp-side-r" id="spSideRW"><img class="sp-card-side" id="spSideR" alt=""><span class="sp-side-cap" id="spSideRcap"></span></div>
           <button class="sp-card-btn" type="button" aria-label="Inspect the top trending card">
@@ -1017,19 +1021,49 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       const glow = new T.Mesh(new T.PlaneGeometry(34, 26), new T.MeshBasicMaterial({ map: new T.CanvasTexture(gc), transparent: true, blending: T.AdditiveBlending, depthWrite: false }));
       glow.position.set(0, 3.2, -9); scene.add(glow);
 
+      // VOLUMETRIC SPOTLIGHT — a real cone of light in the room, from a lamp
+      // high above the stage down onto the centre card. Soft-volume trick:
+      // brightness rides the view-facing of the surface (silhouette melts),
+      // a height gradient keeps it hot at the throat, and it breathes.
+      const coneMat = new T.ShaderMaterial({
+        transparent: true, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide,
+        uniforms: { uTime: { value: 0 } },
+        vertexShader: 'varying vec2 vUv; varying vec3 vN; void main(){ vUv=uv; vN=normalize(normalMatrix*normal); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+        fragmentShader:
+          'varying vec2 vUv; varying vec3 vN; uniform float uTime;\n' +
+          'void main(){\n' +
+          '  float body = pow(abs(normalize(vN).z), 2.2);\n' +               // facing = bright, rim = air
+          '  float up = vUv.y;\n' +                                          // 1 at the lamp, 0 at the floor
+          '  float ht = (0.34 + 0.66*smoothstep(0.05, 0.95, up)) * smoothstep(0.0, 0.12, up);\n' +
+          '  float breathe = 0.9 + 0.1*sin(uTime*0.9)*sin(uTime*0.37+1.3);\n' +
+          '  float dust = 0.92 + 0.08*sin(vUv.y*34.0 - uTime*0.7);\n' +
+          '  gl_FragColor = vec4(vec3(0.74, 0.82, 1.0), body * ht * breathe * dust * 0.36);\n' +
+          '}'
+      });
+      const cone = new T.Mesh(new T.CylinderGeometry(0.6, 7.6, 17, 48, 1, true), coneMat);
+      cone.position.set(0, 6.4, -9);                       // throat offscreen top, mouth lands on the card/floor
+      scene.add(cone);
+      // the hit pool: a hot ellipse on the floor where the beam lands
+      const pc = document.createElement('canvas'); pc.width = pc.height = 256;
+      const px = pc.getContext('2d'); const pg = px.createRadialGradient(128, 128, 0, 128, 128, 128);
+      pg.addColorStop(0, 'rgba(198,214,255,0.85)'); pg.addColorStop(0.4, 'rgba(120,150,240,0.32)'); pg.addColorStop(1, 'rgba(0,0,0,0)');
+      px.fillStyle = pg; px.fillRect(0, 0, 256, 256);
+      const pool = new T.Mesh(new T.PlaneGeometry(15.4, 8.6), new T.MeshBasicMaterial({ map: new T.CanvasTexture(pc), transparent: true, blending: T.AdditiveBlending, depthWrite: false }));
+      pool.rotation.x = -Math.PI / 2; pool.position.set(0, -1.78, -9.4);
+      scene.add(pool);
+
       function resize() { const r = cv.parentElement.getBoundingClientRect(); const w = Math.max(2, r.width | 0), h = Math.max(2, r.height | 0); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
       resize(); addEventListener('resize', resize); if (window.ResizeObserver) new ResizeObserver(resize).observe(cv.parentElement);
       let vis = true; if ('IntersectionObserver' in window) new IntersectionObserver((e) => { vis = e[0].isIntersecting; }, { rootMargin: '200px' }).observe(cv.parentElement);
       const clock = new T.Clock();
       (function tick() {
-        if (vis) { floorMat.uniforms.uTime.value = clock.getElapsedTime(); renderer.render(scene, camera); }
+        if (vis) { const t = clock.getElapsedTime(); floorMat.uniforms.uTime.value = t; coneMat.uniforms.uTime.value = t; renderer.render(scene, camera); }
         requestAnimationFrame(tick);
       })();
 
-      // chrome title: slow gentle float + a very subtle, slow sheen sweep (GSAP; CSS keyframes freeze here)
-      const titleEl = document.querySelector('.sp-title-wrap'), sheenEl = document.querySelector('.sp-title-sheen');
+      // chrome title: slow gentle float (GSAP; CSS keyframes freeze here)
+      const titleEl = document.querySelector('.sp-title-wrap');
       if (titleEl && window.gsap) gsap.to(titleEl, { y: -8, duration: 3.8, ease: 'sine.inOut', repeat: -1, yoyo: true });
-      if (sheenEl && window.gsap) gsap.fromTo(sheenEl, { backgroundPositionX: '180%' }, { backgroundPositionX: '-80%', duration: 2.4, ease: 'power1.inOut', repeat: -1, repeatDelay: 6 });
     })();
 
     // ---- Spotlight embers — soft gold motes drifting up (the original 2D embers, recolored gold) ----
@@ -1091,9 +1125,12 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       // never touch them — entrance rides .sp-card-btn / .sp-crown / .sp-side-* / .sp-cap.
       const spTitle = q(SP + ' .sp-title-wrap'), spCrown = q(SP + ' .sp-crown'), spBtn = q(SP + ' .sp-card-btn'),
             spL = q(SP + ' .sp-side-l'), spR = q(SP + ' .sp-side-r'), spL2 = q(SP + ' .sp-side-l2'), spR2 = q(SP + ' .sp-side-r2'), spCap = q(SP + ' .sp-cap'),
-            spName = q('#spName'), spStats = q('#spStats'), spUps = qa(SP + ' .sp-uplight');
-      [spTitle, spCrown, spBtn, spL, spR, spL2, spR2, spCap, ...spUps].forEach((el) => el && gsap.set(el, { opacity: 0 }));
+            spName = q('#spName'), spStats = q('#spStats');
+      [spTitle, spCrown, spBtn, spL, spR, spL2, spR2, spCap].forEach((el) => el && gsap.set(el, { opacity: 0 }));
       if (spTitle) gsap.set(spTitle, { scale: .82 });
+      // the runners' SEATS live here (gsap-owned; see the .sp-side CSS note)
+      if (spL) gsap.set(spL, { xPercent: -172, yPercent: -46, rotation: -7, scale: .94 });
+      if (spR) gsap.set(spR, { xPercent: 72, yPercent: -46, rotation: 7, scale: .94 });
       // pre-decode the spotlight card art well before it scrolls in — decode jank
       // mid-tween was what read as "choppy"
       onView(SP, () => document.querySelectorAll(`${SP} img`).forEach((im) => { if (im.decode) im.decode().catch(() => {}); }), 'top 160%');
@@ -1105,19 +1142,16 @@ h2.ih2 .lk2{color:var(--blue-bright)}
           scrollTrigger: { trigger: SP, start: 'top 88%', end: 'top 26%', scrub: 0.7 },
           defaults: { ease: 'none', force3D: true },
         });
-        if (spUps.length) pour.to(spUps, { opacity: 1, duration: .5, stagger: .08 }, 0);
         if (spTitle) pour.to(spTitle, { opacity: 1, scale: 1, duration: .55 }, .02);
         if (spBtn)   pour.fromTo(spBtn, { opacity: 0, yPercent: 24, scale: .84 }, { opacity: 1, yPercent: 0, scale: 1, duration: .8 }, .08);
-        if (spL) pour.fromTo(spL, { opacity: 0, xPercent: -300, rotation: -5 }, { opacity: 1, xPercent: -179, rotation: -5, duration: .72 }, .2);
-        if (spR) pour.fromTo(spR, { opacity: 0, xPercent: 300, rotation: 5 }, { opacity: 1, xPercent: 79, rotation: 5, duration: .72 }, .26);
+        if (spL) pour.fromTo(spL, { opacity: 0, xPercent: -300, rotation: -7 }, { opacity: 1, xPercent: -172, rotation: -7, duration: .72 }, .2);
+        if (spR) pour.fromTo(spR, { opacity: 0, xPercent: 300, rotation: 7 }, { opacity: 1, xPercent: 72, rotation: 7, duration: .72 }, .26);
         if (spL2) pour.fromTo(spL2, { opacity: 0, xPercent: -430 }, { opacity: 1, xPercent: -294, duration: .72 }, .32);
         if (spR2) pour.fromTo(spR2, { opacity: 0, xPercent: 430 }, { opacity: 1, xPercent: 194, duration: .72 }, .36);
         if (spCrown) pour.fromTo(spCrown, { opacity: 0, yPercent: -34, scale: 1.4 }, { opacity: 1, yPercent: 0, scale: 1, duration: .62 }, .42);
         if (spCap) pour.to(spCap, { opacity: 1, duration: .4 }, .58);
         if (spName) pour.fromTo(spName, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: .5 }, .62);
         if (spStats) pour.fromTo(spStats, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: .42 }, .7);
-        // once seated, the footlights breathe (brightness only — scrub owns opacity)
-        if (spUps.length) gsap.to(spUps, { filter: 'blur(9px) brightness(1.3)', duration: 2.4, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: .6 });
       }
 
       // MARQUEE — the two rows slide in from opposite edges (tracks scroll via rAF; move the parents).

@@ -505,7 +505,7 @@
     cardW = h * (734 / 1024);
     spacing = cardW; // base unit; the focus-pocket curve shapes actual gaps
   }
-  addEventListener('resize', () => { syncArc(); measure(); buildDial(); render(true); fitMagicVideo(); });
+  addEventListener('resize', () => { syncArc(); measure(); buildDial(); render(true); });
 
   // --- Render ------------------------------------------------------------------
   const WINDOW = 10; // paint ±10 around position (smaller cards pack more in view)
@@ -538,9 +538,9 @@
       const yaw = Math.max(-42, Math.min(42, -d * 38)) * (1 - pocket * 0.55);
       const el = els[view[i]].el;
       el.style.visibility = 'visible';
-      // tight fan: the first neighbour sits ~0.73 card out (heavy overlap,
-      // the centre card covers its inner third), then thin ~0.32 slices
-      const xu = d * 0.32 + Math.sign(d) * Math.min(ad, 1) * 0.41;
+      // breathing fan (P: the focus needs AIR): the first neighbour sits a
+      // full card out — clear gap around the focused card — then 0.40 slices
+      const xu = d * 0.40 + Math.sign(d) * Math.min(ad, 1) * 0.62;
       el.style.transform =
         `translate3d(${(xu * spacing - cardW / 2).toFixed(2)}px, -50%, 0)` +
         ` translateY(${arcY.toFixed(2)}px) translateZ(${zRec.toFixed(1)}px)` +
@@ -596,6 +596,7 @@
     if (card.sealed) capRarity.style.color = 'var(--ember-glint)';
     else capRarity.style.color = rarityColor(card.rarity);
     const rarityLine = card.sealed ? 'SEALED PRODUCT' : (card.rarity ? card.rarity.toUpperCase() : ' ');
+    capRarity.hidden = !rarityLine.trim();   // no rarity → no empty pill (P: "the empty bar")
     glowSwap(capRarity, rarityLine);
     // the card number now rides the TOP, directly under the rarity (P)
     capNumber.textContent = card.sealed
@@ -699,35 +700,6 @@
   const TAU = Math.PI * 2;
   const bgGrain = $('bgGrain'), bgGlass = $('bgGlass'), bgLight = $('bgLight'), zoomBgArt = $('zoomBgArt');
 
-  // --- Magic stage video: a gauntlet thrusts a golden rune-card forward (P's
-  // Seedance clip). We scale/position the clip so ITS card sits exactly under
-  // the wheel's focused card — the hand presents whatever card you're viewing,
-  // the rune card peeking behind like a fanned pair. Measured from the source
-  // frames: card centre (630, 407), card height ≈ 350px in the 1280×720 clip.
-  const bgVideo = $('bgVideo');
-  const VIDEO_CARD = { cx: 630, cy: 407, h: 350, srcW: 1280, srcH: 720 };
-  function fitMagicVideo() {
-    if (!bgVideo || document.body.dataset.game !== 'magic') return;
-    if (MOBILE) { bgVideo.style.cssText = 'left:0;top:0;width:100%;height:100%;object-fit:cover'; return; }
-    const wr = wheel.getBoundingClientRect();
-    // the FOCUSED card renders at 1.32× base (render()'s sPocket peak at d=0)
-    const cardH = wr.height * L.WHEEL_CARD_HEIGHT_FACTOR * 1.32;
-    const s = (cardH * 1.02) / VIDEO_CARD.h;              // clip card ≈ the real focused card
-    const cx = innerWidth / 2, cy = wr.top + wr.height / 2;
-    bgVideo.style.cssText =
-      `left:${(cx - VIDEO_CARD.cx * s).toFixed(0)}px;top:${(cy - VIDEO_CARD.cy * s).toFixed(0)}px;` +
-      `width:${(VIDEO_CARD.srcW * s).toFixed(0)}px;height:${(VIDEO_CARD.srcH * s).toFixed(0)}px`;
-  }
-  function ensureMagicVideo() {
-    if (!bgVideo) return;
-    if (!bgVideo.getAttribute('src')) {
-      bgVideo.src = 'assets/bg/mtg-hand.mp4';
-      bgVideo.addEventListener('loadedmetadata', fitMagicVideo, { once: true });
-    }
-    fitMagicVideo();
-    if (!REDUCED) bgVideo.play().catch(() => { /* autoplay blocked → poster frame */ });
-    else { try { bgVideo.currentTime = 0; } catch { /* not loaded yet */ } }
-  }
   function driftBg(ms) {
     const t = ms / 1000;
     bgGlass.style.transform =
@@ -1128,8 +1100,6 @@
     document.body.dataset.game = universe;
     if (universe === 'lorcana') buildStarfield();
     else if (universe === 'pokemon') buildTopo();
-    if (universe === 'magic') ensureMagicVideo();
-    else if (bgVideo && !bgVideo.paused) bgVideo.pause();   // don't decode off-screen
     CARDS = setCardList(id); // numbered singles + sealed products
     N = CARDS.length;
     const dom = buildSetDom(id);
@@ -1154,13 +1124,20 @@
     const btnLogo = $('setBtnLogo'), btnName = $('setBtnName');
     btnName.textContent = DATA.set.name;
     btnLogo.alt = DATA.set.name;
-    if (DATA.set.external) {            // external games have no tcgdex logo — show the name
-      btnLogo.hidden = true; btnName.hidden = false; btnLogo.removeAttribute('src');
-    } else {
+    // EVERY universe tries its real set mark up top (local override →
+    // tcgdex/Scryfall → sealed box); the game-logo tail is skipped — when no
+    // set-specific art exists the name reads better than a generic wordmark
+    const hdrCands = (DATA.set.external
+      ? setMarkChain(universe, { id, name: DATA.set.name, code: DATA.set.code }).filter((u) => u.indexOf('assets/logos/') === -1)
+      : [setLogoPng(DATA.set)]);
+    if (hdrCands.length) {
+      let hi = 0;
       btnLogo.hidden = false; btnName.hidden = true;
       btnLogo.onload = () => { btnLogo.hidden = false; btnName.hidden = true; };
-      btnLogo.onerror = () => { btnLogo.hidden = true; btnName.hidden = false; };
-      btnLogo.src = setLogoPng(DATA.set);
+      btnLogo.onerror = () => { if (++hi < hdrCands.length) btnLogo.src = hdrCands[hi]; else { btnLogo.hidden = true; btnName.hidden = false; } };
+      btnLogo.src = hdrCands[0];
+    } else {
+      btnLogo.hidden = true; btnName.hidden = false; btnLogo.removeAttribute('src');
     }
     $('setBtn').setAttribute('aria-label', `${DATA.set.name} — switch set`);
     setMenu.querySelectorAll('.sm-set').forEach((b) => {
@@ -1183,7 +1160,7 @@
   // Era-grouped dropdown, newest sets first. Only sets with data appear.
   const SET_GROUPS = [
     { series: 'First Partner Illustration', ids: ['fpic3', 'fpic2', 'fpic1'] },
-    { series: 'Mega Evolution', ids: ['me04', 'me03', 'me02.5', 'me02', 'me01'] },
+    { series: 'Mega Evolution', ids: ['me05', 'me04', 'me03', 'me02.5', 'me02', 'me01'] },
     { series: 'Scarlet & Violet', ids: ['sv10.5w', 'sv10.5b', 'sv10', 'sv09', 'sv08.5', 'sv08', 'sv07', 'sv06.5', 'sv06', 'sv05', 'sv04.5', 'sv04', 'sv03.5', 'sv03', 'sv02', 'sv01'] },
     { series: 'Promos', ids: ['fpp', 'svp', 'swshp', 'smp', 'xyp', 'bwp', 'dpp', 'hgssp', 'np', 'basep'] },
   ];
