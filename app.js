@@ -585,6 +585,7 @@
     const cEl = els[view[idx]].el;
     cEl.tabIndex = 0;
     cEl.classList.add('center');
+    cEl.style.setProperty('--focus-glow', color);   // the rim wears the tier's light
     cEl.removeAttribute('aria-hidden');
     cEl.setAttribute('role', 'button');
     cEl.setAttribute('aria-label', `Inspect ${card.name}`);
@@ -2829,6 +2830,16 @@
     { game: 'lorcana', name: 'Disney Lorcana', accent: '#7fd4f4', card: 'assets/hallway/lorcana.avif' },
     { game: 'onepiece', name: 'One Piece', accent: '#ff5b4d', card: 'assets/hallway/onepiece.webp' },
   ];
+  // per-universe world language for the picker gates: a giant engraved sigil
+  // (stroke-only, rotates imperceptibly), a flavor line, and the particle MODE
+  // the uniFX shader speaks in that column (0 sparks · 1 starlight · 2 sea
+  // mist · 3 embers — each a different motion/shape/twinkle signature)
+  const UNI_LORE = {
+    pokemon: { tag: 'The original chase', fx: 0, sigil: '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="50" cy="50" r="41"/><path d="M9 50h26M65 50h26"/><circle cx="50" cy="50" r="15"/><circle cx="50" cy="50" r="6.5"/></svg>' },
+    lorcana: { tag: 'Ink & starlight', fx: 1, sigil: '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M50 8l7.8 30.5L88 46l-30.2 7.5L50 84l-7.8-30.5L12 46l30.2-7.5z"/><circle cx="50" cy="46" r="34"/></svg>' },
+    onepiece: { tag: 'Chart the Grand Line', fx: 2, sigil: '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="9"/><path d="M50 6v18M50 76v18M6 50h18M76 50h18M19 19l13 13M68 68l13 13M81 19L68 32M32 68L19 81"/><circle cx="50" cy="6" r="3.4"/><circle cx="50" cy="94" r="3.4"/><circle cx="6" cy="50" r="3.4"/><circle cx="94" cy="50" r="3.4"/></svg>' },
+    magic: { tag: 'Spellcraft & steel', fx: 3, sigil: '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M50 12L86 38 72 82H28L14 38z"/><circle cx="50" cy="12" r="5"/><circle cx="86" cy="38" r="5"/><circle cx="72" cy="82" r="5"/><circle cx="28" cy="82" r="5"/><circle cx="14" cy="38" r="5"/><circle cx="50" cy="52" r="12"/></svg>' },
+  };
   function setsForGame(game) {
     if (game === 'pokemon') {
       const bundled = SET_GROUPS.flatMap((grp) => grp.ids.filter((id) => SETS[id]).map((id) => ({ id, name: SETS[id].set.name, count: SETS[id].set.total })));
@@ -2889,7 +2900,7 @@
           <button type="button" class="get-started" id="getStarted">Get started <span aria-hidden="true">&rarr;</span></button>
         </div>
         <div class="hv hv-pick" id="hvPick" hidden>
-          <div class="uni-cols" id="pickLogos">${UNI_ORDER.map((g) => `<button type="button" class="uni-col" data-game="${g.game}" style="--accent:${g.accent}" aria-label="${g.name}"><span class="uc-wash" aria-hidden="true"></span><span class="uc-glow" aria-hidden="true"></span><img class="uc-char" src="assets/chars/${g.game}.png?v=1" alt="" aria-hidden="true" draggable="false"><span class="uc-inner"><img class="uc-logo" src="assets/logos/${g.game}.png?v=79" alt="${g.name}"><span class="uc-stats"><b>${setsForGame(g.game).length}</b> sets &middot; live prices</span><span class="uc-go">Browse sets <i aria-hidden="true">&rarr;</i></span></span></button>`).join('')}</div>
+          <div class="uni-cols" id="pickLogos">${UNI_ORDER.map((g) => `<button type="button" class="uni-col" data-game="${g.game}" style="--accent:${g.accent}" aria-label="${g.name}"><span class="uc-wash" aria-hidden="true"></span><span class="uc-sigil" aria-hidden="true">${UNI_LORE[g.game].sigil}</span><span class="uc-glow" aria-hidden="true"></span><span class="uc-charw" aria-hidden="true"><img class="uc-char" src="assets/chars/${g.game}.png?v=1" alt="" draggable="false"></span><span class="uc-ground" aria-hidden="true"></span><span class="uc-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="uc-inner"><img class="uc-logo" src="assets/logos/${g.game}.png?v=79" alt="${g.name}"><span class="uc-tag">${UNI_LORE[g.game].tag}</span><span class="uc-stats"><b>${setsForGame(g.game).length}</b> sets &middot; live prices</span><span class="uc-go">Enter <i aria-hidden="true">&rarr;</i></span></span><span class="uc-flash" aria-hidden="true"></span></button>`).join('')}</div>
           <canvas class="uni-fx" id="uniFX" aria-hidden="true"></canvas>
           <div class="uni-head"><span class="uh-kick">Crowns &middot; live market</span><span class="uh-title">Choose your universe</span></div>
         </div>
@@ -2902,20 +2913,33 @@
     $('pickLogos').addEventListener('click', (e) => {
       const b = e.target.closest('[data-game]'); if (!b) return;
       const cols = [...$('pickLogos').children];
+      if (pickerFX) pickerFX.surge(cols.indexOf(b));   // the column's particles flare on commit
       if (!window.gsap || REDUCED) { revealSetsInPlace(b.dataset.game); return; }
-      // the chosen column expands to fill the screen; its logo fades away and the set
-      // list resolves IN-PLACE over that same coloured frame — no blink, no snap-back.
+      // COMMIT: an accent flash cracks over the gate, its particles surge, then the
+      // column expands to fill the screen and the set list resolves IN-PLACE over
+      // that same coloured frame — no blink, no snap-back.
       gsap.timeline({ onComplete: () => {
         revealSetsInPlace(b.dataset.game);
         gsap.set(cols, { clearProps: 'flexGrow,opacity,scale' });
-        gsap.set('#pickLogos .uc-logo, #pickLogos .uc-go, #pickLogos .uc-stats, #pickLogos .uc-char', { clearProps: 'all' });   // reset so the picker is clean on return
+        gsap.set('#pickLogos .uc-logo, #pickLogos .uc-go, #pickLogos .uc-stats, #pickLogos .uc-tag, #pickLogos .uc-charw, #pickLogos .uc-frame, #pickLogos .uc-sigil, #pickLogos .uc-ground, #pickLogos .uc-flash', { clearProps: 'opacity,transform,visibility' });   // reset so the picker is clean on return
       } })
+        .fromTo(b.querySelector('.uc-flash'), { opacity: 0 }, { opacity: 0.55, duration: 0.09, ease: 'power1.in' }, 0)
+        .to(b.querySelector('.uc-flash'), { opacity: 0, duration: 0.5, ease: 'power2.out' }, 0.09)
         .to(b.querySelector('.uc-glow'), { opacity: 0.95, scale: 1.25, duration: 0.55, ease: 'power2.out' }, 0)
         .to(b.querySelector('.uc-logo'), { opacity: 0, scale: 0.82, duration: 0.42, ease: 'power2.in' }, 0.1)
-        .to(b.querySelectorAll('.uc-go, .uc-stats'), { opacity: 0, y: 8, duration: 0.3, ease: 'power2.in' }, 0)
-        .to(b.querySelector('.uc-char'), { opacity: 0, y: 26, duration: 0.4, ease: 'power2.in' }, 0)
+        .to(b.querySelectorAll('.uc-go, .uc-stats, .uc-tag'), { opacity: 0, y: 8, duration: 0.3, ease: 'power2.in' }, 0)
+        .to(b.querySelector('.uc-charw'), { opacity: 0, y: 26, duration: 0.4, ease: 'power2.in' }, 0)
+        .to(b.querySelectorAll('.uc-frame, .uc-sigil'), { opacity: 0, duration: 0.34, ease: 'power2.in' }, 0.06)
         .to(b, { flexGrow: 30, duration: 0.62, ease: 'power3.inOut' }, 0)
         .to(cols.filter((c) => c !== b), { flexGrow: 0.001, opacity: 0, duration: 0.5, ease: 'power3.inOut' }, 0);
+    });
+    // video-game dpad: arrows walk the gates, Enter commits (native button)
+    $('pickLogos').addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      const cols = [...$('pickLogos').children];
+      const cur = cols.indexOf(document.activeElement);
+      const next = cur < 0 ? 0 : Math.min(cols.length - 1, Math.max(0, cur + (e.key === 'ArrowRight' ? 1 : -1)));
+      cols[next].focus(); e.preventDefault();
     });
     $('getStarted').addEventListener('click', goPick);
     $('setsBack').addEventListener('click', () => switchView('hvSets', 'hvPick'));
@@ -2969,50 +2993,75 @@
         uColL: { value: [0, 0.25, 0.5, 0.75] }, uColW: { value: [0.25, 0.25, 0.25, 0.25] },
         uColT: { value: [0, 0, 0, 0] }, uColH: { value: [1, 1, 1, 1] },
         uBoost: { value: [0, 0, 0, 0] },
+        uMode: { value: games.map((g) => UNI_LORE[g.game].fx) },   // per-column particle language
       };
       const mat = new THREE.ShaderMaterial({
         uniforms: uni, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
         vertexShader: `
           uniform float uTime; uniform float uDpr;
-          uniform float uColL[4]; uniform float uColW[4]; uniform float uColT[4]; uniform float uColH[4]; uniform float uBoost[4];
+          uniform float uColL[4]; uniform float uColW[4]; uniform float uColT[4]; uniform float uColH[4]; uniform float uBoost[4]; uniform float uMode[4];
           attribute vec3 aTint; attribute float aCol; attribute float aSeed;
-          varying vec3 vTint; varying float vA;
+          varying vec3 vTint; varying float vA; varying float vMode;
           void main() {
             int ci = int(aCol + 0.5);
-            float yy = fract(position.y + uTime * (0.012 + aSeed * 0.022));
-            float xx = position.x + sin(uTime * (0.25 + aSeed * 0.6) + aSeed * 43.0) * 0.05;
+            float mode = uMode[ci];
+            // each universe speaks its own particle language:
+            //   0 sparks — quick rise, electric jitter, hard strobe flashes
+            //   1 starlight — near-still hang, gentle four-point glints
+            //   2 sea mist — big soft droplets on a slow rolling sway
+            //   3 embers — the classic updrift with a warm flicker
+            float spd = mode < 0.5 ? 1.9 : mode < 1.5 ? 0.3 : mode < 2.5 ? 0.55 : 1.0;
+            float sway = mode < 1.5 ? 0.035 : mode < 2.5 ? 0.16 : 0.05;
+            float yy = fract(position.y + uTime * (0.012 + aSeed * 0.022) * spd);
+            float xx = position.x + sin(uTime * (0.25 + aSeed * 0.6) + aSeed * 43.0) * sway;
+            if (mode < 0.5) xx += sin(uTime * 9.0 + aSeed * 91.0) * 0.011;   // electric jitter
             float x = uColL[ci] + xx * uColW[ci];
             float y = uColT[ci] + yy * uColH[ci];
             float boost = uBoost[ci];
-            float tw = 0.6 + 0.4 * sin(uTime * (0.7 + aSeed * 2.2) + aSeed * 31.0);
-            vA = (0.26 + 0.6 * boost) * tw * smoothstep(0.0, 0.14, yy) * smoothstep(1.0, 0.86, yy);
-            vTint = aTint;
+            float twf = mode < 0.5 ? 3.4 : mode < 1.5 ? 1.1 : 0.8;
+            float tw = 0.6 + 0.4 * sin(uTime * (0.7 + aSeed * 2.2) * twf + aSeed * 31.0);
+            if (mode < 0.5) tw = pow(tw, 4.0) * 1.5;                          // strobe pops
+            if (mode > 2.5) tw *= 0.82 + 0.18 * sin(uTime * 5.0 + aSeed * 57.0); // ember flicker
+            float base = mode < 1.5 && mode > 0.5 ? 0.34 : mode > 1.5 && mode < 2.5 ? 0.2 : 0.26;
+            vA = (base + 0.6 * boost) * tw * smoothstep(0.0, 0.14, yy) * smoothstep(1.0, 0.86, yy);
+            vTint = aTint; vMode = mode;
             gl_Position = vec4(x * 2.0 - 1.0, 1.0 - y * 2.0, 0.0, 1.0);
-            gl_PointSize = (1.4 + aSeed * 2.4 + boost * 1.8) * uDpr;
+            float sz = mode < 0.5 ? 0.8 + aSeed * 1.9 : mode < 1.5 ? 1.5 + aSeed * 2.6 : mode < 2.5 ? 2.4 + aSeed * 3.4 : 1.4 + aSeed * 2.4;
+            gl_PointSize = (sz + boost * 1.8) * uDpr;
           }`,
         fragmentShader: `
           precision mediump float;
-          varying vec3 vTint; varying float vA;
+          varying vec3 vTint; varying float vA; varying float vMode;
           void main() {
-            float d = length(gl_PointCoord - 0.5);
-            gl_FragColor = vec4(vTint, smoothstep(0.5, 0.06, d) * vA);
+            vec2 p = gl_PointCoord - 0.5;
+            float d = length(p);
+            float a = smoothstep(0.5, 0.06, d);
+            if (vMode > 0.5 && vMode < 1.5) {   // starlight: soft core + four-point glint
+              float arms = max(max(0.0, 1.0 - abs(p.x) * 9.0) * max(0.0, 1.0 - abs(p.y) * 2.4),
+                               max(0.0, 1.0 - abs(p.y) * 9.0) * max(0.0, 1.0 - abs(p.x) * 2.4));
+              a = max(a * 0.75, arms);
+            }
+            gl_FragColor = vec4(vTint, a * vA);
           }`,
       });
       scene.add(new THREE.Points(geo, mat));
       const boostTarget = [0, 0, 0, 0];
-      let W = 0, H = 0;
+      let W = 0, H = 0, surgeIx = -1, surgeUntil = 0;
       pickerFX = {
         hover(ix) { for (let i = 0; i < 4; i++) boostTarget[i] = i === ix ? 1 : 0; },
+        surge(ix) { surgeIx = ix; surgeUntil = performance.now() + 800; },   // commit flare
         live: () => !homeEl.hidden && !hvPickEl.hidden,
         render(ms) {
           const w = canvas.clientWidth || 2, h = canvas.clientHeight || 2;
           if (w !== W || h !== H) { W = w; H = h; renderer.setSize(w, h, false); }
           const cols = colsEl.children;
+          const surging = performance.now() < surgeUntil;
           for (let i = 0; i < 4 && i < cols.length; i++) {
             const r = cols[i].getBoundingClientRect();
             uni.uColL.value[i] = r.left / w; uni.uColW.value[i] = Math.max(r.width, 1) / w;
             uni.uColT.value[i] = r.top / h; uni.uColH.value[i] = Math.max(r.height, 1) / h;
-            uni.uBoost.value[i] += (boostTarget[i] - uni.uBoost.value[i]) * 0.08;
+            const t = (surging && i === surgeIx) ? 2.4 : boostTarget[i];
+            uni.uBoost.value[i] += (t - uni.uBoost.value[i]) * (surging ? 0.2 : 0.08);
           }
           uni.uTime.value = REDUCED ? 18.0 : ms * 0.001;
           renderer.render(scene, cam);
@@ -3074,11 +3123,15 @@
   function buildSetGrid(game) {
     pickGame = game;
     const sets = setsForGame(game);
-    { const nm = HOME_GAMES.find((g) => g.game === game)?.name || ''; const SH = { pokemon: 60, magic: 74, lorcana: 74, onepiece: 52 }; $('setsTitle').innerHTML = `<img class="sets-logo" src="assets/logos/${game}.png?v=79" alt="${nm}" style="height:${SH[game] || 62}px">`; }
+    { const nm = HOME_GAMES.find((g) => g.game === game)?.name || ''; const SH = { pokemon: 60, magic: 74, lorcana: 74, onepiece: 52 }; $('setsTitle').innerHTML = `<span class="sets-kick">Crowns &middot; ${sets.length} sets &middot; live prices</span><img class="sets-logo" src="assets/logos/${game}.png?v=79" alt="${nm}" style="height:${SH[game] || 62}px">`; }
     $('hvSets').style.setProperty('--accent', HOME_GAMES.find((g) => g.game === game)?.accent || '#7fd4f4');
+    // the universe's sigil watermarks the whole shelf — the gate's world continues
+    { let sig = $('hvSets').querySelector('.sets-sigil');
+      if (!sig) { sig = document.createElement('span'); sig.className = 'sets-sigil'; sig.setAttribute('aria-hidden', 'true'); $('hvSets').prepend(sig); }
+      sig.innerHTML = UNI_LORE[game].sigil; }
     const grid = $('setGrid');
     grid.innerHTML = (() => {
-      const tile = (s) => {
+      const tile = (s, hero) => {
         // auto-discovered sets pull their logo straight from tcgdex; bundled sets
         // walk the usual chain (real per-set logo → symbol → sealed box → game logo)
         const cands = s.fresh
@@ -3089,11 +3142,12 @@
           ? `<img class="st-logo ${game}" src="${cands[0]}" data-fb='${JSON.stringify(cands.slice(1))}' alt="" loading="lazy"><span class="st-fallback" aria-hidden="true">${GAME_GLYPH[game] || ''}</span>`
           : `<span class="st-sigil">${sig}</span>`;
         const nameLine = (s.name && s.name !== s.code && s.name !== sig) ? `<span class="st-name">${s.name}</span>` : '';
-        return `<button type="button" class="set-tile" data-set="${s.id}"><span class="st-art">${art}</span>${nameLine}${s.count ? `<span class="st-count">${s.count} cards</span>` : ''}${s.fresh ? '<span class="st-new">New</span>' : ''}</button>`;
+        return `<button type="button" class="set-tile${hero ? ' st-hero' : ''}" data-set="${s.id}"><span class="st-art">${art}</span>${nameLine}${s.count ? `<span class="st-count">${s.count} cards</span>` : ''}${s.fresh ? '<span class="st-new">New</span>' : hero ? '<span class="st-new st-latest">Latest</span>' : ''}</button>`;
       };
       const isPromo = (s) => game === 'pokemon' && /promo|partner/i.test(s.name) && !/illustration/i.test(s.name);
       const regular = sets.filter((s) => !isPromo(s)), promos = sets.filter(isPromo);
-      let html = regular.map(tile).join('');
+      // the newest set leads the shelf as a double-wide hero plate
+      let html = regular.map((s, i) => tile(s, i === 0)).join('');
       if (promos.length) html += `<button type="button" class="set-tile set-tile-promos" data-set="${promos[0].id}"><span class="st-art"><span class="st-sigil">✦</span></span><span class="st-name">Promos</span><span class="st-count">${promos.length} sets</span></button>`;
       return html;
     })();
@@ -3111,7 +3165,10 @@
     if (window.gsap) gsap.set('#hvSets', { clearProps: 'opacity' });
     if (window.gsap && !REDUCED) {
       gsap.from('#hvSets .pick-prompt', { opacity: 0, y: -12, duration: 0.5, ease: 'power2.out' });
-      gsap.fromTo('#setGrid .set-tile', { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.026, delay: 0.04, clearProps: 'transform' });
+      // the shelf unfolds: plates tip up from the world's floor, nearest first
+      gsap.fromTo('#setGrid .set-tile', { opacity: 0, y: 30, rotateX: -16 },
+        { opacity: 1, y: 0, rotateX: 0, duration: 0.55, ease: 'power3.out', stagger: 0.024, delay: 0.04, clearProps: 'transform' });
+      gsap.fromTo('#hvSets .sets-sigil', { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 1.1, ease: 'power2.out', clearProps: 'opacity,scale' });
       gsap.from('#setsBack', { opacity: 0, x: -10, duration: 0.5, delay: 0.12, clearProps: 'opacity,transform' });
     }
   }
@@ -3169,16 +3226,28 @@
     if (window.gsap) {
       gsap.fromTo('#hvPick .uni-col', { opacity: 0, yPercent: 6 }, { opacity: 1, yPercent: 0, duration: 0.7, ease: 'power3.out', stagger: 0.08, clearProps: 'transform' });
       gsap.fromTo('#hvPick .uc-logo', { opacity: 0, y: 22, scale: 0.93 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'power3.out', stagger: 0.09, delay: 0.16, clearProps: 'all' });
+        { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'back.out(1.3)', stagger: 0.09, delay: 0.16, clearProps: 'all' });
       // the universe characters rise from each column's foot
-      gsap.fromTo('#hvPick .uc-char', { opacity: 0, yPercent: 24 },
-        { opacity: 0.92, yPercent: 0, duration: 0.9, ease: 'power3.out', stagger: 0.09, delay: 0.22, clearProps: 'opacity,transform' });
-      gsap.fromTo('#hvPick .uc-stats', { opacity: 0, y: 10 },
-        { opacity: 0.62, y: 0, duration: 0.55, ease: 'power3.out', stagger: 0.09, delay: 0.34, clearProps: 'opacity,transform' });
+      gsap.fromTo('#hvPick .uc-charw', { opacity: 0, yPercent: 24 },
+        { opacity: 1, yPercent: 0, duration: 0.9, ease: 'power3.out', stagger: 0.09, delay: 0.22, clearProps: 'opacity' });
+      gsap.fromTo('#hvPick .uc-tag, #hvPick .uc-stats', { opacity: 0, y: 10 },
+        { opacity: (i, el) => (el.classList.contains('uc-stats') ? 0.62 : 0.85), y: 0, duration: 0.55, ease: 'power3.out', stagger: 0.05, delay: 0.34, clearProps: 'transform' });
+      // the gate frames draw their corners in, the sigils wake behind the scene
+      gsap.fromTo('#hvPick .uc-frame i', { scale: 0.3, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.6, ease: 'power3.out', stagger: 0.02, delay: 0.3, clearProps: 'all' });
+      gsap.fromTo('#hvPick .uc-sigil', { opacity: 0, scale: 0.92 },
+        { opacity: 1, scale: 1, duration: 1.3, ease: 'power2.out', stagger: 0.09, delay: 0.24, clearProps: 'opacity,scale' });
       gsap.fromTo('#hvPick .uni-head > *', { opacity: 0, y: -10 },
         { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.09, delay: 0.3, clearProps: 'opacity,transform' });
+      if (!REDUCED && !pickerIdle) {
+        pickerIdle = true;
+        // idle life, forever: sigils wheel imperceptibly, characters breathe
+        gsap.to('#hvPick .uc-sigil svg', { rotation: 360, duration: 300, ease: 'none', repeat: -1 });
+        gsap.to('#hvPick .uc-charw', { y: -9, duration: 3.6, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: { each: 0.7, from: 'random' } });
+      }
     }
   }
+  let pickerIdle = false;
   function hideHome() { homeEl.hidden = true; document.body.classList.remove('home-open'); }
   document.querySelector('.lockup').addEventListener('click', () => { location.href = 'index.html'; }); // brand mark → real homepage
 

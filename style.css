@@ -310,6 +310,10 @@ main {
   inset: 0;
   pointer-events: none;
   background:
+    /* the spotlight: a soft beam falls from above onto the focused card,
+       and a contact pool grounds it on the stage floor — gallery theatre */
+    conic-gradient(from 180deg at 50% -12%, transparent 44%, var(--glow-color, rgba(108,46,166,0.20)) 50%, transparent 56%),
+    radial-gradient(24vh 6vh at 50% 76%, var(--glow-color, rgba(108,46,166,0.20)) 0%, transparent 74%),
     radial-gradient(46vh 46vh at 50% 44%, var(--glow-color, rgba(108,46,166,0.20)) 0%, transparent 70%),
     var(--vignette);
 }
@@ -349,7 +353,10 @@ main {
 }
 .card { cursor: pointer; }
 .card:hover img { box-shadow: 0 22px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--stage-line); }
-.card.center:hover img { box-shadow: 0 22px 60px rgba(0, 0, 0, 0.7), var(--glow-phantom); }
+/* the focused card stands in the light: a quiet tier-colored rim, always on
+   (setCurrent feeds --focus-glow), that deepens on hover */
+.card.center img { box-shadow: 0 22px 60px rgba(0, 0, 0, 0.68), 0 0 34px -8px var(--focus-glow, rgba(108, 46, 166, 0.45)); }
+.card.center:hover img { box-shadow: 0 22px 60px rgba(0, 0, 0, 0.7), 0 0 46px -6px var(--focus-glow, rgba(108, 46, 166, 0.6)), var(--glow-phantom); }
 .card:focus-visible { outline: 2px solid var(--spectral); outline-offset: 6px; }
 .card .ph {
   position: absolute;
@@ -1567,11 +1574,23 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
   z-index: 6; backface-visibility: hidden; will-change: transform, opacity, filter;
   box-shadow: 0 38px 72px rgba(0, 0, 0, 0.62), 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 60px rgba(124, 92, 255, 0.12); }
 
-/* set selector */
+/* set selector — the chosen universe's SHELF */
 /* the set screen wears the universe's colour full-bleed, so the expanded picker
-   column resolves straight into it with no colour jump */
-.hv-sets { background: linear-gradient(170deg, color-mix(in srgb, var(--accent, #7fd4f4) 24%, #0a1126) 0%, #070c1a 58%, #05091a 100%); }
-.set-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; width: min(95vw, 1280px); padding: 4px; }
+   column resolves straight into it with no colour jump; its sigil watermarks
+   the room and every set is an engraved cut-corner plate */
+.hv-sets { background: linear-gradient(170deg, color-mix(in srgb, var(--accent, #7fd4f4) 24%, #0a1126) 0%, #070c1a 58%, #05091a 100%);
+  /* deep universes (Pokémon: 37 sets) outgrow short viewports — the shelf
+     scrolls; safe-centering keeps small lists centered without clipping */
+  overflow-y: auto; justify-content: safe center; padding-top: clamp(84px, 12vh, 120px); padding-bottom: 6vh; scrollbar-width: thin; }
+/* fixed so the watermark holds the room while the shelf scrolls (the ancestor
+   perspective re-anchors fixed to the stage, which is full-viewport anyway) */
+.sets-sigil { position: fixed; left: 50%; top: 50%; width: min(88vh, 92vw); aspect-ratio: 1; transform: translate(-50%, -50%);
+  color: var(--accent, #7fd4f4); opacity: 0.05; pointer-events: none; z-index: 0; }
+.sets-sigil svg { width: 100%; height: 100%; display: block; }
+.sets-kick { display: block; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent, #7fd4f4) 70%, #fff); opacity: 0.75; margin-bottom: 14px; }
+.set-grid { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; width: min(95vw, 1280px); padding: 4px;
+  perspective: 1100px; }
 @media (max-width: 1040px) { .set-grid { grid-template-columns: repeat(4, 1fr); } }
 .set-pick { display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left;
   padding: 15px 16px; border-radius: 12px; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--stage-line);
@@ -1580,16 +1599,34 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
 .sp-name { font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--text); }
 .set-pick:hover .sp-name { color: #fff; }
 .sp-count { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); background: rgba(255, 255, 255, 0.05); padding: 2px 8px; border-radius: 999px; flex: none; }
-/* visual, per-universe-themed set tiles (image-led, not black boxes) */
+/* per-universe engraved PLATES: cut corners (clip-path), a fine inner frame,
+   diagonal energy grain — game chrome, not web cards */
 .set-tile { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center;
-  padding: 18px 12px 14px; border-radius: 15px; cursor: pointer; min-height: 132px; overflow: hidden;
-  background: linear-gradient(165deg, color-mix(in srgb, var(--accent, #7fd4f4) 30%, rgba(12, 18, 38, 0.9)), rgba(8, 13, 30, 0.92));
-  border: 1px solid color-mix(in srgb, var(--accent, #7fd4f4) 44%, transparent);
-  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
+  padding: 18px 12px 14px; border: 0; border-radius: 0; cursor: pointer; min-height: 132px; overflow: hidden;
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--accent, #7fd4f4) 30%, rgba(12, 18, 38, 0.9)), rgba(8, 13, 30, 0.92));
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.22s, box-shadow 0.22s; }
 .set-tile::before { content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(120% 80% at 50% -6%, color-mix(in srgb, var(--accent, #7fd4f4) 62%, transparent), transparent 66%); }
-.set-tile:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--accent, #7fd4f4) 92%, transparent);
+  background:
+    radial-gradient(120% 80% at 50% -6%, color-mix(in srgb, var(--accent, #7fd4f4) 62%, transparent), transparent 66%),
+    repeating-linear-gradient(115deg, transparent 0 9px, color-mix(in srgb, var(--accent, #7fd4f4) 26%, transparent) 9px 10px);
+  opacity: 0.9; }
+/* the inner engraved frame, following the same cut corners */
+.set-tile::after { content: ''; position: absolute; inset: 4px; pointer-events: none;
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+  background: linear-gradient(color-mix(in srgb, var(--accent, #7fd4f4) 46%, transparent), color-mix(in srgb, var(--accent, #7fd4f4) 18%, transparent));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude; padding: 1px;
+  transition: background 0.22s; }
+.set-tile:hover { transform: translateY(-4px); filter: brightness(1.12);
   box-shadow: 0 20px 44px -16px rgba(0, 0, 0, 0.7), 0 0 52px -8px color-mix(in srgb, var(--accent, #7fd4f4) 88%, transparent); }
+.set-tile:hover::after { background: linear-gradient(var(--accent, #7fd4f4), color-mix(in srgb, var(--accent, #7fd4f4) 40%, transparent)); }
+/* the newest set leads the shelf: a double-wide hero plate */
+.st-hero { grid-column: span 2; min-height: 168px; }
+.st-hero .st-art { height: 84px; }
+.st-hero .st-logo { max-width: 200px; max-height: 82px; }
+.st-latest { background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--accent, #7fd4f4) 70%, #fff)); }
 .st-art { position: relative; z-index: 1; height: 60px; display: flex; align-items: center; justify-content: center; }
 .st-logo { max-width: 132px; max-height: 58px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55)); }
 .st-logo.magic { height: 46px; width: auto; max-width: 116px; max-height: none; flex: none; filter: brightness(0) invert(1) drop-shadow(0 0 7px color-mix(in srgb, var(--accent, #7fd4f4) 80%, transparent)); }
@@ -1621,10 +1658,14 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
   letter-spacing: 0.14em; text-transform: uppercase; color: #10131f; line-height: 1;
   background: linear-gradient(180deg, #ffe79a, #ffc63a); padding: 4px 9px; border-radius: 999px; pointer-events: none; }
 
-/* ===== four-universe picker — full-bleed columns ===== */
+/* ===== four-universe picker — the GATES ===== */
+/* Each column is a hand-built world-gate: its own particle language (uniFX
+   shader modes), a giant engraved sigil wheeling behind the character, a light
+   pool grounding the character, and a corner-bracket frame that tightens like
+   a lock-on when considered. Hovering one gate dims the other worlds. */
 .hv-pick { padding: 0; pointer-events: auto; perspective: none; }
 .uni-cols { display: flex; width: 100%; height: 100%; pointer-events: auto; }
-/* ember-dust canvas: Three.js Points floating OVER the columns (buildPickerFX);
+/* particle canvas: Three.js Points floating OVER the columns (buildPickerFX);
    z-4 = above the washes/content, below the title (5) — never intercepts input */
 .uni-fx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; }
 /* title block: gold mono kicker over the display-face headline */
@@ -1636,31 +1677,63 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
   font-size: clamp(13px, 1.5vw, 19px); color: rgba(255, 255, 255, 0.92); text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8); }
 .uni-col { position: relative; flex: 1 1 0; height: 100%; min-width: 0; overflow: hidden; border: 0; padding: 0; margin: 0;
   background: #060c1e; cursor: pointer; border-right: 1px solid rgba(255, 255, 255, 0.07);
-  transition: flex-grow 0.55s cubic-bezier(0.16, 1, 0.3, 1); }
+  transition: flex-grow 0.55s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease; }
 .uni-col:last-child { border-right: 0; }
+/* consideration: the hovered/focused world lights, the others recede */
+.uni-cols:has(> .uni-col:hover) > .uni-col:not(:hover),
+.uni-cols:has(> .uni-col:focus-visible) > .uni-col:not(:focus-visible) { filter: saturate(0.5) brightness(0.66); }
 .uc-wash { position: absolute; inset: 0; transition: filter 0.4s ease;
   background: linear-gradient(170deg, color-mix(in srgb, var(--accent) 24%, #0a1126) 0%, #070c1a 58%, #05091a 100%); }
 .uc-glow { position: absolute; inset: 0; will-change: opacity, transform;
   background: radial-gradient(68% 46% at 50% 34%, color-mix(in srgb, var(--accent) 52%, transparent) 0%, transparent 60%); }
+/* the sigil: a stroke-engraved emblem filling the gate, wheeling imperceptibly */
+.uc-sigil { position: absolute; left: 50%; top: 54%; width: min(74vh, 150%); aspect-ratio: 1; transform: translate(-50%, -50%);
+  color: var(--accent); opacity: 0.07; pointer-events: none; transition: opacity 0.5s ease; }
+.uc-sigil svg { width: 100%; height: 100%; display: block; }
+.uni-col:hover .uc-sigil, .uni-col:focus-visible .uc-sigil { opacity: 0.15; }
+/* the character stands in a pool of its world's light */
+.uc-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 22%; pointer-events: none; opacity: 0.3; transition: opacity 0.5s ease;
+  background: radial-gradient(52% 88% at 50% 100%, color-mix(in srgb, var(--accent) 44%, transparent), transparent 72%); }
+.uni-col:hover .uc-ground, .uni-col:focus-visible .uc-ground { opacity: 0.62; }
 .uc-inner { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: clamp(14px, 2.4vh, 24px); padding: 32px; }
+  gap: clamp(10px, 1.7vh, 18px); padding: 32px; }
 .uc-logo { width: min(70%, 250px); max-height: clamp(110px, 18vh, 180px); object-fit: contain;
   filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.75)); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
 /* optical balance: wide/short wordmarks read small at uniform width — give them more */
 .uni-col[data-game="magic"] .uc-logo { width: min(78%, 290px); }
 .uni-col[data-game="onepiece"] .uc-logo { width: min(74%, 265px); }
-/* universe characters — Pikachu / Mickey / Luffy / Chandra rise from each column's foot,
-   behind the logo/stats (z1 < uc-inner z2). Entrance + expand handled by GSAP in app.js. */
-.uc-char { position: absolute; left: 50%; bottom: -2%; transform: translateX(-50%); z-index: 1;
-  height: clamp(190px, 30vh, 360px); max-width: 86%; object-fit: contain; object-position: bottom;
-  pointer-events: none; user-select: none; opacity: 0.92;
+/* universe characters — Pikachu / Mickey / Luffy / Chandra rise from each column's
+   foot (z1 < uc-inner z2). The wrapper carries GSAP breathing; the img carries the
+   hover lift, so the two transforms never fight. */
+.uc-charw { position: absolute; left: 0; right: 0; bottom: -2%; z-index: 1; height: clamp(190px, 30vh, 360px);
+  display: flex; align-items: flex-end; justify-content: center; pointer-events: none; }
+.uc-char { height: 100%; max-width: 86%; object-fit: contain; object-position: bottom;
+  user-select: none; opacity: 0.92;
   filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.6));
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s; }
-.uni-col:hover .uc-char { transform: translateX(-50%) translateY(-14px) scale(1.05);
+.uni-col:hover .uc-char, .uni-col:focus-visible .uc-char { transform: translateY(-18px) scale(1.1); transform-origin: bottom center;
   filter: drop-shadow(0 26px 44px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 30px color-mix(in srgb, var(--accent) 55%, transparent)); }
 /* Chandra's render is cut on the right + bottom — anchor her into the corner so the cuts vanish */
-.uni-col[data-game="magic"] .uc-char { left: auto; right: -3%; transform: none; transform-origin: bottom right; max-width: 94%; }
-.uni-col[data-game="magic"]:hover .uc-char { transform: translateY(-10px) scale(1.04); }
+.uni-col[data-game="magic"] .uc-charw { justify-content: flex-end; }
+.uni-col[data-game="magic"] .uc-char { max-width: 94%; margin-right: -3%; transform-origin: bottom right; }
+.uni-col[data-game="magic"]:hover .uc-char, .uni-col[data-game="magic"]:focus-visible .uc-char { transform: translateY(-10px) scale(1.04); }
+/* gate frame: corner brackets that tighten like a lock-on when considered
+   (top edge sits below the uni-head HUD line — measured, never clashes) */
+.uc-frame { position: absolute; inset: clamp(84px, 10vh, 118px) clamp(14px, 2vw, 26px) clamp(14px, 2vw, 26px); z-index: 3; pointer-events: none;
+  transition: inset 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+.uc-frame i { position: absolute; width: 26px; height: 26px; border: 0 solid color-mix(in srgb, var(--accent) 55%, rgba(255, 255, 255, 0.25));
+  transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1), height 0.45s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.45s; }
+.uc-frame i:nth-child(1) { top: 0; left: 0; border-top-width: 1.5px; border-left-width: 1.5px; }
+.uc-frame i:nth-child(2) { top: 0; right: 0; border-top-width: 1.5px; border-right-width: 1.5px; }
+.uc-frame i:nth-child(3) { bottom: 0; left: 0; border-bottom-width: 1.5px; border-left-width: 1.5px; }
+.uc-frame i:nth-child(4) { bottom: 0; right: 0; border-bottom-width: 1.5px; border-right-width: 1.5px; }
+.uni-col:hover .uc-frame, .uni-col:focus-visible .uc-frame { inset: clamp(78px, 9.2vh, 108px) clamp(9px, 1.2vw, 16px) clamp(9px, 1.2vw, 16px); }
+.uni-col:hover .uc-frame i, .uni-col:focus-visible .uc-frame i { width: 40px; height: 40px; border-color: var(--accent); }
+/* the flavor line: each world in its own words */
+.uc-tag { font-family: var(--font-display); font-weight: 600; font-size: clamp(12px, 1.15vw, 15px); letter-spacing: 0.2em;
+  text-transform: uppercase; color: color-mix(in srgb, var(--accent) 72%, #fff); opacity: 0.85;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.65); transition: opacity 0.4s, letter-spacing 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+.uni-col:hover .uc-tag, .uni-col:focus-visible .uc-tag { opacity: 1; letter-spacing: 0.27em; }
 /* live stat line under each logo — quiet at rest, full on hover */
 .uc-stats { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--text-dim); opacity: 0.62; transition: opacity 0.4s; }
@@ -1670,18 +1743,23 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
   background: color-mix(in srgb, var(--accent) 16%, transparent); padding: 10px 20px; border-radius: 30px;
   opacity: 0; transform: translateY(12px); transition: opacity 0.4s, transform 0.4s; }
 .uc-go i { font-style: normal; transition: transform 0.3s; }
+/* commit flash: a crack of the world's light over the whole gate on click */
+.uc-flash { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: 0; mix-blend-mode: screen;
+  background: radial-gradient(90% 90% at 50% 46%, color-mix(in srgb, var(--accent) 85%, #fff), color-mix(in srgb, var(--accent) 45%, transparent) 62%, transparent 82%); }
 .uni-col::after { content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none; box-shadow: inset 0 0 0 0 transparent; transition: box-shadow 0.45s; }
 .uni-col:hover { flex-grow: 1.55; }
-.uni-col:hover .uc-wash { filter: brightness(1.18) saturate(1.1); }
-.uni-col:hover .uc-logo { transform: scale(1.08); }
-.uni-col:hover .uc-stats { opacity: 1; }
-.uni-col:hover .uc-go { opacity: 1; transform: translateY(0); }
+.uni-col:hover .uc-wash, .uni-col:focus-visible .uc-wash { filter: brightness(1.18) saturate(1.1); }
+.uni-col:hover .uc-logo, .uni-col:focus-visible .uc-logo { transform: scale(1.08); }
+.uni-col:hover .uc-stats, .uni-col:focus-visible .uc-stats { opacity: 1; }
+.uni-col:hover .uc-go, .uni-col:focus-visible .uc-go { opacity: 1; transform: translateY(0); }
 .uni-col:hover .uc-go i { transform: translateX(4px); }
 .uni-col:hover::after { box-shadow: inset 0 -5px 0 0 var(--accent), inset 0 0 90px -26px color-mix(in srgb, var(--accent) 85%, transparent); }
-.uni-col:focus-visible { outline: none; }
-.uni-col:focus-visible::after { box-shadow: inset 0 0 0 2px var(--accent); }
+.uni-col:focus-visible { outline: none; flex-grow: 1.55; }
+.uni-col:focus-visible::after { box-shadow: inset 0 -5px 0 0 var(--accent), inset 0 0 90px -26px color-mix(in srgb, var(--accent) 85%, transparent); }
 @media (max-width: 760px) {
   .uni-cols { flex-wrap: wrap; }
   .uni-col { flex: 1 1 50%; height: 50%; }
   .uni-col:hover { flex-grow: 1; }
+  .uc-sigil { width: 120%; }
+  .uc-frame i { width: 18px; height: 18px; }
 }
