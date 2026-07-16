@@ -197,7 +197,7 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .spotlight-section .sp-particles{position:absolute;inset:0;z-index:2;pointer-events:none}
 .spotlight-section .sp-stage{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(16px,3vh,38px);padding:clamp(22px,4.5vh,56px) 16px clamp(34px,7vh,90px)}
 .spotlight-section .sp-cardarea{margin-top:clamp(20px,4vh,76px)}
-.spotlight-section .sp-title-wrap{position:relative;flex:none;line-height:0;filter:drop-shadow(0 14px 22px rgba(0,0,0,.55))}
+.spotlight-section .sp-title-wrap{position:relative;flex:none;line-height:0;filter:drop-shadow(0 14px 22px rgba(0,0,0,.55)) drop-shadow(0 20px 42px rgba(158,186,255,.22))}
 .spotlight-section .sp-title-img{display:block;width:min(44vw,610px);height:auto}
 .spotlight-section .sp-title-sheen{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(108deg,transparent 45%,rgba(255,255,255,.5) 50%,transparent 55%);background-size:300% 100%;background-position-x:180%;-webkit-mask-image:url(assets/spotlight-title.png?v=1);mask-image:url(assets/spotlight-title.png?v=1);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .spotlight-section .sp-crown{position:absolute;left:50%;bottom:98%;transform:translateX(-50%);width:clamp(122px,14.5vw,194px);height:clamp(122px,14.5vw,194px);z-index:4;filter:drop-shadow(0 9px 17px rgba(0,0,0,.5)) saturate(1.12) brightness(1.06) contrast(1.03)}
@@ -220,6 +220,17 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .spotlight-section .sp-side-cap .ssc{display:inline-block;font-weight:800;font-size:13px;margin-top:5px;padding:3px 11px;border-radius:999px}
 .spotlight-section .sp-side-cap .ssc.up{color:#06190f;background:#46e08a} .spotlight-section .sp-side-cap .ssc.down{color:#2a0a0a;background:#ff6b6b}
 .spotlight-section .sp-downlight{position:absolute;left:50%;top:-36%;transform:translateX(-50%);width:130%;height:155%;pointer-events:none;z-index:0;background:radial-gradient(46% 66% at 50% 0%, rgba(210,222,255,.34), rgba(150,178,255,.12) 48%, transparent 73%);mix-blend-mode:screen;filter:blur(6px)}
+/* physical footlights: two beams rise from fixtures on the stage floor and
+   lean in over the centre card — hot at the lamp, dissolving upward. They live
+   on the SECTION (z3: over the GL room + particles, under the z5 stage). */
+.spotlight-section .sp-uplight{position:absolute;bottom:-1.5%;width:23%;height:82%;pointer-events:none;z-index:3;mix-blend-mode:screen;filter:blur(9px);
+  background:linear-gradient(to top, rgba(220,231,255,.5), rgba(163,191,255,.18) 46%, transparent 78%);
+  clip-path:polygon(45% 100%, 55% 100%, 98% 0%, 2% 0%)}
+.spotlight-section .sp-uplight-l{left:11%;transform:rotate(16deg);transform-origin:50% 100%}
+.spotlight-section .sp-uplight-r{right:11%;transform:rotate(-16deg);transform-origin:50% 100%}
+.spotlight-section .sp-uplight::after{content:'';position:absolute;left:50%;bottom:3%;width:58px;height:14px;transform:translateX(-50%);border-radius:50%;
+  background:radial-gradient(closest-side, #fff, rgba(206,222,255,.62) 48%, transparent);filter:blur(2px)}
+@media(max-width:860px){ .spotlight-section .sp-uplight{width:34%} .spotlight-section .sp-uplight-l{left:2%} .spotlight-section .sp-uplight-r{right:2%} }
 .spotlight-section .sp-cap{flex:none;text-align:center;z-index:5;margin-top:clamp(-40px,-3vh,-16px)}
 .spotlight-section .sp-cap .sp-kicker{display:flex;flex-direction:column;align-items:center;gap:10px;font-family:var(--font);font-weight:800;font-size:13px;letter-spacing:.26em;text-transform:uppercase;color:#e7eefc;margin-bottom:13px;text-shadow:0 1px 8px rgba(0,0,0,.5)}
 .spotlight-section .uni-logo{display:block;width:auto;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}
@@ -459,6 +470,8 @@ h2.ih2 .lk2{color:var(--blue-bright)}
     <section class="spotlight-section" id="spotlight">
       <canvas class="sp-gl" id="spotGL" aria-hidden="true"></canvas>
       <canvas class="sp-particles" id="spotParticles" aria-hidden="true"></canvas>
+      <span class="sp-uplight sp-uplight-l" aria-hidden="true"></span>
+      <span class="sp-uplight sp-uplight-r" aria-hidden="true"></span>
       <div class="sp-stage">
         <div class="sp-title-wrap">
           <img class="sp-title-img" src="assets/spotlight-title.png?v=1" alt="Spotlight">
@@ -1078,27 +1091,34 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       // never touch them — entrance rides .sp-card-btn / .sp-crown / .sp-side-* / .sp-cap.
       const spTitle = q(SP + ' .sp-title-wrap'), spCrown = q(SP + ' .sp-crown'), spBtn = q(SP + ' .sp-card-btn'),
             spL = q(SP + ' .sp-side-l'), spR = q(SP + ' .sp-side-r'), spL2 = q(SP + ' .sp-side-l2'), spR2 = q(SP + ' .sp-side-r2'), spCap = q(SP + ' .sp-cap'),
-            spName = q('#spName'), spStats = q('#spStats');
-      [spTitle, spCrown, spBtn, spL, spR, spL2, spR2, spCap].forEach((el) => el && gsap.set(el, { opacity: 0 }));
+            spName = q('#spName'), spStats = q('#spStats'), spUps = qa(SP + ' .sp-uplight');
+      [spTitle, spCrown, spBtn, spL, spR, spL2, spR2, spCap, ...spUps].forEach((el) => el && gsap.set(el, { opacity: 0 }));
       if (spTitle) gsap.set(spTitle, { scale: .82 });
       // pre-decode the spotlight card art well before it scrolls in — decode jank
       // mid-tween was what read as "choppy"
       onView(SP, () => document.querySelectorAll(`${SP} img`).forEach((im) => { if (im.decode) im.decode().catch(() => {}); }), 'top 160%');
-      onView(SP, () => {
-        // one continuous pour: everything overlaps, travel is short, no filter/layout
-        // tweens mid-flight (the old 2.5x swoop + discrete starts read as stutter)
-        const tl = gsap.timeline({ defaults: { ease: 'power3.out', force3D: true } });
-        if (spTitle) tl.to(spTitle, { opacity: 1, scale: 1, duration: .7 }, 0);
-        if (spBtn)   tl.fromTo(spBtn, { opacity: 0, xPercent: -46, yPercent: 5, scale: 1.5, rotateZ: -5 }, { opacity: 1, xPercent: 0, yPercent: 0, scale: 1, rotateZ: 0, duration: 1.05, clearProps: 'transform' }, .05);
-        if (spL) tl.fromTo(spL, { opacity: 0, xPercent: -300 }, { opacity: 1, xPercent: -179, duration: .9, clearProps: 'transform' }, .26);
-        if (spR) tl.fromTo(spR, { opacity: 0, xPercent: 300 }, { opacity: 1, xPercent: 79, duration: .9, clearProps: 'transform' }, .32);
-        if (spL2) tl.fromTo(spL2, { opacity: 0, xPercent: -420 }, { opacity: 1, xPercent: -294, duration: .9, clearProps: 'transform' }, .38);
-        if (spR2) tl.fromTo(spR2, { opacity: 0, xPercent: 420 }, { opacity: 1, xPercent: 194, duration: .9, clearProps: 'transform' }, .42);
-        if (spCrown) tl.fromTo(spCrown, { opacity: 0, yPercent: -34, scale: 1.4 }, { opacity: 1, yPercent: 0, scale: 1, duration: .9, clearProps: 'transform' }, .5);
-        if (spCap) tl.to(spCap, { opacity: 1, duration: .5 }, .72);
-        if (spName) tl.from(spName, { y: 16, opacity: 0, duration: .7 }, .78);
-        if (spStats) tl.from(spStats, { y: 12, opacity: 0, duration: .55 }, .92);
-      }, 'top 70%');
+      // SCRUBBED pour: the reveal rides the scrollbar itself, so it can only
+      // glide — a time-based tween under frame pressure is what read as "snap".
+      // The footlights wake first, then the cards rise into their beams.
+      {
+        const pour = gsap.timeline({
+          scrollTrigger: { trigger: SP, start: 'top 88%', end: 'top 26%', scrub: 0.7 },
+          defaults: { ease: 'none', force3D: true },
+        });
+        if (spUps.length) pour.to(spUps, { opacity: 1, duration: .5, stagger: .08 }, 0);
+        if (spTitle) pour.to(spTitle, { opacity: 1, scale: 1, duration: .55 }, .02);
+        if (spBtn)   pour.fromTo(spBtn, { opacity: 0, yPercent: 24, scale: .84 }, { opacity: 1, yPercent: 0, scale: 1, duration: .8 }, .08);
+        if (spL) pour.fromTo(spL, { opacity: 0, xPercent: -300, rotation: -5 }, { opacity: 1, xPercent: -179, rotation: -5, duration: .72 }, .2);
+        if (spR) pour.fromTo(spR, { opacity: 0, xPercent: 300, rotation: 5 }, { opacity: 1, xPercent: 79, rotation: 5, duration: .72 }, .26);
+        if (spL2) pour.fromTo(spL2, { opacity: 0, xPercent: -430 }, { opacity: 1, xPercent: -294, duration: .72 }, .32);
+        if (spR2) pour.fromTo(spR2, { opacity: 0, xPercent: 430 }, { opacity: 1, xPercent: 194, duration: .72 }, .36);
+        if (spCrown) pour.fromTo(spCrown, { opacity: 0, yPercent: -34, scale: 1.4 }, { opacity: 1, yPercent: 0, scale: 1, duration: .62 }, .42);
+        if (spCap) pour.to(spCap, { opacity: 1, duration: .4 }, .58);
+        if (spName) pour.fromTo(spName, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: .5 }, .62);
+        if (spStats) pour.fromTo(spStats, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: .42 }, .7);
+        // once seated, the footlights breathe (brightness only — scrub owns opacity)
+        if (spUps.length) gsap.to(spUps, { filter: 'blur(9px) brightness(1.3)', duration: 2.4, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: .6 });
+      }
 
       // MARQUEE — the two rows slide in from opposite edges (tracks scroll via rAF; move the parents).
       const rows = qa('.band .marquee');
