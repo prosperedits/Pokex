@@ -8,13 +8,19 @@
 <style>
 /* ============================================================================
    GAUNTLET STAGE — the layered LIVING version (multiplane, like a real one).
-     layer 1  canvas#glBack   Three.js plane: the PLATE (scene w/o front bits)
-     layer 2  DOM  .cardslot  the live Magic card (click/flip/cycle)
-     layer 3  canvas#glFront  Three.js mesh: the front tendrils, vertex-wobbled
-                              in a shader + additive glow — the energy is alive
-   One shared cover-fit camera window keeps all three registered; cursor
-   parallax moves them at different depths. Assets from scripts/gauntlet-
-   extract.py (difference-matte when the real plate exists, stand-in for now).
+     canvas#glBack, three planes at real depths:
+       bg      P's bare generation (hand removed) — overscan backdrop that
+               peeks out at the frame edges when the scene leans
+       plate   the registered scene, depth-DISPLACED in a fragment shader
+               (crude depth map: hand near, socket mid, edges far) — the hand
+               leans over the background with zero cut edges
+       debris  the red ring arcs + floating rocks, lifted off the plate,
+               drifting on their own orbit
+     DOM .cardslot   the live Magic card (click/flip/cycle), depth 1.0
+     canvas#glFront  the front tendrils, vertex-wobbled + additive glow
+   One shared cover-fit window keeps everything registered; cursor parallax
+   moves each plane by its depth. Assets: scripts/gauntlet-extract.py then
+   scripts/gauntlet-layers.py (from P's staged generations in Downloads).
    ============================================================================ */
 :root{--gold:#ffd24a;--dim:#90a6cc}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -71,7 +77,7 @@ canvas#glFront{z-index:3;pointer-events:none}
 <script>
 (async () => {
   'use strict';
-  const V = 9; // asset version
+  const V = 10; // asset version
   const geom = await (await fetch(`assets/bg/gauntlet-geom.json?v=${V}`)).json();
   const W = geom.imgW, H = geom.imgH, card = geom.card, fr = geom.front;
 
@@ -122,16 +128,42 @@ canvas#glFront{z-index:3;pointer-events:none}
   const loader = new THREE.TextureLoader();
   const tex = (u) => new Promise((res) => loader.load(u, (t) => { t.minFilter = THREE.LinearFilter; res(t); }));
 
-  // back scene: the plate
+  // back scene, three depths (camera stays put; each MESH rides its own k)
   const sceneB = new THREE.Scene();
-  const plateTex = await tex(`assets/bg/gauntlet-plate.jpg?v=${V}`);
-  {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(W, H),
-      new THREE.MeshBasicMaterial({ map: plateTex, side: THREE.DoubleSide }));
-    m.position.set(W / 2, H / 2, 0);
-    m.scale.y = -1;                                   // y-down source coords
-    sceneB.add(m);
-  }
+  const [bgTex, plateTex, depthTex, debrisTex] = await Promise.all([
+    tex(`assets/bg/gauntlet-bg.jpg?v=${V}`),
+    tex(`assets/bg/gauntlet-plate.jpg?v=${V}`),
+    tex(`assets/bg/gauntlet-depth.jpg?v=${V}`),
+    tex(`assets/bg/gauntlet-debris.png?v=${V}`),
+  ]);
+  const K = { bg: 0.30, plate: 0.82, disp: 0.35, debris: 1.22 }; // depth factors
+  const bgM = new THREE.Mesh(new THREE.PlaneGeometry(W, H),
+    new THREE.MeshBasicMaterial({ map: bgTex, side: THREE.DoubleSide }));
+  bgM.position.set(W / 2, H / 2, -30);
+  bgM.scale.set(1.06, -1.06, 1);                      // overscan for edge reveals
+  sceneB.add(bgM);
+  // the plate leans in 3D: per-pixel parallax from the depth map, no cut edges
+  const plateUni = { uMap: { value: plateTex }, uDepth: { value: depthTex }, uPar: { value: new THREE.Vector2(0, 0) } };
+  const plateM = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.ShaderMaterial({
+    uniforms: plateUni, side: THREE.DoubleSide,
+    vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `
+      uniform sampler2D uMap; uniform sampler2D uDepth; uniform vec2 uPar;
+      varying vec2 vUv;
+      void main() {
+        float d = smoothstep(0.30, 1.0, texture2D(uDepth, vUv).r);
+        gl_FragColor = texture2D(uMap, vUv + uPar * d);
+      }`,
+  }));
+  plateM.position.set(W / 2, H / 2, -20);
+  plateM.scale.y = -1;                                // y-down source coords
+  sceneB.add(plateM);
+  const deb = geom.layers.debris;
+  const debM = new THREE.Mesh(new THREE.PlaneGeometry(deb.w, deb.h),
+    new THREE.MeshBasicMaterial({ map: debrisTex, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
+  debM.position.set(deb.x + deb.w / 2, deb.y + deb.h / 2, -10);
+  debM.scale.y = -1;
+  sceneB.add(debM);
 
   // front scene: the tendrils, alive (vertex wobble + additive glow twin)
   const sceneF = new THREE.Scene();
@@ -228,9 +260,17 @@ canvas#glFront{z-index:3;pointer-events:none}
   function frame(ms) {
     par.x += (par.tx - par.x) * 0.06;
     par.y += (par.ty - par.y) * 0.06;
-    uni.uTime.value = ms * 0.001;
-    setCam(camB, 0.45);   // plate drifts least (far)
+    const t = ms * 0.001;
+    uni.uTime.value = t;
+    setCam(camB, 0);      // back camera fixed — each mesh rides its own depth
     setCam(camF, 1.7);    // tendrils drift most (near)
+    const px = par.x / view.s, py = par.y / view.s;   // parallax in source px
+    bgM.position.set(W / 2 + px * K.bg, H / 2 + py * K.bg, -30);
+    plateM.position.set(W / 2 + px * K.plate, H / 2 + py * K.plate, -20);
+    plateUni.uPar.value.set(-px * K.disp / W, py * K.disp / H);
+    debM.position.set(deb.x + deb.w / 2 + px * K.debris + Math.sin(t * 0.23) * 5,
+                      deb.y + deb.h / 2 + py * K.debris + Math.cos(t * 0.17) * 4, -10);
+    debM.rotation.z = Math.sin(t * 0.11) * 0.006;
     placeCard();          // card rides depth 1.0 via par directly
     back.render(sceneB, camB);
     front.render(sceneF, camF);
