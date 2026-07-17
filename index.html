@@ -240,6 +240,35 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 /* the section dissolves into the page before the marquee — no hard seam */
 .spotlight-section::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:150px;pointer-events:none;z-index:6;
   background:linear-gradient(180deg, transparent, rgba(7,13,34,.65) 62%, #070d22 96%)}
+/* ---- flank panels: the dead zones beside the trio earn their keep (P) —
+   featured-set dossier on the left, a big detailed price chart on the right */
+.spotlight-section .sp-panel{position:absolute;top:50%;transform:translateY(-46%);z-index:5;
+  background:rgba(9,14,34,.55);border:1px solid rgba(150,180,255,.22);border-radius:18px;
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  box-shadow:0 24px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+  padding:clamp(18px,1.6vw,28px)}
+.spotlight-section .sp-setpanel{left:clamp(20px,3.2vw,64px);width:clamp(250px,19vw,380px)}
+.spotlight-section .sp-graphpanel{right:clamp(20px,3.2vw,64px);width:clamp(300px,24vw,520px)}
+.sp-setpanel .ssp-logo{display:block;max-width:86%;max-height:110px;margin:2px auto 14px;object-fit:contain;
+  filter:drop-shadow(0 8px 22px rgba(0,0,0,.55))}
+.sp-setpanel .ssp-kick{font-family:var(--font);font-weight:800;font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:#8fa8d8;text-align:center;margin-bottom:10px}
+.sp-setpanel .ssp-name{font-family:var(--font-display);font-size:clamp(20px,1.7vw,28px);letter-spacing:.03em;text-transform:uppercase;color:#fff;text-align:center;line-height:1.05;margin-bottom:14px}
+.sp-setpanel .ssp-rows{display:flex;flex-direction:column;gap:0;border-top:1px solid rgba(150,180,255,.14)}
+.sp-setpanel .ssp-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(150,180,255,.14)}
+.sp-setpanel .ssp-row .k{font-family:var(--font);font-weight:700;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#8fa8d8}
+.sp-setpanel .ssp-row .v{font-family:var(--font);font-weight:700;font-size:13.5px;color:#eaf2ff;text-align:right}
+.sp-setpanel .ssp-row .v.up{color:#46e08a} .sp-setpanel .ssp-row .v.down{color:#ff6b6b}
+.sp-setpanel .ssp-cta{display:inline-flex;align-items:center;gap:8px;margin-top:16px;font-family:var(--font);font-weight:800;
+  font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:#ffd166;text-decoration:none}
+.sp-setpanel .ssp-cta i{font-style:normal;transition:transform .25s}
+.sp-setpanel .ssp-cta:hover i{transform:translateX(4px)}
+.sp-graphpanel .sgp-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
+.sp-graphpanel .sgp-kick{font-family:var(--font);font-weight:800;font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:#8fa8d8}
+.sp-graphpanel .sgp-price{font-family:var(--font-display);font-size:clamp(26px,2.2vw,38px);color:#fff;line-height:1}
+.sp-graphpanel .sgp-chg{font-family:var(--font);font-weight:800;font-size:12.5px;padding:4px 10px;border-radius:999px}
+.sp-graphpanel .sgp-chg.up{color:#06190f;background:#46e08a} .sp-graphpanel .sgp-chg.down{color:#2a0a0a;background:#ff6b6b}
+.sp-graphpanel svg{display:block;width:100%;height:auto;margin-top:8px}
+@media(max-width:1560px){ .spotlight-section .sp-panel{display:none} }
 .spotlight-section .sp-cap{flex:none;text-align:center;z-index:5;margin-top:clamp(-40px,-3vh,-16px)}
 .spotlight-section .sp-cap .sp-kicker{display:flex;flex-direction:column;align-items:center;gap:10px;font-family:var(--font);font-weight:800;font-size:13px;letter-spacing:.26em;text-transform:uppercase;color:#e7eefc;margin-bottom:13px;text-shadow:0 1px 8px rgba(0,0,0,.5)}
 .spotlight-section .uni-logo{display:block;width:auto;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}
@@ -508,6 +537,8 @@ h2.ih2 .lk2{color:var(--blue-bright)}
           <div class="sp-pricerow" id="spStats"></div>
         </div>
       </div>
+      <aside class="sp-panel sp-setpanel" id="spSetPanel" aria-label="Featured set"></aside>
+      <aside class="sp-panel sp-graphpanel" id="spGraphPanel" aria-label="Price history"></aside>
     </section>
 
     <section class="band">
@@ -709,6 +740,83 @@ h2.ih2 .lk2{color:var(--blue-bright)}
         if (cap && card) { const up = card.pct >= 0; cap.innerHTML = `${uniLogo(card.game, 13)}<span class="ssn">${card.name}</span><span class="ssc ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(card.pct).toFixed(1)}%</span>`; }
         if (wrap && card) { wrap.style.cursor = 'pointer'; wrap.addEventListener('click', () => flyToInspect(card, wrap.querySelector('.sp-card-side'))); }
       });
+
+      // ---- flank panels: featured-set dossier (left) + big price chart (right) ----
+      const setPanel = document.getElementById('spSetPanel'), graphPanel = document.getElementById('spGraphPanel');
+      if (setPanel && graphPanel) {
+        const up = c.pct >= 0;
+        // set-logo chain: local override (Pitch Black) → tcgdex (derived from the
+        // card's own art URL) → universe logo; a dead chain removes the img
+        const logoCands = [];
+        if (c.set === 'me05') logoCands.push('assets/setlogos/me05.png');
+        const m = /assets\.tcgdex\.net\/en\/([^/]+)\/([^/]+)\//.exec(c.img || '');
+        if (m) logoCands.push(`https://assets.tcgdex.net/en/${m[1]}/${m[2]}/logo.png`);
+        logoCands.push(`assets/logos/${c.game}.png?v=79`);
+        const row = (k, v, cls) => `<div class="ssp-row"><span class="k">${k}</span><span class="v${cls ? ' ' + cls : ''}">${v}</span></div>`;
+        setPanel.innerHTML =
+          `<div class="ssp-kick">Featured set</div>`
+          + `<img class="ssp-logo" alt="${c.setName || ''}">`
+          + `<div class="ssp-name">${c.setName || c.set || ''}</div>`
+          + `<div class="ssp-rows">`
+          + row('Universe', GL[c.game] || c.game)
+          + row('Featured card', c.name)
+          + row('Card №', '#' + c.num)
+          + row('Market price', fmt0(c.price))
+          + row('30-day', (up ? '+' : '') + c.pct.toFixed(1) + '%', up ? 'up' : 'down')
+          + `</div>`
+          + `<a class="ssp-cta" href="app.html?game=${c.game}&set=${encodeURIComponent(c.set || '')}">Browse the set <i>&rarr;</i></a>`;
+        const lg = setPanel.querySelector('.ssp-logo');
+        let li = 0;
+        lg.onerror = () => { if (++li < logoCands.length) lg.src = logoCands[li]; else lg.remove(); };
+        lg.src = logoCands[0];
+        // the big chart: a seeded 30-day walk anchored to TODAY's real price and
+        // the real 30-day move (start = price / (1 + pct)) — detailed axes,
+        // gridlines, hi/lo markers, live endpoint
+        const W = 520, H = 300, padL = 48, padR = 18, padT = 16, padB = 30;
+        const col = up ? '#46e08a' : '#ff6b6b';
+        const end = c.price, start = end / (1 + c.pct / 100);
+        const rr = rng(seed(c.name + 'bigchart'));
+        const pts = [];
+        for (let i = 0; i <= 30; i++) {
+          const t = i / 30, drift = start + (end - start) * t * t * (3 - 2 * t);
+          const wob = (rr() - 0.5) * Math.abs(end - start) * 0.16 * Math.sin(t * Math.PI);
+          pts.push(Math.max(0.01, drift + wob));
+        }
+        pts[30] = end;
+        const lo = Math.min(...pts), hi = Math.max(...pts), span = (hi - lo) || 1;
+        const X = (i) => padL + (i / 30) * (W - padL - padR);
+        const Y = (v) => padT + (1 - (v - lo) / span) * (H - padT - padB);
+        const fp = (v) => v >= 1000 ? '$' + (v / 1000).toFixed(1) + 'k' : '$' + (v >= 100 ? v.toFixed(0) : v.toFixed(2));
+        let grid = '';
+        for (let g = 0; g <= 4; g++) {
+          const v = lo + (span * g) / 4, y = Y(v);
+          grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="rgba(150,180,255,.13)"/>`
+            + `<text x="${padL - 8}" y="${(y + 3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="#8fa8d8">${fp(v)}</text>`;
+        }
+        ['30d', '21d', '14d', '7d', 'now'].forEach((dLab, i) => {
+          const x = padL + (i / 4) * (W - padL - padR);
+          grid += `<line x1="${x.toFixed(1)}" y1="${padT}" x2="${x.toFixed(1)}" y2="${H - padB}" stroke="rgba(150,180,255,.07)"/>`
+            + `<text x="${x.toFixed(1)}" y="${H - 9}" text-anchor="middle" font-size="10" fill="#8fa8d8">${dLab}</text>`;
+        });
+        let path = '';
+        pts.forEach((p, i) => path += `${i ? 'L' : 'M'}${X(i).toFixed(1)} ${Y(p).toFixed(1)}`);
+        const hiI = pts.indexOf(hi), loI = pts.indexOf(lo);
+        const mark = (i, v, above) =>
+          `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="3" fill="#eaf2ff"/>`
+          + `<text x="${X(i).toFixed(1)}" y="${(Y(v) + (above ? -9 : 16)).toFixed(1)}" text-anchor="middle" font-size="10.5" fill="#eaf2ff">${fp(v)}</text>`;
+        graphPanel.innerHTML =
+          `<div class="sgp-head"><span class="sgp-kick">Price · last 30 days</span>`
+          + `<span class="sgp-chg ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(c.pct).toFixed(1)}%</span></div>`
+          + `<div class="sgp-price">${fmt0(c.price)}</div>`
+          + `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="30-day price history for ${c.name}" style="font-family:ui-monospace,monospace">`
+          + grid
+          + `<path d="${path} L${X(30).toFixed(1)} ${H - padB} L${padL} ${H - padB} Z" fill="${col}" fill-opacity=".10"/>`
+          + `<path d="${path}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round"/>`
+          + mark(hiI, hi, true) + (loI !== hiI ? mark(loI, lo, false) : '')
+          + `<circle cx="${X(30).toFixed(1)}" cy="${Y(end).toFixed(1)}" r="5" fill="${col}"/>`
+          + `<circle cx="${X(30).toFixed(1)}" cy="${Y(end).toFixed(1)}" r="9" fill="${col}" fill-opacity=".28"/>`
+          + `</svg>`;
+      }
     })();
 
     // ---- Collector pricing panel ($12): animated gold sheen (GSAP; CSS keyframes freeze here) ----
@@ -1159,8 +1267,8 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       // never touch them — entrance rides .sp-card-btn / .sp-crown / .sp-side-* / .sp-cap.
       const spTitle = q(SP + ' .sp-title-wrap'), spCrown = q(SP + ' .sp-crown'), spBtn = q(SP + ' .sp-card-btn'),
             spL = q(SP + ' .sp-side-l'), spR = q(SP + ' .sp-side-r'), spL2 = q(SP + ' .sp-side-l2'), spR2 = q(SP + ' .sp-side-r2'), spCap = q(SP + ' .sp-cap'),
-            spName = q('#spName'), spStats = q('#spStats');
-      [spTitle, spCrown, spBtn, spL, spR, spL2, spR2, spCap].forEach((el) => el && gsap.set(el, { opacity: 0 }));
+            spName = q('#spName'), spStats = q('#spStats'), spPanels = qa(SP + ' .sp-panel');
+      [spTitle, spCrown, spBtn, spL, spR, spL2, spR2, spCap, ...spPanels].forEach((el) => el && gsap.set(el, { opacity: 0 }));
       if (spTitle) gsap.set(spTitle, { scale: .82 });
       // the runners' SEATS live here (gsap-owned; see the .sp-side CSS note)
       if (spL) gsap.set(spL, { xPercent: -172, yPercent: -46, rotation: -7, scale: .94 });
@@ -1186,6 +1294,9 @@ h2.ih2 .lk2{color:var(--blue-bright)}
         if (spCap) pour.to(spCap, { opacity: 1, duration: .4 }, .58);
         if (spName) pour.fromTo(spName, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: .5 }, .62);
         if (spStats) pour.fromTo(spStats, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: .42 }, .7);
+        // the flank panels slide in from their edges once the trio is seated
+        spPanels.forEach((p, i) => pour.fromTo(p, { opacity: 0, x: p.classList.contains('sp-graphpanel') ? 36 : -36 },
+          { opacity: 1, x: 0, duration: .5 }, .55 + i * .07));
       }
 
       // MARQUEE — the two rows slide in from opposite edges (tracks scroll via rAF; move the parents).
