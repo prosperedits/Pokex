@@ -202,11 +202,12 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
    italic, cool steel face, blue rim + deep navy extrusion falling to the left */
 .spotlight-section .sp-title{font-family:var(--font-display);font-weight:400;font-style:italic;line-height:.94;margin:0;
   font-size:clamp(52px,6.4vw,104px);letter-spacing:.035em;text-transform:uppercase;color:#eef4ff;
+  position:relative;top:-34px;   /* P: the wordmark rides HIGHER, clear of the crown */
   transform:skewX(-5deg) rotate(-2.2deg);
   text-shadow:0 1px 0 #cdd9f2, 0 0 22px rgba(150,180,255,.28),
     2px 2px 0 #3d5db8, 4px 4px 0 #23368a, 6px 6px 0 #16225e, 8px 8px 0 #0d1540,
     10px 16px 30px rgba(0,0,0,.55)}
-.spotlight-section .sp-crown{position:absolute;left:50%;bottom:98%;transform:translateX(-50%);width:clamp(122px,14.5vw,194px);height:clamp(122px,14.5vw,194px);z-index:4;filter:drop-shadow(0 9px 17px rgba(0,0,0,.5)) saturate(1.12) brightness(1.06) contrast(1.03)}
+.spotlight-section .sp-crown{position:absolute;left:50%;bottom:99%;transform:translateX(-50%);width:clamp(92px,9.5vw,126px);height:clamp(92px,9.5vw,126px);z-index:4;filter:drop-shadow(0 9px 17px rgba(0,0,0,.5)) saturate(1.12) brightness(1.06) contrast(1.03)}   /* sized to the title↔card lane so it never swallows the wordmark (P) */
 .spotlight-section .sp-cardarea{position:relative;flex:none;display:flex;justify-content:center}
 .spotlight-section .sp-card-btn{flex:none;position:relative;z-index:3;border:0;background:none;padding:0;cursor:pointer;width:clamp(206px,21vw,320px);perspective:1400px}
 .spotlight-section .sp-cardinner{display:block;position:relative;transform:rotateY(-4deg) rotateX(2deg)}
@@ -258,6 +259,15 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 
 /* ===== scroll sections ===== */
 .band{position:relative;z-index:10;padding:clamp(40px,7vh,96px) 0 clamp(56px,10vh,120px);display:flex;flex-direction:column;gap:14px;overflow:hidden}
+/* the doorway: a small explore arrow riding the marquee band into the sets (P) */
+.band-explore{position:absolute;right:clamp(18px,3.5vw,56px);top:50%;transform:translateY(-50%);z-index:3;
+  display:inline-flex;align-items:center;gap:9px;padding:11px 20px;border-radius:999px;text-decoration:none;
+  font-family:var(--font);font-weight:800;font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:#eaf2ff;
+  background:rgba(9,14,34,.66);border:1px solid rgba(150,180,255,.32);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  transition:border-color .25s,background .25s,color .25s}
+.band-explore i{font-style:normal;transition:transform .25s}
+.band-explore:hover{border-color:#ffd166;color:#ffd166;background:rgba(12,18,44,.8)}
+.band-explore:hover i{transform:translateX(4px)}
 .band-label{text-align:center;display:flex;flex-direction:column;align-items:center;gap:7px;margin-bottom:20px}
 .bl-big{font-family:var(--font-display);font-size:clamp(22px,2.8vw,36px);letter-spacing:.04em;text-transform:uppercase;line-height:1;
   background:linear-gradient(176deg,#ffeebf 3%,#f3c84a 52%,#e0a82e 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
@@ -503,6 +513,9 @@ h2.ih2 .lk2{color:var(--blue-bright)}
     <section class="band">
       <div class="marquee"><div class="mtrack" id="mq"></div></div>
       <div class="marquee"><div class="mtrack" id="mq2"></div></div>
+      <a class="band-explore" href="app.html" aria-label="Explore the sets">
+        <span>Explore</span><i aria-hidden="true">&rarr;</i>
+      </a>
     </section>
 
     <!-- "Every card. Priced live." moved to its own page (data.html) so pricing
@@ -694,7 +707,7 @@ h2.ih2 .lk2{color:var(--blue-bright)}
         const el = document.getElementById(id), cap = document.getElementById(capId), wrap = el && el.closest('.sp-side');
         if (el && card) { el.src = card.img; el.alt = card.name; }
         if (cap && card) { const up = card.pct >= 0; cap.innerHTML = `${uniLogo(card.game, 13)}<span class="ssn">${card.name}</span><span class="ssc ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(card.pct).toFixed(1)}%</span>`; }
-        if (wrap && card) { wrap.style.cursor = 'pointer'; wrap.addEventListener('click', () => openInspect(card)); }
+        if (wrap && card) { wrap.style.cursor = 'pointer'; wrap.addEventListener('click', () => flyToInspect(card, wrap.querySelector('.sp-card-side'))); }
       });
     })();
 
@@ -839,6 +852,27 @@ h2.ih2 .lk2{color:var(--blue-bright)}
         if (w) setBg(Math.round(r / w), Math.round(g / w), Math.round(b / w));
       }).catch(() => { /* CORS-blocked → keep fallback */ });
     }
+    // FLIP bridge: the clicked card physically FLIES from its seat into the
+    // inspect slot (P: no blank-then-pop) — a fixed ghost tweens between the
+    // two rects while the real modal card hides, then swaps in seamlessly.
+    function flyToInspect(c, fromEl) {
+      if (!c) return;
+      if (!window.gsap || !fromEl) { openInspect(c); return; }
+      const from = fromEl.getBoundingClientRect();
+      openInspect(c);
+      requestAnimationFrame(() => {
+        const to = insCard.getBoundingClientRect();
+        if (!to.width || !from.width) return;
+        const ghost = document.createElement('div');
+        ghost.style.cssText = `position:fixed;left:${from.left}px;top:${from.top}px;width:${from.width}px;height:${from.height}px;` +
+          `background-image:url('${c.img}');background-size:cover;background-position:center;border-radius:12px;` +
+          'z-index:95;pointer-events:none;box-shadow:0 24px 60px rgba(0,0,0,.5)';
+        document.body.appendChild(ghost);
+        gsap.set(insCard, { opacity: 0 });
+        gsap.to(ghost, { left: to.left, top: to.top, width: to.width, height: to.height, duration: 0.55, ease: 'power3.inOut',
+          onComplete: () => { gsap.set(insCard, { clearProps: 'opacity' }); ghost.remove(); } });
+      });
+    }
     function openInspect(c) {
       if (!c) return;
       insCard.style.backgroundImage = `url('${c.img}')`;
@@ -944,7 +978,7 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       spSection.addEventListener('mousemove', (e) => { const r = spSection.getBoundingClientRect(); spTX = ((e.clientX - r.left) / r.width - .5) * 2; spTY = ((e.clientY - r.top) / r.height - .5) * 2; });
       spSection.addEventListener('mouseleave', () => { spTX = 0; spTY = 0; });
     }
-    if (spBtn) spBtn.addEventListener('click', () => openInspect(cotmLead));
+    if (spBtn) spBtn.addEventListener('click', () => flyToInspect(cotmLead, spBtn.querySelector('.sp-card')));
     function frame(now) {
       const dt = last ? Math.min((now - last) / 1000, 0.05) : 0; last = now;
       spinWheel(dt);

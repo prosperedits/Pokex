@@ -79,6 +79,7 @@
   // tcgdex carries no set LOGO for a few sets (only a symbol) — supply the
   // wordmark locally so the dropdown + selector never fall back to a glyph.
   const SET_LOGO_OVERRIDE = {
+    'me05': 'assets/setlogos/me05.png',        // Pitch Black (not on tcgdex yet; Bulbagarden archive art)
     sv05: 'assets/setlogos/sv05.png', // Temporal Forces (tcgdex gap)
     // Disney Lorcana set wordmarks — transparent logos from card-binder.com
     'lor-1': 'assets/setlogos/lor-1.webp', 'lor-2': 'assets/setlogos/lor-2.webp',
@@ -304,22 +305,19 @@
   function buildDial() {
     const w = Math.round(rail.clientWidth) || 1000;
     const chord = Math.min(w * 0.5, 780);                    // dial span
-    // a real DIAL face: the strip rides the crown of a circle — centre high,
-    // tips falling away, every tick rotated to its tangent (speedometer read)
-    const drop = Math.min(30, chord * 0.042);                // how far the tips fall below the crown
-    const R = ((chord / 2) ** 2 + drop ** 2) / (2 * drop);   // circle through crown + tips
-    const arcY = (x) => R - Math.sqrt(Math.max(0, R * R - x * x));                    // y-down from the crown
-    const arcRot = (x) => Math.asin(Math.max(-1, Math.min(1, x / R))) * 180 / Math.PI; // tangent tilt
+    // P: a perfectly FLAT dial — straight baseline, upright ticks, instantly
+    // readable (the speedometer arc is retired)
+    const arcY = () => 0, arcRot = () => 0;
     const n = Math.min(N, 240);
     let s = `<div class="dial-stage" style="--dial-w:${chord.toFixed(0)}px">`
-      + `<svg class="dial-arc" width="${chord.toFixed(0)}" height="${(drop + 6).toFixed(0)}" viewBox="0 0 ${chord.toFixed(0)} ${(drop + 6).toFixed(0)}"`
-      + ` style="left:${(-chord / 2).toFixed(0)}px;bottom:${(-(drop + 4)).toFixed(0)}px" aria-hidden="true">`
-      + `<path d="M0 ${(drop + 2).toFixed(1)} Q ${(chord / 2).toFixed(1)} ${(2 - drop).toFixed(1)} ${chord.toFixed(1)} ${(drop + 2).toFixed(1)}"`
+      + `<svg class="dial-arc" width="${chord.toFixed(0)}" height="6" viewBox="0 0 ${chord.toFixed(0)} 6"`
+      + ` style="left:${(-chord / 2).toFixed(0)}px;bottom:-4px" aria-hidden="true">`
+      + `<path d="M0 3 L ${chord.toFixed(1)} 3"`
       + ` fill="none" stroke="rgba(170,205,255,0.24)" stroke-width="1"/></svg>`;
     for (let i = 0; i < n; i++) {
       const f = n > 1 ? i / (n - 1) : 0.5, x = (f - 0.5) * chord, edge = 1 - Math.abs(f - 0.5) * 2;
       const len = 4 + 6 * edge;                              // a touch taller toward the middle, tapering at the ends
-      s += `<i class="dtick" data-i="${i}" style="transform:translate3d(${x.toFixed(1)}px,${arcY(x).toFixed(1)}px,0) rotate(${arcRot(x).toFixed(2)}deg);height:${len.toFixed(1)}px;opacity:${(0.32 + 0.34 * edge).toFixed(2)}"></i>`;
+      s += `<i class="dtick" data-i="${i}" style="transform:translate3d(${x.toFixed(1)}px,0,0);height:${len.toFixed(1)}px;opacity:${(0.38 + 0.34 * edge).toFixed(2)}"></i>`;
     }
     s += '<i class="dknob"></i></div>';
     railArc.innerHTML = s;
@@ -529,8 +527,11 @@
       // gacha-select geometry (P's reference): the focused card stands flat
       // and dominant; its neighbours stay LARGE (~80% apparent) and bend
       // hard inward around it, stacking tight like a held hand of cards
-      const scale = 0.98 + 0.34 * Math.exp(-(d * d) / 1.0);   // focus 1.32 (fitMagicVideo depends on it)
-      const bright = 0.58 + 0.42 * pocket;
+      // base card is 15% smaller (LAYOUT 0.60) but the focus compensates to the
+      // SAME absolute size (0.60*1.54 == 0.70*1.32) — the field shrinks, the
+      // champion doesn't, and everything gains dead space (P)
+      const scale = 0.98 + 0.56 * Math.exp(-(d * d) / 1.0);
+      const bright = 0.66 + 0.34 * pocket;   // clearer side cards (P: more clarity)
       // the frame: side cards keep the centre's eye-line, dive back in Z, and
       // turn toward the focused card — one shared vanishing point (.track)
       const arcY = (1 - pocket) * spacing * 0.012;
@@ -1129,7 +1130,7 @@
     // set-specific art exists the name reads better than a generic wordmark
     const hdrCands = (DATA.set.external
       ? setMarkChain(universe, { id, name: DATA.set.name, code: DATA.set.code }).filter((u) => u.indexOf('assets/logos/') === -1)
-      : [setLogoPng(DATA.set)]);
+      : [SET_LOGO_OVERRIDE[id], setLogoPng(DATA.set)].filter(Boolean));
     if (hdrCands.length) {
       let hi = 0;
       btnLogo.hidden = false; btnName.hidden = true;
@@ -2967,7 +2968,9 @@
     usScene.addEventListener('click', (e) => {
       const b = e.target.closest('.us-card'); if (!b || committing) return;
       const vid = $('usVideo');
-      const canPlay = vid && vid.readyState >= 2 && window.gsap && !REDUCED && !$('hvPick').classList.contains('us-fallback');
+      // no readyState gate: play() streams a cold video fine, and the 5.5s
+      // guard force-reveals if it truly can't start (P missed it first-click)
+      const canPlay = vid && window.gsap && !REDUCED && !$('hvPick').classList.contains('us-fallback');
       if (!canPlay) { revealSetsInPlace(b.dataset.game); return; }
       committing = true;
       const game = b.dataset.game;

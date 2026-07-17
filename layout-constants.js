@@ -56,8 +56,8 @@ window.LAYOUT = Object.freeze({
   CARD_RADIUS: '4.5% / 3.2%',     // physical TCG corner
 
   // --- wheel (browse) -----------------------------------------------------
-  WHEEL_CARD_HEIGHT_FACTOR: 0.70, // wheel card height = wheel.clientHeight * this  (JS render geometry)
-  WHEEL_CARD_HEIGHT_CSS: '70%',   // matching CSS .card height
+  WHEEL_CARD_HEIGHT_FACTOR: 0.60, // wheel card height = wheel.clientHeight * this  (JS render geometry)
+  WHEEL_CARD_HEIGHT_CSS: '60%',   // matching CSS .card height
   WHEEL_FOCUS_SCALE: 1.18,        // peak scale of the centered card
 
   // --- inspect featured card ----------------------------------------------
