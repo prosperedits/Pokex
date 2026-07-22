@@ -3093,13 +3093,11 @@
     const sets = setsForGame(game);
     { const nm = HOME_GAMES.find((g) => g.game === game)?.name || ''; const SH = { pokemon: 60, magic: 74, lorcana: 74, onepiece: 52 }; $('setsTitle').innerHTML = `<span class="sets-kick">Crowns &middot; ${sets.length} sets &middot; live prices</span><img class="sets-logo" src="assets/logos/${game}.png?v=79" alt="${nm}" style="height:${SH[game] || 62}px">`; }
     $('hvSets').style.setProperty('--accent', HOME_GAMES.find((g) => g.game === game)?.accent || '#7fd4f4');
-    // the universe's sigil watermarks the whole shelf — the gate's world continues
-    { let sig = $('hvSets').querySelector('.sets-sigil');
-      if (!sig) { sig = document.createElement('span'); sig.className = 'sets-sigil'; sig.setAttribute('aria-hidden', 'true'); $('hvSets').prepend(sig); }
-      sig.innerHTML = UNI_LORE[game].sigil; }
+    const oldSig = $('hvSets').querySelector('.sets-sigil');   // the watermark era is over (P: clean)
+    if (oldSig) oldSig.remove();
     const grid = $('setGrid');
     grid.innerHTML = (() => {
-      const tile = (s, hero) => {
+      const tile = (s) => {
         // auto-discovered sets pull their logo straight from tcgdex; bundled sets
         // walk the usual chain (real per-set logo → symbol → sealed box → game logo)
         const cands = s.fresh
@@ -3110,13 +3108,25 @@
           ? `<img class="st-logo ${game}" src="${cands[0]}" data-fb='${JSON.stringify(cands.slice(1))}' alt="" loading="lazy"><span class="st-fallback" aria-hidden="true">${GAME_GLYPH[game] || ''}</span>`
           : `<span class="st-sigil">${sig}</span>`;
         const nameLine = (s.name && s.name !== s.code && s.name !== sig) ? `<span class="st-name">${s.name}</span>` : '';
-        return `<button type="button" class="set-tile${hero ? ' st-hero' : ''}" data-set="${s.id}"><span class="st-art">${art}</span>${nameLine}${s.count ? `<span class="st-count">${s.count} cards</span>` : ''}${s.fresh ? '<span class="st-new">New</span>' : hero ? '<span class="st-new st-latest">Latest</span>' : ''}</button>`;
+        return `<button type="button" class="set-tile" data-set="${s.id}"><span class="st-art">${art}</span>${nameLine}${s.count ? `<span class="st-count">${s.count} cards</span>` : ''}${s.fresh ? '<span class="st-new">New</span>' : ''}</button>`;
       };
+      const label = (t) => `<div class="sg-label" role="presentation"><span>${t}</span></div>`;
       const isPromo = (s) => game === 'pokemon' && /promo|partner/i.test(s.name) && !/illustration/i.test(s.name);
       const regular = sets.filter((s) => !isPromo(s)), promos = sets.filter(isPromo);
-      // the newest set leads the shelf as a double-wide hero plate
-      let html = regular.map((s, i) => tile(s, i === 0)).join('');
-      if (promos.length) html += `<button type="button" class="set-tile set-tile-promos" data-set="${promos[0].id}"><span class="st-art"><span class="st-sigil">✦</span></span><span class="st-name">Promos</span><span class="st-count">${promos.length} sets</span></button>`;
+      const promoTile = promos.length
+        ? `<button type="button" class="set-tile set-tile-promos" data-set="${promos[0].id}"><span class="st-art"><span class="st-sigil">✦</span></span><span class="st-name">Promos</span><span class="st-count">${promos.length} sets</span></button>` : '';
+      if (game !== 'pokemon') return regular.map(tile).join('') + promoTile;
+      // Pokémon: era sections — grouped headings beat one endless wall of tiles
+      // (category-page research: grouping under section labels cuts choice fatigue)
+      const ERA = (s) => s.id.startsWith('fpic') ? 'First Partner Illustration'
+        : s.id.startsWith('me') ? 'Mega Evolution'
+        : s.id.startsWith('sv') ? 'Scarlet & Violet' : 'Just discovered';
+      const order = ['Just discovered', 'First Partner Illustration', 'Mega Evolution', 'Scarlet & Violet'];
+      const bins = new Map();
+      regular.forEach((s) => { const e = ERA(s); if (!bins.has(e)) bins.set(e, []); bins.get(e).push(s); });
+      let html = '';
+      order.forEach((era) => { const b = bins.get(era); if (b && b.length) html += label(era) + b.map(tile).join(''); });
+      if (promoTile) html += label('Promos') + promoTile;
       return html;
     })();
     grid.querySelectorAll('img.st-logo').forEach((img) => { // walk the logo fallback chain on error
@@ -3132,12 +3142,12 @@
     $('hvSets').hidden = false;
     if (window.gsap) gsap.set('#hvSets', { clearProps: 'opacity' });
     if (window.gsap && !REDUCED) {
-      gsap.from('#hvSets .pick-prompt', { opacity: 0, y: -12, duration: 0.5, ease: 'power2.out' });
-      // the shelf unfolds: plates tip up from the world's floor, nearest first
-      gsap.fromTo('#setGrid .set-tile', { opacity: 0, y: 30, rotateX: -16 },
-        { opacity: 1, y: 0, rotateX: 0, duration: 0.55, ease: 'power3.out', stagger: 0.024, delay: 0.04, clearProps: 'transform' });
-      gsap.fromTo('#hvSets .sets-sigil', { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 1.1, ease: 'power2.out', clearProps: 'opacity,scale' });
-      gsap.from('#setsBack', { opacity: 0, x: -10, duration: 0.5, delay: 0.12, clearProps: 'opacity,transform' });
+      // calm, functional entrance: a quiet fade-up cascade — no plate flips,
+      // no watermark theatre (P: clean and smooth)
+      gsap.from('#hvSets .pick-prompt', { opacity: 0, y: -10, duration: 0.45, ease: 'power2.out' });
+      gsap.fromTo('#setGrid .sg-label, #setGrid .set-tile', { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out', stagger: 0.016, delay: 0.03, clearProps: 'transform' });
+      gsap.from('#setsBack', { opacity: 0, x: -10, duration: 0.45, delay: 0.1, clearProps: 'opacity,transform' });
     }
   }
   // deep-link path (no column to expand): plain crossfade into the set list
