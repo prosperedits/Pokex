@@ -355,6 +355,33 @@
   const stageGlow = $('stageGlow');
   const zoom = $('zoom'), zoomImg = $('zoomImg'), zoomClose = $('zoomClose');
   const tiltZone = $('tiltZone'), tiltCard = $('tiltCard'), shine = $('shine'), cardFaces = $('cardFaces');
+  // EN↔JA printing toggle (P): tcgdex hosts ja-locale art on the same path —
+  // probe it on demand; a missing ja printing flashes the button and stays EN
+  const langBtn = $('langBtn');
+  let zoomLangCard = null, zoomJa = false;
+  function setLangUI(ja) {
+    zoomJa = ja;
+    if (!langBtn) return;
+    langBtn.setAttribute('aria-pressed', String(ja));
+    langBtn.querySelector('.lb').textContent = ja ? 'English' : '日本語';
+    langBtn.classList.toggle('active', ja);
+  }
+  if (langBtn) langBtn.addEventListener('click', () => {
+    const card = zoomLangCard; if (!card) return;
+    const jaSrc = window.JA_MAP && window.JA_MAP[card.id];
+    if (!zoomJa) {
+      if (!jaSrc) return;
+      const g = ++imgGen;                       // cancel any pending EN sharpeners
+      const probe = new Image();
+      probe.onload = () => { if (g === imgGen) { zoomImg.src = probe.src; setLangUI(true); } };
+      probe.onerror = () => { if (g === imgGen) { langBtn.classList.add('na'); setTimeout(() => langBtn.classList.remove('na'), 900); } };
+      probe.src = jaSrc;
+    } else {
+      ++imgGen;
+      zoomImg.src = cardImg(card, 'high.webp'); // EN high is already cached
+      setLangUI(false);
+    }
+  });
 
   // Sealed products ride the wheel as synthetic cards, appended after the
   // numbered singles (so real-card indices 0..N-1 are untouched). Their image
@@ -2415,6 +2442,15 @@
         webp.src = cardImg(card, 'high.webp');
       }
     }
+    // EN↔JA printing toggle (P). VERIFIED: tcgdex ja is a separate Japanese
+    // catalogue (M2/M2a/... own ids + card lists), NOT a locale mirror — a
+    // path swap 404s for every international card. The button stays dormant
+    // until window.JA_MAP (a real per-card EN→JA mapping, future data build)
+    // exists, so it can never show the wrong printing.
+    zoomLangCard = card;
+    const jaSrc = window.JA_MAP && window.JA_MAP[card.id];
+    langBtn.hidden = !jaSrc;
+    setLangUI(false);
     $('zoomBgArt').src = card.sealed ? card.image : (cardImg(card, 'low.webp') || cardImgFallback(card, 'low.webp'));
     paintZoomScene(card); // editorial title + holo badge + backdrop tint
     updateListButtons(card);
@@ -2849,7 +2885,10 @@
   // there), diff against what we bundle, and cache the result for 12h.
   let NEW_SETS = [];
   async function discoverSets() {
-    const KEY = 'pokex.freshSets2';   // v2: excludes TCG Pocket (mobile game, no physical prices)
+    const KEY = 'pokex.freshSets3';   // v3: also excludes energy/intro filler (P: weird tiles, no real cards)
+    // filler sets that clutter the shelf: no logos on tcgdex, few/no card
+    // images, not what anyone opens the tracker for
+    const FILLER = /energy|first battle|trainer kit|deck/i;
     const refreshGrid = () => {       // if the user is already ON the grid, drop the new tiles in
       const hv = $('hvSets');
       if (NEW_SETS.length && hv && !hv.hidden && pickGame === 'pokemon') buildSetGrid('pokemon');
@@ -2869,7 +2908,7 @@
         const d = await r.json();
         (d.sets || []).forEach((s) => {
           const count = (s.cardCount && (s.cardCount.official || s.cardCount.total)) || 0;
-          if (count > 0) found.push({ id: s.id, name: s.name, count });
+          if (count > 0 && !FILLER.test(s.name)) found.push({ id: s.id, name: s.name, count });
         });
       }
       NEW_SETS = found.reverse();   // newest first

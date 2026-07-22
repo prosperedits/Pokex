@@ -523,6 +523,12 @@ main {
 .cap-tags { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 12px; }
 /* rarity + number as proper spec chips by the price (P: they live at the bottom) */
 .cap-tags { display: none; }   /* P: nothing under the price — rarity/number chips retired */
+/* TCGplayer product scans (Pitch Black) carry a ~0.6% white scan margin and
+   square-scanned corners — zoom a hair + round harder so no silver halo (P) */
+.card img[src*="tcgplayer-cdn"] { transform: scale(1.03); border-radius: 5.5% / 4%; }
+#zoomImg[src*="tcgplayer-cdn"] { transform: scale(1.03); border-radius: 4.8% / 3.5%; }
+#langBtn .ic { font-size: 13px; }
+#langBtn.na { opacity: 0.35; }   /* no ja printing for this card */
 .cap-tags .cap-rarity-top, .cap-tags .cap-number-top {
   min-height: 0; display: inline-flex; align-items: center; line-height: 1;
   padding: 6px 14px; border-radius: 999px;
@@ -1657,6 +1663,21 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
 
 /* auto-discovered set tiles wear a small gold NEW chip (top-right) */
 .set-tile { position: relative; }
+/* ---- phone shelf: full-width banner plates — the same engraved chrome, laid
+   out as premium rows instead of squeezed squares (P: it needs value) */
+@media (max-width: 760px) {
+  .set-grid { grid-template-columns: 1fr; gap: 13px; width: min(94vw, 560px); }
+  .set-tile { display: grid; grid-template-columns: 44% 1fr; grid-template-rows: auto auto;
+    align-items: center; column-gap: 16px; row-gap: 3px; text-align: right;
+    min-height: 92px; padding: 14px 18px; }
+  .set-tile .st-art { grid-row: 1 / span 2; height: 66px; }
+  .set-tile .st-logo { max-width: 100%; max-height: 64px; }
+  .set-tile .st-name { align-self: end; font-size: 16.5px; }
+  .set-tile .st-count { align-self: start; }
+  .st-hero { grid-column: auto; min-height: 118px; }
+  .st-hero .st-logo { max-width: 100%; }
+  .hv-sets .pick-prompt { padding-top: 58px; }   /* the kicker drops below the back pill (no clash) */
+}
 .st-new { position: absolute; top: 9px; right: 9px; font-family: var(--font-mono); font-size: 9px; font-weight: 600;
   letter-spacing: 0.14em; text-transform: uppercase; color: #10131f; line-height: 1;
   background: linear-gradient(180deg, #ffe79a, #ffc63a); padding: 4px 9px; border-radius: 999px; pointer-events: none; }

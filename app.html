@@ -17,9 +17,10 @@
 <script>if('serviceWorker' in navigator){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
+<link rel="preconnect" href="https://tcgplayer-cdn.tcgplayer.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=49">
-<link rel="stylesheet" href="style.css?v=117">
+<link rel="stylesheet" href="style.css?v=118">
 <link rel="stylesheet" href="universe-bg.css?v=5">
 <link rel="stylesheet" href="mobile.css?v=4">
 <script src="crown-spin.js?v=4" defer></script>
@@ -159,6 +160,8 @@
           <div id="cardActions" class="card-actions">
             <button type="button" id="lightBtn" aria-pressed="false" aria-label="Toggle light">
               <span class="ic">☀</span><span class="lb">Light</span></button>
+            <button type="button" id="langBtn" aria-pressed="false" aria-label="Toggle Japanese printing" hidden>
+              <span class="ic">文</span><span class="lb">日本語</span></button>
             <button type="button" id="wishBtn" aria-pressed="false" aria-label="Toggle wishlist">
               <span class="ic">♡</span><span class="lb">Wishlist</span></button>
             <button type="button" id="collBtn" aria-pressed="false" aria-label="Toggle collection">
@@ -249,8 +252,10 @@
   <script src="data/sealed.js?v=62"></script>
   <script src="data/set-colors.js?v=63"></script>
   <script src="data/magic-prices.js?v=74"></script>
-  <script src="data/card-index.js?v=3"></script>   <!-- global card index (tcgcsv): Pokémon, real prices + TCGplayer images, all 217 sets -->
-  <script src="app.js?v=135"></script>
+  <script src="data/ja-map.js?v=1" defer></script>   <!-- EN→JA printings (dexId+illustrator verified) -->
+  <!-- the 5.4MB Pokémon card index no longer blocks boot (P: mobile loads) —
+       it lazy-loads on idle / first search below; mergeFullSet self-heals -->
+  <script src="app.js?v=136"></script>
 
   <!-- ===== Global cross-set search (index-backed) ===== -->
   <style>
@@ -293,7 +298,18 @@
   (() => {
     const IDX = window.CARD_INDEX || [];
     const search = document.getElementById('search'), box = document.getElementById('gsr'), dt = document.getElementById('gsd');
-    if (!search || !IDX.length) return;
+    if (!search) return;
+    // the Pokémon index (5.4MB) loads OFF the boot path: on idle after first
+    // paint (so set merges catch it) or immediately on first search intent
+    let pokeLoaded = false;
+    const loadPokeIndex = () => {
+      if (pokeLoaded || window.CARD_INDEX) { pokeLoaded = true; return; }
+      pokeLoaded = true;
+      const sc = document.createElement('script'); sc.src = 'data/card-index.js?v=3'; sc.async = true;
+      sc.onload = () => { if (box.classList.contains('on')) render(); };
+      document.head.appendChild(sc);
+    };
+    (window.requestIdleCallback || ((f) => setTimeout(f, 2500)))(loadPokeIndex);
     const bundledIdFor = (setName) => {   // map a tcgcsv set name → a bundled (3D-loadable) set id, loosely
       if (!window.CARD_SETS || !setName) return null;
       const s = setName.toLowerCase();
@@ -351,8 +367,8 @@
       else go.style.display = 'none';
       dt.classList.add('on');
     }
-    search.addEventListener('input', () => { loadUniverses(); render(); });
-    search.addEventListener('focus', () => { loadUniverses(); if (search.value.trim().length >= 2) render(); });
+    search.addEventListener('input', () => { loadPokeIndex(); loadUniverses(); render(); });
+    search.addEventListener('focus', () => { loadPokeIndex(); loadUniverses(); if (search.value.trim().length >= 2) render(); });
     document.addEventListener('click', (e) => { if (!box.contains(e.target) && e.target !== search) box.classList.remove('on'); });
     addEventListener('resize', () => { if (box.classList.contains('on')) position(); });
     document.getElementById('gsdX').addEventListener('click', () => dt.classList.remove('on'));
