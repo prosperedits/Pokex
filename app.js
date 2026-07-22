@@ -2852,20 +2852,6 @@
     onepiece: { tag: 'Chart the Grand Line', fx: 2, sigil: '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="9"/><path d="M50 6v18M50 76v18M6 50h18M76 50h18M19 19l13 13M68 68l13 13M81 19L68 32M32 68L19 81"/><circle cx="50" cy="6" r="3.4"/><circle cx="50" cy="94" r="3.4"/><circle cx="6" cy="50" r="3.4"/><circle cx="94" cy="50" r="3.4"/></svg>' },
     magic: { tag: 'Spellcraft & steel', fx: 3, sigil: '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M50 12L86 38 72 82H28L14 38z"/><circle cx="50" cy="12" r="5"/><circle cx="86" cy="38" r="5"/><circle cx="72" cy="82" r="5"/><circle cx="28" cy="82" r="5"/><circle cx="14" cy="38" r="5"/><circle cx="50" cy="52" r="12"/></svg>' },
   };
-  // the universe-selector scene: P's crown-vortex generation with four magenta
-  // placeholders, measured by scripts/uniselect-extract.py (re-run it and paste
-  // its geometry here if the source art changes). Slots are left→right; the
-  // crown is the deal origin; occ = each seat's front layer (crown glow /
-  // swirl crossings render OVER the card — the chroma rule).
-  const UNI_SCENE = {
-    imgW: 2752, imgH: 1536, crown: { x: 1376, y: 860 },
-    slots: [
-      { cx: 531.82, cy: 786.33, w: 461.85, h: 685.04, angle: -26.779, occ: { x: 169, y: 535, w: 725, h: 536 } },
-      { cx: 977.92, cy: 402.44, w: 238.14, h: 331.98, angle: -17.788, occ: { x: 914, y: 259, w: 231, h: 336 } },
-      { cx: 1757.5, cy: 260.5, w: 231.0, h: 313.0, angle: 0.0, occ: { x: 1638, y: 257, w: 239, h: 164 } },
-      { cx: 2269.19, cy: 690.18, w: 571.86, h: 841.05, angle: 21.927, occ: { x: 1844, y: 261, w: 849, h: 912 } },
-    ],
-  };
   function setsForGame(game) {
     if (game === 'pokemon') {
       const bundled = SET_GROUPS.flatMap((grp) => grp.ids.filter((id) => SETS[id]).map((id) => ({ id, name: SETS[id].set.name, count: SETS[id].set.total })));
@@ -2929,113 +2915,77 @@
           <button type="button" class="get-started" id="getStarted">Get started <span aria-hidden="true">&rarr;</span></button>
         </div>
         <div class="hv hv-pick" id="hvPick" hidden>
-          <div class="uni-scene" id="uniScene">
-            <img class="us-bg" id="usBg" src="assets/bg/uniselect-bg.jpg?v=1" alt="" draggable="false">
-            <video class="us-video" id="usVideo" src="assets/bg/uniselect-commit.mp4?v=1" muted playsinline preload="auto" aria-hidden="true"></video>
-            ${UNI_ORDER.map((g, i) => `<button type="button" class="us-card" data-game="${g.game}" data-slot="${i}" style="--accent:${g.accent}" aria-label="${g.name}"><img class="us-art" src="${g.card}" alt="" draggable="false"><span class="us-flash" aria-hidden="true"></span><span class="us-chip"><img src="assets/logos/${g.game}.png?v=79" alt=""><b>${setsForGame(g.game).length} sets</b></span></button>`).join('')}
-            ${UNI_SCENE.slots.map((s, i) => s.occ ? `<img class="us-occ" data-slot="${i}" src="assets/bg/uniselect-occ-${i}.png?v=1" alt="" aria-hidden="true" draggable="false">` : '').join('')}
+          <div class="ix">
+            <nav class="ix-list" id="uniList" aria-label="Choose your universe">
+              <div class="ix-eyebrow">Crowns &middot; the index</div>
+              ${UNI_ORDER.map((g, i) => `<button type="button" class="ix-row" data-game="${g.game}" style="--accent:${g.accent}">
+                <span class="ix-num">0${i + 1}</span>
+                <span class="ix-name">${g.name}</span>
+                <span class="ix-meta">${setsForGame(g.game).length} sets &middot; live</span>
+                <span class="ix-arrow" aria-hidden="true">&rarr;</span>
+              </button>`).join('')}
+              <div class="ix-foot">Every card &middot; every set &middot; one feed</div>
+            </nav>
+            <aside class="ix-view" id="uniView" aria-hidden="true"></aside>
           </div>
-          <div class="uni-head"><span class="uh-kick">Crowns &middot; live market</span><span class="uh-title">Choose your universe</span></div>
         </div>
         <div class="hv hv-sets" id="hvSets" hidden>
-          <p class="pick-prompt" id="setsTitle">Choose a set</p>
-          <div class="set-grid" id="setGrid"></div>
+          <div class="ix">
+            <nav class="ix-list" id="setGrid" aria-label="Choose a set"></nav>
+            <aside class="ix-view" id="setView" aria-hidden="true"></aside>
+          </div>
           <button type="button" class="pick-back" id="setsBack"><span class="pb-arrow" aria-hidden="true">&larr;</span> All universes</button>
         </div>
       </div>`;
-    // ---- scene placement: one cover-fit for the plate, the seats, and the
-    // occluders — everything shares the source-pixel frame, so nothing can
-    // drift against the baked gold card frames. Below 760px the scene swaps
-    // to a 2x2 grid (CSS .us-fallback owns all layout there).
-    const usScene = $('uniScene');
-    function usPlace() {
-      const fallback = innerWidth < 760;
-      $('hvPick').classList.toggle('us-fallback', fallback);
-      if (fallback) { usScene.querySelectorAll('.us-bg, .us-card, .us-occ').forEach((el) => el.removeAttribute('style')); usScene.querySelectorAll('.us-card').forEach((el) => { el.style.setProperty('--accent', HOME_GAMES.find((g) => g.game === el.dataset.game)?.accent || '#7fd4f4'); }); return; }
-      const { imgW: W, imgH: H, slots } = UNI_SCENE;
-      const s = Math.max(innerWidth / W, innerHeight / H);
-      const ox = (innerWidth - W * s) / 2, oy = (innerHeight - H * s) / 2;
-      const bg = $('usBg');
-      bg.style.left = ox + 'px'; bg.style.top = oy + 'px';
-      bg.style.width = (W * s) + 'px'; bg.style.height = (H * s) + 'px';
-      // the commit video (16:9, near-identical aspect) wears the plate's rect
-      const vid = $('usVideo');
-      if (vid) { vid.style.left = ox + 'px'; vid.style.top = oy + 'px'; vid.style.width = (W * s) + 'px'; vid.style.height = (H * s) + 'px'; }
-      usScene.querySelectorAll('.us-card').forEach((el) => {
-        const sl = slots[+el.dataset.slot];
-        // centre in PX (not translate(-50%,-50%)): GSAP re-serializes percent
-        // translates unreliably per-axis, which un-seated cards after the deal
-        el.style.left = (sl.cx * s + ox - sl.w * s / 2) + 'px'; el.style.top = (sl.cy * s + oy - sl.h * s / 2) + 'px';
-        el.style.width = (sl.w * s) + 'px'; el.style.height = (sl.h * s) + 'px';
-        // the seat rotation goes THROUGH gsap so its transform cache stays
-        // authoritative across the deal / commit tweens (raw style writes
-        // behind gsap's back leave stale caches that mis-seat later tweens)
-        if (window.gsap) gsap.set(el, { rotation: sl.angle, x: 0, y: 0, scale: 1 });
-        else el.style.transform = `rotate(${sl.angle}deg)`;
-      });
-      usScene.querySelectorAll('.us-occ').forEach((el) => {
-        const o = slots[+el.dataset.slot].occ;
-        el.style.left = (o.x * s + ox) + 'px'; el.style.top = (o.y * s + oy) + 'px';
-        el.style.width = (o.w * s) + 'px'; el.style.height = (o.h * s) + 'px';
-      });
+    // ---- THE INDEX: one interaction system for both select levels — big
+    // typographic rows on the left, a live preview pane answering hover on the
+    // right. No scene, no tiles: a menu that reads like a table of contents.
+    const uniList = $('uniList'), uniView = $('uniView');
+    function paintUniView(g) {
+      if (!g || uniView.dataset.g === g.game) return;
+      uniView.dataset.g = g.game;
+      uniView.innerHTML =
+        `<div class="ixv-in" style="--accent:${g.accent}">
+          <span class="ixv-glow" aria-hidden="true"></span>
+          <img class="ixv-card" src="${g.card}" alt="" draggable="false">
+          <img class="ixv-logo" src="assets/logos/${g.game}.png?v=79" alt="${g.name}">
+          <div class="ixv-meta">${setsForGame(g.game).length} sets &middot; live prices</div>
+        </div>`;
+      if (window.gsap && !REDUCED) {
+        gsap.fromTo(uniView.querySelector('.ixv-card'), { opacity: 0, y: 22, rotate: 2 }, { opacity: 1, y: 0, rotate: -5, duration: 0.5, ease: 'power3.out' });
+        gsap.fromTo(uniView.querySelectorAll('.ixv-logo, .ixv-meta'), { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, delay: 0.07, stagger: 0.06, ease: 'power3.out' });
+      }
     }
-    addEventListener('resize', usPlace);
-    usPlace();
-    // the whole scene is one rigid plane that leans with the cursor — depth
-    // comes from the tilt (and the baked art), never from layers shearing
-    // against the frames they must stay registered with
-    if (window.gsap && !REDUCED) {
-      homeScroll.addEventListener('pointermove', (e) => {
-        if ($('hvPick').hidden || $('hvPick').classList.contains('us-fallback')) return;
-        const nx = e.clientX / innerWidth - 0.5, ny = e.clientY / innerHeight - 0.5;
-        gsap.to(usScene, { x: nx * 16, y: ny * 11, rotateY: nx * 4, rotateX: -ny * 2.6, duration: 0.65, ease: 'power2.out', overwrite: 'auto' });
-      });
-    }
-    // COMMIT: P's Seedance transition. The video opens on this exact scene, so
-    // the real cards fade back into their magenta placeholders, the vortex
-    // spins the deck, hurls one card INTO the camera, and its chroma face
-    // floods the lens — that flood is the wipe under which the shelf resolves.
-    const VID = { rate: 2.6, revealAt: 9.35, guardMs: 5500 };
-    let committing = false;
-    function commitReveal(game, vid) {
-      if (!committing) return; committing = false;
-      revealSetsInPlace(game);
-      if (vid) { vid.pause(); gsap.to(vid, { opacity: 0, duration: 0.35, ease: 'power2.out', onComplete: () => gsap.set(vid, { clearProps: 'opacity,visibility' }) }); }
-      gsap.set('#uniScene .us-card, #uniScene .us-occ, #uniScene .us-chip', { clearProps: 'opacity,transform,visibility' });
-      usPlace();   // re-seat everything for the return trip
-    }
-    usScene.addEventListener('click', (e) => {
-      const b = e.target.closest('.us-card'); if (!b || committing) return;
-      const vid = $('usVideo');
-      // no readyState gate: play() streams a cold video fine, and the 5.5s
-      // guard force-reveals if it truly can't start (P missed it first-click)
-      const canPlay = vid && window.gsap && !REDUCED && !$('hvPick').classList.contains('us-fallback');
-      if (!canPlay) { revealSetsInPlace(b.dataset.game); return; }
-      committing = true;
-      const game = b.dataset.game;
-      gsap.fromTo(b.querySelector('.us-flash'), { opacity: 0 }, { opacity: 0.55, duration: 0.1, ease: 'power1.in', yoyo: true, repeat: 1 });
-      gsap.to('#uniScene .us-card, #uniScene .us-occ', { opacity: 0, duration: 0.3, ease: 'power2.in', delay: 0.05 });
-      vid.currentTime = 0; vid.playbackRate = VID.rate;
-      gsap.set(vid, { visibility: 'visible' });
-      gsap.fromTo(vid, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power1.out' });
-      const onTime = () => { if (vid.currentTime >= VID.revealAt) { vid.removeEventListener('timeupdate', onTime); commitReveal(game, vid); } };
-      vid.addEventListener('timeupdate', onTime);
-      vid.addEventListener('ended', () => commitReveal(game, vid), { once: true });
-      const guard = setTimeout(() => { vid.removeEventListener('timeupdate', onTime); commitReveal(game, vid); }, VID.guardMs);
-      vid.play().then(() => {}).catch(() => { clearTimeout(guard); vid.removeEventListener('timeupdate', onTime); commitReveal(game, vid); });
+    uniList.addEventListener('pointerover', (e) => {
+      const r = e.target.closest('.ix-row'); if (!r) return;
+      paintUniView(HOME_GAMES.find((x) => x.game === r.dataset.game));
     });
-    // dpad: arrows walk the dealt cards, Enter commits (native button)
-    usScene.addEventListener('keydown', (e) => {
-      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-      const cards = [...usScene.querySelectorAll('.us-card')];
-      const cur = cards.indexOf(document.activeElement);
-      const next = cur < 0 ? 0 : Math.min(cards.length - 1, Math.max(0, cur + (e.key === 'ArrowRight' ? 1 : -1)));
-      cards[next].focus(); e.preventDefault();
+    uniList.addEventListener('focusin', (e) => {
+      const r = e.target.closest('.ix-row'); if (!r) return;
+      paintUniView(HOME_GAMES.find((x) => x.game === r.dataset.game));
     });
+    uniList.addEventListener('click', (e) => {
+      const r = e.target.closest('.ix-row'); if (!r) return;
+      revealSetsInPlace(r.dataset.game);
+    });
+    // dpad: vertical walk, preview follows focus
+    const ixWalk = (list) => (e) => {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      const rows = [...list.querySelectorAll('.ix-row')];
+      const cur = rows.indexOf(document.activeElement);
+      const next = Math.min(rows.length - 1, Math.max(0, cur < 0 ? 0 : cur + (e.key === 'ArrowDown' ? 1 : -1)));
+      rows[next].focus(); e.preventDefault();
+    };
+    uniList.addEventListener('keydown', ixWalk(uniList));
+    paintUniView(UNI_ORDER[0]);   // rest state previews the first universe
     $('getStarted').addEventListener('click', goPick);
     $('setsBack').addEventListener('click', () => switchView('hvSets', 'hvPick'));
-    $('setGrid').addEventListener('click', (e) => { const b = e.target.closest('[data-set]'); if (b) enterSet(pickGame, b.dataset.set); });
-    HOME_GAMES.forEach((g) => { const im = new Image(); im.src = g.card; }); // preload the seated cards
+    const setListEl = $('setGrid');
+    setListEl.addEventListener('click', (e) => { const b = e.target.closest('[data-set]'); if (b) enterSet(pickGame, b.dataset.set); });
+    setListEl.addEventListener('pointerover', (e) => { const b = e.target.closest('[data-set]'); if (b) paintSetView(b.dataset.set); });
+    setListEl.addEventListener('focusin', (e) => { const b = e.target.closest('[data-set]'); if (b) paintSetView(b.dataset.set); });
+    setListEl.addEventListener('keydown', ixWalk(setListEl));
+    HOME_GAMES.forEach((g) => { const im = new Image(); im.src = g.card; }); // preload previews
   }
 
   // generic crossfade/scale between two home views
@@ -3088,51 +3038,73 @@
     });
     tl.to(prompt, { opacity: 1, duration: 0.5, ease: 'power2.out' }, '>-0.2');
   }
+  // preview pane for the set index: logo, count, era, the sealed box when we
+  // have one — answers whatever row the cursor is on
+  let ixSets = [];
+  function paintSetView(id) {
+    const view = $('setView'); if (!view || view.dataset.s === id) return;
+    const s = ixSets.find((x) => x.id === id); if (!s) return;
+    view.dataset.s = id;
+    const cands = s.fresh
+      ? [`https://assets.tcgdex.net/en/${(s.id.match(/^[a-z]+/i) || ['xx'])[0]}/${s.id}/logo.png`, `assets/logos/${pickGame}.png?v=79`]
+      : setMarkChain(pickGame, s);
+    let box = typeof localSetImage === 'function' ? localSetImage(s.id) : null;
+    const base = (u) => (u || '').split('?')[0].split('/').pop();
+    if (box && base(box) === base(cands[0])) box = null;   // no distinct box art → don't double the logo
+    view.innerHTML =
+      `<div class="ixv-in">
+        <span class="ixv-glow" aria-hidden="true"></span>
+        ${box ? `<img class="ixv-box" src="${box}" alt="" draggable="false">` : ''}
+        <img class="ixv-setlogo" alt="${s.name || ''}">
+        <div class="ixv-meta">${s.count ? `${s.count} cards &middot; ` : ''}live prices</div>
+      </div>`;
+    const lg = view.querySelector('.ixv-setlogo');
+    let i = 0;
+    lg.onerror = () => { if (++i < cands.length) lg.src = cands[i]; else lg.remove(); };
+    lg.src = cands[0] || `assets/logos/${pickGame}.png?v=79`;
+    if (window.gsap && !REDUCED) {
+      gsap.fromTo(view.querySelectorAll('.ixv-box, .ixv-setlogo, .ixv-meta'), { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.45, stagger: 0.06, ease: 'power3.out' });
+    }
+  }
   function buildSetGrid(game) {
     pickGame = game;
     const sets = setsForGame(game);
-    { const nm = HOME_GAMES.find((g) => g.game === game)?.name || ''; const SH = { pokemon: 60, magic: 74, lorcana: 74, onepiece: 52 }; $('setsTitle').innerHTML = `<span class="sets-kick">Crowns &middot; ${sets.length} sets &middot; live prices</span><img class="sets-logo" src="assets/logos/${game}.png?v=79" alt="${nm}" style="height:${SH[game] || 62}px">`; }
-    $('hvSets').style.setProperty('--accent', HOME_GAMES.find((g) => g.game === game)?.accent || '#7fd4f4');
-    const oldSig = $('hvSets').querySelector('.sets-sigil');   // the watermark era is over (P: clean)
-    if (oldSig) oldSig.remove();
-    const grid = $('setGrid');
-    grid.innerHTML = (() => {
-      const tile = (s) => {
-        // auto-discovered sets pull their logo straight from tcgdex; bundled sets
-        // walk the usual chain (real per-set logo → symbol → sealed box → game logo)
-        const cands = s.fresh
-          ? [`https://assets.tcgdex.net/en/${(s.id.match(/^[a-z]+/i) || ['xx'])[0]}/${s.id}/logo.png`, `assets/logos/${game}.png?v=79`]
-          : setMarkChain(game, s);
-        const sig = String(s.code || s.name).slice(0, 4);
-        const art = cands.length
-          ? `<img class="st-logo ${game}" src="${cands[0]}" data-fb='${JSON.stringify(cands.slice(1))}' alt="" loading="lazy"><span class="st-fallback" aria-hidden="true">${GAME_GLYPH[game] || ''}</span>`
-          : `<span class="st-sigil">${sig}</span>`;
-        const nameLine = (s.name && s.name !== s.code && s.name !== sig) ? `<span class="st-name">${s.name}</span>` : '';
-        return `<button type="button" class="set-tile" data-set="${s.id}"><span class="st-art">${art}</span>${nameLine}${s.count ? `<span class="st-count">${s.count} cards</span>` : ''}${s.fresh ? '<span class="st-new">New</span>' : ''}</button>`;
-      };
-      const label = (t) => `<div class="sg-label" role="presentation"><span>${t}</span></div>`;
-      const isPromo = (s) => game === 'pokemon' && /promo|partner/i.test(s.name) && !/illustration/i.test(s.name);
-      const regular = sets.filter((s) => !isPromo(s)), promos = sets.filter(isPromo);
-      const promoTile = promos.length
-        ? `<button type="button" class="set-tile set-tile-promos" data-set="${promos[0].id}"><span class="st-art"><span class="st-sigil">✦</span></span><span class="st-name">Promos</span><span class="st-count">${promos.length} sets</span></button>` : '';
-      if (game !== 'pokemon') return regular.map(tile).join('') + promoTile;
-      // Pokémon: era sections — grouped headings beat one endless wall of tiles
-      // (category-page research: grouping under section labels cuts choice fatigue)
+    const g = HOME_GAMES.find((x) => x.game === game);
+    $('hvSets').style.setProperty('--accent', g?.accent || '#7fd4f4');
+    const list = $('setGrid');
+    const isPromo = (s) => game === 'pokemon' && /promo|partner/i.test(s.name) && !/illustration/i.test(s.name);
+    const regular = sets.filter((s) => !isPromo(s)), promos = sets.filter(isPromo);
+    const promoRow = promos.length ? [{ id: promos[0].id, name: 'Promos', count: null, meta: `${promos.length} sets`, promo: true }] : [];
+    ixSets = [...regular, ...promos];
+    const row = (s, n) =>
+      `<button type="button" class="ix-row" data-set="${s.id}">
+        <span class="ix-num">${String(n).padStart(2, '0')}</span>
+        <span class="ix-name">${s.name}</span>
+        <span class="ix-meta">${s.meta || (s.count ? `${s.count} cards` : 'live')}${s.fresh ? ' &middot; new' : ''}</span>
+        <span class="ix-arrow" aria-hidden="true">&rarr;</span>
+      </button>`;
+    const brk = (t) => `<div class="ix-break"><span>${t}</span></div>`;
+    const eyebrow = `<div class="ix-eyebrow"><img src="assets/logos/${game}.png?v=79" alt="${g?.name || ''}" class="ix-unilogo"><span>${sets.length} sets &middot; live prices</span></div>`;
+    let html = eyebrow, n = 0;
+    if (game === 'pokemon') {
+      // era breaks: grouped headings beat one endless wall (category-page research)
       const ERA = (s) => s.id.startsWith('fpic') ? 'First Partner Illustration'
         : s.id.startsWith('me') ? 'Mega Evolution'
         : s.id.startsWith('sv') ? 'Scarlet & Violet' : 'Just discovered';
       const order = ['Just discovered', 'First Partner Illustration', 'Mega Evolution', 'Scarlet & Violet'];
       const bins = new Map();
       regular.forEach((s) => { const e = ERA(s); if (!bins.has(e)) bins.set(e, []); bins.get(e).push(s); });
-      let html = '';
-      order.forEach((era) => { const b = bins.get(era); if (b && b.length) html += label(era) + b.map(tile).join(''); });
-      if (promoTile) html += label('Promos') + promoTile;
-      return html;
-    })();
-    grid.querySelectorAll('img.st-logo').forEach((img) => { // walk the logo fallback chain on error
-      let fb; try { fb = JSON.parse(img.dataset.fb || '[]'); } catch (e) { fb = []; }
-      img.onerror = () => { if (fb.length) img.src = fb.shift(); else img.classList.add('st-hide'); };
-    });
+      order.forEach((era) => { const b = bins.get(era); if (b && b.length) { html += brk(era); html += b.map((s) => row(s, ++n)).join(''); } });
+      if (promoRow.length) { html += brk('Promos'); html += promoRow.map((s) => row(s, ++n)).join(''); }
+    } else {
+      html += regular.map((s) => row(s, ++n)).join('');
+      if (promoRow.length) html += promoRow.map((s) => row(s, ++n)).join('');
+    }
+    list.innerHTML = html;
+    const first = ixSets[0];
+    const view = $('setView'); if (view) view.dataset.s = '';
+    if (first) paintSetView(first.id);   // rest state previews the first set
   }
   // the chosen column has already expanded to fill the screen — reveal its set list
   // right there in the same frame (sets stagger up; the picker is hidden underneath).
@@ -3142,11 +3114,10 @@
     $('hvSets').hidden = false;
     if (window.gsap) gsap.set('#hvSets', { clearProps: 'opacity' });
     if (window.gsap && !REDUCED) {
-      // calm, functional entrance: a quiet fade-up cascade — no plate flips,
-      // no watermark theatre (P: clean and smooth)
-      gsap.from('#hvSets .pick-prompt', { opacity: 0, y: -10, duration: 0.45, ease: 'power2.out' });
-      gsap.fromTo('#setGrid .sg-label, #setGrid .set-tile', { opacity: 0, y: 16 },
-        { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out', stagger: 0.016, delay: 0.03, clearProps: 'transform' });
+      // calm editorial entrance: rows cascade up, the preview settles after
+      gsap.fromTo('#setGrid > *', { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', stagger: 0.022, clearProps: 'transform' });
+      gsap.fromTo('#setView', { opacity: 0 }, { opacity: 1, duration: 0.5, delay: 0.18, clearProps: 'opacity' });
       gsap.from('#setsBack', { opacity: 0, x: -10, duration: 0.45, delay: 0.1, clearProps: 'opacity,transform' });
     }
   }
@@ -3154,7 +3125,7 @@
   function goSets(game) {
     switchView('hvPick', 'hvSets', () => {
       buildSetGrid(game);
-      if (window.gsap && !REDUCED) gsap.fromTo('#setGrid .set-tile', { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.022, delay: 0.06, clearProps: 'transform' });
+      if (window.gsap && !REDUCED) gsap.fromTo('#setGrid > *', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out', stagger: 0.02, delay: 0.05, clearProps: 'transform' });
     });
   }
   function goHero() { switchView('hvPick', 'hvHero'); }
@@ -3188,28 +3159,12 @@
     homeEl.hidden = false;
     document.body.classList.add('home-open');
     buildHome();
-    // straight to the universe picker — the "Every card / One wheel" splash is gone
+    // straight to the index — the cinematic splash era is over (P)
     $('hvHero').hidden = true; $('hvPick').hidden = false; $('hvSets').hidden = true;
-    if (!window.gsap) return;
-    gsap.fromTo('#usBg', { opacity: 0 }, { opacity: 1, duration: 0.9, ease: 'power2.out', clearProps: 'opacity' });
-    gsap.fromTo('#hvPick .uni-head > *', { opacity: 0, y: -10 },
-      { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.09, delay: 0.3, clearProps: 'opacity,transform' });
-    if (REDUCED || $('hvPick').classList.contains('us-fallback')) {
-      gsap.fromTo('#hvPick .us-card, #hvPick .us-occ', { opacity: 0 }, { opacity: 1, duration: 0.5, ease: 'power2.out', stagger: 0.05, clearProps: 'opacity' });
-      return;
-    }
-    // THE DEAL: the crown throws each universe's card out of the vortex to its
-    // seat; the front glow settles over them, then the chips light up
-    const { imgW: W, imgH: H, crown, slots } = UNI_SCENE;
-    const s = Math.max(innerWidth / W, innerHeight / H);
-    document.querySelectorAll('#uniScene .us-card').forEach((el) => {
-      const sl = slots[+el.dataset.slot];
-      gsap.fromTo(el,
-        { x: (crown.x - sl.cx) * s * 0.92, y: (crown.y - sl.cy) * s * 0.92, scale: 0.28, rotation: sl.angle + 32, opacity: 0 },
-        { x: 0, y: 0, scale: 1, rotation: sl.angle, opacity: 1, duration: 0.8, ease: 'back.out(1.25)', delay: 0.22 + (+el.dataset.slot) * 0.09, clearProps: 'opacity' });
-    });
-    gsap.fromTo('#uniScene .us-occ', { opacity: 0 }, { opacity: 1, duration: 0.45, ease: 'power2.out', delay: 0.85, clearProps: 'opacity' });
-    gsap.fromTo('#uniScene .us-chip', { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.07, delay: 0.9, ease: 'power3.out', clearProps: 'transform' });
+    if (!window.gsap || REDUCED) return;
+    gsap.fromTo('#uniList > *', { opacity: 0, y: 18 },
+      { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.06, clearProps: 'transform' });
+    gsap.fromTo('#uniView', { opacity: 0 }, { opacity: 1, duration: 0.6, delay: 0.25, clearProps: 'opacity' });
   }
   function hideHome() { homeEl.hidden = true; document.body.classList.remove('home-open'); }
   document.querySelector('.lockup').addEventListener('click', () => { location.href = 'index.html'; }); // brand mark → real homepage

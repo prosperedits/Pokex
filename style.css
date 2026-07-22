@@ -1588,52 +1588,55 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
    column resolves straight into it with no colour jump; its sigil watermarks
    the room and every set is an engraved cut-corner plate */
 .hv-sets { background: linear-gradient(170deg, color-mix(in srgb, var(--accent, #7fd4f4) 24%, #0a1126) 0%, #070c1a 58%, #05091a 100%);
-  /* deep universes (Pokémon: 37 sets) outgrow short viewports — the shelf
-     scrolls; safe-centering keeps small lists centered without clipping */
-  overflow-y: auto; justify-content: safe center; padding-top: clamp(84px, 12vh, 120px); padding-bottom: 6vh; scrollbar-width: thin; }
+  overflow: hidden; padding: 0; }   /* the ix-list owns its own scroll */
+.hv-sets .ix { padding-top: clamp(132px, 16vh, 168px); }   /* the eyebrow clears the back pill */
 /* fixed so the watermark holds the room while the shelf scrolls (the ancestor
    perspective re-anchors fixed to the stage, which is full-viewport anyway) */
-.sets-kick { display: block; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase;
-  color: color-mix(in srgb, var(--accent, #7fd4f4) 70%, #fff); opacity: 0.75; margin-bottom: 14px; }
-.set-grid { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; width: min(95vw, 1280px); padding: 4px; }
-@media (max-width: 1040px) { .set-grid { grid-template-columns: repeat(4, 1fr); } }
-.set-pick { display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left;
-  padding: 15px 16px; border-radius: 12px; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--stage-line);
-  transition: background 0.16s, border-color 0.16s, transform 0.16s; }
-.set-pick:hover { background: rgba(255, 255, 255, 0.06); border-color: color-mix(in srgb, var(--accent, var(--spectral)) 50%, transparent); transform: translateY(-2px); }
-.sp-name { font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--text); }
-.set-pick:hover .sp-name { color: #fff; }
-.sp-count { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); background: rgba(255, 255, 255, 0.05); padding: 2px 8px; border-radius: 999px; flex: none; }
-/* CLEAN set cards (P + category-page research): the logo identifies, the type
-   informs, whitespace does the luxury. One quiet surface, one hairline, no
-   grain, no cut corners, no frames-behind-buttons. */
-.set-tile { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 11px; text-align: center;
-  padding: 20px 14px 16px; border: 1px solid rgba(190, 205, 235, 0.13); border-radius: 16px; cursor: pointer; min-height: 132px; overflow: hidden;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015));
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s, box-shadow 0.22s, background 0.22s; }
-.set-tile:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--accent, #7fd4f4) 55%, transparent);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
-  box-shadow: 0 16px 36px -18px rgba(0, 0, 0, 0.65); }
-.set-tile:focus-visible { outline: none; border-color: var(--accent, #7fd4f4); }
-/* era section headings: quiet caps + a hairline running out to the right */
-.sg-label { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; margin: 14px 2px 2px; }
-.sg-label:first-child { margin-top: 0; }
-.sg-label span { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--text-dim); white-space: nowrap; }
-.sg-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(190, 205, 235, 0.18), transparent); }
-.st-art { position: relative; z-index: 1; height: 60px; display: flex; align-items: center; justify-content: center; }
-.st-logo { max-width: 132px; max-height: 58px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
-.set-tile:hover .st-logo { transform: scale(1.04); }
-.st-logo.magic { height: 46px; width: auto; max-width: 116px; max-height: none; flex: none; filter: brightness(0) invert(1) drop-shadow(0 0 7px color-mix(in srgb, var(--accent, #7fd4f4) 80%, transparent)); }
-.st-logo.st-hide { display: none; }
-.st-fallback { display: none; width: 38px; height: 38px; color: color-mix(in srgb, var(--accent, #7fd4f4) 78%, #fff); opacity: 0.7; }
-.st-fallback svg { width: 100%; height: 100%; }
-.st-logo.st-hide + .st-fallback { display: block; }
-.st-sigil { font-family: var(--font); font-size: 24px; font-weight: 700; letter-spacing: 0.02em;
-  color: color-mix(in srgb, var(--accent, #7fd4f4) 80%, #fff); }
-/* readable names: the body face, not display caps */
-.st-name { position: relative; z-index: 1; font-family: var(--font); font-size: 14px; font-weight: 600; letter-spacing: 0.01em; color: #edf2fc; line-height: 1.25; }
-.st-count { position: relative; z-index: 1; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
+/* ===== THE INDEX — one interaction system for both select levels. Rows of
+   huge editorial type carry all the function on the left; the right pane
+   answers the cursor with the hovered universe/set's identity. ===== */
+.ix { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 72px); padding: clamp(84px, 11vh, 112px) clamp(20px, 4.5vw, 84px) clamp(16px, 3vh, 36px); }
+.ix-list { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; display: flex; flex-direction: column; padding-right: 6px; }
+.ix-list::-webkit-scrollbar { display: none; }
+.ix-eyebrow { display: flex; align-items: center; gap: 16px; font-family: var(--font-mono); font-size: 10.5px;
+  letter-spacing: 0.3em; text-transform: uppercase; color: var(--text-dim); padding: 4px 2px 20px; }
+.ix-unilogo { height: 34px; width: auto; }
+.ix-row { display: grid; grid-template-columns: auto 1fr auto auto; align-items: baseline; gap: clamp(14px, 2vw, 30px);
+  text-align: left; padding: clamp(13px, 2.4vh, 24px) 4px; background: none; border: 0;
+  border-bottom: 1px solid rgba(190, 205, 235, 0.12); cursor: pointer; }
+.ix-num { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); transition: color 0.2s; }
+.ix-name { font-family: var(--font-display); font-weight: 600; font-size: clamp(23px, 2.5vw, 40px); line-height: 1.05;
+  color: #eef2fc; letter-spacing: 0.005em; transform-origin: left center;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s; }
+.ix-meta { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); white-space: nowrap; }
+.ix-arrow { font-size: 19px; color: var(--accent, #7fd4f4); opacity: 0; transform: translateX(-10px);
+  transition: opacity 0.22s, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.ix-row:hover, .ix-row:focus-visible { outline: none; }
+.ix-row:hover .ix-name, .ix-row:focus-visible .ix-name { transform: translateX(12px); color: #fff; }
+.ix-row:hover .ix-num, .ix-row:focus-visible .ix-num { color: var(--accent, #7fd4f4); }
+.ix-row:hover .ix-arrow, .ix-row:focus-visible .ix-arrow { opacity: 1; transform: translateX(0); }
+.ix-break { display: flex; align-items: center; gap: 14px; padding: clamp(20px, 3.6vh, 34px) 4px 8px; }
+.ix-break span { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--text-dim); white-space: nowrap; }
+.ix-break::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(190, 205, 235, 0.16), transparent); }
+.ix-foot { padding: 24px 4px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--text-dim) 55%, transparent); }
+/* the answering pane */
+.ix-view { position: relative; display: flex; align-items: center; justify-content: center; min-height: 0; }
+.ixv-in { position: relative; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.ixv-glow { position: absolute; left: 50%; top: 44%; width: 150%; aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent, #7fd4f4) 20%, transparent), transparent 70%); }
+.ixv-card { width: clamp(180px, 15.5vw, 280px); border-radius: 12px; transform: rotate(-5deg);
+  box-shadow: 0 34px 74px -24px rgba(0, 0, 0, 0.78); }
+.ixv-box { width: clamp(160px, 13vw, 240px); filter: drop-shadow(0 26px 48px rgba(0, 0, 0, 0.6)); }
+.ixv-logo { max-width: clamp(180px, 16vw, 280px); max-height: 80px; object-fit: contain; }
+.ixv-setlogo { max-width: clamp(210px, 19vw, 340px); max-height: 116px; object-fit: contain; filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.6)); }
+.ixv-meta { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-dim); }
+@media (max-width: 900px) {
+  .ix { grid-template-columns: 1fr; padding-top: 84px; }
+  .ix-view { display: none; }
+  .ix-name { font-size: clamp(21px, 6vw, 30px); }
+}
 .pick-back { position: absolute; top: clamp(78px, 11vh, 104px); left: clamp(18px, 4vw, 46px); z-index: 6; margin: 0; display: inline-flex; align-items: center; gap: 10px;
   font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff;
   background: color-mix(in srgb, var(--accent, #7fd4f4) 16%, rgba(8, 13, 30, 0.55)); border: 1px solid color-mix(in srgb, var(--accent, #7fd4f4) 50%, transparent);
@@ -1645,75 +1648,5 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
 @media (max-width: 640px) {
   .pick-logos { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 26px; }
   .pick-logo img { width: 34vw; max-height: 15vh; }
-  .set-grid { grid-template-columns: 1fr 1fr; }
 }
-
-/* auto-discovered set tiles wear a small gold NEW chip (top-right) */
-.set-tile { position: relative; }
-/* ---- phone shelf: full-width banner plates — the same engraved chrome, laid
-   out as premium rows instead of squeezed squares (P: it needs value) */
-@media (max-width: 760px) {
-  .set-grid { grid-template-columns: 1fr; gap: 13px; width: min(94vw, 560px); }
-  .set-tile { display: grid; grid-template-columns: 44% 1fr; grid-template-rows: auto auto;
-    align-items: center; column-gap: 16px; row-gap: 3px; text-align: right;
-    min-height: 92px; padding: 14px 18px; }
-  .set-tile .st-art { grid-row: 1 / span 2; height: 66px; }
-  .set-tile .st-logo { max-width: 100%; max-height: 64px; }
-  .set-tile .st-name { align-self: end; font-size: 16.5px; }
-  .set-tile .st-count { align-self: start; }
-  .hv-sets .pick-prompt { padding-top: 58px; }   /* the kicker drops below the back pill (no clash) */
-}
-.st-new { position: absolute; top: 9px; right: 9px; font-family: var(--font-mono); font-size: 9px; font-weight: 600;
-  letter-spacing: 0.14em; text-transform: uppercase; color: #10131f; line-height: 1;
-  background: linear-gradient(180deg, #ffe79a, #ffc63a); padding: 4px 9px; border-radius: 999px; pointer-events: none; }
-
-/* ===== universe selector — THE DEAL ===== */
-/* P's crown-vortex scene: the crown deals one real card per universe into the
-   baked gold frames (seat geometry measured from the magenta placeholders by
-   scripts/uniselect-extract.py). Plate, seats and occluders share ONE rigid
-   cover-fit plane so nothing can shear against the frames; the cursor tilts
-   the whole plane, and the crown glow / swirls render OVER the cards. */
-.hv-pick { padding: 0; pointer-events: auto; perspective: 1300px; overflow: hidden; }
-.uni-scene { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; }
-.us-bg { position: absolute; user-select: none; pointer-events: none; }
-/* title block: gold mono kicker over the display-face headline */
-.uni-head { position: absolute; top: clamp(20px, 4.5vh, 48px); left: 50%; transform: translateX(-50%); z-index: 5; pointer-events: none;
-  display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.uh-kick { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.34em; text-transform: uppercase;
-  color: var(--ember-glint); opacity: 0.9; text-shadow: 0 1px 12px rgba(0, 0, 0, 0.7); }
-.uh-title { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.22em;
-  font-size: clamp(13px, 1.5vw, 19px); color: rgba(255, 255, 255, 0.92); text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8); }
-.us-card { position: absolute; border: 0; padding: 0; margin: 0; background: none; cursor: pointer; will-change: transform; }
-.us-art { width: 100%; height: 100%; object-fit: cover; border-radius: 3.5% / 2.6%; display: block;
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
-  transition: filter 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s; }
-.us-card:hover .us-art, .us-card:focus-visible .us-art { transform: scale(1.045); filter: brightness(1.1) saturate(1.06);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 44px -4px color-mix(in srgb, var(--accent) 70%, transparent); }
-/* consideration: the studied card lights, the other universes recede */
-.uni-scene:has(.us-card:hover) .us-card:not(:hover) .us-art,
-.uni-scene:has(.us-card:focus-visible) .us-card:not(:focus-visible) .us-art { filter: brightness(0.72) saturate(0.85); }
-.us-card:focus-visible { outline: none; }
-/* commit flash: a crack of the universe's light over the chosen card */
-.us-flash { position: absolute; inset: -5%; pointer-events: none; opacity: 0; mix-blend-mode: screen; border-radius: 8%;
-  background: radial-gradient(80% 80% at 50% 50%, color-mix(in srgb, var(--accent) 85%, #fff), transparent 78%); }
-/* nameplate chip: universe logo + live set count, floating under the seat */
-.us-chip { position: absolute; left: 50%; top: calc(100% + 12px); transform: translateX(-50%); white-space: nowrap;
-  display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px; border-radius: 999px;
-  background: rgba(7, 10, 24, 0.62); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #eaf2ff;
-  opacity: 0.9; transition: opacity 0.35s ease, border-color 0.35s; pointer-events: none; }
-.us-chip img { height: 15px; width: auto; display: block; }
-.us-card:hover .us-chip, .us-card:focus-visible .us-chip { opacity: 1; border-color: var(--accent); }
-.us-occ { position: absolute; pointer-events: none; user-select: none; }
-/* the commit transition video: hidden until a universe is chosen, then it
-   covers the whole scene (z4: over cards/occluders, under the uni-head) */
-.us-video { position: absolute; z-index: 4; object-fit: fill; visibility: hidden; opacity: 0; pointer-events: none; }
-.us-fallback .us-video { display: none; }
-/* phones / narrow: the cinematic crop would push seats offscreen — swap to a
-   2x2 grid over the scene as wallpaper (usPlace clears all inline geometry) */
-.us-fallback .uni-scene { display: grid; grid-template-columns: 1fr 1fr; gap: 46px 16px; padding: 92px 18px 30px; align-content: center; }
-.us-fallback .us-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
-.us-fallback .us-card { position: relative; aspect-ratio: 734 / 1024; width: 100%; }
-.us-fallback .us-occ { display: none; }
-.us-fallback .us-chip { top: calc(100% + 8px); }
+.hv-pick { padding: 0; pointer-events: auto; }
