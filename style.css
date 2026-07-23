@@ -1594,26 +1594,46 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
    perspective re-anchors fixed to the stage, which is full-viewport anyway) */
 /* ===== THE INDEX — one interaction system for both select levels. Rows of
    huge editorial type carry all the function on the left; the right pane
-   answers the cursor with the hovered universe/set's identity. ===== */
-.ix { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+   answers the cursor with the hovered universe/set's identity, a giant
+   outlined ghost numeral behind it, and the whole room tints to the accent. */
+.ix { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
   gap: clamp(24px, 4vw, 72px); padding: clamp(84px, 11vh, 112px) clamp(20px, 4.5vw, 84px) clamp(16px, 3vh, 36px); }
-.ix-list { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; display: flex; flex-direction: column; padding-right: 6px; }
+/* the room: a living accent wash bleeding from the preview side */
+.ix::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(58% 78% at 76% 46%, color-mix(in srgb, var(--accent, #7fd4f4) 13%, transparent), transparent 72%),
+    radial-gradient(40% 50% at 8% 100%, color-mix(in srgb, var(--accent, #7fd4f4) 7%, transparent), transparent 70%);
+  transition: opacity 0.5s; }
+.ix-list { position: relative; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; display: flex; flex-direction: column; padding-right: 6px; }
 .ix-list::-webkit-scrollbar { display: none; }
 .ix-eyebrow { display: flex; align-items: center; gap: 16px; font-family: var(--font-mono); font-size: 10.5px;
   letter-spacing: 0.3em; text-transform: uppercase; color: var(--text-dim); padding: 4px 2px 20px; }
 .ix-unilogo { height: 34px; width: auto; }
-.ix-row { display: grid; grid-template-columns: auto 1fr auto auto; align-items: baseline; gap: clamp(14px, 2vw, 30px);
-  text-align: left; padding: clamp(13px, 2.4vh, 24px) 4px; background: none; border: 0;
-  border-bottom: 1px solid rgba(190, 205, 235, 0.12); cursor: pointer; }
-.ix-num { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); transition: color 0.2s; }
-.ix-name { font-family: var(--font-display); font-weight: 600; font-size: clamp(23px, 2.5vw, 40px); line-height: 1.05;
-  color: #eef2fc; letter-spacing: 0.005em; transform-origin: left center;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s; }
+.ix-row { position: relative; display: grid; grid-template-columns: auto 1fr auto auto; align-items: baseline; gap: clamp(14px, 2vw, 30px);
+  text-align: left; padding: clamp(15px, 3vh, 30px) 4px; background: none; border: 0;
+  border-bottom: 1px solid rgba(190, 205, 235, 0.12); cursor: pointer;
+  transition: opacity 0.25s; }
+/* the accent line draws itself under the considered row */
+.ix-row::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+  background: var(--accent, #7fd4f4); transform: scaleX(0); transform-origin: left center;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+.ix-row:hover::after, .ix-row:focus-visible::after { transform: scaleX(1); }
+/* focus theatre: the considered row holds the light, the rest recede */
+.ix-list:has(.ix-row:hover) .ix-row:not(:hover),
+.ix-list:has(.ix-row:focus-visible) .ix-row:not(:focus-visible) { opacity: 0.42; }
+.ix-num { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-dim); transition: color 0.2s; }
+.ix-name { font-family: var(--font-display); font-weight: 600; line-height: 1.02; letter-spacing: 0.004em;
+  color: #eef2fc; transform-origin: left center;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s; }
+/* universe level: only four rows — they own the column at full scale */
+#uniList .ix-name { font-size: clamp(34px, 4.1vw, 66px); }
+#uniList .ix-row { padding: clamp(22px, 4.6vh, 46px) 4px; }
+#setGrid .ix-name { font-size: clamp(23px, 2.4vw, 38px); }
 .ix-meta { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); white-space: nowrap; }
 .ix-arrow { font-size: 19px; color: var(--accent, #7fd4f4); opacity: 0; transform: translateX(-10px);
   transition: opacity 0.22s, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 .ix-row:hover, .ix-row:focus-visible { outline: none; }
-.ix-row:hover .ix-name, .ix-row:focus-visible .ix-name { transform: translateX(12px); color: #fff; }
+.ix-row:hover .ix-name, .ix-row:focus-visible .ix-name { transform: translateX(14px); color: #fff; }
 .ix-row:hover .ix-num, .ix-row:focus-visible .ix-num { color: var(--accent, #7fd4f4); }
 .ix-row:hover .ix-arrow, .ix-row:focus-visible .ix-arrow { opacity: 1; transform: translateX(0); }
 .ix-break { display: flex; align-items: center; gap: 14px; padding: clamp(20px, 3.6vh, 34px) 4px 8px; }
@@ -1623,19 +1643,25 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
   color: color-mix(in srgb, var(--text-dim) 55%, transparent); }
 /* the answering pane */
 .ix-view { position: relative; display: flex; align-items: center; justify-content: center; min-height: 0; }
-.ixv-in { position: relative; display: flex; flex-direction: column; align-items: center; gap: 20px; }
-.ixv-glow { position: absolute; left: 50%; top: 44%; width: 150%; aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent, #7fd4f4) 20%, transparent), transparent 70%); }
-.ixv-card { width: clamp(180px, 15.5vw, 280px); border-radius: 12px; transform: rotate(-5deg);
-  box-shadow: 0 34px 74px -24px rgba(0, 0, 0, 0.78); }
-.ixv-box { width: clamp(160px, 13vw, 240px); filter: drop-shadow(0 26px 48px rgba(0, 0, 0, 0.6)); }
-.ixv-logo { max-width: clamp(180px, 16vw, 280px); max-height: 80px; object-fit: contain; }
-.ixv-setlogo { max-width: clamp(210px, 19vw, 340px); max-height: 116px; object-fit: contain; filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.6)); }
-.ixv-meta { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-dim); }
+.ixv-in { position: relative; display: flex; flex-direction: column; align-items: center; gap: 22px; }
+/* the ghost: a monumental outlined numeral owning the empty air */
+.ixv-ghost { position: absolute; right: -6%; top: 50%; transform: translateY(-54%); z-index: 0; pointer-events: none;
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(220px, 34vh, 420px); line-height: 1;
+  color: transparent; -webkit-text-stroke: 1.5px color-mix(in srgb, var(--accent, #7fd4f4) 34%, transparent);
+  letter-spacing: -0.04em; user-select: none; }
+.ixv-glow { position: absolute; left: 50%; top: 44%; width: 160%; aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent, #7fd4f4) 22%, transparent), transparent 70%); }
+.ixv-card { position: relative; z-index: 1; width: clamp(220px, 18.5vw, 340px); border-radius: 14px; transform: rotate(-5deg);
+  box-shadow: 0 40px 90px -26px rgba(0, 0, 0, 0.82); }
+.ixv-box { position: relative; z-index: 1; width: clamp(190px, 15.5vw, 290px); filter: drop-shadow(0 30px 56px rgba(0, 0, 0, 0.65)); }
+.ixv-logo { position: relative; z-index: 1; max-width: clamp(200px, 17vw, 300px); max-height: 88px; object-fit: contain; }
+.ixv-setlogo { position: relative; z-index: 1; max-width: clamp(230px, 20vw, 360px); max-height: 124px; object-fit: contain; filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.6)); }
+.ixv-meta { position: relative; z-index: 1; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-dim); }
 @media (max-width: 900px) {
   .ix { grid-template-columns: 1fr; padding-top: 84px; }
   .ix-view { display: none; }
-  .ix-name { font-size: clamp(21px, 6vw, 30px); }
+  #uniList .ix-name { font-size: clamp(27px, 8vw, 40px); }
+  #setGrid .ix-name { font-size: clamp(21px, 6vw, 30px); }
 }
 .pick-back { position: absolute; top: clamp(78px, 11vh, 104px); left: clamp(18px, 4vw, 46px); z-index: 6; margin: 0; display: inline-flex; align-items: center; gap: 10px;
   font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff;

@@ -2941,29 +2941,34 @@
     // typographic rows on the left, a live preview pane answering hover on the
     // right. No scene, no tiles: a menu that reads like a table of contents.
     const uniList = $('uniList'), uniView = $('uniView');
-    function paintUniView(g) {
+    function paintUniView(g, num) {
       if (!g || uniView.dataset.g === g.game) return;
       uniView.dataset.g = g.game;
+      // the whole room answers: the screen's accent follows the hovered universe
+      $('hvPick').style.setProperty('--accent', g.accent);
       uniView.innerHTML =
         `<div class="ixv-in" style="--accent:${g.accent}">
+          <span class="ixv-ghost" aria-hidden="true">${num || ''}</span>
           <span class="ixv-glow" aria-hidden="true"></span>
           <img class="ixv-card" src="${g.card}" alt="" draggable="false">
           <img class="ixv-logo" src="assets/logos/${g.game}.png?v=79" alt="${g.name}">
           <div class="ixv-meta">${setsForGame(g.game).length} sets &middot; live prices</div>
         </div>`;
       if (window.gsap && !REDUCED) {
-        gsap.fromTo(uniView.querySelector('.ixv-card'), { opacity: 0, y: 22, rotate: 2 }, { opacity: 1, y: 0, rotate: -5, duration: 0.5, ease: 'power3.out' });
+        const card = uniView.querySelector('.ixv-card');
+        gsap.fromTo(card, { opacity: 0, y: 26, rotate: 3 }, { opacity: 1, y: 0, rotate: -5, duration: 0.55, ease: 'power3.out' });
+        gsap.fromTo(uniView.querySelector('.ixv-ghost'), { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out' });
         gsap.fromTo(uniView.querySelectorAll('.ixv-logo, .ixv-meta'), { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, delay: 0.07, stagger: 0.06, ease: 'power3.out' });
+        if (uniView._float) uniView._float.kill();
+        uniView._float = gsap.to(card, { y: -9, duration: 3.2, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 0.55 });
       }
     }
-    uniList.addEventListener('pointerover', (e) => {
+    const uniRowHover = (e) => {
       const r = e.target.closest('.ix-row'); if (!r) return;
-      paintUniView(HOME_GAMES.find((x) => x.game === r.dataset.game));
-    });
-    uniList.addEventListener('focusin', (e) => {
-      const r = e.target.closest('.ix-row'); if (!r) return;
-      paintUniView(HOME_GAMES.find((x) => x.game === r.dataset.game));
-    });
+      paintUniView(HOME_GAMES.find((x) => x.game === r.dataset.game), r.querySelector('.ix-num')?.textContent);
+    };
+    uniList.addEventListener('pointerover', uniRowHover);
+    uniList.addEventListener('focusin', uniRowHover);
     uniList.addEventListener('click', (e) => {
       const r = e.target.closest('.ix-row'); if (!r) return;
       revealSetsInPlace(r.dataset.game);
@@ -2977,13 +2982,14 @@
       rows[next].focus(); e.preventDefault();
     };
     uniList.addEventListener('keydown', ixWalk(uniList));
-    paintUniView(UNI_ORDER[0]);   // rest state previews the first universe
+    paintUniView(UNI_ORDER[0], '01');   // rest state previews the first universe
     $('getStarted').addEventListener('click', goPick);
     $('setsBack').addEventListener('click', () => switchView('hvSets', 'hvPick'));
     const setListEl = $('setGrid');
     setListEl.addEventListener('click', (e) => { const b = e.target.closest('[data-set]'); if (b) enterSet(pickGame, b.dataset.set); });
-    setListEl.addEventListener('pointerover', (e) => { const b = e.target.closest('[data-set]'); if (b) paintSetView(b.dataset.set); });
-    setListEl.addEventListener('focusin', (e) => { const b = e.target.closest('[data-set]'); if (b) paintSetView(b.dataset.set); });
+    const setRowHover = (e) => { const b = e.target.closest('[data-set]'); if (b) paintSetView(b.dataset.set, b.querySelector('.ix-num')?.textContent); };
+    setListEl.addEventListener('pointerover', setRowHover);
+    setListEl.addEventListener('focusin', setRowHover);
     setListEl.addEventListener('keydown', ixWalk(setListEl));
     HOME_GAMES.forEach((g) => { const im = new Image(); im.src = g.card; }); // preload previews
   }
@@ -3041,7 +3047,7 @@
   // preview pane for the set index: logo, count, era, the sealed box when we
   // have one — answers whatever row the cursor is on
   let ixSets = [];
-  function paintSetView(id) {
+  function paintSetView(id, num) {
     const view = $('setView'); if (!view || view.dataset.s === id) return;
     const s = ixSets.find((x) => x.id === id); if (!s) return;
     view.dataset.s = id;
@@ -3053,6 +3059,7 @@
     if (box && base(box) === base(cands[0])) box = null;   // no distinct box art → don't double the logo
     view.innerHTML =
       `<div class="ixv-in">
+        <span class="ixv-ghost" aria-hidden="true">${num || ''}</span>
         <span class="ixv-glow" aria-hidden="true"></span>
         ${box ? `<img class="ixv-box" src="${box}" alt="" draggable="false">` : ''}
         <img class="ixv-setlogo" alt="${s.name || ''}">
@@ -3063,8 +3070,12 @@
     lg.onerror = () => { if (++i < cands.length) lg.src = cands[i]; else lg.remove(); };
     lg.src = cands[0] || `assets/logos/${pickGame}.png?v=79`;
     if (window.gsap && !REDUCED) {
-      gsap.fromTo(view.querySelectorAll('.ixv-box, .ixv-setlogo, .ixv-meta'), { opacity: 0, y: 14 },
-        { opacity: 1, y: 0, duration: 0.45, stagger: 0.06, ease: 'power3.out' });
+      const hero = view.querySelector('.ixv-box') || lg;
+      gsap.fromTo(view.querySelector('.ixv-ghost'), { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out' });
+      gsap.fromTo(view.querySelectorAll('.ixv-box, .ixv-setlogo, .ixv-meta'), { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.5, stagger: 0.07, ease: 'power3.out' });
+      if (view._float) view._float.kill();
+      view._float = gsap.to(hero, { y: -8, duration: 3.4, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 0.5 });
     }
   }
   function buildSetGrid(game) {
@@ -3104,7 +3115,7 @@
     list.innerHTML = html;
     const first = ixSets[0];
     const view = $('setView'); if (view) view.dataset.s = '';
-    if (first) paintSetView(first.id);   // rest state previews the first set
+    if (first) paintSetView(first.id, '01');   // rest state previews the first set
   }
   // the chosen column has already expanded to fill the screen — reveal its set list
   // right there in the same frame (sets stagger up; the picker is hidden underneath).
