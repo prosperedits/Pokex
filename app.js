@@ -2949,23 +2949,18 @@
       uniView.innerHTML =
         `<div class="ixv-in" style="--accent:${g.accent}">
           <span class="ixv-ghost" aria-hidden="true">${num || ''}</span>
-          <span class="ixv-glow" aria-hidden="true"></span>
-          <img class="ixv-card" src="${g.card}" alt="" draggable="false">
-          <img class="ixv-logo" src="assets/logos/${g.game}.png?v=79" alt="${g.name}">
-          <div class="ixv-meta">${setsForGame(g.game).length} sets &middot; live prices</div>
+          <div class="ixv-meta">${g.name} &middot; ${setsForGame(g.game).length} sets &middot; live</div>
         </div>`;
       if (window.gsap && !REDUCED) {
-        const card = uniView.querySelector('.ixv-card');
-        gsap.fromTo(card, { opacity: 0, y: 26, rotate: 3 }, { opacity: 1, y: 0, rotate: -5, duration: 0.55, ease: 'power3.out' });
-        gsap.fromTo(uniView.querySelector('.ixv-ghost'), { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out' });
-        gsap.fromTo(uniView.querySelectorAll('.ixv-logo, .ixv-meta'), { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, delay: 0.07, stagger: 0.06, ease: 'power3.out' });
-        if (uniView._float) uniView._float.kill();
-        uniView._float = gsap.to(card, { y: -9, duration: 3.2, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 0.55 });
+        gsap.fromTo(uniView.querySelector('.ixv-ghost'), { opacity: 0, x: 44 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out' });
+        gsap.fromTo(uniView.querySelector('.ixv-meta'), { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, delay: 0.1, ease: 'power3.out' });
       }
     }
     const uniRowHover = (e) => {
       const r = e.target.closest('.ix-row'); if (!r) return;
-      paintUniView(HOME_GAMES.find((x) => x.game === r.dataset.game), r.querySelector('.ix-num')?.textContent);
+      const g = HOME_GAMES.find((x) => x.game === r.dataset.game);
+      paintUniView(g, r.querySelector('.ix-num')?.textContent);
+      if (g) ixCursorSet(g.card);   // the chasing preview wears this universe's card
     };
     uniList.addEventListener('pointerover', uniRowHover);
     uniList.addEventListener('focusin', uniRowHover);
@@ -2987,12 +2982,38 @@
     $('setsBack').addEventListener('click', () => switchView('hvSets', 'hvPick'));
     const setListEl = $('setGrid');
     setListEl.addEventListener('click', (e) => { const b = e.target.closest('[data-set]'); if (b) enterSet(pickGame, b.dataset.set); });
-    const setRowHover = (e) => { const b = e.target.closest('[data-set]'); if (b) paintSetView(b.dataset.set, b.querySelector('.ix-num')?.textContent); };
+    const setRowHover = (e) => {
+      const b = e.target.closest('[data-set]'); if (!b) return;
+      paintSetView(b.dataset.set, b.querySelector('.ix-num')?.textContent);
+      ixCursorSet(setPreviewSrc(b.dataset.set));
+    };
     setListEl.addEventListener('pointerover', setRowHover);
     setListEl.addEventListener('focusin', setRowHover);
     setListEl.addEventListener('keydown', ixWalk(setListEl));
+    // —— the chasing preview (the reference move): ONE image trails the cursor
+    // over either list with lag and a velocity lean; the row hover feeds it
+    const ixCur = document.createElement('img');
+    ixCur.className = 'ix-cursor'; ixCur.alt = ''; ixCur.draggable = false;
+    homeEl.appendChild(ixCur);
+    const ixc = { x: innerWidth / 2, y: innerHeight / 2, tx: innerWidth / 2, ty: innerHeight / 2, on: false, o: 0 };
+    ixCursorSet = (src) => { if (src && !ixCur.src.endsWith(src)) ixCur.src = src; };
+    [uniList, setListEl].forEach((L) => {
+      L.addEventListener('pointermove', (e) => { ixc.tx = e.clientX; ixc.ty = e.clientY; ixc.on = true; });
+      L.addEventListener('pointerleave', () => { ixc.on = false; });
+    });
+    if (window.gsap && !REDUCED) (function ixTick() {
+      const dx = ixc.tx - ixc.x;
+      ixc.x += dx * 0.13; ixc.y += (ixc.ty - ixc.y) * 0.13;
+      const want = (ixc.on && !homeEl.hidden && ixCur.src) ? 1 : 0;
+      ixc.o += (want - ixc.o) * 0.15;
+      const rot = Math.max(-11, Math.min(11, dx * 0.09));
+      ixCur.style.transform = `translate(${(ixc.x + 34).toFixed(1)}px, ${(ixc.y - 130).toFixed(1)}px) rotate(${rot.toFixed(2)}deg)`;
+      ixCur.style.opacity = ixc.o.toFixed(3);
+      requestAnimationFrame(ixTick);
+    })();
     HOME_GAMES.forEach((g) => { const im = new Image(); im.src = g.card; }); // preload previews
   }
+  let ixCursorSet = () => {};   // bound in buildHome; hover handlers call through
 
   // generic crossfade/scale between two home views
   // clean opacity crossfade — NO container scale/blur (that made the whole grid
@@ -3047,35 +3068,28 @@
   // preview pane for the set index: logo, count, era, the sealed box when we
   // have one — answers whatever row the cursor is on
   let ixSets = [];
+  // ONE preview visual per set (P: pick one): box art when we have it, else
+  // the set logo — this feeds the cursor-chasing image
+  function setPreviewSrc(id) {
+    const s = ixSets.find((x) => x.id === id); if (!s) return null;
+    const cands = s.fresh
+      ? [`https://assets.tcgdex.net/en/${(s.id.match(/^[a-z]+/i) || ['xx'])[0]}/${s.id}/logo.png`]
+      : setMarkChain(pickGame, s);
+    const box = typeof localSetImage === 'function' ? localSetImage(s.id) : null;
+    return box || cands[0] || null;
+  }
   function paintSetView(id, num) {
     const view = $('setView'); if (!view || view.dataset.s === id) return;
     const s = ixSets.find((x) => x.id === id); if (!s) return;
     view.dataset.s = id;
-    const cands = s.fresh
-      ? [`https://assets.tcgdex.net/en/${(s.id.match(/^[a-z]+/i) || ['xx'])[0]}/${s.id}/logo.png`, `assets/logos/${pickGame}.png?v=79`]
-      : setMarkChain(pickGame, s);
-    let box = typeof localSetImage === 'function' ? localSetImage(s.id) : null;
-    const base = (u) => (u || '').split('?')[0].split('/').pop();
-    if (box && base(box) === base(cands[0])) box = null;   // no distinct box art → don't double the logo
     view.innerHTML =
       `<div class="ixv-in">
         <span class="ixv-ghost" aria-hidden="true">${num || ''}</span>
-        <span class="ixv-glow" aria-hidden="true"></span>
-        ${box ? `<img class="ixv-box" src="${box}" alt="" draggable="false">` : ''}
-        <img class="ixv-setlogo" alt="${s.name || ''}">
-        <div class="ixv-meta">${s.count ? `${s.count} cards &middot; ` : ''}live prices</div>
+        <div class="ixv-meta">${s.name || ''}${s.count ? ` &middot; ${s.count} cards` : ''} &middot; live</div>
       </div>`;
-    const lg = view.querySelector('.ixv-setlogo');
-    let i = 0;
-    lg.onerror = () => { if (++i < cands.length) lg.src = cands[i]; else lg.remove(); };
-    lg.src = cands[0] || `assets/logos/${pickGame}.png?v=79`;
     if (window.gsap && !REDUCED) {
-      const hero = view.querySelector('.ixv-box') || lg;
-      gsap.fromTo(view.querySelector('.ixv-ghost'), { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out' });
-      gsap.fromTo(view.querySelectorAll('.ixv-box, .ixv-setlogo, .ixv-meta'), { opacity: 0, y: 16 },
-        { opacity: 1, y: 0, duration: 0.5, stagger: 0.07, ease: 'power3.out' });
-      if (view._float) view._float.kill();
-      view._float = gsap.to(hero, { y: -8, duration: 3.4, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 0.5 });
+      gsap.fromTo(view.querySelector('.ixv-ghost'), { opacity: 0, x: 44 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out' });
+      gsap.fromTo(view.querySelector('.ixv-meta'), { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, delay: 0.1, ease: 'power3.out' });
     }
   }
   function buildSetGrid(game) {

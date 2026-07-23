@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link rel="preconnect" href="https://tcgplayer-cdn.tcgplayer.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand/tokens.css?v=49">
-<link rel="stylesheet" href="style.css?v=121">
+<link rel="stylesheet" href="style.css?v=122">
 <link rel="stylesheet" href="universe-bg.css?v=5">
 <link rel="stylesheet" href="mobile.css?v=4">
 <script src="crown-spin.js?v=4" defer></script>
@@ -89,6 +89,7 @@
   <main>
     <div id="stageGlow" class="stage-glow" aria-hidden="true"></div>
     <section id="wheel" class="wheel" aria-label="Card carousel" aria-roledescription="carousel">
+      <div id="stageArc" class="stage-arc" aria-hidden="true"></div>
       <div id="track" class="track"></div>
       <!-- share rides the TOP of the focused card (P: top, not bottom) -->
       <button type="button" id="capShare" class="cap-share cap-share-top" aria-label="Copy a link to this card" title="Share this card">
@@ -255,7 +256,7 @@
   <script src="data/ja-map.js?v=1" defer></script>   <!-- EN→JA printings (dexId+illustrator verified) -->
   <!-- the 5.4MB Pokémon card index no longer blocks boot (P: mobile loads) —
        it lazy-loads on idle / first search below; mergeFullSet self-heals -->
-  <script src="app.js?v=139"></script>
+  <script src="app.js?v=140"></script>
 
   <!-- ===== Global cross-set search (index-backed) ===== -->
   <style>

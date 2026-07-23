@@ -58,6 +58,12 @@ body {
 /* Three.js stage floor — a lit pool + receding grid grounding the focused card,
    tinted per set by applyAmbience and rendered from the rAF loop (buildFloor) */
 #stageFloor { position: absolute; left: 0; bottom: 0; width: 100%; height: 26%; }   /* P: the floor sits LOW — clear of the INSPECT button */
+/* the amphitheatre: a natural curved horizon sweeping behind the wheel — its
+   smile mirrors the fan's inward bend (edges rise with the side cards) */
+.stage-arc { position: absolute; left: 50%; bottom: 32%; transform: translateX(-50%); width: 170vw; height: 120vh;
+  border-radius: 0 0 100% 100% / 0 0 60% 60%; pointer-events: none; z-index: 0;
+  border-bottom: 1px solid rgba(185, 210, 255, 0.34);
+  box-shadow: 0 40px 110px -30px rgba(160, 195, 255, 0.5), inset 0 -80px 150px -90px rgba(160, 195, 255, 0.3); }
 
 /* ---------- Minimap (bottom arc dial, inset from the edges) ----------
    The heat-bar strip is bent into a shallow concave-up arc that tapers to
@@ -1621,14 +1627,18 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
 /* focus theatre: the considered row holds the light, the rest recede */
 .ix-list:has(.ix-row:hover) .ix-row:not(:hover),
 .ix-list:has(.ix-row:focus-visible) .ix-row:not(:focus-visible) { opacity: 0.42; }
-.ix-num { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-dim); transition: color 0.2s; }
-.ix-name { font-family: var(--font-display); font-weight: 600; line-height: 1.02; letter-spacing: 0.004em;
+/* numbers ride high beside the name, editorial-superscript style */
+.ix-num { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); align-self: start; margin-top: 0.55em; transition: color 0.2s; }
+/* the voice: a light serif — names read like a magazine contents page,
+   turning italic under the cursor */
+.ix-name { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; line-height: 1; letter-spacing: 0.002em;
   color: #eef2fc; transform-origin: left center;
   transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s; }
+.ix-row:hover .ix-name, .ix-row:focus-visible .ix-name { font-style: italic; }
 /* universe level: only four rows — they own the column at full scale */
-#uniList .ix-name { font-size: clamp(34px, 4.1vw, 66px); }
+#uniList .ix-name { font-size: clamp(46px, 5.6vw, 92px); }
 #uniList .ix-row { padding: clamp(22px, 4.6vh, 46px) 4px; }
-#setGrid .ix-name { font-size: clamp(23px, 2.4vw, 38px); }
+#setGrid .ix-name { font-size: clamp(27px, 3vw, 48px); }
 .ix-meta { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); white-space: nowrap; }
 .ix-arrow { font-size: 19px; color: var(--accent, #7fd4f4); opacity: 0; transform: translateX(-10px);
   transition: opacity 0.22s, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -1641,27 +1651,24 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
 .ix-break::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(190, 205, 235, 0.16), transparent); }
 .ix-foot { padding: 24px 4px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
   color: color-mix(in srgb, var(--text-dim) 55%, transparent); }
-/* the answering pane */
+/* the answering pane: pure typography — a monumental outlined numeral and one
+   quiet meta line (the imagery follows the cursor instead) */
 .ix-view { position: relative; display: flex; align-items: center; justify-content: center; min-height: 0; }
-.ixv-in { position: relative; display: flex; flex-direction: column; align-items: center; gap: 22px; }
-/* the ghost: a monumental outlined numeral owning the empty air */
-.ixv-ghost { position: absolute; right: -6%; top: 50%; transform: translateY(-54%); z-index: 0; pointer-events: none;
-  font-family: var(--font-display); font-weight: 700; font-size: clamp(220px, 34vh, 420px); line-height: 1;
-  color: transparent; -webkit-text-stroke: 1.5px color-mix(in srgb, var(--accent, #7fd4f4) 34%, transparent);
-  letter-spacing: -0.04em; user-select: none; }
-.ixv-glow { position: absolute; left: 50%; top: 44%; width: 160%; aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent, #7fd4f4) 22%, transparent), transparent 70%); }
-.ixv-card { position: relative; z-index: 1; width: clamp(220px, 18.5vw, 340px); border-radius: 14px; transform: rotate(-5deg);
-  box-shadow: 0 40px 90px -26px rgba(0, 0, 0, 0.82); }
-.ixv-box { position: relative; z-index: 1; width: clamp(190px, 15.5vw, 290px); filter: drop-shadow(0 30px 56px rgba(0, 0, 0, 0.65)); }
-.ixv-logo { position: relative; z-index: 1; max-width: clamp(200px, 17vw, 300px); max-height: 88px; object-fit: contain; }
-.ixv-setlogo { position: relative; z-index: 1; max-width: clamp(230px, 20vw, 360px); max-height: 124px; object-fit: contain; filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.6)); }
-.ixv-meta { position: relative; z-index: 1; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-dim); }
+.ixv-in { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.ixv-ghost { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: clamp(260px, 42vh, 480px); line-height: 0.9;
+  color: transparent; -webkit-text-stroke: 1.5px color-mix(in srgb, var(--accent, #7fd4f4) 36%, transparent);
+  letter-spacing: -0.05em; user-select: none; pointer-events: none; }
+.ixv-meta { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--text-dim); }
+/* the chasing preview: one image trailing the cursor with lag + lean */
+.ix-cursor { position: fixed; left: 0; top: 0; width: clamp(180px, 15vw, 250px); border-radius: 10px; z-index: 58;
+  pointer-events: none; opacity: 0; will-change: transform, opacity;
+  box-shadow: 0 34px 80px -24px rgba(0, 0, 0, 0.82); }
 @media (max-width: 900px) {
   .ix { grid-template-columns: 1fr; padding-top: 84px; }
   .ix-view { display: none; }
-  #uniList .ix-name { font-size: clamp(27px, 8vw, 40px); }
-  #setGrid .ix-name { font-size: clamp(21px, 6vw, 30px); }
+  .ix-cursor { display: none; }
+  #uniList .ix-name { font-size: clamp(30px, 9vw, 44px); }
+  #setGrid .ix-name { font-size: clamp(23px, 6.6vw, 32px); }
 }
 .pick-back { position: absolute; top: clamp(78px, 11vh, 104px); left: clamp(18px, 4vw, 46px); z-index: 6; margin: 0; display: inline-flex; align-items: center; gap: 10px;
   font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff;
