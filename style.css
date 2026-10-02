@@ -1659,10 +1659,12 @@ body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden;
   color: transparent; -webkit-text-stroke: 1.5px color-mix(in srgb, var(--accent, #7fd4f4) 36%, transparent);
   letter-spacing: -0.05em; user-select: none; pointer-events: none; }
 .ixv-meta { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--text-dim); }
-/* the chasing preview: one image trailing the cursor with lag + lean */
+/* the chasing preview: one image trailing the cursor with lag + lean. drop-shadow,
+   not box-shadow — sealed boxes + logos are transparent cut-outs, and a box-shadow
+   paints a dark rectangle behind them */
 .ix-cursor { position: fixed; left: 0; top: 0; width: clamp(180px, 15vw, 250px); border-radius: 10px; z-index: 58;
   pointer-events: none; opacity: 0; will-change: transform, opacity;
-  box-shadow: 0 34px 80px -24px rgba(0, 0, 0, 0.82); }
+  filter: drop-shadow(0 28px 40px rgba(0, 0, 0, 0.62)); }
 @media (max-width: 900px) {
   .ix { grid-template-columns: 1fr; padding-top: 84px; }
   .ix-view { display: none; }

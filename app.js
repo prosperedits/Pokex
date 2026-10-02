@@ -3007,7 +3007,9 @@
       const want = (ixc.on && !homeEl.hidden && ixCur.src) ? 1 : 0;
       ixc.o += (want - ixc.o) * 0.15;
       const rot = Math.max(-11, Math.min(11, dx * 0.09));
-      ixCur.style.transform = `translate(${(ixc.x + 34).toFixed(1)}px, ${(ixc.y - 130).toFixed(1)}px) rotate(${rot.toFixed(2)}deg)`;
+      // gentle levitation loop (0 → -8px → 0, sine, 6.8s), riding on the chase
+      const bob = 4 * Math.cos(performance.now() * (Math.PI / 3400)) - 4;
+      ixCur.style.transform = `translate(${(ixc.x + 34).toFixed(1)}px, ${(ixc.y - 130 + bob).toFixed(1)}px) rotate(${rot.toFixed(2)}deg)`;
       ixCur.style.opacity = ixc.o.toFixed(3);
       requestAnimationFrame(ixTick);
     })();
@@ -3072,6 +3074,10 @@
   // the set logo — this feeds the cursor-chasing image
   function setPreviewSrc(id) {
     const s = ixSets.find((x) => x.id === id); if (!s) return null;
+    // box art straight from the sealed manifest — localSetImage() is the colour
+    // sampler's pick and prefers a local LOGO, which hid the box for sv05 + all Lorcana
+    const prod = ((window.SEALED_PRODUCTS || {})[s.id] || []).find((p) => p.img && p.img.startsWith('assets/'));
+    if (prod) return prod.img;
     const cands = s.fresh
       ? [`https://assets.tcgdex.net/en/${(s.id.match(/^[a-z]+/i) || ['xx'])[0]}/${s.id}/logo.png`]
       : setMarkChain(pickGame, s);
