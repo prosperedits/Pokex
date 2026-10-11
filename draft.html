@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Crowns — Magic Draft</title>
+<meta name="description" content="Draft Magic: The Gathering on the wheel — eight seats, three packs, bots that read colours, and a deck builder that exports straight to Arena.">
+<link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
+<meta name="theme-color" content="#0b0a10">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://api.scryfall.com" crossorigin>
+<link rel="preconnect" href="https://cards.scryfall.io" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="brand/tokens.css?v=49">
+<link rel="stylesheet" href="draft.css?v=1">
+</head>
+<body class="dr-start">
+  <div class="dr-bg" aria-hidden="true"><div class="dr-bg-glow"></div><div class="dr-bg-grain"></div></div>
+
+  <header class="dr-chrome">
+    <a class="dr-back" href="app.html" aria-label="Back to the card wheel">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      <span>Crowns</span>
+    </a>
+    <div class="dr-status" id="drStatus" hidden>
+      <img id="drSetIcon" class="dr-set-icon" alt="">
+      <div class="dr-status-txt">
+        <span class="dr-k" id="drSetName"></span>
+        <span class="dr-pick" id="drPick" aria-live="polite"></span>
+      </div>
+      <div class="dr-ring" id="drRing" aria-hidden="true"></div>
+    </div>
+    <div class="dr-chrome-right">
+      <button type="button" class="dr-btn ghost" id="drNew" hidden>New draft</button>
+    </div>
+  </header>
+
+  <!-- START: pick a set -->
+  <section class="dr-view dr-pickset" id="viewStart" aria-labelledby="startTitle">
+    <div class="dr-hero">
+      <p class="dr-kicker">Magic: The Gathering</p>
+      <h1 id="startTitle" class="dr-title">Draft <em>on the wheel</em></h1>
+      <p class="dr-lede">Eight seats, three packs. Take one card, pass the rest. Bots read their colours, so watch what comes back to you. Build forty and export it to Arena.</p>
+      <div class="dr-resume" id="drResume" hidden>
+        <button type="button" class="dr-btn" id="drResumeBtn">Resume draft</button>
+        <span class="dr-resume-txt" id="drResumeTxt"></span>
+      </div>
+    </div>
+    <ul class="dr-sets" id="drSets" role="list"></ul>
+    <p class="dr-foot">Card data and images from <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>. Pack contents follow each set's booster type: Play Boosters (14 cards) from Karlov Manor on, Draft Boosters (15) before. Not affiliated with Wizards of the Coast.</p>
+  </section>
+
+  <!-- LOADING -->
+  <section class="dr-view dr-loading" id="viewLoading" hidden aria-live="polite">
+    <div class="dr-spinner" aria-hidden="true"></div>
+    <p id="drLoadingTxt">Shuffling the card pool…</p>
+  </section>
+
+  <!-- DRAFT: the pack on the wheel -->
+  <section class="dr-view dr-draft" id="viewDraft" hidden>
+    <div class="dr-stage">
+      <div class="dr-stage-glow" id="drGlow" aria-hidden="true"></div>
+      <section id="wheel" class="dr-wheel" aria-label="Current pack" aria-roledescription="carousel">
+        <div id="track" class="dr-track"></div>
+      </section>
+      <div class="dr-caption" id="drCaption">
+        <div class="dr-cap-top">
+          <span class="dr-rarity" id="capRarity"></span>
+          <span class="dr-chip foil" id="capFoil" hidden>Foil</span>
+          <span class="dr-chip wheel" id="capWheel" hidden title="You saw this card the first time this pack came round">Wheeled</span>
+        </div>
+        <h2 class="dr-cap-name" id="capName"></h2>
+        <div class="dr-cap-meta"><span class="dr-mana" id="capMana"></span><span id="capType"></span><span class="dr-pt" id="capPT"></span></div>
+        <p class="dr-hint"><kbd>←</kbd><kbd>→</kbd> browse · <kbd>Enter</kbd> take · <kbd>Space</kbd> zoom</p>
+      </div>
+    </div>
+
+    <aside class="dr-tray" id="drTray" aria-label="Your picks">
+      <div class="dr-tray-head">
+        <button type="button" class="dr-tray-toggle" id="drTrayToggle" aria-expanded="true" aria-controls="drPool">
+          <span>Pool</span> <b id="drPoolCount">0</b>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>
+        </button>
+        <div class="dr-colors" id="drColors" aria-label="Colours in your pool"></div>
+        <div class="dr-signals" id="drSignals" title="Strong cards still in the packs passed to you, by colour. A tall bar is a colour your neighbours aren't taking."></div>
+      </div>
+      <div class="dr-pool" id="drPool"></div>
+    </aside>
+  </section>
+
+  <!-- DECK BUILDER -->
+  <section class="dr-view dr-build" id="viewBuild" hidden aria-labelledby="buildTitle">
+    <div class="db-head">
+      <div>
+        <p class="dr-kicker" id="buildKicker">Draft complete</p>
+        <h1 id="buildTitle" class="db-title">Build your forty</h1>
+      </div>
+      <div class="db-actions">
+        <button type="button" class="dr-btn ghost" id="dbAuto">Auto-build</button>
+        <button type="button" class="dr-btn" id="dbCopy">Copy deck list</button>
+      </div>
+    </div>
+    <div class="db-stats" id="dbStats"></div>
+    <div class="db-lands" id="dbLands" aria-label="Basic lands"></div>
+    <h2 class="db-sub">Main deck <span id="dbMainCount"></span><small>Click a card to move it to the sideboard</small></h2>
+    <div class="db-cols" id="dbMain"></div>
+    <h2 class="db-sub">Sideboard <span id="dbSideCount"></span><small>Click to add to the deck</small></h2>
+    <div class="db-cols side" id="dbSide"></div>
+    <details class="db-log">
+      <summary>Pick order &amp; table recap</summary>
+      <div class="db-log-grid">
+        <ol class="db-picks" id="dbPicks"></ol>
+        <div class="db-table" id="dbTable"></div>
+      </div>
+    </details>
+    <textarea id="dbExport" class="db-export" readonly hidden aria-label="Deck list"></textarea>
+  </section>
+
+  <!-- ZOOM -->
+  <dialog id="zoom" class="dr-zoom" aria-label="Card detail">
+    <div class="dz-inner">
+      <div class="dz-card"><img id="dzImg" alt=""><img id="dzBack" alt="" hidden></div>
+      <div class="dz-panel">
+        <p class="dr-rarity" id="dzRarity"></p>
+        <h2 id="dzName"></h2>
+        <p class="dz-type"><span class="dr-mana" id="dzMana"></span> <span id="dzType"></span></p>
+        <div class="dz-text" id="dzText"></div>
+        <div class="dz-btns">
+          <button type="button" class="dr-btn" id="dzTake">Take this card</button>
+          <button type="button" class="dr-btn ghost" id="dzClose">Close</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="dr-peek" id="drPeek" aria-hidden="true"><img alt=""></div>
+  <div class="dr-toast" id="drToast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/gsap.min.js"></script>
+  <script src="draft.js?v=1"></script>
+</body>
+</html>
