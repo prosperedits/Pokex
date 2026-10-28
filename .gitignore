@@ -33,3 +33,27 @@ PLAN.md
 PLAN-REVIEW-LOG.md
 spotlight-test.html
 crown-render.html
+
+# daily price snapshots (local history; data/trends.js is the committed summary)
+price-history/
+# design work: raw Meshy models and review shots stay local
+docs/design/crown/*.glb
+docs/design/crown/*_textures/
+design-review/
+
+
+# design scratch kept local (28 Oct overhaul): raw renders, test videos, image drafts, unused crown models
+docs/design/crown/**/*.png
+docs/design/crown/**/*.jpg
+docs/design/crown/video/
+docs/design/crown/prev-*/
+docs/design/crown/variants*/
+docs/design/hunt/**/_raw/
+docs/design/rip-title/
+docs/design/tiers/*.png
+garden-gpt-image-2/image/
+assets/crown/crown-royal.glb
+assets/crown/crown-arcade.glb
+assets/crown/crown-june.glb
+assets/crown/crown.glb
+assets/crown/crown-regal.glb

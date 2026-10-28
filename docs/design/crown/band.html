@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Crown band test</title>
+<style>html,body{margin:0;height:100%;background:#060c1e}canvas{display:block;width:100vw;height:100vh}</style>
+</head><body>
+<canvas id="c"></canvas>
+<script src="../../../vendor/three.min.js"></script>
+<script src="../../../vendor/GLTFLoader.js"></script>
+<script src="../../../data/home-trending.js"></script>
+<script src="../../../crown3d.js?v=20"></script>
+<script>
+  // tune the band against the model: ?y=&h=&r=&count=&t=  (t = crown turn in radians)
+  const q = new URLSearchParams(location.search), n = (k, d) => (q.has(k) ? +q.get(k) : d);
+  const cards = (HOME_TRENDING.chase || []).filter((c) => c.local).map((c) => ({ src: '../../../' + c.local }));
+  const crown = CrownMark.mount(document.getElementById('c'), {
+    model: '../../../assets/crown/crown-royal.glb', cards,
+    band: { count: n('count', 14), y: n('y', 0.33), h: n('h', 0.3), r: n('r', 1.0) },
+    onload: () => { window.__loaded = true; },
+  });
+  crown.nudge(n('t', 0));
+  function loop(now) { crown.render(1000, 0, 0); requestAnimationFrame(loop); }
+  requestAnimationFrame(loop);
+  window.__crown = crown;
+</script>
+</body></html>

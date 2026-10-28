@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Products · Crowns store demo</title>
+<meta name="description" content="A demo shop front by Crowns: every sealed box Crowns tracks across Pokémon, Magic, Lorcana and One Piece, in stock at TCGplayer market price, each opening its own product page.">
+<link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-bg.css?v=2">
+<link rel="stylesheet" href="product.css?v=9">
+</head>
+<body>
+  <!-- the shared app ground (app-bg.css): near-black satin, one light pool, film grain -->
+  <div class="app-ground" aria-hidden="true"></div>
+
+  <header class="topbar" id="topbar">
+    <a class="brand" href="index.html" aria-label="Crowns home">
+      <span class="crown-spin brand-crown" aria-hidden="true"></span>
+    </a>
+    <div class="topbar-right">
+      <nav class="nav" aria-label="Main">
+        <a href="app.html">Sets</a>
+        <a href="store.html" aria-current="page">Store demo</a>
+        <a href="rip.html">Rip Lab</a>
+        <a href="data.html">Live data</a>
+        <a href="index.html#pricing">Pricing</a>
+        <a href="index.html#faq">FAQ</a>
+      </nav>
+      <span class="topbar-div" aria-hidden="true"></span>
+      <button class="pd-cartbtn" id="cartBtn" type="button" aria-label="Open cart, 0 items">Cart <span class="pd-cartcount" id="cartCount">0</span></button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="st-head">
+      <h1 class="st-title">Products</h1>
+    </section>
+
+    <div class="st-bar">
+      <div class="st-games" id="games" role="radiogroup" aria-label="Game"></div>
+      <div class="st-tools">
+        <label class="st-field">Type <select class="st-select" id="type"></select></label>
+        <label class="st-field">Sort <select class="st-select" id="sort">
+          <option value="new">Newest set first</option>
+          <option value="high">Price, high to low</option>
+          <option value="low">Price, low to high</option>
+        </select></label>
+        <span class="st-count" id="count" aria-live="polite"></span>
+      </div>
+    </div>
+
+    <ol class="st-grid" id="grid" aria-label="Products"></ol>
+    <div class="st-morewrap"><button class="pd-ghost st-more" id="more" type="button" hidden></button></div>
+    <p class="st-empty" id="empty" hidden>No boxes of that kind in this game. <button type="button" id="clearType">Show every kind</button></p>
+
+    <footer class="pd-foot">
+      <p id="footSources"></p>
+      <p>Store demo by Crowns. No orders are placed and no payment is taken on this page.</p>
+    </footer>
+  </main>
+
+  <script src="data/sealed.js"></script>
+  <script src="store-data.js?v=4"></script>
+  <script src="vendor/gsap.min.js"></script>
+  <script src="crown-spin.js?v=13"></script>
+  <script src="store-ui.js?v=3"></script>
+  <script src="store.js?v=3"></script>
+</body>
+</html>

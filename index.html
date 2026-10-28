@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Crowns — Home</title>
-<link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
+<link rel="icon" type="image/png" href="assets/favicon-64.png?v=2">
 <meta name="description" content="Crowns — the ultimate card tracker.">
-<script src="crown-spin.js?v=4" defer></script>
+<script src="crown-spin.js?v=13" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -20,7 +20,7 @@
 html{background:#05091c;scroll-behavior:smooth}
 html,body{min-height:100%}
 body{color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden;overflow-y:auto;background:#070d22}
-canvas#topo{position:fixed;inset:0;z-index:0;display:block}
+canvas#topo{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100%}
 .vign{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(100% 80% at 50% 40%, transparent 40%, rgba(3,7,18,.6) 100%)}
 
 /* custom cursor — white arrow with a neon-blue outline */
@@ -30,7 +30,13 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
   filter:drop-shadow(0 1px 2px rgba(0,0,0,.5)) drop-shadow(0 0 3px rgba(106,168,255,.85))}
 .cursor .cur-arrow path{fill:#fff;stroke:var(--blue-bright);stroke-width:1.7;stroke-linejoin:round}
 .cursor.down{transform:scale(.86)}
-.cursor.hover{transform:scale(1.12)}
+.cursor .cur-ring{position:absolute;left:-17px;top:-17px;width:34px;height:34px;border-radius:50%;border:1.5px solid #ffd45e;background:rgba(255,212,94,.12);
+  opacity:0;transform:scale(.4);transition:opacity .16s ease,transform .32s cubic-bezier(.16,1,.3,1)}
+.cursor .cur-label{position:absolute;left:26px;top:16px;white-space:nowrap;font:700 13px/1 var(--font);color:#141018;background:#ffd45e;padding:6px 10px;border-radius:999px;
+  opacity:0;transform:translateY(4px);transition:opacity .16s ease,transform .26s cubic-bezier(.16,1,.3,1)}
+.cursor.link .cur-ring,.cursor.hover .cur-ring{opacity:1;transform:none}
+.cursor.link .cur-arrow path,.cursor.hover .cur-arrow path{fill:#ffe9a6}
+.cursor.link .cur-label.on{opacity:1;transform:none}
 .cursor.hide{opacity:0}
 
 /* top bar */
@@ -41,11 +47,15 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
   background:linear-gradient(90deg,transparent 4%,rgba(255,210,74,.34) 30%,rgba(255,210,74,.5) 50%,rgba(255,210,74,.34) 70%,transparent 96%)}
 .topbar.scrolled{background:linear-gradient(180deg,rgba(5,10,26,.86),rgba(5,10,26,.55) 70%,transparent);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)}
 .topbar.scrolled::after{opacity:1}
+/* at the top of the page: the background deepens behind the bar so the nav reads; the scrolled veil takes over below */
+.topbar::before{content:'';position:absolute;left:0;right:0;top:0;height:calc(100% + 120px);z-index:-1;pointer-events:none;transition:opacity .45s;
+  background:linear-gradient(180deg,rgba(2,4,12,.94) 0%,rgba(2,4,12,.82) 38%,rgba(2,4,12,.42) 68%,transparent 100%)}
+.topbar.scrolled::before{opacity:0}
 /* crest-lockup brand — gold crown + boxed CROWNS wordmark */
 .brand{display:inline-flex;align-items:center;gap:11px;text-decoration:none;padding:2px}
-.crown-spin{width:48px;height:48px;flex:none;background:url(assets/crown-spin.png?v=3) 0 center/auto 100% no-repeat;background-position-x:0;filter:drop-shadow(0 3px 7px rgba(0,0,0,.5))}
+.crown-spin{height:48px;flex:none;filter:drop-shadow(0 3px 7px rgba(0,0,0,.5))}   /* width + sprite set by crown-spin.js from the height */
 .brand-logo{height:clamp(30px,3vw,40px);width:auto;display:block;filter:drop-shadow(0 2px 7px rgba(0,0,0,.5)) drop-shadow(0 0 16px rgba(255,200,70,.22))}
-.brand-crown{width:clamp(90px,9vw,140px);height:clamp(90px,9vw,140px);flex:none;filter:drop-shadow(0 5px 13px rgba(0,0,0,.5)) saturate(1.12) brightness(1.05) contrast(1.03)}
+.brand-crown{height:clamp(46px,3.3vw,68px);flex:none;filter:drop-shadow(0 5px 13px rgba(0,0,0,.55))}
 .topbar-right{display:flex;align-items:center;gap:clamp(16px,2.1vw,32px)}
 .topbar-div{width:1px;height:26px;flex:none;background:linear-gradient(180deg,transparent,rgba(190,205,235,.4),transparent)}
 /* crest-lockup nav — right-aligned, no box; a gold underline grows on hover/active */
@@ -69,17 +79,19 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 /* Join now button (replaces the live-prices badge) */
 .join-now{display:inline-flex;align-items:center;font-family:var(--font);font-weight:700;font-size:14.5px;letter-spacing:.01em;
   color:#10131f;background:linear-gradient(180deg,#ffe79a,#ffc63a);border-radius:30px;padding:11px 24px;text-decoration:none;cursor:none;
-  box-shadow:0 10px 26px -10px rgba(255,200,60,.5), inset 0 1px 0 rgba(255,255,255,.5);transition:transform .2s, box-shadow .2s}
-.join-now:hover{box-shadow:0 18px 40px -10px rgba(255,200,60,.7)} /* motion comes from the magnetic JS, not CSS */
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5);transition:transform .2s}
+.join-now:hover{filter:brightness(1.05)} /* motion comes from the magnetic JS, not CSS */
 .join-now:active{transform:scale(.93);transition:transform .08s}
 .live{display:inline-flex;align-items:center;gap:7px;font-family:var(--font);font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 .live .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold)}
 
 /* hero / wheel — a 3D rotating cylinder of cards */
-.hero{position:relative;z-index:10;height:100vh;display:flex;align-items:center}
-.tape-wrap{--cw:clamp(300px,30vw,475px);--ch:calc(var(--cw) / .717);
-  position:relative;transform:translateY(-7vh);width:100%;height:min(94vh,920px);display:flex;align-items:center;justify-content:center;overflow:hidden;
-  perspective:1500px;perspective-origin:50% 50%;
+.hero{position:relative;z-index:10;height:100vh;display:flex;align-items:center;overflow-x:clip}
+/* the hero ring: chase cards stand in a tilted ring around the 3D card crown (crown3d.js).
+   Refs: Shaky Picks (ring around a centre), Rabo Art Collection (near cards cross in front, far ones pass behind) */
+.tape-wrap{--cw:clamp(190px,12.4vw,318px);--ch:calc(var(--cw) / .717);
+  position:relative;transform:translateY(-4vh);width:100%;height:min(96vh,1040px);display:flex;align-items:center;justify-content:center;overflow:hidden;
+  perspective:1700px;perspective-origin:50% 34%;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 13%,#000 87%,transparent);mask-image:linear-gradient(90deg,transparent,#000 13%,#000 87%,transparent)}
 .tape{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d;will-change:transform;z-index:1}
 /* giant tracker emblem at the hub of the wheel (cards revolve in front of it) */
@@ -88,28 +100,52 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .we-3d{transform-style:preserve-3d}
 .wheel-emblem svg{width:100%;height:auto;display:block}
 .tcard{position:absolute;left:50%;top:50%;width:var(--cw);height:var(--ch);margin-left:calc(var(--cw) / -2);margin-top:calc(var(--ch) / -2);
-  border-radius:16px;background:#0a1430 center/cover no-repeat;cursor:none;text-decoration:none;backface-visibility:hidden;will-change:transform,opacity;
+  border-radius:16px;cursor:none;text-decoration:none;will-change:transform;
   user-select:none;-webkit-user-drag:none;-webkit-user-select:none;
-  box-shadow:0 24px 60px -20px rgba(0,0,0,.8);transform:rotateY(var(--a,0deg)) translateZ(var(--r,0px))}
+  box-shadow:0 24px 60px -20px rgba(0,0,0,.8);transform:rotateY(var(--a,0deg)) translateZ(var(--r,0px));transform-style:preserve-3d}
+/* the card art is its own face (backface hidden) so the card back can show when the card turns away */
+.tfront{position:absolute;inset:0;border-radius:16px;background:#0a1430 center/cover no-repeat;backface-visibility:hidden;pointer-events:none}
+/* depth shading for cards turning away (set per frame as --dim; filter on the card itself would flatten its 3D back) */
+.tcard::before{content:'';position:absolute;inset:0;border-radius:16px;background:#02040c;opacity:var(--dim,0);pointer-events:none;backface-visibility:hidden}
+/* the far side of the ring shows the Crowns card back */
+.tback{position:absolute;inset:0;border-radius:16px;transform:rotateY(180deg);backface-visibility:hidden;pointer-events:none;
+  background:#07080b url(assets/card-back.webp?v=6) center/cover no-repeat;filter:brightness(calc(1 - var(--dim,0) * .55))}
+/* the crown sits at the ring's centre, in the same 3D space, turned back to face the viewer */
+/* the hero: the crown IS the carousel (Faisal, 27 Oct): real chase cards set around its band, drag to turn, click to inspect */
+.crown-gl{position:absolute;left:0;top:0;width:100%;height:100%;cursor:none;touch-action:pan-y;
+  background:radial-gradient(26% 12% at 50% 84%,rgba(255,196,74,.15),rgba(255,160,40,.04) 55%,transparent 75%)}   /* a warm pool where the crown stands */   /* the custom cursor speaks for it (an OS grab hand drew on top) */
+.crown-gl.drag{cursor:none}
+.crown-cap{position:absolute;left:50%;bottom:clamp(70px,9vh,120px);transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:12px;white-space:nowrap;
+  font-family:var(--font);font-weight:600;font-size:17px;color:var(--ink);opacity:0;transition:opacity .25s cubic-bezier(.16,1,.3,1);pointer-events:none}
+.crown-cap.on{opacity:1}
+.crown-cap b{font-family:var(--font-display);font-weight:400;font-size:22px;letter-spacing:.02em;text-transform:uppercase}
+.crown-cap i{font-style:normal;color:var(--gold);font-variant-numeric:tabular-nums}
+.crown-cap em{font-style:normal;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+@media (max-width:760px){ .crown-gl{height:70%} .crown-cap{bottom:auto;top:calc(70% - 10px);font-size:14px} .crown-cap b{font-size:17px} }
+/* the front card of the ring wears the old carousel's brackets and "Inspect" (positioned from crown3d.front() each frame) */
+.crown-front{position:absolute;left:0;top:0;z-index:3;pointer-events:none;opacity:0;transition:opacity .3s}
+.crown-front.on{opacity:1}
+.crown-front .tbr{opacity:1;transform:none}
+.crown-front .tinspect{opacity:1;transform:translateX(-50%)}
 /* a clean thin edge on every card; a golden rim appears on hover */
-.tcard::after{content:'';position:absolute;inset:0;border-radius:16px;pointer-events:none;transition:opacity .3s, box-shadow .3s;opacity:.45;
+.tcard::after{content:'';position:absolute;inset:0;border-radius:16px;pointer-events:none;transition:opacity .3s, box-shadow .3s;opacity:.45;backface-visibility:hidden;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
 .tcard:hover::after{opacity:1;box-shadow:inset 0 0 0 2px var(--gold), 0 0 30px 1px rgba(255,210,74,.45)}
 /* gold focus brackets frame the centred (inspectable) card */
-.tbr{position:absolute;inset:-10px;pointer-events:none;opacity:0;transform:scale(.97);transition:opacity .34s, transform .34s cubic-bezier(.16,1,.3,1)}
+.tbr{position:absolute;inset:-10px;pointer-events:none;opacity:0;backface-visibility:hidden;transform:scale(.97);transition:opacity .34s, transform .34s cubic-bezier(.16,1,.3,1)}
 .tbr i{position:absolute;width:28px;height:28px;border:3px solid #fff;filter:drop-shadow(0 0 5px rgba(255,255,255,.5))}
 .tbr i:nth-child(1){top:0;left:0;border-right:0;border-bottom:0;border-radius:8px 0 0 0}
 .tbr i:nth-child(2){top:0;right:0;border-left:0;border-bottom:0;border-radius:0 8px 0 0}
 .tbr i:nth-child(3){bottom:0;left:0;border-right:0;border-top:0;border-radius:0 0 0 8px}
 .tbr i:nth-child(4){bottom:0;right:0;border-left:0;border-top:0;border-radius:0 0 8px 0}
-.tcard .tbr{opacity:1;transform:scale(1)}
+.tcard.front .tbr{opacity:1;transform:scale(1)}   /* brackets + INSPECT mark only the front card of the ring */
 /* "Inspect" indicator sits UNDER the front card, in the small theme type */
-.tinspect{position:absolute;left:50%;bottom:-40px;transform:translateX(-50%) translateY(-6px);opacity:0;pointer-events:none;z-index:2;
+.tinspect{position:absolute;left:50%;bottom:-40px;transform:translateX(-50%) translateY(-6px);opacity:0;pointer-events:none;z-index:2;backface-visibility:hidden;
   font-family:var(--font);font-weight:700;font-size:12px;letter-spacing:.32em;text-indent:.32em;text-transform:uppercase;color:#fff;white-space:nowrap;
   text-shadow:0 0 12px rgba(255,255,255,.45), 0 2px 8px rgba(0,0,0,.6);
   display:inline-flex;align-items:center;gap:9px;transition:opacity .3s, transform .3s}
 .tinspect svg{filter:drop-shadow(0 0 6px rgba(255,255,255,.5))}
-.tcard .tinspect{opacity:1;transform:translateX(-50%) translateY(0)}
+.tcard.front .tinspect{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* on-page inspect modal */
 .inspect{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
@@ -175,128 +211,93 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
   background:linear-gradient(120deg, transparent 42%, rgba(255,255,255,.9) 50%, transparent 58%) no-repeat -160% 0 / 240% 100%,
              linear-gradient(176deg,#ffeebf 3%,#f6cf57 38%,#e3a92f 72%,#c98a1c 100%) 0 0 / 100% 100%;
   -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 1px 1px rgba(120,75,10,.45)) drop-shadow(0 0 5px rgba(238,184,66,.25))}
+  filter:drop-shadow(0 1px 1px rgba(120,75,10,.45)) drop-shadow(0 0 5px rgba(238,184,66,.25))}   /* restored: Faisal preferred the original gold face and its light sweep (28 Oct) */
 .scrolldown{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);z-index:25;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:7px;
   font-family:var(--font);font-weight:600;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:rgba(174,197,238,.75)}
 .scrolldown .arw{font-size:15px;line-height:1}
 /* primary explore CTA + card of the month */
 .explore-btn{display:inline-flex;align-items:center;gap:10px;pointer-events:auto;
-  font-family:var(--font-display);font-size:clamp(15px,1.4vw,19px);line-height:.9;letter-spacing:.08em;text-transform:uppercase;
+  font-family:var(--font-display);font-size:clamp(18px,1.6vw,28px);line-height:.9;letter-spacing:.06em;text-transform:uppercase;
   color:#fff;background:none;border:none;padding:0 2px;
   cursor:pointer;transition:opacity .2s;text-decoration:none;white-space:nowrap}
 .explore-btn:hover{opacity:.78}
-.explore-btn span{transition:transform .2s}
+.explore-btn span{transition:transform .2s;color:#ffcf3f}
 .explore-btn:hover span{transform:translateX(5px)}
 /* card of the month — the real card, angled, hover-reactive, stats to the right */
-/* —— Spotlight: the PSD's lit elements (glow/floor/beams/confetti) over the page's dark bg, animated —— */
-.spotlight-section{position:relative;z-index:10;height:clamp(760px,112vh,1280px);overflow:hidden;background:transparent}
-/* feather the TOP edge so the lit scene melts up into the navy above (no hard horizon line) */
+/* —— Spotlight: a followspot over a grid stage. spotGL draws the light in screen space (the beam, its pool on
+   the floor, the cards' shadows) so it always lands on the DOM card; the cards wear it through --lit and --lx. —— */
+.spotlight-section{position:relative;z-index:10;min-height:calc(100vh - 46px);overflow:hidden;background:transparent}
 .spotlight-section::before{content:'';position:absolute;left:0;right:0;top:0;height:32%;z-index:1;pointer-events:none;background:linear-gradient(180deg,#0c1a3c 0%,rgba(12,26,60,.82) 30%,rgba(12,26,60,.34) 62%,transparent 100%)}
-/* === animated Three.js background: glow + grid floor + gold embers, transparent so it blends into the page === */
-.spotlight-section .sp-gl{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.spotlight-section .sp-gl{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;-webkit-mask-image:linear-gradient(180deg,#000 76%,transparent 99%);mask-image:linear-gradient(180deg,#000 76%,transparent 99%)}
 .spotlight-section .sp-particles{position:absolute;inset:0;z-index:2;pointer-events:none}
-.spotlight-section .sp-stage{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(16px,3vh,38px);padding:clamp(22px,4.5vh,56px) 16px clamp(34px,7vh,90px)}
-.spotlight-section .sp-cardarea{margin-top:clamp(20px,4vh,76px)}
+.spotlight-section .sp-stage{position:relative;min-height:calc(100vh - 46px);z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(104px,calc(52px + 6vh),170px) 16px clamp(32px,5vh,90px)}   /* the title sits just under the header: no empty band above it */
 .spotlight-section .sp-title-wrap{position:relative;flex:none;filter:drop-shadow(0 14px 22px rgba(0,0,0,.55))}
-/* the wordmark: same chrome-comic energy as the old PSD, built in type — Anton
-   italic, cool steel face, blue rim + deep navy extrusion falling to the left */
-.spotlight-section .sp-title{font-family:var(--font-display);font-weight:400;font-style:italic;line-height:.94;margin:0;
-  font-size:clamp(52px,6.4vw,104px);letter-spacing:.035em;text-transform:uppercase;color:#eef4ff;
-  position:relative;top:-34px;   /* P: the wordmark rides HIGHER, clear of the crown */
-  transform:skewX(-5deg) rotate(-2.2deg);
-  text-shadow:0 1px 0 #cdd9f2, 0 0 22px rgba(150,180,255,.28),
-    2px 2px 0 #3d5db8, 4px 4px 0 #23368a, 6px 6px 0 #16225e, 8px 8px 0 #0d1540,
-    10px 16px 30px rgba(0,0,0,.55)}
-.spotlight-section .sp-crown{position:absolute;left:50%;bottom:99%;transform:translateX(-50%);width:clamp(92px,9.5vw,126px);height:clamp(92px,9.5vw,126px);z-index:4;filter:drop-shadow(0 9px 17px rgba(0,0,0,.5)) saturate(1.12) brightness(1.06) contrast(1.03)}   /* sized to the title↔card lane so it never swallows the wordmark (P) */
-.spotlight-section .sp-cardarea{position:relative;flex:none;display:flex;justify-content:center}
-.spotlight-section .sp-card-btn{flex:none;position:relative;z-index:3;border:0;background:none;padding:0;cursor:pointer;width:clamp(206px,21vw,320px);perspective:1400px}
-.spotlight-section .sp-cardinner{display:block;position:relative;transform:rotateY(-4deg) rotateX(2deg)}
-.spotlight-section .sp-card{display:block;width:100%;height:auto;border-radius:9px;filter:drop-shadow(0 22px 30px rgba(0,0,0,.55))}
-.spotlight-section .sp-card-btn:hover .sp-card{filter:drop-shadow(0 26px 38px rgba(0,0,0,.6))}
-.spotlight-section .sp-side{position:absolute;top:50%;left:50%;z-index:1;width:clamp(165px,17vw,250px);text-align:center;cursor:pointer}
-/* runners frame the champion like the wheel's fan: symmetric, tucked slightly
-   behind its edges, bending gently inward (centres at ±1.22 card-widths).
-   Their seats are set by GSAP (xPercent) — a CSS percent-translate here gets
-   parsed to PIXELS and then STACKS under the scrub's xPercent (the original
-   "Charizard drifts left" bug), so the class carries no transform at all. */
-.spotlight-section .sp-side-l2{transform:translate(-294%,-50%)}
-.spotlight-section .sp-side-r2{transform:translate(194%,-50%)}
-.spotlight-section .sp-side-cap2{margin-top:9px}
-.spotlight-section .sp-card-side{display:block;width:100%;height:auto;border-radius:9px;filter:drop-shadow(0 16px 28px rgba(0,0,0,.55));transition:filter .25s ease,transform .25s ease}
-.spotlight-section .sp-side:hover .sp-card-side{filter:drop-shadow(0 20px 34px rgba(0,0,0,.6)) brightness(1.08)}
-.spotlight-section .sp-side-cap{display:block;margin-top:12px;font-family:var(--font);line-height:1.35}
-.spotlight-section .sp-side-cap .ssn{display:block;font-size:14px;color:#e6edfb;font-weight:700;letter-spacing:.01em;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 6px rgba(0,0,0,.5)}
-.spotlight-section .sp-side-cap .ssv{font-family:var(--font-display);font-weight:400;font-size:18px;color:#fff}
-.spotlight-section .sp-side-cap .ssc{display:inline-block;font-weight:800;font-size:13px;margin-top:5px;padding:3px 11px;border-radius:999px}
-.spotlight-section .sp-side-cap .ssc.up{color:#06190f;background:#46e08a} .spotlight-section .sp-side-cap .ssc.down{color:#2a0a0a;background:#ff6b6b}
-/* the volumetric spotlight lives in the Three.js room (spotGL) — one cone of
-   light from a lamp above, a hot pool where it lands. The card itself wears
-   curvature light: lit crown falling to a shaded foot, so the beam reads as
-   actually hitting it. */
-.spotlight-section .sp-cardinner::after{content:'';position:absolute;inset:0;border-radius:9px;pointer-events:none;z-index:2;
-  background:
-    radial-gradient(130% 55% at 50% -12%, rgba(205,222,255,.34), rgba(160,190,255,.10) 45%, transparent 62%),
-    linear-gradient(180deg, rgba(255,255,255,.10), transparent 26%, transparent 58%, rgba(5,9,24,.30) 100%)}
-/* the section dissolves into the page before the marquee — no hard seam */
-.spotlight-section::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:150px;pointer-events:none;z-index:6;
-  background:linear-gradient(180deg, transparent, rgba(7,13,34,.65) 62%, #070d22 96%)}
-/* ---- flank panels: the dead zones beside the trio earn their keep (P) —
-   featured-set dossier on the left, a big detailed price chart on the right */
-.spotlight-section .sp-panel{position:absolute;top:50%;transform:translateY(-46%);z-index:5;
-  background:rgba(9,14,34,.55);border:1px solid rgba(150,180,255,.22);border-radius:18px;
-  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
-  box-shadow:0 24px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
-  padding:clamp(18px,1.6vw,28px)}
-.spotlight-section .sp-setpanel{left:clamp(20px,3.2vw,64px);width:clamp(250px,19vw,380px)}
-.spotlight-section .sp-graphpanel{right:clamp(20px,3.2vw,64px);width:clamp(300px,24vw,520px)}
-.sp-setpanel .ssp-logo{display:block;max-width:86%;max-height:110px;margin:2px auto 14px;object-fit:contain;
-  filter:drop-shadow(0 8px 22px rgba(0,0,0,.55))}
-.sp-setpanel .ssp-kick{font-family:var(--font);font-weight:800;font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:#8fa8d8;text-align:center;margin-bottom:10px}
-.sp-setpanel .ssp-name{font-family:var(--font-display);font-size:clamp(20px,1.7vw,28px);letter-spacing:.03em;text-transform:uppercase;color:#fff;text-align:center;line-height:1.05;margin-bottom:14px}
-.sp-setpanel .ssp-rows{display:flex;flex-direction:column;gap:0;border-top:1px solid rgba(150,180,255,.14)}
-.sp-setpanel .ssp-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(150,180,255,.14)}
-.sp-setpanel .ssp-row .k{font-family:var(--font);font-weight:700;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#8fa8d8}
-.sp-setpanel .ssp-row .v{font-family:var(--font);font-weight:700;font-size:13.5px;color:#eaf2ff;text-align:right}
-.sp-setpanel .ssp-row .v.up{color:#46e08a} .sp-setpanel .ssp-row .v.down{color:#ff6b6b}
-.sp-setpanel .ssp-cta{display:inline-flex;align-items:center;gap:8px;margin-top:16px;font-family:var(--font);font-weight:800;
-  font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:#ffd166;text-decoration:none}
-.sp-setpanel .ssp-cta i{font-style:normal;transition:transform .25s}
-.sp-setpanel .ssp-cta:hover i{transform:translateX(4px)}
-.sp-graphpanel .sgp-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
-.sp-graphpanel .sgp-kick{font-family:var(--font);font-weight:800;font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:#8fa8d8}
-.sp-graphpanel .sgp-price{font-family:var(--font-display);font-size:clamp(26px,2.2vw,38px);color:#fff;line-height:1}
-.sp-graphpanel .sgp-chg{font-family:var(--font);font-weight:800;font-size:12.5px;padding:4px 10px;border-radius:999px}
-.sp-graphpanel .sgp-chg.up{color:#06190f;background:#46e08a} .sp-graphpanel .sgp-chg.down{color:#2a0a0a;background:#ff6b6b}
-.sp-graphpanel svg{display:block;width:100%;height:auto;margin-top:8px}
-@media(max-width:1560px){ .spotlight-section .sp-panel{display:none} }
-.spotlight-section .sp-cap{flex:none;text-align:center;z-index:5;margin-top:clamp(-40px,-3vh,-16px)}
-.spotlight-section .sp-cap .sp-kicker{display:flex;flex-direction:column;align-items:center;gap:10px;font-family:var(--font);font-weight:800;font-size:13px;letter-spacing:.26em;text-transform:uppercase;color:#e7eefc;margin-bottom:13px;text-shadow:0 1px 8px rgba(0,0,0,.5)}
-.spotlight-section .uni-logo{display:block;width:auto;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}
-.spotlight-section .sp-side-cap .uni-logo{margin:0 auto 7px;max-width:78%}
-.spotlight-section .sp-cap .nm{font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,46px);text-transform:uppercase;letter-spacing:.02em;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.7);line-height:1}
-.spotlight-section .sp-cap .sp-pricerow{display:inline-flex;align-items:center;justify-content:center;gap:14px;margin-top:16px}
-.spotlight-section .sp-cap .sp-bigtrend{font-family:var(--font-display);font-weight:400;font-size:clamp(30px,3.4vw,48px);line-height:1;letter-spacing:.01em;text-shadow:0 2px 14px rgba(0,0,0,.5)}
-.spotlight-section .sp-cap .sp-bigtrend.up{color:#46e08a} .spotlight-section .sp-cap .sp-bigtrend.down{color:#ff6b6b}
-.spotlight-section .sp-price{font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3vw,40px);color:#fff;letter-spacing:.01em;line-height:1;text-shadow:0 2px 12px rgba(0,0,0,.55)}
-.spotlight-section .sp-chg{font-family:var(--font);font-weight:800;font-size:15px;padding:5px 12px;border-radius:999px;line-height:1}
-.spotlight-section .sp-chg.up{color:#06190f;background:#46e08a} .spotlight-section .sp-chg.down{color:#2a0a0a;background:#ff6b6b}
-.spotlight-section .sp-stat.dim{font-family:var(--font);font-weight:600;color:#9fb0d0;text-transform:uppercase;font-size:11px;letter-spacing:.16em}
-.spotlight-section .sp-cta{display:inline-flex;align-items:center;gap:8px;margin-top:14px;font-family:var(--font);font-weight:700;font-size:14px;letter-spacing:.02em;color:#5fdcff;text-decoration:none;border-bottom:2px solid color-mix(in srgb,#46d6ff 45%,transparent);padding-bottom:3px;transition:gap .2s}
-.spotlight-section .sp-cta:hover{gap:12px}
-@media(max-width:860px){ .spotlight-section{height:clamp(520px,84vh,760px)} .spotlight-section .sp-title-img{width:78vw} .spotlight-section .sp-card-btn{width:clamp(150px,42vw,220px)} .spotlight-section .sp-side{display:none} }
-@media(max-width:1500px){ .spotlight-section .sp-side-l2, .spotlight-section .sp-side-r2{display:none} }
+.spotlight-section .sp-title{font-family:var(--font-display);font-weight:400;font-style:italic;line-height:.94;margin:0;text-align:center;
+  font-size:clamp(52px,min(6.4vw,10vh),150px);letter-spacing:.035em;text-transform:uppercase;transform:skewX(-5deg) rotate(-2.2deg)}
+/* "This week's" rides above the wordmark in gold foil; "Spotlight" keeps the steel face and navy extrusion */
+.sp-title .sp-tw{display:block;font-size:.42em;letter-spacing:.07em;color:#ffd45e;margin-bottom:.1em;
+  text-shadow:0 1px 0 #fff1bf,1px 1px 0 #c99328,2px 2px 0 #8d5d10,3px 3px 0 #5a3a08,4px 8px 16px rgba(0,0,0,.5)}
+.sp-title .sp-tm{display:block;color:#eef4ff;
+  text-shadow:0 1px 0 #cdd9f2,0 0 22px rgba(150,180,255,.28),2px 2px 0 #3d5db8,4px 4px 0 #23368a,6px 6px 0 #16225e,8px 8px 0 #0d1540,10px 16px 30px rgba(0,0,0,.55)}
+/* the stage: the week's rising cards standing on the floor, the lead in the middle under the crown */
+.sp-row{--w:clamp(170px,min(17vw,calc(34.5vh - 94px)),440px);position:relative;display:flex;align-items:flex-end;justify-content:center;gap:clamp(22px,2.6vw,70px);margin-top:clamp(64px,8vh,120px)}
+.sp-c{--lit:0;--lx:50%;flex:none;width:var(--w);position:relative;border:0;background:none;padding:0;color:inherit;perspective:1400px}
+.sp-c[data-tier="1"]{width:calc(var(--w) * .8)}
+.sp-c[data-tier="2"]{width:calc(var(--w) * .66)}
+.sp-c:focus-visible{outline:none}
+.sp-cf{display:block;position:relative;will-change:transform}
+.sp-ci{display:block;position:relative;transform-origin:50% 100%;transition:transform .55s cubic-bezier(.16,1,.3,1)}
+.sp-c:hover .sp-ci,.sp-c:focus-visible .sp-ci{transform:scale(1.08)}   /* under a spotlight, hover = bigger, never brighter (CR9) */
+.sp-ci img{display:block;width:100%;height:auto;aspect-ratio:734/1024;object-fit:cover;border-radius:9px;box-shadow:0 24px 36px rgba(0,0,0,.5)}
+.sp-crown{position:absolute;left:50%;bottom:100%;transform:translate(-50%,-14px);height:clamp(44px,min(3.6vw,5vh),66px);z-index:4;filter:drop-shadow(0 9px 17px rgba(0,0,0,.5))}
+/* the caption names whichever card is in the light */
+.sp-capwrap{flex:none;margin-top:clamp(24px,3vh,52px);min-height:clamp(120px,13vh,190px)}
+.sp-cap{text-align:center;transition:opacity .2s ease,transform .2s ease}
+.sp-cap.swap{opacity:0;transform:translateY(6px)}
+.sp-cap .uni-logo{display:block;width:auto;margin:0 auto 14px;filter:drop-shadow(0 2px 10px rgba(0,0,0,.4)) saturate(1.3) brightness(1.06)}
+.sp-cap .nm{display:block;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,min(3vw,4vh),52px);text-transform:uppercase;letter-spacing:.02em;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.7);line-height:1}
+.sp-cap .sp-line{display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;gap:6px 20px;margin-top:10px;font-family:var(--font-display);font-weight:400;line-height:1;font-size:clamp(26px,min(2.4vw,3.2vh),44px);font-variant-numeric:tabular-nums}
+.sp-cap .sp-price{color:#ffd45e;font-size:clamp(44px,min(4.4vw,6.6vh),88px);letter-spacing:.01em;text-shadow:0 3px 22px rgba(255,190,60,.25),0 2px 10px rgba(0,0,0,.5)}   /* the money is the point: big, gold */
+/* the wings: the window's 2nd and 3rd movers named beside their cards (podium order 2 · 1 · 3), so the stage uses
+   its width with real numbers instead of empty floor. Rank in steel like SPOTLIGHT, then name, price and move. */
+.sp-wing{flex:0 1 auto;width:clamp(130px,14vw,370px);align-self:flex-end;height:calc(var(--w) * 1.116);padding-top:max(0px,calc(var(--w) * .558 - 75px))}   /* as tall as a side card, words hung from one line so the 2 and 3 sit level */
+.sp-wing[data-side="l"]{text-align:end} .sp-wing[data-side="r"]{text-align:start}
+.sp-wing-in{display:flex;flex-direction:column;gap:clamp(6px,.9vh,12px);transition:opacity .2s ease,transform .2s ease}
+.sp-wing[data-side="l"] .sp-wing-in{align-items:flex-end} .sp-wing[data-side="r"] .sp-wing-in{align-items:flex-start}
+.sp-wing-in.swap{opacity:0;transform:translateY(6px)}
+.sp-wing-n{display:block;font-family:var(--font-display);font-weight:400;font-style:italic;line-height:.84;letter-spacing:0;color:#eef4ff;font-size:clamp(60px,min(5.6vw,8.6vh),132px);margin-bottom:.06em;
+  text-shadow:0 1px 0 #cdd9f2,2px 2px 0 #3d5db8,4px 4px 0 #23368a,6px 6px 0 #16225e,8px 12px 24px rgba(0,0,0,.55)}
+.sp-wing-nm{display:block;max-width:100%;font-family:var(--font-display);font-weight:400;text-transform:uppercase;letter-spacing:.02em;color:#fff;line-height:1.02;text-wrap:balance;overflow-wrap:break-word;
+  font-size:clamp(20px,min(2vw,2.9vh),42px);text-shadow:0 2px 12px rgba(0,0,0,.7)}
+.sp-wing-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;font-family:var(--font-display);font-weight:400;line-height:1;font-size:clamp(20px,min(2vw,2.9vh),42px);font-variant-numeric:tabular-nums;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.sp-wing[data-side="l"] .sp-wing-line{justify-content:flex-end}
+.sp-wing-pr{color:#fff;white-space:nowrap} .sp-wing-mv{white-space:nowrap} .sp-wing-mv.up{color:#46e08a} .sp-wing-mv.down{color:#ff6b6b}
+.sp-wing-set{display:block;font-size:16px;line-height:1.3;color:#b6c4e2;text-wrap:balance}
+.sp-kick-logo{display:block;height:1.5em;width:auto;max-width:min(560px,80vw);margin:0 auto .12em;object-fit:contain;transform:skewX(5deg) rotate(2.2deg);filter:drop-shadow(0 6px 16px rgba(0,0,0,.5))}   /* undo the title's slant: the set logo stands straight */
+.sp-kick-logo[data-k^="op-"]{height:.9em;filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 6px 16px rgba(0,0,0,.5))}
+.sp-cap .sp-move.up{color:#46e08a} .sp-cap .sp-move.down{color:#ff6b6b}
+.sp-cap .sp-move small{font-family:var(--font);font-weight:600;font-size:16px;letter-spacing:0;color:#c9d6ee;margin-left:8px}
+/* the section dissolves into the page before the new-set spotlights: no hard seam */
+.spotlight-section::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:150px;pointer-events:none;z-index:4;
+  background:linear-gradient(180deg,transparent,rgba(12,26,60,.7) 62%,#0c1a3c 100%)}
+@media(max-width:1500px){ .sp-c[data-tier="2"]{display:none} }
+@media(max-width:860px){ .spotlight-section,.spotlight-section .sp-stage{min-height:0} .sp-c[data-tier="1"],.sp-wing{display:none} .sp-c{--w:clamp(170px,46vw,240px)} .sp-row{margin-top:64px} }
+
+/* the new sets' logos under the caption switch what's in the spotlight */
+.sp-sets{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:clamp(18px,2.8vw,60px);margin-top:clamp(14px,2vh,30px);max-width:min(1600px,94vw)}
+.sp-set{position:relative;height:clamp(54px,4.4vw,84px);display:flex;align-items:center;justify-content:center;padding:0 4px 16px;border:0;background:none;color:#fff;opacity:.8;transition:opacity .2s ease,transform .3s cubic-bezier(.16,1,.3,1)}
+.sp-set img{max-height:100%;max-width:min(250px,40vw);object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45))}
+.sp-set[data-k^="op-"] img{max-height:58%;max-width:min(380px,70vw);filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 4px 10px rgba(0,0,0,.45))}
+.sp-set span{font-family:var(--font-display);font-size:clamp(22px,1.8vw,34px);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+.sp-set{height:auto;padding:6px 6px 16px}
+.sp-set:hover,.sp-set:focus-visible{opacity:1;transform:translateY(-3px);outline:none}
+.sp-set.on{opacity:1}
+.sp-set.on::after{content:'';position:absolute;left:22%;right:22%;bottom:0;height:3px;border-radius:2px;background:#ffd45e}
+.sp-cap .sp-set-name{display:block;margin-top:12px;font-size:16px;color:#b6c4e2}
 
 /* ===== scroll sections ===== */
 .band{position:relative;z-index:10;padding:clamp(40px,7vh,96px) 0 clamp(56px,10vh,120px);display:flex;flex-direction:column;gap:14px;overflow:hidden}
 /* the doorway: a small explore arrow riding the marquee band into the sets (P) */
-.band-explore{position:absolute;right:clamp(18px,3.5vw,56px);top:50%;transform:translateY(-50%);z-index:3;
-  display:inline-flex;align-items:center;gap:9px;padding:11px 20px;border-radius:999px;text-decoration:none;
-  font-family:var(--font);font-weight:800;font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:#eaf2ff;
-  background:rgba(9,14,34,.66);border:1px solid rgba(150,180,255,.32);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-  transition:border-color .25s,background .25s,color .25s}
-.band-explore i{font-style:normal;transition:transform .25s}
-.band-explore:hover{border-color:#ffd166;color:#ffd166;background:rgba(12,18,44,.8)}
-.band-explore:hover i{transform:translateX(4px)}
 .band-label{text-align:center;display:flex;flex-direction:column;align-items:center;gap:7px;margin-bottom:20px}
 .bl-big{font-family:var(--font-display);font-size:clamp(22px,2.8vw,36px);letter-spacing:.04em;text-transform:uppercase;line-height:1;
   background:linear-gradient(176deg,#ffeebf 3%,#f3c84a 52%,#e0a82e 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
@@ -306,7 +307,7 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
 .mtrack{display:inline-flex;align-items:center;gap:46px;white-space:nowrap;will-change:transform}
 .mw{font-family:var(--font-display);text-transform:uppercase;line-height:1;letter-spacing:.01em;font-size:clamp(34px,5vw,72px);color:#fff}
 .mw.tag{color:var(--blue-bright)}
-.mw.gold{background:linear-gradient(176deg,#f2f7ff,#bcd2ff 55%,#8fb4ff);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 18px rgba(140,180,255,.35))} /* blue-white now — gold stays reserved for the brand moments */
+.mw.gold{color:#eaf2ff} /* blue-white now — gold stays reserved for the brand moments */
 .mw.dim{color:rgba(234,242,255,.16);-webkit-text-stroke:1px rgba(234,242,255,.4)}
 .mw .star,.mw.star{color:var(--gold);font-size:.5em}
 .mw-logo{height:.92em;width:auto;display:inline-block;vertical-align:middle;object-fit:contain;filter:drop-shadow(0 2px 9px rgba(0,0,0,.45))}
@@ -314,6 +315,8 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block}
    One Piece (AR 3.9) is far wider; scale by height so every logo's footprint matches. */
 .mw-logo[data-g="onepiece"]{height:.64em}
 .mw-logo[data-g="lorcana"]{height:1em}
+.mw-set{height:1.05em;width:auto;display:inline-block;vertical-align:middle;object-fit:contain;filter:drop-shadow(0 2px 10px rgba(0,0,0,.45)) saturate(1.15)}
+.mw-set[data-s^="op-"]{height:.62em}
 
 /* infographic */
 .info{position:relative;z-index:10;max-width:min(1400px,88vw);margin:0 auto;padding:clamp(20px,5vh,60px) clamp(22px,5vw,40px) 120px}
@@ -361,51 +364,144 @@ h2.ih2 .lk2{color:var(--blue-bright)}
   background:linear-gradient(180deg,transparent,rgba(150,180,230,.28),transparent)} /* soft fade, no hard edge */
 @media(max-width:600px){.stat2:not(:last-child)::after{display:none}}
 
-/* pricing */
-/* pricing — Free = white panel · Premium = navy glow · Collector = solid gold */
-.pricing{position:relative;z-index:10;max-width:min(1400px,88vw);margin:0 auto;padding:clamp(30px,7vh,80px) clamp(22px,5vw,40px) 130px}
-.emph-booster{color:var(--gold)}
-/* pricing headline: lighter, sentence-case, easy to read (Anton was too heavy/blocky here) */
-.pricing .info-head h2{font-family:var(--font);font-weight:700;font-size:clamp(26px,3.5vw,44px);line-height:1.2;letter-spacing:0;text-transform:none}
-.pricing .price-card.ultra{position:relative;margin-top:-10px} /* lift via margin — GSAP owns the transform */
-/* soft top gloss (static) + a traveling diagonal sheen streak (.pc-sheen, GSAP-driven via
-   backgroundPositionX — CSS @keyframes freeze on this machine). soft-light keeps the dark
-   text/CTA readable while the gold catches the light. */
-.pricing .price-card.ultra::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:4;
-  background:linear-gradient(180deg, rgba(255,255,255,.30), transparent 26%);mix-blend-mode:soft-light}
-.pricing .price-card.ultra .pc-sheen{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:5;
-  background:linear-gradient(118deg, transparent 39%, rgba(255,220,120,.2) 47%, rgba(255,235,170,.45) 50%, rgba(255,220,120,.2) 53%, transparent 61%);
-  background-size:260% 100%;background-position-x:185%;background-repeat:no-repeat;mix-blend-mode:screen} /* gold foil streak over the onyx */
-/* Free = quiet ghost tier (transparent, soft outline) */
-.price-card.free{background:rgba(10,18,42,.35);border:1px solid rgba(150,178,230,.15);backdrop-filter:blur(6px)}
-.price-card.free .pc-price{color:#eaf2ff}
-.price-card.free .pc-feat li::before{color:#8fa9d6}
-.price-card.free .pc-cta.ghost{color:#fff;border:1px solid rgba(190,210,245,.28);background:rgba(255,255,255,.04)}
-.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch}
-.price-card{position:relative;display:flex;flex-direction:column;gap:15px;padding:32px 26px;border-radius:18px;
-  background:linear-gradient(180deg,rgba(20,38,79,.5),rgba(8,16,40,.55));border:1px solid rgba(106,168,255,.16);backdrop-filter:blur(8px)}
-/* Premium = the light blue-white anchor card (most popular) */
-.price-card.featured{background:linear-gradient(180deg,#f8fbff 0%,#dfe9fb 100%);border:1px solid rgba(255,255,255,.85);backdrop-filter:none;
-  box-shadow:0 34px 80px -30px rgba(70,120,255,.45), 0 0 0 1px rgba(150,190,255,.35), 0 0 70px -24px rgba(106,168,255,.5)}
-.price-card.featured .pc-name{color:#0b1838}
-.price-card.featured .pc-price{color:#0b1838}
-.price-card.featured .pc-price span{color:#5b6b8c}
-.price-card.featured .pc-feat li{color:#2e3f60}
-.price-card.featured .pc-feat li::before{color:#c79220}
-.pc-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);white-space:nowrap;font-family:var(--font);font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#10131f;background:linear-gradient(180deg,#ffe79a,#ffc63a);padding:5px 14px;border-radius:20px}
-.pc-name{font-family:var(--font-display);font-size:22px;text-transform:uppercase;letter-spacing:.04em;color:#fff}
-.pc-price{font-family:var(--font-display);font-size:clamp(34px,4vw,48px);color:var(--gold);line-height:1}
-.pc-price span{font-family:var(--font);font-weight:600;font-size:15px;color:var(--dim);margin-left:4px}
-.pc-price s{font-family:var(--font);font-weight:600;font-size:.5em;color:var(--dim);margin-right:9px;text-decoration-thickness:2px;vertical-align:middle}
-.pc-note{font-family:var(--font);font-size:12px;color:var(--dim);margin:-8px 0 2px}
-.pc-feat{list-style:none;display:flex;flex-direction:column;gap:10px;margin:6px 0 auto;padding:0}
-.pc-feat li{position:relative;padding-left:24px;font-size:14px;color:#cfe0ff;line-height:1.4}
-.pc-feat li::before{content:'✦';position:absolute;left:0;color:var(--gold);font-size:12px;top:2px}
-.pc-cta{display:inline-flex;align-items:center;justify-content:center;padding:13px;border-radius:30px;font-family:var(--font-display);font-size:15px;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;transition:transform .2s, box-shadow .2s;margin-top:6px}
-.pc-cta.gold{color:#10131f;background:linear-gradient(180deg,#ffe79a,#ffc63a);box-shadow:0 12px 30px -10px rgba(255,200,60,.5)}
-.pc-cta.ghost{color:#fff;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.03)}
-.pc-cta:hover{filter:brightness(1.06)} /* motion comes from the magnetic JS */
-@media (max-width:760px){ .price-grid{grid-template-columns:1fr} }
+/* pricing: Faisal picked option A, the rarity cards (27 Oct; docs/design/tiers/option-a.html, direction.md "Pricing tiers").
+   Free = a basic common, Premium = a holographic full art, Collector = a gold hyper-rare full art (Faisal, 27 Oct).
+   Classes are tc- prefixed so nothing else on the page collides.
+   The key light enters up and left (the side every shadow and foil highlight answers to) and is back to the page navy
+   before the right and bottom edges. */
+.pricing{--tc-ground:#0c1a3c;--tc-ease:cubic-bezier(.16,1,.3,1);
+  --tc-grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  position:relative;z-index:10;padding:clamp(56px,6vw,150px) clamp(16px,5vw,150px) clamp(72px,7vw,170px);
+  scroll-margin-top:clamp(64px,5vw,96px); /* the nav's #pricing jump lands the heading below the fixed header */
+  /* the top 260px stays the lightzone navy, so the section's top edge meets the band above with no seam */
+  background:linear-gradient(180deg,var(--tc-ground) 0,rgba(12,26,60,0) 260px),
+    radial-gradient(1500px 1100px at 12% 6%,#152a5c 0%,rgba(12,26,60,0) 72%),var(--tc-ground)}
+.tc-tiers{display:grid;grid-template-columns:minmax(0,26fr) minmax(0,74fr);gap:clamp(40px,5vw,140px);align-items:center;width:100%;max-width:2300px;margin:0 auto}
+
+.tc-head h2{font-family:var(--font);font-weight:700;font-size:clamp(32px,3.1vw,84px);line-height:1.08;letter-spacing:-.012em;color:#fff;text-wrap:balance}
+
+/* the hand: three cards of one size on one floor (Faisal: the three prices must be the same size), so every
+   cqi measure below is the same number of pixels on every card */
+.tc-hand{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(24px,2.4vw,64px);align-items:end;list-style:none}
+.tc-hand > li{position:relative;display:flex;min-width:0}
+.tc-tier{display:block;width:100%;text-align:center}
+.tc-tier .tc-card{text-align:left;margin-bottom:clamp(34px,2vw,48px)}
+/* the button is the one link; its hit area stretches over the whole card so the card is clickable too */
+.tc-cta::after{content:'';position:absolute;inset:0;border-radius:14px}
+.tc-cta:focus-visible{outline:none}
+.tc-hand > li:has(.tc-cta:focus-visible) .tc-card{outline:2px solid var(--blue-bright);outline-offset:8px}
+.tc-hand > li:has(.tc-cta:focus-visible) .tc-cta{box-shadow:inset 0 0 0 1.5px rgba(234,242,255,.55),0 0 0 2px var(--tc-ground),0 0 0 4px var(--blue-bright)}
+
+/* ---------- the card object: a printed border (CSS) around a full-art face. The faces were designed on Higgsfield
+   (GPT Image 2.5; briefs in garden-gpt-image-2/prompt/pricing-card-*.md) and carry no text: the name, price, lines
+   and rarity mark are real HTML set into the zones each face leaves for them, so spelling stays exact and readable. */
+.tc-card{position:relative;display:flex;flex-direction:column;width:100%;aspect-ratio:734/1024;border-radius:4.5% / 3.2%;padding:3.6%;
+  container-type:inline-size;transform-origin:50% 90%;transition:transform .18s var(--tc-ease);
+  /* contact shadow, thrown down and to the right by the key light up and to the left */
+  box-shadow:0 2px 0 rgba(255,255,255,.1) inset, 14px 22px 28px -18px rgba(1,4,16,.9), 5px 9px 14px -8px rgba(1,4,16,.55)}
+.tc-face{position:relative;flex:1 0 auto;border-radius:4px;overflow:hidden;isolation:isolate;background:#0c1a3c}
+/* the art is 1360x2048; it and the type layer share one box, centred in the face (the face trims ~2.8% top and
+   bottom), so every zone below is a % of the art itself */
+.tc-img,.tc-layer{position:absolute;left:0;top:50%;width:100%;aspect-ratio:1360/2048;transform:translateY(-50%)}
+.tc-img{display:block;height:auto}
+.tc-layer{--nt:4%;--nb:10%;--nl:4%;--nr:4%;--tt:55%;--tb:90%;--tl:5%;--tr:5%;--base:48.5%}
+/* card name: a bold condensed card title, centred in its bar both ways */
+.tc-name{position:absolute;top:var(--nt);height:calc(var(--nb) - var(--nt));left:var(--nl);right:var(--nr);margin:0;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-family:'Barlow Condensed',var(--font);font-weight:700;font-size:6.2cqi;line-height:1;letter-spacing:.01em;color:#fff;
+  text-shadow:0 1px 0 rgba(0,0,0,.35)}
+/* the price: one size and one baseline (48.5% down the art) on every card. The row's bottom edge sits .055em under
+   the baseline, where Anton's $ ends; its box hugs Anton's ink (digits rise .86em) instead of the 1.51em content area */
+.tc-price{position:absolute;left:0;right:0;bottom:calc(100% - var(--base) - .055em);margin:0;display:flex;align-items:baseline;justify-content:center;
+  gap:.06em;font-size:23.6cqi;line-height:.96;white-space:nowrap}
+.tc-amt{display:inline-block;line-height:.96;overflow:clip;overflow-clip-margin:24px;font-family:var(--font-display);font-weight:400;
+  font-size:1em;letter-spacing:-.01em;color:#fff;text-shadow:0 .03em 0 rgba(4,8,24,.4)}
+.tc-per{font-family:'Barlow Condensed',var(--font);font-weight:600;font-size:.24em;letter-spacing:.01em}
+/* rules text, set like a card's ability text: condensed, tight, each line led by an energy pip in the tier's metal */
+.tc-rules{position:absolute;left:var(--tl);right:var(--tr);top:var(--tt);height:calc(var(--tb) - var(--tt));list-style:none;margin:0;padding:3cqi 4cqi;
+  font-family:'Barlow Condensed',var(--font);font-weight:500;font-size:max(14px,4.3cqi);line-height:1.18;letter-spacing:.005em}
+.tc-rules li{position:relative;margin:.55cqi 0;padding-left:1.45em;text-wrap:pretty}
+.tc-rules li::before{content:'';position:absolute;left:.1em;top:.59em;width:.62em;height:.62em;margin-top:-.31em;border-radius:50%;
+  background:var(--pip);box-shadow:0 0 0 1px var(--pip-ring),0 1px 1px rgba(0,0,0,.45)}
+/* the carry line reads as reminder text: italic, no pip, a hairline under it */
+.tc-rules li.tc-carry{padding-left:0;font-style:italic;border-bottom:1px solid var(--tc-rule);padding-bottom:1.1cqi;margin-bottom:1cqi}
+.tc-rules li.tc-carry::before{content:none}
+.tc-mark{position:absolute;display:block;transform:translate(-50%,-50%)}
+
+/* ---------- free: the common. Printed silver border, plain matte navy face ---------- */
+.tc-common .tc-card, .tc-rare .tc-card{background:linear-gradient(158deg,#eef1f6,#c3cad7)}
+.tc-common .tc-layer{--nt:4.05%;--nb:10.4%;--nl:4%;--nr:4%;--tt:53.1%;--tb:89.4%;--tl:4.2%;--tr:4.2%;--tc-rule:rgba(190,206,240,.24);
+  --pip:linear-gradient(150deg,#f4f7fb,#8e9ab0);--pip-ring:rgba(0,0,0,.3);color:#dbe5f7}
+.tc-common .tc-per{color:#b7c6e4}
+.tc-common .tc-rules li{margin:1.4cqi 0}
+.tc-common .tc-dot{left:91%;top:94.2%}
+
+/* ---------- premium: the holographic full art (same printed border) ---------- */
+.tc-rare .tc-layer{--nt:3.4%;--nb:9.9%;--nl:3.7%;--nr:4.4%;--tt:61.3%;--tb:89.6%;--tl:5.8%;--tr:6.2%;--tc-rule:rgba(200,214,255,.26);
+  --pip:radial-gradient(circle at 35% 30%,#fff3c4,#ffd24a 45%,#c9902a);--pip-ring:rgba(60,35,0,.5);color:#eef2ff}
+.tc-rare .tc-amt{color:var(--gold);text-shadow:0 .03em 0 rgba(3,8,40,.5)}
+.tc-rare .tc-per{color:#ffe9a8}
+.tc-rare .tc-rules li.tc-carry{color:#b9c6ee}
+.tc-rare .tc-star{left:91.5%;top:93.6%}
+
+/* ---------- collector: the gold hyper-rare full art, refractor edge. The crown is the art, so the face's own
+   sapphire corner is its mark ---------- */
+.tc-crown .tc-card{background:linear-gradient(160deg,#fff3c4 0%,#f2b8d8 20%,#b9f0dc 40%,#f6d77a 58%,#c98f2a 82%,#a8711d 100%)}
+.tc-crown .tc-layer{--nt:2.7%;--nb:7.6%;--nl:8.8%;--nr:8.8%;--tt:57.3%;--tb:91.4%;--tl:7.5%;--tr:7.7%;--tc-rule:rgba(255,236,190,.3);
+  --pip:radial-gradient(circle at 35% 30%,#bfe0ff,#3b82ff 50%,#123a8f);--pip-ring:#ffd24a;color:#fff1cf}
+.tc-crown .tc-name{font-size:4.6cqi;color:#241603;text-shadow:0 1px 0 rgba(255,240,200,.45)}
+.tc-crown .tc-amt{color:#fff4cf;text-shadow:0 .03em 0 rgba(60,32,0,.6)}
+.tc-crown .tc-per{color:#fbe7b0;text-shadow:0 1px 1px rgba(50,25,0,.6)}
+.tc-crown .tc-rules li{text-shadow:0 1px 1px rgba(50,25,0,.55)}
+.tc-crown .tc-rules li.tc-carry{color:#f1d79a}
+
+/* rarity marks step up in metal: silver circle, silver-foil star (the collector's is the art's sapphire) */
+.tc-mark.tc-dot{width:max(12px,4.2cqi);height:max(12px,4.2cqi);border-radius:50%;background:linear-gradient(150deg,#f4f7fb,#8e9ab0);box-shadow:0 0 0 1px rgba(0,0,0,.3)}
+.tc-mark.tc-star{width:max(18px,6.6cqi);height:max(18px,6.6cqi);background:linear-gradient(150deg,#fff 0%,#b8c3d6 45%,#e8d9ff 60%,#9fd8ff 100%);
+  clip-path:polygon(50% 0%,61.8% 35.4%,100% 38.2%,69.1% 61.8%,79.4% 100%,50% 76.4%,20.6% 100%,30.9% 61.8%,0% 38.2%,38.2% 35.4%)}
+
+/* ---------- the action under each card ---------- */
+.tc-cta{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 34px;border-radius:999px;
+  font-weight:700;font-size:clamp(16px,.72vw,18px);letter-spacing:.005em;white-space:nowrap;text-decoration:none}
+.tc-cta.tc-ghost{color:var(--ink);box-shadow:inset 0 0 0 1.5px rgba(234,242,255,.55)}
+.tc-cta.tc-gold{color:#10131f;background:var(--gold)}
+
+@media (hover:hover) and (pointer:fine){
+  .tc-hand > li:hover .tc-card{transform:scale(1.045)}
+}
+
+/* before the deal (set by the script only when it will play) */
+.tc-pre .tc-card, .tc-pre .tc-cta{opacity:0}
+
+/* laptop: heading on top so the cards keep their size (and their 63x88 shape) */
+@media (max-width:1700px){
+  .pricing{padding-block:clamp(40px,3.4vw,56px) clamp(56px,5vw,80px)}
+  .tc-tiers{grid-template-columns:1fr;gap:clamp(20px,2vw,32px)}
+  .tc-head h2{font-size:clamp(30px,3.4vw,52px);max-width:24ch}
+}
+/* tablet: the single column is centred, heading with it */
+@media (min-width:761px) and (max-width:1199px){
+  .tc-head h2{text-align:center;margin-inline:auto}
+}
+/* phone and tablet: one card per row, rarity still climbs down the page */
+@media (max-width:1199px){
+  .tc-hand{grid-template-columns:1fr;gap:56px}
+  .tc-hand > li{justify-content:center}
+  .tc-tier{max-width:400px}
+  .tc-cta{width:100%;min-height:54px}
+  .pricing{background:var(--tc-ground)}
+}
+/* laptop widths: the ring steps right so its near-left card clears the bottom-left headline */
+@media (min-width:761px) and (max-width:1700px){ .tape-wrap{--cw:clamp(140px,11vw,196px);transform:translate(6vw,-6vh)} }
+/* phone inspect: the Light toggle sits on the card's corner instead of over the card name */
+@media (max-width:760px){ .ins-light-toggle{left:auto;right:0;bottom:-54px;transform:none;padding:6px 12px;font-size:12px} }
+/* phone hero: a smaller ring in the upper two thirds, the headline below it, nothing overlapping */
+@media (max-width:760px){
+  .tape-wrap{--cw:clamp(104px,29vw,150px);height:66vh;transform:translateY(-10vh)}
+  .intro-copy{bottom:clamp(64px,10vh,96px);max-width:calc(100vw - 40px)}
+  .hero-kick{letter-spacing:.18em;font-size:11px}
+  .scrolldown{display:none}
+}
 
 /* FAQ */
 .faq{position:relative;z-index:10;max-width:min(1060px,82vw);margin:0 auto;padding:clamp(20px,5vh,60px) clamp(22px,5vw,40px) 100px}
@@ -427,6 +523,8 @@ h2.ih2 .lk2{color:var(--blue-bright)}
 .ti .pr{color:#fff}
 .ti .c{font-weight:700}.ti .c.up{color:#56ff9b}.ti .c.down{color:#ff6b6b}
 .ti .sep{color:rgba(80,130,255,.4)}
+.tk-label{position:relative;z-index:2;flex:none;align-self:stretch;display:flex;align-items:center;padding:0 18px 0 clamp(16px,2vw,28px);background:#050b1c;font:700 13px/1 var(--font);color:#ffd45e;box-shadow:12px 0 16px -6px #050b1c}
+@media (min-width:1920px){ .ti{font-size:15px} .tk-label{font-size:15px} }
 
 /* loader */
 .loader{position:fixed;inset:0;z-index:80;background:radial-gradient(120% 90% at 50% 42%, #0c1a3c 0%, #05091c 68%);display:grid;place-items:center;overflow:hidden}
@@ -449,21 +547,17 @@ h2.ih2 .lk2{color:var(--blue-bright)}
 .lightzone .info-head h2{letter-spacing:.018em;line-height:1.04}
 .lightzone .info-head h2 .lk{color:var(--blue-bright);text-decoration:underline;text-decoration-color:rgba(106,168,255,.6);text-decoration-thickness:3px;text-underline-offset:5px}
 .lightzone .stat.fx .n{color:#56ff9b}
-/* Collector — onyx card with gold foil (the luxe tier, not a yellow slab) */
-.price-card.ultra{background:linear-gradient(170deg,#141b30 0%,#0a0f20 68%,#0d1426 100%);
-  border:1px solid rgba(255,210,74,.55);backdrop-filter:none;
-  box-shadow:0 40px 92px -30px rgba(0,0,0,.7), 0 0 0 1px rgba(255,210,74,.22), 0 0 54px -18px rgba(255,200,60,.28), inset 0 1px 0 rgba(255,235,170,.25)}
-.price-card.ultra .pc-name{color:var(--gold-lt)}
-.price-card.ultra .pc-price{color:var(--gold)}
-.price-card.ultra .pc-price span{color:#a08a4e}
-.price-card.ultra .pc-price s{color:#8a7846}
-.price-card.ultra .pc-note{color:#a08a4e}
-.price-card.ultra .pc-feat li{color:#d9c99a}
-.price-card.ultra .pc-feat li::before{color:var(--gold)}
-.price-card.ultra .pc-cta.gold{background:linear-gradient(180deg,#ffe79a,#ffc63a);color:#10131f;box-shadow:0 12px 30px -10px rgba(255,200,60,.4)}
-.pc-badge.dark{background:linear-gradient(180deg,#1a2436,#0b1322);color:var(--gold);border:1px solid rgba(255,210,74,.5)}
 
 @media (pointer:coarse){ *{cursor:auto} .cursor{display:none} }
+.menu-btn{display:none;font:700 15px/1 var(--font);color:#fff;background:none;border:0;padding:10px 4px;border-bottom:2px solid rgba(255,255,255,.35)}
+/* phones: the nav opens as a sheet under the bar (it was simply hidden, so phones had no way to Sets or the Rip Lab) */
+@media (max-width:900px){
+  .menu-btn{display:inline-flex} .topbar-div{display:none}
+  .topbar.menu-open .nav{display:flex;position:fixed;top:76px;left:16px;right:16px;flex-direction:column;align-items:stretch;gap:2px;padding:10px 18px 14px;background:rgba(6,10,26,.97);border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+  .topbar.menu-open .nav a{display:block;padding:14px 0;font-size:17px;letter-spacing:.02em;text-transform:none;cursor:auto}
+  .topbar.menu-open .nav-drop{display:none}
+  .topbar.menu-open .nav-item > a::after,.topbar.menu-open .nav-item::after{display:none}
+}
 @media (max-width:900px){ .nav,.live{display:none} .intro-copy{max-width:84vw} .info-grid{grid-template-columns:1fr} .stats{grid-template-columns:repeat(2,1fr)} :root{--cw:clamp(260px,72vw,420px)} }
 </style>
 </head>
@@ -476,7 +570,7 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       <span class="crown-spin brand-crown" aria-hidden="true"></span>
     </a>
     <div class="topbar-right">
-      <nav class="nav">
+      <nav class="nav" id="siteNav">
         <span class="nav-item"><a href="app.html">Sets</a>
           <span class="nav-drop">
             <a href="app.html?game=pokemon">Pok&eacute;mon</a>
@@ -487,13 +581,14 @@ h2.ih2 .lk2{color:var(--blue-bright)}
           </span>
         </span>
         <a href="rip.html">Rip Lab</a>
-        <a href="binder.html">Binder</a>
+        <a href="store.html">Store demo</a>
         <a href="data.html">Live data</a>
         <a href="#pricing">Pricing</a>
         <a href="#faq">FAQ</a>
         <a>Arbitrage</a>
       </nav>
       <span class="topbar-div" aria-hidden="true"></span>
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="siteNav">Menu</button>
       <a class="join-now" href="app.html">Join now</a>
     </div>
   </header>
@@ -501,14 +596,15 @@ h2.ih2 .lk2{color:var(--blue-bright)}
   <main>
     <section class="hero" id="hero">
       <div class="tape-wrap">
-        <div class="tape" id="tape"></div>
+        <canvas class="crown-gl" id="crownGL" aria-label="The Crowns crown: chase cards set around its band. Drag to turn it, click a card to inspect it."></canvas>
+        <div class="crown-front" id="crownFront" aria-hidden="true"><span class="tbr"><i></i><i></i><i></i><i></i></span><span class="tinspect">Inspect</span></div>
+        <div class="crown-cap" id="crownCap" aria-live="polite"></div>
+        <div class="tape" id="tape" hidden></div>
       </div>
       <div class="intro-copy">
-        <div class="hero-kick">Your favorite universes &middot; one tracker</div>
         <h1 class="headline">The <span class="em">Ultimate</span><br>Card Tracker</h1>
         <a class="explore-btn" href="app.html">Explore <span aria-hidden="true">&rarr;</span></a>
       </div>
-      <div class="scrolldown"><span>Scroll</span><span class="arw">&darr;</span></div>
     </section>
 
     <div class="fade-to-white" aria-hidden="true"></div>
@@ -516,69 +612,102 @@ h2.ih2 .lk2{color:var(--blue-bright)}
 
     <section class="spotlight-section" id="spotlight">
       <canvas class="sp-gl" id="spotGL" aria-hidden="true"></canvas>
-      <canvas class="sp-particles" id="spotParticles" aria-hidden="true"></canvas>
       <div class="sp-stage">
         <div class="sp-title-wrap">
-          <h2 class="sp-title">SPOTLIGHT</h2>
+          <h2 class="sp-title"><span class="sp-tw">This week&rsquo;s</span><span class="sp-tm">Spotlight</span></h2>
         </div>
-        <div class="sp-cardarea">
-          <div class="sp-side sp-side-l" id="spSideLW"><img class="sp-card-side" id="spSideL" alt=""><span class="sp-side-cap" id="spSideLcap"></span></div>
-          <div class="sp-side sp-side-r" id="spSideRW"><img class="sp-card-side" id="spSideR" alt=""><span class="sp-side-cap" id="spSideRcap"></span></div>
-          <button class="sp-card-btn" type="button" aria-label="Inspect the top trending card">
-            <span class="sp-cardinner">
-              <span class="crown-spin sp-crown" aria-hidden="true"></span>
-              <img class="sp-card" src="assets/fpic1/mep-38.png" alt="Top trending card">
-            </span>
-          </button>
-        </div>
-        <div class="sp-cap">
-          <div class="sp-kicker" id="spKicker"></div>
-          <div class="nm" id="spName">—</div>
-          <div class="sp-pricerow" id="spStats"></div>
-        </div>
+        <div class="sp-row" id="spRow"></div>
+        <div class="sp-capwrap"><div class="sp-cap" id="spCap" aria-live="polite"></div></div>
+        <div class="sp-sets" id="spSets" role="tablist" aria-label="What's in the spotlight"></div>
       </div>
-      <aside class="sp-panel sp-setpanel" id="spSetPanel" aria-label="Featured set"></aside>
-      <aside class="sp-panel sp-graphpanel" id="spGraphPanel" aria-label="Price history"></aside>
     </section>
+
 
     <section class="band">
       <div class="marquee"><div class="mtrack" id="mq"></div></div>
       <div class="marquee"><div class="mtrack" id="mq2"></div></div>
-      <a class="band-explore" href="app.html" aria-label="Explore the sets">
-        <span>Explore</span><i aria-hidden="true">&rarr;</i>
-      </a>
     </section>
 
     <!-- "Every card. Priced live." moved to its own page (data.html) so pricing
          lands sooner — P: don't make them scroll through it to reach the offer -->
-    <section class="pricing" id="pricing">
-      <div class="info-head reveal" style="max-width:none;text-align:center;margin:0 auto 44px">
-        <div class="info-kicker" style="text-align:center">Pricing</div>
-        <h2>Track free.<br>Go deeper for <span class="emph-booster">less than a booster</span>.</h2>
-      </div>
-      <div class="price-grid">
-        <div class="price-card free reveal">
-          <span class="pc-name">Free</span>
-          <span class="pc-price">$0<span>/mo</span></span>
-          <ul class="pc-feat"><li>Free access to the last 3 sets of every universe</li><li>Live prices &amp; daily USD/EUR snapshots</li><li>Basic watchlist</li></ul>
-          <a class="pc-cta ghost" href="app.html">Start free</a>
-        </div>
-        <div class="price-card featured reveal">
-          <span class="pc-badge">Most popular</span>
-          <span class="pc-name">Premium</span>
-          <span class="pc-price">$6<span>/mo</span></span>
-          <ul class="pc-feat"><li>Everything in Free</li><li>Access to every set in every universe</li><li>Full binder &amp; collection value</li><li>Price alerts &amp; trend charts</li><li>Rip Lab EV calculator</li><li>Early access to new universes</li></ul>
-          <a class="pc-cta gold" href="app.html">Get Premium</a>
-        </div>
-        <div class="price-card ultra reveal">
-          <span class="pc-sheen" aria-hidden="true"></span>
-          <span class="pc-badge dark">Launch sale</span>
-          <span class="pc-name">Collector</span>
-          <span class="pc-price"><s>$25</s>$12<span>1st mo</span></span>
-          <span class="pc-note">then $25/mo &middot; cancel anytime</span>
-          <ul class="pc-feat"><li>Everything in Premium</li><li>Real-time cross-market arbitrage engine</li><li>AI price forecasts &amp; breakout alerts</li><li>Portfolio analytics, P&amp;L &amp; CSV / API export</li><li>Unlimited watchlists &amp; priority data refresh</li><li>Grading ROI &amp; population insights</li><li>Concierge deal-sourcing &amp; 1:1 onboarding</li></ul>
-          <a class="pc-cta gold" href="app.html">Get Collector</a>
-        </div>
+    <section class="pricing" id="pricing" aria-labelledby="pricing-title">
+      <!-- card text face for the pricing cards (names, rules text, /mo) -->
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,500&display=swap">
+      <div class="tc-tiers">
+        <header class="tc-head">
+          <h2 id="pricing-title">Track free.<br>Go deeper for less than a&nbsp;booster.</h2>
+        </header>
+
+        <ol class="tc-hand">
+          <li class="tc-common">
+            <div class="tc-tier">
+              <article class="tc-card">
+                <div class="tc-face">
+                  <img class="tc-img" src="assets/pricing/tier-free-600.webp" srcset="assets/pricing/tier-free-600.webp 600w, assets/pricing/tier-free-1000.webp 1000w" sizes="(max-width:1199px) min(372px, 86vw), 21vw" width="600" height="904" alt="" loading="lazy" decoding="async">
+                  <div class="tc-layer">
+                    <h3 class="tc-name">Free</h3>
+                    <p class="tc-price"><span class="tc-amt">$0</span><span class="tc-per">/mo</span></p>
+                    <ul class="tc-rules">
+                      <li>Free access to the last 3 sets of every universe</li>
+                      <li>Live prices &amp; daily USD/EUR snapshots</li>
+                      <li>Basic watchlist</li>
+                    </ul>
+                    <span class="tc-mark tc-dot" role="img" aria-label="Common"></span>
+                  </div>
+                </div>
+              </article>
+              <a class="tc-cta tc-ghost" href="app.html">Start free</a>
+            </div>
+          </li>
+
+          <li class="tc-rare">
+            <div class="tc-tier">
+              <article class="tc-card">
+                <div class="tc-face">
+                  <img class="tc-img" src="assets/pricing/tier-premium-600.webp" srcset="assets/pricing/tier-premium-600.webp 600w, assets/pricing/tier-premium-1000.webp 1000w" sizes="(max-width:1199px) min(372px, 86vw), 21vw" width="600" height="904" alt="" loading="lazy" decoding="async">
+                  <div class="tc-layer">
+                    <h3 class="tc-name">Premium</h3>
+                    <p class="tc-price"><span class="tc-amt">$10</span><span class="tc-per">/mo</span></p>
+                    <ul class="tc-rules">
+                      <li class="tc-carry">Everything in Free</li>
+                      <li>Access to every set in every universe</li>
+                      <li>Full collection value</li>
+                      <li>Price alerts &amp; trend charts</li>
+                      <li>Rip Lab EV calculator</li>
+                      <li>Early access to new universes</li>
+                    </ul>
+                    <span class="tc-mark tc-star" role="img" aria-label="Rare"></span>
+                  </div>
+                </div>
+              </article>
+              <a class="tc-cta tc-gold" href="app.html">Get Premium</a>
+            </div>
+          </li>
+
+          <li class="tc-crown">
+            <div class="tc-tier">
+              <article class="tc-card">
+                <div class="tc-face">
+                  <img class="tc-img" src="assets/pricing/tier-collector-600.webp" srcset="assets/pricing/tier-collector-600.webp 600w, assets/pricing/tier-collector-1000.webp 1000w" sizes="(max-width:1199px) min(372px, 86vw), 21vw" width="600" height="904" alt="" loading="lazy" decoding="async">
+                  <div class="tc-layer">
+                    <h3 class="tc-name">Collector</h3>
+                    <p class="tc-price"><span class="tc-amt">$35</span><span class="tc-per">/mo</span></p>
+                    <ul class="tc-rules">
+                      <li class="tc-carry">Everything in Premium</li>
+                      <li>Real-time cross-market arbitrage engine</li>
+                      <li>AI price forecasts &amp; breakout alerts</li>
+                      <li>Portfolio analytics, P&amp;L &amp; CSV&nbsp;/&nbsp;API export</li>
+                      <li>Unlimited watchlists &amp;&nbsp;priority data refresh</li>
+                      <li>Grading ROI &amp; population insights</li>
+                      <li>Concierge deal-sourcing &amp;&nbsp;1:1&nbsp;onboarding</li>
+                    </ul>
+                  </div>
+                </div>
+              </article>
+              <a class="tc-cta tc-ghost" href="app.html">Get Collector</a>
+            </div>
+          </li>
+        </ol>
       </div>
     </section>
 
@@ -592,14 +721,14 @@ h2.ih2 .lk2{color:var(--blue-bright)}
         <details class="faq-item"><summary>Which games are supported?</summary><p>Pok&eacute;mon, Magic: The Gathering, Disney Lorcana and One Piece &mdash; with more universes rolling out.</p></details>
         <details class="faq-item"><summary>Is Crowns free?</summary><p>Yes. Free tracks the last three sets of every universe; Premium and Collector unlock every set, alerts and analytics.</p></details>
         <details class="faq-item"><summary>How often do prices update?</summary><p>Daily market snapshots, charted so you can watch a card heat up before it moves.</p></details>
-        <details class="faq-item"><summary>Can I track my own collection?</summary><p>Premium adds a full binder with live collection value; Collector adds portfolio analytics, P&amp;L and exports.</p></details>
+        <details class="faq-item"><summary>Can I track my own collection?</summary><p>Premium adds live collection value; Collector adds portfolio analytics, P&amp;L and exports.</p></details>
         <details class="faq-item"><summary>Do you sell cards?</summary><p>No &mdash; Crowns is a tracker. We surface the market so you decide when to buy, hold or sell.</p></details>
       </div>
     </section>
     </div>
   </main>
 
-  <div class="ticker"><div class="ttrack" id="tk"></div></div>
+  <div class="ticker"><span class="tk-label">30-day movers</span><div class="ttrack" id="tk"></div></div>
 
   <div class="loader" id="loader">
     <div class="ld-glow" aria-hidden="true"></div>
@@ -630,201 +759,187 @@ h2.ih2 .lk2{color:var(--blue-bright)}
     </div>
   </div>
 
-  <div class="cursor" id="cursor">
+  <div class="cursor hide" id="cursor">
+    <span class="cur-ring"></span>
     <svg class="cur-arrow" viewBox="0 0 16 22"><path d="M1 1 L1 17.8 L5.2 13.9 L7.9 20.1 L10.6 19 L7.9 12.8 L13 12.8 Z"/></svg>
+    <span class="cur-label"></span>
   </div>
 
-  <script src="data/home-trending.js"></script>  <!-- real 30-day movers, regenerated by every data refresh -->
+  <script src="data/home-trending.js?v=6"></script>  <!-- real 30-day movers, regenerated by every data refresh -->
   <script src="vendor/three.min.js"></script>
+  <script src="vendor/GLTFLoader.js"></script>
+  <script src="vendor/RoomEnvironment.js"></script>
+  <script src="crown3d.js?v=34"></script>
   <script src="vendor/gsap.min.js"></script>
   <script src="vendor/ScrollTrigger.min.js"></script>
   <script>
   (() => {
     'use strict';
     const $ = (s) => document.querySelector(s);
-    const fmt0 = (p) => '$' + Math.round(p).toLocaleString('en-US');
+    // a fresh visit always opens on the hero (the browser was restoring the last scroll, landing at the bottom)
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    if (!location.hash) scrollTo(0, 0);
+    const fmt0 =(p) => '$' + Math.round(p).toLocaleString('en-US');
 
-    const T='https://assets.tcgdex.net/en/', Sc='https://cards.scryfall.io/large/front/',
-          Dg='https://static.dotgg.gg/onepiece/card/', Rv='https://api.lorcana.ravensburger.com/images/en/';
-    const ALL = [
-      {name:'Umbreon ex',         game:'pokemon',  set:'sv08.5', num:'161', price:1557.92, img:T+'sv/sv08.5/161/high.png'},
-      {name:'Demonic Tutor',      game:'magic',    set:'sta', num:'90',  price:505.29,  img:Sc+'9/9/99b6e466-784b-48a6-8e72-beff72f39231.jpg'},
-      {name:'Buggy',              game:'onepiece', set:'OP09', num:'051', price:1479.32, img:Dg+'OP09-051_p2.webp'},
-      {name:'Stitch · Rock Star', game:'lorcana',  set:'1', num:'23',   price:52.00,   img:'https://lorcana-api.com/images/stitch/rock_star/stitch-rock_star-large.png'},
-      {name:'Mega Gengar ex',     game:'pokemon',  set:'me02.5', num:'284', price:1384.78, img:T+'me/me02.5/284/high.png'},
-      {name:'Counterspell',       game:'magic',    set:'sta', num:'78',  price:46.34,   img:Sc+'8/1/8118282a-1473-4c0b-a283-1f58e0d0209a.jpg'},
-      {name:'Marshall D. Teach',  game:'onepiece', set:'OP09', num:'093', price:1446.50, img:Dg+'OP09-093_p2.webp'},
-      {name:'Elsa · Ice Artisan', game:'lorcana',  set:'11', num:'233',  price:240.00,  img:Rv+'set11/233_9976ce443fc2c5d3019e2da31bc3c1e0cd4081a8.jpg'},
-      {name:'Pikachu ex',         game:'pokemon',  set:'me02.5', num:'276', price:1276.19, img:T+'me/me02.5/276/high.png'},
-      {name:'Swords to Plowshares',game:'magic',   set:'sta', num:'73',  price:59.91,   img:Sc+'a/5/a5d364f3-e3e7-46fb-8273-aabd56ded0c5.jpg'},
-      {name:'Monkey D. Luffy',    game:'onepiece', set:'EB02', num:'010', price:1388.75, img:Dg+'EB02-010_p2.webp'},
-      {name:'Mickey · Brave Prince',game:'lorcana',set:'9', num:'111',   price:38.00,   img:Rv+'set9/111_fc83a63669bace91d4de7d711d22c3ed67f3afa8.jpg'},
-      {name:'Mew ex',             game:'pokemon',  set:'sv04.5', num:'232', price:968.49,  img:T+'sv/sv04.5/232/high.png'},
-      {name:'Time Warp',          game:'magic',    set:'sta', num:'85',  price:50.61,   img:Sc+'3/4/34f0f4cb-1ef6-44cd-8cca-1d1e138c0344.jpg'},
-      {name:'Portgas D. Ace',     game:'onepiece', set:'OP13', num:'119', price:1315.33, img:Dg+'OP13-119_p2.webp'},
-      {name:'Aurora · Dreaming',  game:'lorcana',  set:'9', num:'153',   price:44.00,   img:Rv+'set9/153_e399771f6aff5232df46ef15dd9b44b79950dbd1.jpg'},
-      {name:'Terapagos ex',       game:'pokemon',  set:'sv08.5', num:'180', price:142, img:T+'sv/sv08.5/180/high.png'},
-      {name:'Teal Mask Ogerpon ex',game:'pokemon', set:'sv08.5', num:'177', price:96,  img:T+'sv/sv08.5/177/high.png'},
-      {name:'Walking Wake ex',    game:'pokemon',  set:'sv08.5', num:'178', price:64,  img:T+'sv/sv08.5/178/high.png'},
-      {name:'Iron Leaves ex',     game:'pokemon',  set:'sv08.5', num:'176', price:58,  img:T+'sv/sv08.5/176/high.png'},
-      {name:'Lacey',              game:'pokemon',  set:'sv08.5', num:'175', price:48,  img:T+'sv/sv08.5/175/high.png'},
-      {name:'Mega Gardevoir ex',  game:'pokemon',  set:'me01', num:'187', price:120, img:T+'me/me01/187/high.png'},
-      {name:'Mega Lucario ex',    game:'pokemon',  set:'me01', num:'188', price:110, img:T+'me/me01/188/high.png'},
-      {name:'Zapdos ex',          game:'pokemon',  set:'sv03.5', num:'202', price:88,  img:T+'sv/sv03.5/202/high.png'},
-      {name:"Erika's Invitation", game:'pokemon',  set:'sv03.5', num:'203', price:76,  img:T+'sv/sv03.5/203/high.png'},
-      {name:"Giovanni's Charisma",game:'pokemon',  set:'sv03.5', num:'204', price:72,  img:T+'sv/sv03.5/204/high.png'},
-      {name:"Acerola's Mischief", game:'pokemon',  set:'me01', num:'183', price:54,  img:T+'me/me01/183/high.png'},
-      {name:"Lillie's Determination",game:'pokemon',set:'me01', num:'184', price:130, img:T+'me/me01/184/high.png'},
-      {name:"Wally's Compassion", game:'pokemon',  set:'me01', num:'186', price:60,  img:T+'me/me01/186/high.png'},
-      {name:"Lt. Surge's Bargain",game:'pokemon',  set:'me01', num:'185', price:52,  img:T+'me/me01/185/high.png'},
-      {name:'Leonardo, Sewer Samurai',game:'magic',set:'tmt', num:'301', price:2945, img:Sc+'7/4/74628e5a-7500-45d3-8147-30d2ef06da50.jpg'},
-      {name:'Donatello, Mechanic',game:'magic',    set:'tmt', num:'302', price:2767, img:Sc+'b/8/b818aa60-b312-457a-b167-b66f7c0cc5f4.jpg'},
-      {name:'Ancestral Recall',   game:'magic',    set:'sos', num:'306', price:2900, img:Sc+'e/f/ef371352-ec8f-4da4-9085-67195068fb79.jpg'},
-      {name:'Edgar Markov',       game:'magic',    set:'inr', num:'491', price:2500, img:Sc+'e/7/e70bfc25-3c0c-4574-b504-1d1f73e9e790.jpg'},
-      {name:'Murktide Regent',    game:'magic',    set:'slp', num:'17',  price:2300, img:Sc+'d/6/d6954d23-86a7-47ed-bad9-7f92c0edb0e4.jpg'},
-      {name:'Leonardo da Vinci',  game:'magic',    set:'acr', num:'118z',price:1819, img:Sc+'2/c/2c7f82c4-7223-4dae-b037-aac96a32212f.jpg'},
-      {name:'The Soul Stone',     game:'magic',    set:'spm', num:'243', price:1303, img:Sc+'f/9/f9d80efc-e829-4257-83e8-f37b0b68de57.jpg'},
-      {name:'Ms. Bumbleflower',   game:'magic',    set:'blc', num:'103', price:1144, img:Sc+'5/c/5c75bab8-02d0-477c-bfb1-dace7cb33a1f.jpg'},
-      {name:'Lilo · Rock Star',   game:'lorcana',  set:'11', num:'223',  price:180, img:Rv+'set11/223_488ba872f5899a5448d6486fc58b3b4ec4dee566.jpg'},
-      {name:'Ohana Means Family', game:'lorcana',  set:'11', num:'224',  price:90,  img:Rv+'set11/224_face6cebc1848935d7768d44be66222e51696e7a.jpg'},
-      {name:'Raging Storm',       game:'lorcana',  set:'11', num:'225',  price:70,  img:Rv+'set11/225_62bd1edbc6df8530da20dad9b8006d209bdbb4fd.jpg'},
-      {name:'Eeyore · In the Way',game:'lorcana',  set:'11', num:'226',  price:120, img:Rv+'set11/226_bc197bb1f0d815655b5892354689fd78ef3def6f.jpg'},
-      {name:'Anna · Soothing',    game:'lorcana',  set:'11', num:'227',  price:85,  img:Rv+'set11/227_f8d28117357d9e1713e11e250f15b5130502fb00.jpg'},
-      {name:'Colors of the Wind', game:'lorcana',  set:'11', num:'228',  price:160, img:Rv+'set11/228_2b28e693a13fbd80fb31b24c59ea334f1c7fcf72.jpg'},
-      {name:'Mulan · Resourceful',game:'lorcana',  set:'11', num:'229',  price:95,  img:Rv+'set11/229_11ef687182293e556172f0e3a32c0746de52c77a.jpg'},
-      {name:'Tod · Knows Tricks', game:'lorcana',  set:'11', num:'230',  price:78,  img:Rv+'set11/230_b7e8c0b77dd13291ddb501be94bbc569f2a62567.jpg'},
-      {name:'Gouging Fire ex',    game:'pokemon',  set:'sv05', num:'214', price:78,  img:T+'sv/sv05/214/high.png'},
-      {name:'Iron Crown ex',      game:'pokemon',  set:'sv05', num:'216', price:62,  img:T+'sv/sv05/216/high.png'},
-      {name:'Iron Boulder ex',    game:'pokemon',  set:'sv05', num:'217', price:56,  img:T+'sv/sv05/217/high.png'},
-      {name:'Raging Bolt ex',     game:'pokemon',  set:'sv05', num:'218', price:90,  img:T+'sv/sv05/218/high.png'},
-      {name:'Bloodmoon Ursaluna ex',game:'pokemon',set:'sv06', num:'222', price:158, img:T+'sv/sv06/222/high.png'},
-      {name:'Briar',              game:'pokemon',  set:'sv07', num:'171', price:112, img:T+'sv/sv07/171/high.png'},
-      {name:'Terapagos ex · SIR', game:'pokemon',  set:'sv07', num:'173', price:84,  img:T+'sv/sv07/173/high.png'},
-      {name:'Traveling Chocobo',  game:'magic',    set:'fin', num:'551a', price:140, img:Sc+'8/1/81690ce7-0651-40e4-9769-baebe10e2cbf.jpg'},
-      {name:'Chatterfang',        game:'magic',    set:'blc', num:'95',  price:90,  img:Sc+'7/9/798d161f-230d-4115-8351-ec6e33ed1730.jpg'},
-      {name:'Stitch · Carefree',  game:'lorcana',  set:'9', num:'24',   price:64,  img:Rv+'set9/24_aa738c1a1e82230750e09c061d49573c437e16d9.jpg'},
-      {name:'Circle of Life',     game:'lorcana',  set:'9', num:'26',   price:88,  img:Rv+'set9/26_9c4fdfaaa46d5be868e25f85c9c6d1a867a6321b.jpg'},
-      {name:'Elsa · Spirit of Winter',game:'lorcana',set:'9', num:'43', price:120, img:Rv+'set9/43_2de43d81f0ad5fd3956dab9c711af9d3e51dcea2.jpg'},
-      {name:'Dumbo · Ninth Wonder',game:'lorcana', set:'9', num:'45',   price:46,  img:Rv+'set9/45_6e544899ae7ed6842b52197b317826cf8b241cbc.jpg'},
-      {name:'Max Goof · Chart Topper',game:'lorcana',set:'9', num:'77', price:54,  img:Rv+'set9/77_8169a2ef57d7bcf315417fc5102f987335064324.jpg'},
-      {name:'John Silver · Pirate',game:'lorcana', set:'9', num:'89',   price:72,  img:Rv+'set9/89_49e7868f92881a426148953ffbe43019973ae057.jpg'},
-    ];
-    // REAL 30-day movers (data/home-trending.js, regenerated by every data refresh)
-    // lead the page — the spotlight, card-of-the-month and ticker change with the
-    // market automatically. The static list above stays as universe variety with
-    // DAMPED seeded pcts so genuine movers always outrank it.
+    // every card on the page comes from data/home-trending.js, rebuilt by each data refresh:
+    // chase = the priciest cards of each game's recent sets at today's prices (the hero ring),
+    // cards = the biggest 30-day movers (the ticker). Nothing here is hand-typed.
+    const HT = window.HOME_TRENDING || {};
+    const ALL = [...(HT.chase || [])];
+    // the real 30-day movers join the pool (they drive the ticker and the fallback spotlight)
     ((window.HOME_TRENDING && window.HOME_TRENDING.cards) || []).forEach((c) => {
       if (!ALL.some((a) => a.img === c.img || a.name === c.name)) ALL.push(c);
     });
     const seed = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
     const rng = (s) => () => { s |= 0; s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-    ALL.forEach((c) => { if (c.pct == null) c.pct = +((rng(seed(c.name))() * 9) - 3.5).toFixed(1); });
-    const cotmLead = ALL.reduce((a, b) => (b.pct > a.pct ? b : a));
-    // only when NO real data loaded does the seeded leader get a fake break-away boost
-    if (!cotmLead.real) cotmLead.pct = +(cotmLead.pct + 12 + rng(seed(cotmLead.name + 'boost'))() * 10).toFixed(1);
+    // the spotlight leads with the scored "potential" picks (steady weekly climb on a
+    // real chase card, built by scripts/build-home-trending.mjs); the biggest raw mover
+    // is only the fallback when that list is missing
+    const SPOT = ((window.HOME_TRENDING && window.HOME_TRENDING.spotlight) || []).filter((c) => c && c.img);
+    const cotmLead = SPOT[0] || ALL.reduce((a, b) => (b.pct > a.pct ? b : a));
 
-    // ---- Spotlight: feature the live top-trending card (high-res + stats) ----
-    (() => {
-      const c = cotmLead, GL = { pokemon: 'Pokémon', magic: 'Magic', lorcana: 'Lorcana', onepiece: 'One Piece' };
+    // ---- Spotlight: this week's rising cards on a stage; a followspot lights whichever one you point at ----
+    const SP_LIGHT = { v: 0 };   // the lamp's level, raised by the scroll entrance
+    const SPOTLIGHT = (() => {
+      const GL = { pokemon: 'Pokémon', magic: 'Magic', lorcana: 'Lorcana', onepiece: 'One Piece' };
       const LHEM = { pokemon: 1.5, magic: 1.85, lorcana: 1.85, onepiece: 1.3 };   // per-universe optical heights (Pokémon reads big), same idea as the marquee
+      const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
+      const money = (p) => (p >= 1000 ? fmt0(p) : '$' + p.toFixed(2));
       const uniLogo = (g, base) => `<img class="uni-logo" data-g="${g}" src="assets/logos/${g}.png?v=79" alt="${GL[g] || g}" style="height:${Math.round(base * (LHEM[g] || 1.5))}px">`;
-      const img = document.querySelector('.sp-card'); if (img) { img.src = c.img; img.alt = c.name; }
-      const nm = document.getElementById('spName'); if (nm) nm.textContent = c.name;
-      const kick = document.getElementById('spKicker'); if (kick) kick.innerHTML = `${uniLogo(c.game, 17)}<span class="sp-ktx">Top trending</span>`;
-      const st = document.getElementById('spStats');
-      if (st) { const up = c.pct >= 0; st.innerHTML = `<span class="sp-bigtrend ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(c.pct).toFixed(1)}%</span>`; }
-      const runners = [...ALL].filter(x => x !== c && x.img !== c.img).sort((a, b) => (b.pct || 0) - (a.pct || 0));
-      [['spSideL', 'spSideLcap', runners[0]], ['spSideR', 'spSideRcap', runners[1]]].forEach(([id, capId, card]) => {
-        const el = document.getElementById(id), cap = document.getElementById(capId), wrap = el && el.closest('.sp-side');
-        if (el && card) { el.src = card.img; el.alt = card.name; }
-        if (cap && card) { const up = card.pct >= 0; cap.innerHTML = `${uniLogo(card.game, 13)}<span class="ssn">${card.name}</span><span class="ssc ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(card.pct).toFixed(1)}%</span>`; }
-        if (wrap && card) { wrap.style.cursor = 'pointer'; wrap.addEventListener('click', () => flyToInspect(card, wrap.querySelector('.sp-card-side'))); }
-      });
-
-      // ---- flank panels: featured-set dossier (left) + big price chart (right) ----
-      const setPanel = document.getElementById('spSetPanel'), graphPanel = document.getElementById('spGraphPanel');
-      if (setPanel && graphPanel) {
-        const up = c.pct >= 0;
-        // set-logo chain: local override (Pitch Black) → tcgdex (derived from the
-        // card's own art URL) → universe logo; a dead chain removes the img
-        const logoCands = [];
-        if (c.set === 'me05') logoCands.push('assets/setlogos/me05.png');
-        const m = /assets\.tcgdex\.net\/en\/([^/]+)\/([^/]+)\//.exec(c.img || '');
-        if (m) logoCands.push(`https://assets.tcgdex.net/en/${m[1]}/${m[2]}/logo.png`);
-        logoCands.push(`assets/logos/${c.game}.png?v=79`);
-        const row = (k, v, cls) => `<div class="ssp-row"><span class="k">${k}</span><span class="v${cls ? ' ' + cls : ''}">${v}</span></div>`;
-        setPanel.innerHTML =
-          `<div class="ssp-kick">Featured set</div>`
-          + `<img class="ssp-logo" alt="${c.setName || ''}">`
-          + `<div class="ssp-name">${c.setName || c.set || ''}</div>`
-          + `<div class="ssp-rows">`
-          + row('Universe', GL[c.game] || c.game)
-          + row('Featured card', c.name)
-          + row('Card №', '#' + c.num)
-          + row('Market price', fmt0(c.price))
-          + row('30-day', (up ? '+' : '') + c.pct.toFixed(1) + '%', up ? 'up' : 'down')
-          + `</div>`
-          + `<a class="ssp-cta" href="app.html?game=${c.game}&set=${encodeURIComponent(c.set || '')}">Browse the set <i>&rarr;</i></a>`;
-        const lg = setPanel.querySelector('.ssp-logo');
-        let li = 0;
-        lg.onerror = () => { if (++li < logoCands.length) lg.src = logoCands[li]; else lg.remove(); };
-        lg.src = logoCands[0];
-        // the big chart: a seeded 30-day walk anchored to TODAY's real price and
-        // the real 30-day move (start = price / (1 + pct)) — detailed axes,
-        // gridlines, hi/lo markers, live endpoint
-        const W = 520, H = 300, padL = 48, padR = 18, padT = 16, padB = 30;
-        const col = up ? '#46e08a' : '#ff6b6b';
-        const end = c.price, start = end / (1 + c.pct / 100);
-        const rr = rng(seed(c.name + 'bigchart'));
-        const pts = [];
-        for (let i = 0; i <= 30; i++) {
-          const t = i / 30, drift = start + (end - start) * t * t * (3 - 2 * t);
-          const wob = (rr() - 0.5) * Math.abs(end - start) * 0.16 * Math.sin(t * Math.PI);
-          pts.push(Math.max(0.01, drift + wob));
-        }
-        pts[30] = end;
-        const lo = Math.min(...pts), hi = Math.max(...pts), span = (hi - lo) || 1;
-        const X = (i) => padL + (i / 30) * (W - padL - padR);
-        const Y = (v) => padT + (1 - (v - lo) / span) * (H - padT - padB);
-        const fp = (v) => v >= 1000 ? '$' + (v / 1000).toFixed(1) + 'k' : '$' + (v >= 100 ? v.toFixed(0) : v.toFixed(2));
-        let grid = '';
-        for (let g = 0; g <= 4; g++) {
-          const v = lo + (span * g) / 4, y = Y(v);
-          grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="rgba(150,180,255,.13)"/>`
-            + `<text x="${padL - 8}" y="${(y + 3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="#8fa8d8">${fp(v)}</text>`;
-        }
-        ['30d', '21d', '14d', '7d', 'now'].forEach((dLab, i) => {
-          const x = padL + (i / 4) * (W - padL - padR);
-          grid += `<line x1="${x.toFixed(1)}" y1="${padT}" x2="${x.toFixed(1)}" y2="${H - padB}" stroke="rgba(150,180,255,.07)"/>`
-            + `<text x="${x.toFixed(1)}" y="${H - 9}" text-anchor="middle" font-size="10" fill="#8fa8d8">${dLab}</text>`;
+      const cardName = (n) => String(n).replace(/\.([A-Z])\./g, ' $1. ').replace(/([a-z])\.([A-Z])/g, '$1 $2');   // dotGG writes "Rocks.D.Xebec"; the card says "Rocks D. Xebec"
+      // what's in the spotlight: the cards trending most this week, this month or this year, across every game (P).
+      // A window shows up as a tab once scripts/build-home-trending.mjs has real data for it.
+      const WIN = [
+        { k: 'week', label: "This week's", tab: 'This week', list: HT.spotlight, field: 'week', span: 'in 7 days' },
+        { k: 'month', label: "This month's", tab: 'This month', list: HT.spotlightMonth, field: 'month', span: 'in 30 days' },
+        { k: 'year', label: "This year's", tab: 'This year', list: HT.spotlightYear, field: 'year', span: 'in a year' },
+      ];
+      const groups = WIN.map((w) => ({ k: w.k, label: w.label, tab: w.tab,
+        picks: (w.list || []).filter((c) => c && c.img).slice(0, 3).map((c) => ({ ...c, name: cardName(c.name), move: c[w.field] != null ? c[w.field] : (w.k === 'week' ? c.pct : null),
+          // its place among the window's five movers by the size of the move (the wings show it; the lead is always first)
+          rank: c[w.field] == null ? null : 1 + (w.list || []).filter((x) => x && x.img && x[w.field] != null && x[w.field] > c[w.field]).length,
+          // say the real span: the long view starts at the oldest snapshot we hold (26 Jun), not a full year
+          span: w.k === 'year' && c.from ? 'since ' + new Date(c.from + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : c.days && c.days !== 7 ? 'in ' + c.days + ' days' : w.span })) }))
+        .filter((g) => g.picks.length >= 3);
+      if (!groups.length) groups.push({ k: 'week', label: "This week's", tab: 'This week', picks: [cotmLead, cotmLead, cotmLead] });
+      let picks = groups[0].picks;
+      // left, centre, right: the lead in the middle under the crown
+      const row = $('#spRow'), cap = $('#spCap');
+      // the wings name the 2nd and 3rd cards beside them (rank, name, price, move); the move's span is only
+      // spelled out when it differs from the lead's, which the caption already says
+      const wingHTML = (c) => {
+        if (!c || c === picks[0]) return '';
+        const v = c.move, up = v >= 0;
+        return (c.rank ? `<span class="sp-wing-n">${c.rank}</span>` : '') + `<span class="sp-wing-nm">${esc(c.name)}</span><span class="sp-wing-line">`
+          + (c.price != null ? `<span class="sp-wing-pr">${money(c.price)}</span>` : '')
+          + (v != null ? `<span class="sp-wing-mv ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(v).toFixed(1)}%</span>` : '')
+          + `</span>${c.span && c.span !== picks[0].span ? `<span class="sp-wing-set">${esc(c.span)}</span>` : ''}${c.setName ? `<span class="sp-wing-set">${esc(c.setName)}</span>` : ''}`;
+      };
+      const wingEl = (i, side) => `<div class="sp-wing" data-i="${i}" data-side="${side}"><div class="sp-wing-in">${wingHTML(picks[i])}</div></div>`;
+      row.innerHTML = wingEl(1, 'l') + [[1, 1], [0, 0], [2, 1]].map(([i, tier]) => {
+        const c = picks[i] || picks[0];
+        return `<button class="sp-c" type="button" data-i="${i}" data-tier="${tier}" data-cursor="Inspect" aria-label="${esc(c.name)}">`
+          + `<span class="sp-cf"><span class="sp-ci">${i === 0 ? '<span class="crown-spin sp-crown" aria-hidden="true"></span>' : ''}`
+          + `<img src="${esc(c.img)}" alt="${esc(c.name)}"></span></span></button>`;
+      }).join('') + wingEl(2, 'r');
+      const seats = [...row.querySelectorAll('.sp-c')], wings = [...row.querySelectorAll('.sp-wing')], wingT = [];
+      seats.forEach((b) => b.addEventListener('click', () => { const c = picks[+b.dataset.i]; if (c) flyToInspect(c, b.querySelector('img')); }));
+      const capHTML = (c) => {
+        const v = c.move, up = v >= 0;
+        return `<span class="nm">${esc(c.name)}</span><span class="sp-line">`
+          + (c.price != null ? `<span class="sp-price">${money(c.price)}</span>` : '')
+          + (v != null ? `<span class="sp-move ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(v).toFixed(1)}%<small>${c.span || ''}</small></span>` : '')
+          + `</span>${c.setName ? `<span class="sp-set-name">${esc(c.setName)}</span>` : ''}`;
+      };
+      let swapT = 0;
+      const show = (animate) => {   // the caption names the card in the middle
+        clearTimeout(swapT);
+        if (!animate) { cap.innerHTML = capHTML(picks[0]); return; }
+        cap.classList.add('swap');
+        swapT = setTimeout(() => { cap.innerHTML = capHTML(picks[0]); cap.classList.remove('swap'); }, 220);
+      };
+      show(false);
+      const fill = (list) => {   // each card flips edge-on, takes the new art once it has decoded, and flips back in, left to right
+        picks = list;
+        seats.forEach((b, n) => {
+          const c = picks[+b.dataset.i], im = b.querySelector('img');
+          if (!c) { b.hidden = true; return; }
+          b.hidden = false; b.setAttribute('aria-label', c.name);
+          const next = new Image(); next.src = c.img;
+          const ready = (next.decode ? next.decode() : Promise.resolve()).catch(() => {});
+          const delay = n * 90;
+          if (!window.gsap) { ready.then(() => { im.src = c.img; im.alt = c.name; }); return; }
+          gsap.to(im, { rotateY: 90, transformPerspective: 900, duration: 0.24, delay: delay / 1000, ease: 'power2.in', overwrite: true, onComplete: () => {
+            ready.then(() => {
+              if (picks[+b.dataset.i] !== c) return;
+              im.src = c.img; im.alt = c.name;
+              gsap.fromTo(im, { rotateY: -90, transformPerspective: 900 }, { rotateY: 0, duration: 0.55, ease: 'expo.out' });
+            });
+          } });
         });
-        let path = '';
-        pts.forEach((p, i) => path += `${i ? 'L' : 'M'}${X(i).toFixed(1)} ${Y(p).toFixed(1)}`);
-        const hiI = pts.indexOf(hi), loI = pts.indexOf(lo);
-        const mark = (i, v, above) =>
-          `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="3" fill="#eaf2ff"/>`
-          + `<text x="${X(i).toFixed(1)}" y="${(Y(v) + (above ? -9 : 16)).toFixed(1)}" text-anchor="middle" font-size="10.5" fill="#eaf2ff">${fp(v)}</text>`;
-        graphPanel.innerHTML =
-          `<div class="sgp-head"><span class="sgp-kick">Price · last 30 days</span>`
-          + `<span class="sgp-chg ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(c.pct).toFixed(1)}%</span></div>`
-          + `<div class="sgp-price">${fmt0(c.price)}</div>`
-          + `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="30-day price history for ${c.name}" style="font-family:ui-monospace,monospace">`
-          + grid
-          + `<path d="${path} L${X(30).toFixed(1)} ${H - padB} L${padL} ${H - padB} Z" fill="${col}" fill-opacity=".10"/>`
-          + `<path d="${path}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round"/>`
-          + mark(hiI, hi, true) + (loI !== hiI ? mark(loI, lo, false) : '')
-          + `<circle cx="${X(30).toFixed(1)}" cy="${Y(end).toFixed(1)}" r="5" fill="${col}"/>`
-          + `<circle cx="${X(30).toFixed(1)}" cy="${Y(end).toFixed(1)}" r="9" fill="${col}" fill-opacity=".28"/>`
-          + `</svg>`;
-      }
+        // each wing fades its words over as its card turns (left with the first flip, right with the last)
+        wings.forEach((wg, k) => {
+          const inner = wg.firstElementChild;
+          inner.classList.add('swap'); clearTimeout(wingT[k]);
+          wingT[k] = setTimeout(() => { inner.innerHTML = wingHTML(picks[+wg.dataset.i]); inner.classList.remove('swap'); }, 220 + (wg.dataset.side === 'r' ? 180 : 0));
+        });
+        show(true);
+      };
+      // the windows as tabs under the caption: pick one and the cards flip to what's trending over it
+      const setsEl = $('#spSets'), kicker = $('.sp-title .sp-tw');
+      setsEl.innerHTML = groups.length > 1 ? groups.map((g, n) => `<button class="sp-set${n ? '' : ' on'}" type="button" role="tab" aria-selected="${n ? 'false' : 'true'}" data-k="${esc(g.k)}"><span>${esc(g.tab)}</span></button>`).join('') : '';
+      setsEl.addEventListener('click', (e) => {
+        const b = e.target.closest('.sp-set'); if (!b || b.classList.contains('on')) return;
+        setsEl.querySelectorAll('.sp-set').forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b ? 'true' : 'false'); });
+        const g = groups.find((x) => x.k === b.dataset.k);
+        if (kicker) kicker.textContent = g.label;
+        fill(g.picks);
+      });
+      return { lead: 0 };
     })();
 
-    // ---- Collector pricing panel ($12): animated gold sheen (GSAP; CSS keyframes freeze here) ----
+    // ---- pricing: the deal, once, when the hand first shows. Wide screens: the three cards sit stacked as a deck on the
+    // Free slot, Free on top; Free settles, then Premium and Collector slide out from under it to their slots,
+    // 110 ms apart, and each button appears as its card lands. Phones: each card settles as it scrolls in.
+    // Crowns runs full motion by default (owner's call, see app.js); ?motion=reduced opts out.
     (() => {
-      const card = document.querySelector('.price-card.ultra');
-      const sheen = card && card.querySelector('.pc-sheen');
-      if (!sheen || !window.gsap) return;
-      gsap.fromTo(sheen, { backgroundPositionX: '185%' }, { backgroundPositionX: '-85%', duration: 2.6, ease: 'power1.inOut', repeat: -1, repeatDelay: 3 });
+      if (new URLSearchParams(location.search).get('motion') === 'reduced') return;
+      const E = 'cubic-bezier(.16,1,.3,1)';
+      const hand = document.querySelector('.tc-hand');
+      const lis = [...hand.children], cards = lis.map(l => l.querySelector('.tc-card')), ctas = lis.map(l => l.querySelector('.tc-cta'));
+      const narrow = () => matchMedia('(max-width:1199px)').matches;
+      hand.classList.add('tc-pre');
+
+      const deal = () => {
+        const r = cards.map(c => c.getBoundingClientRect()), deck = r[0];
+        hand.classList.remove('tc-pre');
+        cards.forEach((c, i) => {
+          const lean = matchMedia('(max-width:1700px)').matches ? 24 : -36;   // stacked layout: lean into the page, clear of the edge
+          const dx = (deck.left + deck.width / 2) - (r[i].left + r[i].width / 2) + lean;
+          const dy = deck.bottom - r[i].bottom + 14;
+          const s = (deck.width / r[i].width) * .94;
+          lis[i].style.zIndex = String(10 - i);
+          c.animate([{ transform: `translate(${dx}px,${dy}px) rotate(-6deg) scale(${s})` }, { transform: 'none' }],
+            { duration: Math.min(700, 560 + .12 * Math.hypot(dx, dy)), delay: i * 110, easing: E, fill: 'backwards' }).finished.then(() => { lis[i].style.zIndex = ''; });
+          ctas[i].animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: 420 + i * 110, easing: E, fill: 'backwards' });
+        });
+      };
+      const settle = li => {
+        const c = li.querySelector('.tc-card'), b = li.querySelector('.tc-cta');
+        c.style.opacity = b.style.opacity = '';
+        c.animate([{ transform: 'translateY(24px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 550, easing: E, fill: 'backwards' });
+        b.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: 200, easing: E, fill: 'backwards' });
+      };
+
+      if (narrow()) {
+        hand.classList.remove('tc-pre');
+        lis.forEach(li => { li.querySelector('.tc-card').style.opacity = '0'; li.querySelector('.tc-cta').style.opacity = '0'; });
+        const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); settle(e.target); } }), { threshold: .2 });
+        lis.forEach(li => io.observe(li));
+      } else {
+        const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); deal(); } }, { threshold: .55 });
+        io.observe(hand);
+      }
     })();
 
     // ---- 3D wheel (a recycling cylinder of cards) ----
@@ -840,18 +955,36 @@ h2.ih2 .lk2{color:var(--blue-bright)}
     if ('requestIdleCallback' in window) requestIdleCallback(warmRest, { timeout: 4000 }); else setTimeout(warmRest, 2200);
 
     let curX = innerWidth / 2, curY = innerHeight / 2, tmX = 0, tmY = 0;     // tmX/tmY = normalised mouse for the bg shader
-    const cursor = $('#cursor');
+    const cursor = $('#cursor'), curLabel = cursor.querySelector('.cur-label');
+    { // phone menu
+      const btn = $('.menu-btn'), bar = $('.topbar');
+      if (btn) {
+        btn.addEventListener('click', () => { const open = bar.classList.toggle('menu-open'); btn.setAttribute('aria-expanded', open); btn.textContent = open ? 'Close' : 'Menu'; });
+        document.querySelectorAll('#siteNav a').forEach((a) => a.addEventListener('click', () => { bar.classList.remove('menu-open'); btn.setAttribute('aria-expanded', 'false'); btn.textContent = 'Menu'; }));
+      }
+    }
+    // anything clickable changes the cursor: a gold ring, plus a word when the element names its action
+    document.addEventListener('pointerover', (e) => {
+      const t = e.target.closest ? e.target.closest('a,button,summary,[data-cursor]') : null;
+      cursor.classList.toggle('link', !!t);
+      const word = t && t.dataset.cursor;
+      if (word) curLabel.textContent = word;
+      curLabel.classList.toggle('on', !!word);
+    });
 
-    // A fixed set of physical card nodes ride the drum; as it turns they recycle through all N cards.
-    const STEP = 20;                               // degrees between cards on the drum → the wheel's curvature
-    const VIS = Math.ceil(90 / STEP) + 2;          // half-window of slots kept alive on each side of front
-    const POOL = VIS * 2 + 1;                      // physical nodes (< N, so no card is ever shown twice)
-    const insvg = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>`;
+    // The ring: K card nodes stand around the crown; as it turns, the slot passing behind the
+    // crown takes the next chase card, so the whole list cycles through without repeats.
+    const K = Math.max(8, Math.min(14, N));        // cards in the ring
+    const STEP = 360 / K;                          // degrees between neighbours
+    const VIS = K / 2;                             // slots either side of the front
+    const POOL = K;                                // one node per slot, a full circle
+    const TILT = -21;                              // ring tilt (deg): the front swings low past the crown, the back rises behind it
     const nodes = [];
     for (let i = 0; i < POOL; i++) {
       const el = document.createElement('a'); el.className = 'tcard'; el.draggable = false;   // no native link-drag (kills the white drag-hand + jank)
       el.addEventListener('dragstart', (e) => e.preventDefault());
-      el.innerHTML = `<span class="tinspect">Inspect ${insvg}</span><span class="tbr" aria-hidden="true"><i></i><i></i><i></i><i></i></span>`;
+      el.innerHTML = `<span class="tfront"></span><span class="tinspect">Inspect</span><span class="tbr" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="tback" aria-hidden="true"></span>`;
+      el._front = el.firstElementChild;
       el.addEventListener('mouseenter', () => {
         cursor.classList.add('hover');
         if (dragging) return;
@@ -872,14 +1005,58 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       tape.appendChild(el); nodes.push(el);
     }
     let R = 1000;
+    const crownEl = $('#crownGL');
+    const PERSP = 1700;                             // matches .tape-wrap perspective
     const sizeWheel = () => {
       const cw = nodes[0].offsetWidth || 260;
-      R = Math.max((cw * 1.12) / (2 * Math.sin(STEP * Math.PI / 360)), 760);   // radius so neighbours never collide
+      R = Math.max((cw * 1.18) / (2 * Math.sin(STEP * Math.PI / 360)), innerWidth < 760 ? 240 : 520);   // radius so neighbours never collide
       nodes.forEach((el) => el.style.setProperty('--r', R.toFixed(1) + 'px'));
-      tape.style.transform = `translateZ(${(-R).toFixed(1)}px)`;               // push the drum back so the front card sits at z=0
+      // push the ring back so the front card sits at the screen plane, then tilt it
+      tape.style.transform = `translateZ(${(-R).toFixed(1)}px) rotateX(${TILT}deg)`;
+      // the crown lives at the ring's centre (R behind the screen): size it so it reads ~2.3 cards wide
+      if (crownEl) {
+        crownEl.style.setProperty('--crw', (cw * 3.1 * (PERSP + R) / PERSP).toFixed(0) + 'px');
+        crownEl.style.setProperty('--untilt', (-TILT) + 'deg');
+      }
     };
     addEventListener('resize', sizeWheel);
     sizeWheel();
+    // the live 3D crown (gold refractor cards on a black band), turned by the cursor
+    const CROWN_CARDS = ALL.filter((c) => c.local);   // chase cards with a same-origin copy (WebGL needs it)
+    const crown3d = (crownEl && window.CrownMark) ? window.CrownMark.mount(crownEl, {
+      // the crown Faisal picked (27 Oct): the regal ten-point crown with brilliant-cut sapphires (Meshy from
+      // docs/design/crown/shape-b2.png), made symmetric from its best point and cleaned (scripts/crown-symmetrize.py,
+      // crown-clean.py), its black band grown for the cards (crown-band.py). The chase cards ride a belt round that band.
+      pixelRatio: Math.min(1.75, devicePixelRatio || 1), spin: 0.07,
+      // the crown is a Higgsfield turntable video (green keyed out live in crown3d.js), turning on its own;
+      // the real 3D chase cards ride a belt round its black band, in front of it and hidden behind it
+      video: { src: 'assets/crown/crown-turn.mp4?v=1', width: 2.0, y: 0.54, roll: 0.15 },
+      cards: CROWN_CARDS.map((c) => ({ src: c.local })), cardBack: 'assets/card-back.webp?v=6',
+      orbit: { r: 0.9, y: 0.32, h: 0.33, spacing: 1.04, tilt: -0.12, roll: 0.15, crownTurn: 0 },   // below the sapphires, over the band
+      light: 'arcade', envI: 1.3, camera: [[0, 0.95, 3.9], [0, 0.6, 0]], exposure: 1.3,
+    }) : null;
+    // drag turns the crown; a click (no drag) on a front card opens it; hover names the card
+    const cap = $('#crownCap'), crownFront = $('#crownFront');
+    let cdrag = false, cMoved = false, cLastX = 0, cHover = -1;
+    const capFor = (c) => `<b>${c.name}</b><i>${fmt0(c.price)}</i>`;   // "Inspect" lives under the front card
+    if (crown3d && crownEl) {
+      crownEl.addEventListener('pointerdown', (e) => { cdrag = true; cMoved = false; cLastX = e.clientX; crownEl.classList.add('drag'); crown3d.setSpin(0); crownEl.setPointerCapture(e.pointerId); });
+      crownEl.addEventListener('pointermove', (e) => {
+        if (cdrag) { const dx = e.clientX - cLastX; if (Math.abs(dx) > 2) cMoved = true; crown3d.nudge(dx * 0.006); cLastX = e.clientX; return; }
+        const i = crown3d.pick(e.clientX, e.clientY);
+        if (i !== cHover) {
+          cHover = i; crown3d.hover(i);   // a glow, nothing stops or pops (P)
+          if (i >= 0) { cap.innerHTML = capFor(CROWN_CARDS[i]); cap.classList.add('on'); } else cap.classList.remove('on');
+        }
+      });
+      const end = (e) => {
+        if (!cdrag) return; cdrag = false; crownEl.classList.remove('drag'); crown3d.setSpin(0.07);
+        if (!cMoved) { const i = crown3d.pick(e.clientX, e.clientY); if (i >= 0) openInspect(CROWN_CARDS[i]); }
+      };
+      crownEl.addEventListener('pointerup', end); crownEl.addEventListener('pointercancel', () => { cdrag = false; crownEl.classList.remove('drag'); crown3d.setSpin(0.07); });
+      crownEl.addEventListener('pointerleave', () => { if (!cdrag) { cHover = -1; crown3d.hover(-1); cap.classList.remove('on'); } });
+    }
+    addEventListener('resize', () => crown3d && crown3d.resize());
 
     // ---- motion: slow auto-spin; hold-drag to turn; release → momentum ----
     let spin = 0, vel = 0, dragging = false, didDrag = false, dragStartX = 0, spinStart = 0, lastX = 0;
@@ -916,16 +1093,15 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       for (let t = 0; t < POOL; t++) {
         const p = centerP - VIS + t, el = nodes[t];
         const di = ((p % N) + N) % N, c = WHEEL[di];
-        if (el._di !== di) { el._di = di; el._card = c; el.style.backgroundImage = `url('${c.img}')`; el.href = inspectHref(c); el.dataset.game = c.game; }
+        if (el._di !== di) { el._di = di; el._card = c; el._front.style.backgroundImage = `url('${c.img}')`; el.href = inspectHref(c); el.dataset.game = c.game; }
         const face = p * STEP + rot, fa = Math.abs(face);   // facing angle: 0 = dead centre
         el._slotFace = face;                                  // snapshot for hover-to-centre
         el.style.setProperty('--a', face.toFixed(2) + 'deg');
-        const op = fa > 97 ? 0 : fa > 60 ? Math.max(0, 1 - (fa - 60) / 37) : 1;
-        el.style.opacity = op.toFixed(3);
-        el.style.filter = `brightness(${(0.55 + 0.45 * Math.max(0, Math.cos(face * DTR))).toFixed(3)})`;
-        el.style.zIndex = String(1000 - Math.round(fa));
-        el.style.pointerEvents = op < 0.25 ? 'none' : 'auto';
-        if (fa < frontAbs) { frontAbs = fa; frontEl = el; }
+        // depth shading through a CSS var (filter/opacity would flatten the card's 3D back face)
+        const fw = ((face % 360) + 540) % 360 - 180, faw = Math.abs(fw);   // wrapped facing angle
+        el.style.setProperty('--dim', (0.62 * (1 - Math.max(0, Math.cos(fw * DTR)))).toFixed(3));
+        el.style.pointerEvents = faw > 80 ? 'none' : 'auto';            // the far side isn't clickable
+        if (faw < frontAbs) { frontAbs = faw; frontEl = el; }
       }
       for (let t = 0; t < POOL; t++) nodes[t].classList.toggle('front', nodes[t] === frontEl && frontAbs < STEP * 0.7);
     };
@@ -946,6 +1122,8 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       setBg((n >> 16) & 255, (n >> 8) & 255, n & 255);               // instant fallback = universe colour
       // fetch the art as a CORS blob → ImageBitmap → canvas is untainted, so pixels are readable.
       // CDNs that don't allow CORS just reject and we keep the universe-accent fallback.
+      // TCGplayer's CDN never allows it, so don't even ask (it would log a console error).
+      if (/tcgplayer-cdn\.tcgplayer\.com/.test(c.img)) return;
       fetch(c.img, { mode: 'cors' }).then((res) => res.ok ? res.blob() : Promise.reject()).then(createImageBitmap).then((bm) => {
         const cv = document.createElement('canvas'); cv.width = 18; cv.height = 25;
         const x = cv.getContext('2d'); x.drawImage(bm, 0, 0, 18, 25);
@@ -988,22 +1166,28 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       tintBackdrop(c);   // backdrop glow takes on the card's own colour
       $('#insUni').textContent = UNI[c.game] || c.game;
       $('#insName').textContent = c.name;
-      $('#insSet').textContent = c.set ? `Set ${c.set} · #${c.num}` : '';
+      $('#insSet').textContent = c.set ? `#${c.num} · ${c.setName || c.set}` : '';
       $('#insPrice').textContent = c.price != null ? fmt0(c.price) : 'Untracked';
-      const up = c.pct >= 0, tr = $('#insTrend');
-      tr.textContent = `${up ? '▲' : '▼'} ${Math.abs(c.pct).toFixed(1)}%`;
+      // trend + line only from real data: the Cardmarket 30-day, 7-day and 1-day averages
+      // (cm) when the card has them; otherwise no trend and no line, never an invented one
+      const hasPct = typeof c.pct === 'number', up = hasPct && c.pct >= 0, tr = $('#insTrend');
+      tr.textContent = hasPct ? `${up ? '▲' : '▼'} ${Math.abs(c.pct).toFixed(1)}%` : '';
       tr.className = 'ins-trend ' + (up ? 'up' : 'down');
       $('#insOpen').href = inspectHref(c);
-      const r = rng(seed(c.name + 'spk')); let v = 36; const pts = [];
-      for (let i = 0; i <= 32; i++) { v += (r() - 0.46) * 9; v = Math.max(8, Math.min(56, v)); pts.push(v); }
-      pts[pts.length - 1] = up ? Math.max(pts[pts.length - 1], 44) : Math.min(pts[pts.length - 1], 22);
-      const X = (i) => (i / 32) * 280, Y = (val) => 60 - val;
-      let d = `M0 ${Y(pts[0]).toFixed(1)}`; pts.forEach((p, i) => d += ` L${X(i).toFixed(1)} ${Y(p).toFixed(1)}`);
-      const col = up ? '#56ff9b' : '#ff6b6b';
-      $('#insSpark').innerHTML = `<path d="${d} L280 64 L0 64 Z" fill="${col}" fill-opacity=".12"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
+      const spark = $('#insSpark');
+      if (Array.isArray(c.cm) && c.cm.every((x) => typeof x === 'number')) {
+        const lo = Math.min(...c.cm), hi = Math.max(...c.cm), span = (hi - lo) || 1;
+        const X = [8, 196, 272], Y = (v) => 54 - (v - lo) / span * 44;
+        const d = c.cm.map((v, i) => `${i ? 'L' : 'M'}${X[i]} ${Y(v).toFixed(1)}`).join(' ');
+        const col = c.cm[2] >= c.cm[0] ? '#56ff9b' : '#ff6b6b';
+        spark.innerHTML = `<path d="${d} L272 64 L8 64 Z" fill="${col}" fill-opacity=".12"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`
+          + c.cm.map((v, i) => `<circle cx="${X[i]}" cy="${Y(v).toFixed(1)}" r="3" fill="${col}"/>`).join('');
+        spark.setAttribute('aria-label', `Cardmarket average: 30 days €${c.cm[0].toFixed(2)}, 7 days €${c.cm[1].toFixed(2)}, today €${c.cm[2].toFixed(2)}`);
+        spark.hidden = false;
+      } else { spark.innerHTML = ''; spark.hidden = true; }
       $('#insStats').innerHTML = [
-        ['Universe', UNI[c.game] || c.game], ['Set', c.set || '—'],
-        ['Card №', c.num ? ('#' + c.num) : '—'], ['30-day', `${up ? '+' : ''}${c.pct.toFixed(1)}%`],
+        ...(hasPct ? [['30-day move', `${up ? '+' : ''}${c.pct.toFixed(1)}%`]] : []),
+        ...(c.variant ? [['Printing', c.variant]] : []),
       ].map(([k, v]) => `<div class="ins-stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
       inspectEl.hidden = false; requestAnimationFrame(() => inspectEl.classList.add('on'));
     }
@@ -1053,8 +1237,8 @@ h2.ih2 .lk2{color:var(--blue-bright)}
             float g = clamp(uv.x * 0.45 + (1.0 - uv.y) * 0.7, 0.0, 1.0);
             vec3 base = mix(vec3(0.055,0.085,0.24), vec3(0.008,0.015,0.06), g);   // deep navy → near-black field
             base += vec3(0.012, 0.020, 0.055) * smoothstep(0.55, 0.92, n);        // hypsometric lift: high ground reads brighter
-            vec3 lineWhite = mix(vec3(0.9,0.94,1.0), vec3(0.5,0.58,0.78), g);   // white, less pronounced, dims with depth
-            float lineStr = line * (0.3 + 0.14 * (1.0 - g));  // softer; no glow halo → no blotches
+            vec3 lineWhite = mix(vec3(0.42,0.64,1.0), vec3(0.24,0.4,0.95), g);   // saturated blue (P: not vibrant enough), deepening with depth
+            float lineStr = line * (0.4 + 0.16 * (1.0 - g));  // no glow halo → no blotches
             // a slow surveyor's light sweeps the map (~50s period) — lines catch a warm glint
             float sw = fract(uv.x * 0.55 - uv.y * 0.18 - uTime * 0.02);
             float sweep = exp(-pow((sw - 0.5) * 7.0, 2.0));
@@ -1079,17 +1263,20 @@ h2.ih2 .lk2{color:var(--blue-bright)}
 
     let last = 0, mqX = 0, mq2X = 0, tkX = 0;
     const DEG = Math.PI / 180;
-    // ---- Spotlight interactivity: cursor-parallax card + rAF title sheen (CSS anims freeze on this machine) ----
-    const spSection = $('.spotlight-section'), spCard = $('.sp-cardinner'), spBtn = $('.sp-card-btn');
-    let spTX = 0, spTY = 0, spCX = 0, spCY = 0;
-    if (spSection) {
-      spSection.addEventListener('mousemove', (e) => { const r = spSection.getBoundingClientRect(); spTX = ((e.clientX - r.left) / r.width - .5) * 2; spTY = ((e.clientY - r.top) / r.height - .5) * 2; });
-      spSection.addEventListener('mouseleave', () => { spTX = 0; spTY = 0; });
-    }
-    if (spBtn) spBtn.addEventListener('click', () => flyToInspect(cotmLead, spBtn.querySelector('.sp-card')));
     function frame(now) {
       const dt = last ? Math.min((now - last) / 1000, 0.05) : 0; last = now;
-      spinWheel(dt);
+      if (!crown3d) spinWheel(dt);   // the DOM ring only runs if the 3D crown is unavailable
+      if (crown3d && scrollY < innerHeight * 1.2) {   // skip the GPU work once the hero is scrolled away
+        crown3d.render(now, tmX, tmY);
+        const fr = crown3d.front(), fe = crownFront;
+        if (fe) {
+          fe.classList.toggle('on', !!fr && !cdrag);
+          if (fr) {   // centred on the card, turned to its tilt
+            fe.style.width = fr.w.toFixed(1) + 'px'; fe.style.height = fr.h.toFixed(1) + 'px';
+            fe.style.transform = `translate(${(fr.cx - fr.w / 2).toFixed(1)}px,${(fr.cy - fr.h / 2).toFixed(1)}px) rotate(${fr.angle.toFixed(4)}rad)`;
+          }
+        }
+      }
       cursor.style.left = curX + 'px'; cursor.style.top = curY + 'px';
       mqX -= 24 * dt; mq2X += 20 * dt;
       const mqW = mqTrack.scrollWidth / 2, mq2W = mqTrack2.scrollWidth / 2, tkW = tkTrack.scrollWidth / 2;
@@ -1097,17 +1284,16 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       mqTrack.style.transform = `translateX(${mqX}px)`;
       mqTrack2.style.transform = `translateX(${mq2X}px)`;
       tkTrack.style.transform = `translateX(${tkX}px)`;
-      // spotlight: ease cursor parallax + gentle float on the card (background is the Three.js scene)
-      spCX += (spTX - spCX) * .08; spCY += (spTY - spCY) * .08;
-      if (spCard) spCard.style.transform = `rotateY(${spCX * 11 - 4}deg) rotateX(${2 - spCY * 7}deg) translateY(${Math.sin(now / 1000) * 16}px)`;
       bgRender(now);
       requestAnimationFrame(frame);
     }
 
     // marquee — two rows
-    const MWORDS = [['pokemon','logo'],['magic','logo'],['onepiece','logo'],['lorcana','logo'],['THE ULTIMATE CARD TRACKER','dim'],['THE INDEX — EVERY UNIVERSE, ONE FEED','gold']];
+    // each game's logo is followed by its newest set's wordmark (P: put the new set logos in the sliding band)
+    const MWORDS = [['pokemon','logo'],['30th','set'],['magic','logo'],['mtg-fra','set'],['onepiece','logo'],['op-OP17','set'],['lorcana','logo'],['lor-14','set'],['EVERY UNIVERSE, ONE FEED','gold']];
     const mw = (arr) => arr.map(([w, c]) => (c === 'logo'
       ? `<img class="mw mw-logo" data-g="${w}" src="assets/logos/${w}.png?v=79" alt="">`
+      : c === 'set' ? `<img class="mw mw-set" data-s="${w}" src="assets/setlogos/${w}.${w.startsWith('lor-') ? 'webp' : 'png'}" alt="">`
       : `<span class="mw ${c}">${w}</span>`) + `<span class="mw star">✦</span>`).join('');
     const mqTrack = $('#mq'), mqTrack2 = $('#mq2');
     mqTrack.innerHTML = mw(MWORDS) + mw(MWORDS);
@@ -1115,39 +1301,46 @@ h2.ih2 .lk2{color:var(--blue-bright)}
 
     // ticker — most-trending first (biggest movers, up or down)
     const tkTrack = $('#tk');
-    const tkHTML = [...ALL].sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).map((c) => {
-      const up = c.pct >= 0, pr = c.price != null ? fmt0(c.price) : '—';
-      const chg = c.price != null ? `<span class="c ${up ? 'up' : 'down'}">${up ? '▲' : '▼'}${Math.abs(c.pct).toFixed(1)}%</span>` : `<span class="c">ENCH</span>`;
+    // only cards with a real 30-day move ride the ticker
+    const tkHTML = ALL.filter((c) => typeof c.pct === 'number' && c.price != null).sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).map((c) => {
+      const up = c.pct >= 0, pr = fmt0(c.price);
+      const chg = `<span class="c ${up ? 'up' : 'down'}">${up ? '▲' : '▼'}${Math.abs(c.pct).toFixed(1)}%</span>`;
       return `<span class="ti"><span class="nm">${c.name.toUpperCase()}</span><span class="pr">${pr}</span>${chg}</span><span class="sep">·</span>`;
     }).join('');
     tkTrack.innerHTML = tkHTML + tkHTML;
 
-    // ---- Spotlight background — Three.js: scrolling grid floor + soft glow + gold embers, transparent so it blends with the page ----
+    // ---- Spotlight light — Three.js. The grid floor is a 3D plane; the followspot (beam, pool, the cards' floor
+    // shadows) is drawn in screen space from the DOM cards' rects, so it always lands on the card it lights ----
     (() => {
-      const cv = document.getElementById('spotGL'); if (!cv || !window.THREE) return;
+      const cv = document.getElementById('spotGL'), sec = cv && cv.parentElement; if (!cv || !window.THREE) return;
       const T = window.THREE;
       const renderer = new T.WebGLRenderer({ canvas: cv, alpha: true, antialias: true });
-      renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+      const PR = Math.min(2, devicePixelRatio || 1); renderer.setPixelRatio(PR); renderer.autoClear = false;
       const scene = new T.Scene();
       const camera = new T.PerspectiveCamera(46, 1, 0.1, 120);
-      camera.position.set(0, 2.1, 11.3); camera.lookAt(0, 0.95, -10.5);   // pulled in even closer — more intimate perspective right at the cards
+      camera.position.set(0, 2.1, 11.3); camera.lookAt(0, 0.95, -10.5);
+      // shared by the floor (its grid catches the pool) and the light pass; device px, origin bottom-left
+      const U = { hit: { value: new T.Vector2() }, rad: { value: new T.Vector2(1, 1) }, amt: { value: 0 } };
 
-      // grid floor — derivative-based crisp lines (no aliasing), scrolling, fading near & far by true distance
+      // grid floor — derivative-based crisp lines, scrolling, fading near & far by true distance
       const floorMat = new T.ShaderMaterial({
         transparent: true, depthWrite: false, extensions: { derivatives: true },
-        uniforms: { uTime: { value: 0 }, uColor: { value: new T.Color('#5b8cff') }, uCam: { value: new T.Vector3() } },
+        uniforms: { uTime: { value: 0 }, uColor: { value: new T.Color('#5b8cff') }, uCam: { value: new T.Vector3() }, uHit: U.hit, uRad: U.rad, uAmt: U.amt },
         vertexShader: 'varying vec2 vUv; varying vec3 vWorld; void main(){ vUv=uv; vec4 wp=modelMatrix*vec4(position,1.0); vWorld=wp.xyz; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
         fragmentShader:
-          'varying vec2 vUv; varying vec3 vWorld; uniform float uTime; uniform vec3 uColor; uniform vec3 uCam;\n' +
+          'varying vec2 vUv; varying vec3 vWorld; uniform float uTime; uniform vec3 uColor; uniform vec3 uCam; uniform vec2 uHit; uniform vec2 uRad; uniform float uAmt;\n' +
           'void main(){\n' +
-          '  float vDist = length(vWorld - uCam);\n' +            // PER-FRAGMENT distance — the 1-segment plane made per-vertex vDist a crude corner-interp (~32+), so the front never actually faded
+          '  float vDist = length(vWorld - uCam);\n' +
           '  vec2 c = vec2(vUv.x*240.0, vUv.y*120.0 + uTime*0.5);\n' +
           '  vec2 gr = abs(fract(c-0.5)-0.5) / fwidth(c);\n' +
           '  float line = 1.0 - min(min(gr.x, gr.y), 1.0);\n' +
-          '  float near = smoothstep(11.0, 33.0, vDist);\n' +     // the whole FRONT (toward us) now truly fades to nothing
-          '  float far  = 1.0 - smoothstep(42.0, 80.0, vDist);\n' + // long gradual fade into the horizon
-          '  float soft = mix(1.0, 0.4, smoothstep(48.0, 80.0, vDist));\n' + // soften (blur) distant lines so they melt in
-          '  gl_FragColor = vec4(uColor, line * near * far * soft * 0.62);\n' +
+          '  float near = smoothstep(11.0, 33.0, vDist);\n' +
+          '  float far  = 1.0 - smoothstep(42.0, 80.0, vDist);\n' +
+          '  float soft = mix(1.0, 0.4, smoothstep(48.0, 80.0, vDist));\n' +
+          '  vec2 q = (gl_FragCoord.xy - uHit) / uRad;\n' +
+          '  float pool = exp(-dot(q, q) * 1.6) * uAmt;\n' +          // the grid lines inside the pool catch the light
+          '  vec3 col = mix(uColor, vec3(0.88, 0.94, 1.0), pool * 0.85);\n' +
+          '  gl_FragColor = vec4(col, line * soft * far * max(near, pool) * (0.62 + pool * 1.1));\n' +
           '}'
       });
       const floor = new T.Mesh(new T.PlaneGeometry(240, 120), floorMat);
@@ -1155,57 +1348,91 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       floorMat.uniforms.uCam.value.copy(camera.position);
       scene.add(floor);
 
-      // soft additive glow behind the card
-      const gc = document.createElement('canvas'); gc.width = gc.height = 256;
-      const gx = gc.getContext('2d'); const gg = gx.createRadialGradient(128, 128, 0, 128, 128, 128);
-      gg.addColorStop(0, 'rgba(172,196,255,0.92)'); gg.addColorStop(0.36, 'rgba(95,130,240,0.5)'); gg.addColorStop(0.7, 'rgba(50,72,180,0.18)'); gg.addColorStop(1, 'rgba(0,0,0,0)');
-      gx.fillStyle = gg; gx.fillRect(0, 0, 256, 256);
-      const glow = new T.Mesh(new T.PlaneGeometry(34, 26), new T.MeshBasicMaterial({ map: new T.CanvasTexture(gc), transparent: true, blending: T.AdditiveBlending, depthWrite: false }));
-      glow.position.set(0, 3.2, -9); scene.add(glow);
-
-      // VOLUMETRIC SPOTLIGHT — a real cone of light in the room, from a lamp
-      // high above the stage down onto the centre card. Soft-volume trick:
-      // brightness rides the view-facing of the surface (silhouette melts),
-      // a height gradient keeps it hot at the throat, and it breathes.
-      const coneMat = new T.ShaderMaterial({
-        transparent: true, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide,
-        uniforms: { uTime: { value: 0 } },
-        vertexShader: 'varying vec2 vUv; varying vec3 vN; void main(){ vUv=uv; vN=normalize(normalMatrix*normal); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+      // the light, in screen space: a lamp above the top edge, a soft-edged beam to the lit card, its pool on the floor,
+      // and the air glowing around the card. Pure additive (colour adds, alpha stays), so it only ever lights the page.
+      const fx = new T.Scene(), flat = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1), quad = new T.PlaneGeometry(2, 2);
+      const lightMat = new T.ShaderMaterial({
+        transparent: true, depthTest: false, depthWrite: false,
+        blending: T.CustomBlending, blendSrc: T.OneFactor, blendDst: T.OneFactor, blendSrcAlpha: T.ZeroFactor, blendDstAlpha: T.OneFactor,
+        uniforms: { uTime: { value: 0 }, uLamp: { value: new T.Vector2() }, uGlow: { value: new T.Vector3(0, 0, 1) }, uHit: U.hit, uRad: U.rad, uAmt: U.amt },
+        vertexShader: 'void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); }',
         fragmentShader:
-          'varying vec2 vUv; varying vec3 vN; uniform float uTime;\n' +
+          'uniform float uTime; uniform vec2 uLamp; uniform vec3 uGlow; uniform vec2 uHit; uniform vec2 uRad; uniform float uAmt;\n' +
           'void main(){\n' +
-          '  float body = pow(abs(normalize(vN).z), 2.2);\n' +               // facing = bright, rim = air
-          '  float up = vUv.y;\n' +                                          // 1 at the lamp, 0 at the floor
-          '  float ht = (0.34 + 0.66*smoothstep(0.05, 0.95, up)) * smoothstep(0.0, 0.12, up);\n' +
-          '  float breathe = 0.9 + 0.1*sin(uTime*0.9)*sin(uTime*0.37+1.3);\n' +
-          '  float dust = 0.92 + 0.08*sin(vUv.y*34.0 - uTime*0.7);\n' +
-          '  gl_FragColor = vec4(vec3(0.74, 0.82, 1.0), body * ht * breathe * dust * 0.36);\n' +
+          '  vec2 p = gl_FragCoord.xy, ax = uHit - uLamp; float L = length(ax); vec2 dir = ax / L;\n' +
+          '  float t = dot(p - uLamp, dir) / L;\n' +                              // 0 at the lamp, 1 on the floor
+          '  float d = abs(dot(p - uLamp, vec2(-dir.y, dir.x)));\n' +              // distance from the beam's axis
+          '  float w = mix(uRad.x * 0.06, uRad.x * 0.9, clamp(t, 0.0, 1.1));\n' +
+          '  float body = smoothstep(w, w * 0.3, d) * smoothstep(0.0, 0.22, t) * (1.0 - smoothstep(0.96, 1.06, t));\n' +
+          '  float hot = mix(1.0, 0.5, clamp(t, 0.0, 1.0));\n' +                  // hotter at the throat
+          '  float dust = 0.9 + 0.1 * sin(t * 38.0 - uTime * 0.8) * sin(d * 0.04 + uTime * 0.3);\n' +
+          '  vec2 q = (p - uHit) / uRad; float pool = exp(-dot(q, q) * 1.6);\n' +
+          '  vec2 g = (p - uGlow.xy) / uGlow.z; float air = exp(-dot(g, g) * 1.3);\n' +
+          '  vec3 col = vec3(0.74, 0.84, 1.0) * body * hot * dust * 0.66 + vec3(0.62, 0.76, 1.0) * pool * 0.72 + vec3(0.34, 0.46, 0.98) * air * 0.24;\n' +
+          '  gl_FragColor = vec4(col * uAmt, 0.0);\n' +
           '}'
       });
-      const cone = new T.Mesh(new T.CylinderGeometry(0.6, 7.6, 17, 48, 1, true), coneMat);
-      cone.position.set(0, 6.4, -9);                       // throat offscreen top, mouth lands on the card/floor
-      scene.add(cone);
-      // the hit pool: a hot ellipse on the floor where the beam lands
-      const pc = document.createElement('canvas'); pc.width = pc.height = 256;
-      const px = pc.getContext('2d'); const pg = px.createRadialGradient(128, 128, 0, 128, 128, 128);
-      pg.addColorStop(0, 'rgba(198,214,255,0.85)'); pg.addColorStop(0.4, 'rgba(120,150,240,0.32)'); pg.addColorStop(1, 'rgba(0,0,0,0)');
-      px.fillStyle = pg; px.fillRect(0, 0, 256, 256);
-      const pool = new T.Mesh(new T.PlaneGeometry(15.4, 8.6), new T.MeshBasicMaterial({ map: new T.CanvasTexture(pc), transparent: true, blending: T.AdditiveBlending, depthWrite: false }));
-      pool.rotation.x = -Math.PI / 2; pool.position.set(0, -1.78, -9.4);
-      scene.add(pool);
+      fx.add(new T.Mesh(quad, lightMat));
+      // each card's shadow on the floor: darker and tighter under the lit card (it blocks the beam)
+      const NSH = 5, shadowMat = new T.ShaderMaterial({
+        transparent: true, depthTest: false, depthWrite: false,
+        uniforms: { uS: { value: Array.from({ length: NSH }, () => new T.Vector4()) } },
+        vertexShader: 'void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); }',
+        fragmentShader:
+          'uniform vec4 uS[' + NSH + '];\n' +
+          'void main(){ vec2 p = gl_FragCoord.xy; float a = 0.0;\n' +
+          '  for (int i = 0; i < ' + NSH + '; i++) { vec2 q = (p - uS[i].xy) / vec2(uS[i].z, uS[i].z * 0.17); a = max(a, exp(-dot(q, q) * 2.0) * uS[i].w); }\n' +
+          '  gl_FragColor = vec4(0.0, 0.0, 0.0, a); }'
+      });
+      const shadowMesh = new T.Mesh(quad, shadowMat); shadowMesh.renderOrder = 2; fx.add(shadowMesh);
 
-      function resize() { const r = cv.parentElement.getBoundingClientRect(); const w = Math.max(2, r.width | 0), h = Math.max(2, r.height | 0); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
-      resize(); addEventListener('resize', resize); if (window.ResizeObserver) new ResizeObserver(resize).observe(cv.parentElement);
-      let vis = true; if ('IntersectionObserver' in window) new IntersectionObserver((e) => { vis = e[0].isIntersecting; }, { rootMargin: '200px' }).observe(cv.parentElement);
-      const clock = new T.Clock();
+      let W = 2, H = 2;
+      function resize() { const r = sec.getBoundingClientRect(); W = Math.max(2, r.width | 0); H = Math.max(2, r.height | 0); renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix(); }
+      resize(); addEventListener('resize', resize); if (window.ResizeObserver) new ResizeObserver(resize).observe(sec);
+      let vis = true; if ('IntersectionObserver' in window) new IntersectionObserver((e) => { vis = e[0].isIntersecting; }, { rootMargin: '200px' }).observe(sec);
+
+      // the light stays on the middle card (P: nothing follows the mouse)
+      const cards = [...sec.querySelectorAll('.sp-c')];
+      const lead = Math.max(0, cards.findIndex((b) => b.dataset.i === '0')), target = lead;
+
+      const beam = { x: 0, y: 0, w: 0, h: 0, ok: false };   // eased, CSS px within the section
+      const turn = cards.map(() => 0);
+      const ease = (a, b, k) => a + (b - a) * k;
+      const clock = new T.Clock(); let lastT = 0;
       (function tick() {
-        if (vis) { const t = clock.getElapsedTime(); floorMat.uniforms.uTime.value = t; coneMat.uniforms.uTime.value = t; renderer.render(scene, camera); }
         requestAnimationFrame(tick);
+        if (!vis) return;
+        const t = clock.getElapsedTime(), dt = Math.min(0.05, t - lastT); lastT = t;
+        // read every rect first, then write (no layout thrash)
+        const sr = sec.getBoundingClientRect();
+        const rs = cards.map((b) => (b.offsetWidth ? b.getBoundingClientRect() : null));
+        const tr = rs[target] || rs[lead];
+        if (tr) {
+          const tx = tr.left - sr.left + tr.width / 2, ty = tr.bottom - sr.top, k = beam.ok ? 1 - Math.exp(-dt * 6.5) : 1;
+          beam.x = ease(beam.x, tx, k); beam.y = ease(beam.y, ty, k); beam.w = ease(beam.w, tr.width, k); beam.h = ease(beam.h, tr.height, k); beam.ok = true;
+        }
+        const amt = SP_LIGHT.v;
+        U.amt.value = amt;
+        U.hit.value.set(beam.x * PR, (H - beam.y - beam.h * 0.05) * PR);
+        U.rad.value.set(beam.w * 1.25 * PR, beam.w * 0.34 * PR);
+        lightMat.uniforms.uLamp.value.set((W / 2 + (beam.x - W / 2) * 0.22) * PR, (H + H * 0.32) * PR);
+        lightMat.uniforms.uGlow.value.set(beam.x * PR, (H - beam.y + beam.h * 0.5) * PR, beam.h * 0.95 * PR);
+        // each card: how much of the beam it's in, where on it the light falls, its turn toward the light, a gentle float
+        rs.forEach((r, k) => {
+          const sh = shadowMat.uniforms.uS.value[k];
+          if (!r) { sh.set(0, 0, 1, 0); return; }
+          const cx = r.left - sr.left + r.width / 2;
+          const lit = Math.max(0, 1 - Math.abs(beam.x - cx) / (r.width * 0.8)) * amt;
+          const side = Math.sign(k - lead);
+          turn[k] = ease(turn[k], (k === target ? 0 : -side * 12), 1 - Math.exp(-dt * 5));   // the lit card turns to face you; nothing bobs (G3)
+          cards[k].firstElementChild.style.transform = `rotateY(${turn[k].toFixed(2)}deg)`;
+          sh.set(cx * PR, (H - (r.bottom - sr.top) - 6) * PR, r.width * (0.5 + lit * 0.12) * PR, 0.3 + lit * 0.28);
+        });
+        renderer.clear();
+        renderer.render(scene, camera);
+        if (amt > 0.001) renderer.render(fx, flat);
       })();
 
-      // chrome title: slow gentle float (GSAP; CSS keyframes freeze here)
-      const titleEl = document.querySelector('.sp-title-wrap');
-      if (titleEl && window.gsap) gsap.to(titleEl, { y: -8, duration: 3.8, ease: 'sine.inOut', repeat: -1, yoyo: true });
     })();
 
     // ---- Spotlight embers — soft gold motes drifting up (the original 2D embers, recolored gold) ----
@@ -1252,52 +1479,42 @@ h2.ih2 .lk2{color:var(--blue-bright)}
     // ---- scroll choreography: elegant, staged reveal of every section (GSAP + ScrollTrigger) ----
     (() => {
       const ST = window.ScrollTrigger;
-      if (!window.gsap || !ST) { document.querySelectorAll('.reveal').forEach((el) => { el.style.opacity = 1; el.style.transform = 'none'; }); return; }
+      if (!window.gsap || !ST) { SP_LIGHT.v = 1; document.querySelectorAll('.reveal').forEach((el) => { el.style.opacity = 1; el.style.transform = 'none'; }); return; }
       gsap.registerPlugin(ST);
       const q = (s) => document.querySelector(s), qa = (s) => gsap.utils.toArray(s);
       const onView = (sel, fn, start) => { const t = typeof sel === 'string' ? q(sel) : sel; if (t) ST.create({ trigger: t, start: start || 'top 80%', once: true, onEnter: fn }); };
       const SP = '.spotlight-section';
 
       // generic .reveal (info copy, stat row, faq) = a clean fade-up; the specially
-      // choreographed blocks (index stage, price cards) are handled below.
-      const special = new Set([...document.querySelectorAll('.src-strip, .price-card')]);
+      // choreographed blocks (index stage) are handled below; pricing runs its own deal.
+      const special = new Set([...document.querySelectorAll('.src-strip')]);
       document.querySelectorAll('.reveal').forEach((el) => { if (special.has(el)) return; onView(el, () => gsap.to(el, { opacity: 1, y: 0, duration: .8, ease: 'power3.out' })); });
 
-      // SPOTLIGHT — the showpiece. .sp-cardinner / #mq / tape cards have live rAF transforms;
-      // never touch them — entrance rides .sp-card-btn / .sp-crown / .sp-side-* / .sp-cap.
-      const spTitle = q(SP + ' .sp-title-wrap'), spCrown = q(SP + ' .sp-crown'), spBtn = q(SP + ' .sp-card-btn'),
-            spL = q(SP + ' .sp-side-l'), spR = q(SP + ' .sp-side-r'), spL2 = q(SP + ' .sp-side-l2'), spR2 = q(SP + ' .sp-side-r2'), spCap = q(SP + ' .sp-cap'),
-            spName = q('#spName'), spStats = q('#spStats'), spPanels = qa(SP + ' .sp-panel');
-      [spTitle, spCrown, spBtn, spL, spR, spL2, spR2, spCap, ...spPanels].forEach((el) => el && gsap.set(el, { opacity: 0 }));
+      // SPOTLIGHT — the showpiece. .sp-cf (float + turn) and #mq have live rAF transforms and .sp-ci owns the
+      // hover scale; never touch them — the entrance rides .sp-c, the title, the caption and the lamp level.
+      const spTitle = q(SP + ' .sp-title-wrap'), spCards = qa(SP + ' .sp-c'), spCapW = q(SP + ' .sp-capwrap');
+      [spTitle, spCapW].forEach((el) => el && gsap.set(el, { opacity: 0 }));
+      gsap.set(spCards, { opacity: 0 });
       if (spTitle) gsap.set(spTitle, { scale: .82 });
-      // the runners' SEATS live here (gsap-owned; see the .sp-side CSS note)
-      if (spL) gsap.set(spL, { xPercent: -172, yPercent: -46, rotation: -7, scale: .94 });
-      if (spR) gsap.set(spR, { xPercent: 72, yPercent: -46, rotation: 7, scale: .94 });
-      // pre-decode the spotlight card art well before it scrolls in — decode jank
-      // mid-tween was what read as "choppy"
+      // pre-decode the spotlight card art well before it scrolls in: decode jank mid-tween reads as "choppy"
       onView(SP, () => document.querySelectorAll(`${SP} img`).forEach((im) => { if (im.decode) im.decode().catch(() => {}); }), 'top 160%');
-      // SCRUBBED pour: the reveal rides the scrollbar itself, so it can only
-      // glide — a time-based tween under frame pressure is what read as "snap".
-      // The footlights wake first, then the cards rise into their beams.
+      // SCRUBBED: the reveal rides the scrollbar itself, so it can only glide. The lamp comes up first,
+      // then the cards rise into the light from the centre outwards.
       {
         const pour = gsap.timeline({
           scrollTrigger: { trigger: SP, start: 'top 88%', end: 'top 26%', scrub: 0.7 },
           defaults: { ease: 'none', force3D: true },
         });
         if (spTitle) pour.to(spTitle, { opacity: 1, scale: 1, duration: .55 }, .02);
-        if (spBtn)   pour.fromTo(spBtn, { opacity: 0, yPercent: 24, scale: .84 }, { opacity: 1, yPercent: 0, scale: 1, duration: .8 }, .08);
-        if (spL) pour.fromTo(spL, { opacity: 0, xPercent: -300, rotation: -7 }, { opacity: 1, xPercent: -172, rotation: -7, duration: .72 }, .2);
-        if (spR) pour.fromTo(spR, { opacity: 0, xPercent: 300, rotation: 7 }, { opacity: 1, xPercent: 72, rotation: 7, duration: .72 }, .26);
-        if (spL2) pour.fromTo(spL2, { opacity: 0, xPercent: -430 }, { opacity: 1, xPercent: -294, duration: .72 }, .32);
-        if (spR2) pour.fromTo(spR2, { opacity: 0, xPercent: 430 }, { opacity: 1, xPercent: 194, duration: .72 }, .36);
-        if (spCrown) pour.fromTo(spCrown, { opacity: 0, yPercent: -34, scale: 1.4 }, { opacity: 1, yPercent: 0, scale: 1, duration: .62 }, .42);
-        if (spCap) pour.to(spCap, { opacity: 1, duration: .4 }, .58);
-        if (spName) pour.fromTo(spName, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: .5 }, .62);
-        if (spStats) pour.fromTo(spStats, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: .42 }, .7);
-        // the flank panels slide in from their edges once the trio is seated
-        spPanels.forEach((p, i) => pour.fromTo(p, { opacity: 0, x: p.classList.contains('sp-graphpanel') ? 36 : -36 },
-          { opacity: 1, x: 0, duration: .5 }, .55 + i * .07));
+        pour.to(SP_LIGHT, { v: 1, duration: .5 }, .06);
+        [...spCards].sort((a, b) => a.dataset.tier - b.dataset.tier)
+          .forEach((el, k) => pour.fromTo(el, { opacity: 0, yPercent: 26, scale: .86 }, { opacity: 1, yPercent: 0, scale: 1, duration: .7 }, .12 + k * .07));
+        // the wings slide in toward their cards once the side cards are up
+        qa(SP + ' .sp-wing').forEach((el) => pour.fromTo(el, { opacity: 0, x: el.dataset.side === 'l' ? -28 : 28 }, { opacity: 1, x: 0, duration: .45 }, .44));
+        if (spCapW) pour.fromTo(spCapW, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: .45 }, .6);
+        const spSets = q('#spSets'); if (spSets) pour.fromTo(spSets, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: .45 }, .66);
       }
+
 
       // MARQUEE — the two rows slide in from opposite edges (tracks scroll via rAF; move the parents).
       const rows = qa('.band .marquee');
@@ -1311,37 +1528,25 @@ h2.ih2 .lk2{color:var(--blue-bright)}
         gsap.from('.srcchip', { opacity: 0, y: 16, duration: .6, stagger: .07, ease: 'power3.out', delay: .08, clearProps: 'opacity,transform' });
       });
 
-      // PRICING — Free / Premium / Collector scale + fade in, in sequence (FAQ stays calm).
-      const cards = qa('.price-grid .price-card');
-      cards.forEach((c) => gsap.set(c, { opacity: 0, scale: .94 }));
-      onView('.pricing', () => gsap.to(cards, { opacity: 1, scale: 1, duration: .8, stagger: .13, ease: 'power3.out' }), 'top 78%');
 
       addEventListener('load', () => ST.refresh());
       ST.refresh();
     })();
 
-    // ---- micro-interactions: header scroll veil, magnetic CTAs, pricing tilt ----
+    // ---- micro-interactions: header scroll veil, magnetic CTAs ----
     (() => {
       const topbar = $('.topbar');
       const onScroll = () => topbar && topbar.classList.toggle('scrolled', scrollY > 40);
       addEventListener('scroll', onScroll, { passive: true }); onScroll();
       if (!window.gsap) return;
       // magnetic buttons — they lean toward the cursor and spring back on leave
-      document.querySelectorAll('.join-now, .explore-btn, .pc-cta').forEach((b) => {
+      document.querySelectorAll('.join-now, .explore-btn').forEach((b) => {
         b.addEventListener('pointerenter', () => cursor.classList.add('hover'));
-        b.addEventListener('pointerleave', () => { cursor.classList.remove('hover'); gsap.to(b, { x: 0, y: 0, duration: .55, ease: 'elastic.out(1,0.55)' }); });
+        b.addEventListener('pointerleave', () => { cursor.classList.remove('hover'); gsap.to(b, { x: 0, y: 0, duration: .45, ease: 'expo.out' }); });
         b.addEventListener('pointermove', (e) => {
           const r = b.getBoundingClientRect();
           gsap.to(b, { x: (e.clientX - r.left - r.width / 2) * .22, y: (e.clientY - r.top - r.height / 2) * .3, duration: .4, ease: 'power2.out' });
         });
-      });
-      // pricing cards tilt toward the cursor (GSAP owns the transform after entrance)
-      document.querySelectorAll('.price-card').forEach((c) => {
-        c.addEventListener('pointermove', (e) => {
-          const r = c.getBoundingClientRect();
-          gsap.to(c, { rotateY: (e.clientX - r.left - r.width / 2) / r.width * 7, rotateX: -(e.clientY - r.top - r.height / 2) / r.height * 6, transformPerspective: 900, duration: .45, ease: 'power2.out' });
-        });
-        c.addEventListener('pointerleave', () => gsap.to(c, { rotateX: 0, rotateY: 0, duration: .6, ease: 'power3.out' }));
       });
       // source chips read as interactive to the custom cursor
       document.addEventListener('pointerover', (e) => { if (e.target.closest && e.target.closest('.srcchip')) cursor.classList.add('hover'); });
@@ -1368,8 +1573,6 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       setTimeout(() => clearInterval(t), 7500);
     })();
     // slow, seamless gold shimmer on "Ultimate" only (repeating gradient → no visible reset)
-    gsap.to('.headline .em', { filter: 'drop-shadow(0 1px 1px rgba(130,85,10,.5)) drop-shadow(0 0 8px rgba(255,212,90,.36))', duration: 2.6, ease: 'sine.inOut', repeat: -1, yoyo: true });
-    gsap.to('.scrolldown', { y: 7, duration: 1.1, repeat: -1, yoyo: true, ease: 'sine.inOut' });
     // split the headline into characters so the intro can cascade them in — the
     // .em ("Ultimate") keeps its wrapper so the gold gradient + shimmer survive
     (() => {
@@ -1403,14 +1606,11 @@ h2.ih2 .lk2{color:var(--blue-bright)}
         .to('.topbar', { opacity: 1, duration: .6 }, '-=.55')
         .to('.hero', { opacity: 1, duration: .5 }, '-=.5')
         .to(spinIn, { v: 0, duration: 1.7, ease: 'expo.out' }, '<')
-        .from('.hero-kick', { opacity: 0, y: 14, duration: .55, ease: 'power3.out' }, '-=1.1')
         // the headline pours in letter by letter (P: the title needed real animation)
-        .from('.headline .hl-ch', { yPercent: 112, opacity: 0, rotateX: -38, duration: .85, ease: 'power4.out', stagger: 0.026, force3D: true }, '-=.9')
-        .from('.explore-btn', { opacity: 0, y: 16, duration: .6, ease: 'power3.out' }, '-=.45')
-        .from('.scrolldown', { opacity: 0, duration: .6 }, '-=.3')
+        .from('.headline .hl-ch', { yPercent: 112, opacity: 0, rotateX: -38, duration: .85, ease: 'power4.out', stagger: 0.026, force3D: true }, '-=1.45')
+        .fromTo('.explore-btn', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: .6, ease: 'expo.out' }, '-=.45')
         .to('.ticker', { opacity: 1, duration: .6 }, '-=.5');
-      // afterwards "Ultimate" catches a periodic light sweep across its gold face
-      // (only the streak layer moves; the gold gradient layer stays put)
+      // afterwards "Ultimate" catches a periodic light sweep across its gold face (restored: Faisal liked it)
       gsap.fromTo('.headline .em', { backgroundPosition: '-160% 0, 0 0' },
         { backgroundPosition: '260% 0, 0 0', duration: 2.0, ease: 'power1.inOut', repeat: -1, repeatDelay: 5.5, delay: 4 });
     }

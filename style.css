@@ -22,7 +22,10 @@ body {
   isolation: isolate;
   overflow: hidden;
   pointer-events: none;
+  transition: opacity 0.5s ease, visibility 0.5s;
 }
+/* the set browser shows the plain app ground (app-bg.css); the stage steps out */
+body.home-open .bg-stage { opacity: 0; visibility: hidden; }
 .bg-grain {
   position: absolute;
   inset: -6%;
@@ -58,6 +61,14 @@ body {
 /* Three.js stage floor — a lit pool + receding grid grounding the focused card,
    tinted per set by applyAmbience and rendered from the rAF loop (buildFloor) */
 #stageFloor { position: absolute; left: 0; bottom: 0; width: 100%; height: 26%; }   /* P: the floor sits LOW — clear of the INSPECT button */
+/* the floor grid melts away toward the bottom edge and the sides, so it sits
+   behind the stage instead of ending in a hard band (Faisal, 27 Oct) */
+#stageFloor {
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 28%, transparent 92%), linear-gradient(90deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(180deg, #000 0%, #000 28%, transparent 92%), linear-gradient(90deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
+  mask-composite: intersect;
+}
 /* the amphitheatre: a natural curved horizon sweeping behind the wheel — its
    smile mirrors the fan's inward bend (edges rise with the side cards) */
 .stage-arc { position: absolute; left: 50%; bottom: 32%; transform: translateX(-50%); width: 170vw; height: 120vh;
@@ -78,13 +89,13 @@ body {
 
 .minimap {
   flex: none;
-  padding-inline: clamp(110px, 14vw, 210px);
+  padding-inline: clamp(120px, 18vw, 480px);
   --arc-depth: 20px;   /* how far the tapered tips lift above the centre */
   --arc-rot: 13deg;    /* fan angle of the outermost ticks */
 }
 .rail {
   position: relative;
-  height: 54px;
+  height: 72px;
   cursor: grab;
   touch-action: none;
   outline: none;
@@ -92,41 +103,32 @@ body {
 .rail:active { cursor: grabbing; }
 .ticks { display: none; } /* retired heat strip — element stays so JS is a no-op */
 
-/* the dial: one bar per card on an arc that curves INTO the screen. Each bar is
-   placed with translate3d; perspective shrinks the receding ends = real depth. */
-.rail-arc { position: absolute; inset: 0; transform-style: preserve-3d; }
-.dial-stage { position: absolute; left: 50%; bottom: 40px; } /* raised so the dial's falling tips stay inside the rail */
-.dial-arc { position: absolute; pointer-events: none; overflow: visible; } /* curved baseline drawn by buildDial */
-.dtick {
-  position: absolute; bottom: 0; left: 0; width: 2px; margin-left: -1px;
-  border-radius: 2px; transform-origin: bottom center;
-  background: linear-gradient(to top, rgba(120, 160, 220, 0.1), rgba(178, 208, 255, 0.7));
-  transition: opacity 0.25s, background 0.25s;
-}
-.rail:hover .dtick:not(.cur) { opacity: 0.7 !important; }
-.dtick.cur {
-  width: 3px; margin-left: -1.5px; opacity: 1 !important;
-  background: linear-gradient(to top, rgba(255, 210, 90, 0.5), #ffe08a 60%, #fff3cf);
-  box-shadow: 0 0 9px rgba(255, 210, 90, 0.9), 0 0 20px rgba(255, 200, 60, 0.6);
-}
-.dknob {
-  position: absolute; bottom: 0; left: 0; width: 12px; height: 12px; margin: 0 0 -4px -6px;
-  border-radius: 50%; transform-origin: center;
-  background: radial-gradient(circle at 36% 30%, #fff, #ffe08a 50%, #e0a834);
-  box-shadow: 0 0 12px rgba(255, 210, 90, 0.9), 0 2px 6px rgba(0, 0, 0, 0.5);
-}
-/* hover tooltip: card number + name under the pointer (built lazily by app.js) */
-.dial-tip {
-  position: absolute; bottom: 46px; left: 50%; transform: translateX(-50%);
-  padding: 5px 12px; border-radius: 8px; pointer-events: none; white-space: nowrap; z-index: 4;
-  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; color: #eaf1ff;
-  background: rgba(10, 14, 30, 0.94); border: 1px solid rgba(140, 168, 224, 0.28);
-  box-shadow: 0 10px 26px -12px rgba(0, 0, 0, 0.8);
-  opacity: 0; transition: opacity 0.18s;
-}
-.rail:hover .dial-tip { opacity: 1; }
-.dial-tip b { color: var(--ember-glint); font-weight: 600; margin-right: 7px; }
-.rail:focus-visible { outline: 1px solid var(--spectral); outline-offset: 4px; border-radius: 8px; }
+/* the dial: a slim scrub track (app.js makeScrub). One segment per card, cheapest to
+   priciest, in its price band's colour; the part past the current card is dimmed */
+.rail-arc { position: absolute; inset: 0; }
+.sd { position: absolute; left: 0; right: 0; bottom: 18px; height: 54px; font-family: var(--cw-ui, 'DM Sans', sans-serif); }
+.sd-track { position: absolute; left: 0; right: 0; bottom: 6px; height: 6px; border-radius: 3px; overflow: hidden; background: #2a2c32; }
+.sd-rest { position: absolute; top: 0; bottom: 0; right: 0; left: 0; background: rgba(8, 9, 12, 0.6); }
+.sd-knob { position: absolute; bottom: 0; left: 0; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 0 3px #ffd24a, 0 4px 14px rgba(0, 0, 0, 0.6); pointer-events: none; }
+.sd-read { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none;
+  font-size: 15px; font-weight: 600; color: #ece9e2; font-variant-numeric: tabular-nums; }
+.sd-end { position: absolute; bottom: 28px; font-size: 14px; color: #8d9099; pointer-events: none; transition: opacity 0.2s; }
+.sd-end.lo { left: 0; }
+.sd-end.hi { right: 0; }
+.rail { cursor: pointer; }
+.rail.dragging, .rail:active { cursor: grabbing; }
+.rail:focus-visible { outline: 2px solid #ffd24a; outline-offset: 6px; border-radius: 10px; }
+/* the price legend sits in the right margin, clear of the track */
+.dial-legend .b0 { --tc: #80838c; } .dial-legend .b1 { --tc: #4fd17a; } .dial-legend .b2 { --tc: #4ea3f0; } .dial-legend .b3 { --tc: #a879f2; }
+.dial-legend .b4 { background: linear-gradient(90deg, #ff6fae, #ffd24a 30%, #6ff2c6 55%, #6aa8ff 78%, #c58cff); }
+.minimap { position: relative; }
+.dial-legend { position: absolute; right: clamp(16px, 2vw, 44px); bottom: 22px; z-index: 2; display: flex; flex-wrap: wrap; justify-content: flex-end;
+  gap: 6px 16px; max-width: calc(clamp(120px, 18vw, 480px) - clamp(16px, 2vw, 44px) - 24px); margin: 0; padding: 0; list-style: none; pointer-events: none;
+  font: 500 clamp(13px, 0.55vw, 14px)/1.2 'DM Sans', system-ui, sans-serif; color: #a3a7af; font-variant-numeric: tabular-nums; }
+.dial-legend li { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.dial-legend i { width: 10px; height: 10px; border-radius: 2px; background: var(--tc); }
+body.mobile .minimap .dial-legend { display: none; }
 
 /* ---------- Header chrome ---------- */
 .chrome {
@@ -141,7 +143,7 @@ body {
 }
 .lockup { display: flex; align-items: center; gap: 11px; cursor: pointer; }
 .lockup:hover { filter: brightness(1.15); }
-.lockup-crown { width: 48px; height: 48px; flex: none; background: url(assets/crown-spin.png?v=3) 0 center / auto 100% no-repeat; background-position-x: 0; filter: drop-shadow(0 3px 7px rgba(0,0,0,.5)); }
+.lockup-crown { height: 48px; flex: none; filter: drop-shadow(0 3px 7px rgba(0,0,0,.5)); }   /* width + the animated crown come from crown-spin.js (sized from this height) */
 .lockup-logo { height: clamp(30px, 3vw, 40px); width: auto; display: block; filter: drop-shadow(0 2px 7px rgba(0,0,0,.5)) drop-shadow(0 0 16px rgba(255,200,70,.22)); }
 /* the POKEX wordmark — blue-bordered box, gold letters, blue KE (matches the homepage) */
 .logo-pokex { display: inline-flex; align-items: center; line-height: 1; user-select: none; text-transform: uppercase;
@@ -277,23 +279,22 @@ body {
 
 /* search — same height/radius as the cluster; widens + lights spectral on focus */
 .search {
-  box-sizing: border-box; height: 34px; width: 152px; padding: 0 13px 0 33px;
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--text);
+  box-sizing: border-box; height: 34px; width: 196px; padding: 0 13px 0 33px;
+  font-family: var(--cw-ui, 'DM Sans', sans-serif); font-size: 14px; color: var(--text);
   background: rgba(20, 18, 29, 0.5)
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8398' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E")
     no-repeat 12px center / 14px;
   border: 1px solid var(--stage-line); border-radius: 10px; outline: none;
   transition: border-color var(--dur-fast), width var(--dur-fast), background-color var(--dur-fast), box-shadow var(--dur-fast);
 }
-.search::placeholder { color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.12em; font-size: 10px; }
+.search::placeholder { color: var(--text-faint); font-family: var(--cw-ui, 'DM Sans', sans-serif); font-size: 14px; letter-spacing: 0; }
 .search:hover { border-color: var(--text-faint); }
 .search:focus {
-  border-color: var(--spectral); width: 208px; background-color: rgba(38, 35, 51, 0.5);
+  border-color: var(--spectral); width: 240px; background-color: rgba(38, 35, 51, 0.5);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--spectral) 35%, transparent), 0 0 18px color-mix(in srgb, var(--spectral) 20%, transparent);
 }
-/* sealed / binder feature buttons — each lights its own brand hue */
+/* sealed feature button — lights its own brand hue */
 #sealedBtn:hover { color: var(--ember-glint); border-color: color-mix(in srgb, var(--ember) 42%, transparent); }
-#binderBtn:hover { color: var(--spectral-bright); border-color: color-mix(in srgb, var(--spectral) 42%, transparent); }
 
 /* counter — a whisper-quiet position readout, set apart from the controls */
 .counter {
@@ -311,24 +312,11 @@ main {
   position: relative;
   min-height: 0;
 }
-.stage-glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    /* the spotlight: a soft beam falls from above onto the focused card,
-       and a contact pool grounds it on the stage floor — gallery theatre */
-    conic-gradient(from 180deg at 50% -12%, transparent 44%, var(--glow-color, rgba(108,46,166,0.20)) 50%, transparent 56%),
-    radial-gradient(24vh 6vh at 50% 76%, var(--glow-color, rgba(108,46,166,0.20)) 0%, transparent 74%),
-    radial-gradient(46vh 46vh at 50% 44%, var(--glow-color, rgba(108,46,166,0.20)) 0%, transparent 70%),
-    var(--vignette);
-}
-/* the original gradient breathes via the rAF loop (see app.js tick) */
-.stage-glow { will-change: transform, opacity; }
 
 /* ---------- Wheel ---------- */
 .wheel {
   position: relative;
+  overflow-x: clip;   /* side cards past the screen edge never widen the page */
   height: 60vh;
   min-height: 280px;
   touch-action: pan-y;
@@ -340,9 +328,11 @@ main {
   position: absolute;
   left: 50%;
   top: 50%;
-  height: var(--wheel-card-h, 70%); /* pinned in layout-constants.js */
+  /* built at the FOCUSED size (base height x the curve's peak) and only ever
+     scaled down by render(), so the centred card is rastered 1:1 and stays crisp */
+  height: calc(var(--wheel-card-h, 60%) * var(--wheel-card-peak, 1.54)); /* pinned in layout-constants.js */
   aspect-ratio: var(--card-aspect, 734 / 1024); /* 734/1024 — pinned in layout-constants.js */
-  will-change: transform, filter;
+  will-change: transform;
   border-radius: var(--card-radius);
   visibility: hidden;
 }
@@ -351,18 +341,33 @@ main {
   height: 100%;
   display: block;
   border-radius: inherit;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
-  /* face-down card while the scan loads */
-  background: var(--stage-raise) url('assets/card-back-phantasmal.svg') center / cover no-repeat;
+  /* the contact shadow is static (rastered once when a card enters the wheel);
+     the focus glow lives on .card-rim so a moving focus never re-rasters a blur */
+  /* face-down card while the scan loads: plain gradients, NOT the old SVG card
+     back. An SVG background (with feTurbulence filters) is re-rendered whenever
+     its on-screen scale changes, so every visible card repainted it on every
+     frame of every fling: the single biggest cost the profile found */
+  background:
+    radial-gradient(120% 85% at 50% 38%, #23262d 0%, #15171c 58%, #0d0e11 100%);
+  box-shadow: inset 0 0 0 1.5px rgba(140, 168, 224, 0.16), 0 28px 76px rgba(0, 0, 0, 0.6);
   pointer-events: none;
-  transition: box-shadow var(--dur-fast) var(--ease-snap);
+  /* no box-shadow transition: animating a 92px blur re-rasterised the card on
+     every frame each time the focus moved */
 }
 .card { cursor: pointer; }
-.card:hover img { box-shadow: 0 22px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--stage-line); }
-/* the focused card stands in the light: a quiet tier-colored rim, always on
-   (setCurrent feeds --focus-glow), that deepens on hover */
-.card.center img { box-shadow: 0 22px 60px rgba(0, 0, 0, 0.68), 0 0 34px -8px var(--focus-glow, rgba(108, 46, 166, 0.45)); }
-.card.center:hover img { box-shadow: 0 22px 60px rgba(0, 0, 0, 0.7), 0 0 46px -6px var(--focus-glow, rgba(108, 46, 166, 0.6)), var(--glow-phantom); }
+/* the focused card stands in the light: once the wheel SETTLES (settle() adds
+   .lit) a tier-coloured rim + contact shadow fades in on its own compositor
+   layer. Nothing is drawn mid-flight, so a fling never re-rasterises a blur. */
+.card-rim {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none; display: none;
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--focus-glow, #6c2ea6) 45%, transparent),
+              0 0 64px -14px var(--focus-glow, rgba(108, 46, 166, 0.55));
+  will-change: opacity;
+}
+.card.lit .card-rim { display: block; animation: rimIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.card.sealed .card-rim { display: none; }   /* a floating product render has no card edge to light */
+@keyframes rimIn { from { opacity: 0; } to { opacity: 1; } }
+html.motion-reduced .card.lit .card-rim { animation: none; }
 .card:focus-visible { outline: 2px solid var(--spectral); outline-offset: 6px; }
 .card .ph {
   position: absolute;
@@ -371,11 +376,11 @@ main {
   align-items: flex-end;
   justify-content: center;
   text-align: center;
-  padding: var(--s-4);
+  padding: 24px;
   border-radius: inherit;
   background: url('assets/card-back-phantasmal.svg') center / cover no-repeat;
   color: var(--text-dim);
-  font-size: var(--type-small);
+  font-size: 20px;
 }
 .card .ph::after { content: ' · image unavailable'; color: var(--text-faint); }
 .card.noimg img { visibility: hidden; }
@@ -391,7 +396,6 @@ main {
   box-shadow: none;
   filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.6));
 }
-.card.sealed::after { display: none; }  /* no plastic-frame sheen on a floating render */
 .tilt-card.sealed { background: none; box-shadow: none; }
 .tilt-card.sealed .face-front img { object-fit: contain; box-shadow: none; filter: drop-shadow(0 26px 44px rgba(0, 0, 0, 0.55)); }
 .tilt-card.sealed .face-back { display: none; }
@@ -402,23 +406,23 @@ main {
   top: 100%;
   left: 0;
   width: 100%;
-  margin-top: 8px;
-  height: 26px;
+  margin-top: 12px;
+  height: 40px;
   display: grid;
   place-items: center;
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateY(9px);
   pointer-events: none;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.24em;
   text-transform: uppercase;
   line-height: 1;
   color: var(--text); /* crisp at rest — no blur-glow */
-  border-left: 1px solid rgba(237, 234, 244, 0.5);
-  border-right: 1px solid rgba(237, 234, 244, 0.5);
-  border-bottom: 1px solid rgba(237, 234, 244, 0.5);
+  border-left: 1.5px solid rgba(237, 234, 244, 0.5);
+  border-right: 1.5px solid rgba(237, 234, 244, 0.5);
+  border-bottom: 1.5px solid rgba(237, 234, 244, 0.5);
   transition: opacity var(--dur-fast) var(--ease-snap), transform var(--dur-fast) var(--ease-snap),
     color var(--dur-fast), border-color var(--dur-fast), text-shadow var(--dur-fast);
 }
@@ -436,16 +440,18 @@ main {
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.7); /* tight glow only on hover */
 }
 
-/* depth dim: composited overlay driven per-frame by --dim (cheaper than filter) */
-.card::after {
-  content: '';
+/* depth dim: a child with its OWN compositor layer; render() writes its opacity,
+   which the compositor applies without repainting the card under it */
+.card-dim {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   background: #05040A;
-  opacity: var(--dim, 0);
+  opacity: 0;
   pointer-events: none;
+  will-change: opacity;
 }
+.card.sealed .card-dim { display: none; }
 
 /* ---------- Caption ---------- */
 /* even rhythm: this top gap (INSPECT bracket → name) matches the name → price
@@ -478,7 +484,7 @@ main {
 .cap-share-top {
   /* fully ABOVE the focused card (card top ≈ 3.8% of the wheel with the 0.60
      base × 1.54 focus), not overlapping it (P) */
-  position: absolute; left: 50%; top: max(0px, calc(3.8% - 40px)); transform: translateX(-50%);
+  position: absolute; left: 50%; top: calc(3.8% - 36px); transform: translateX(-50%);   /* may rise into the gap above the wheel on short screens: never onto the card */
   z-index: 6; background: rgba(8, 7, 12, 0.5); border-color: rgba(237, 234, 244, 0.16);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
@@ -551,26 +557,18 @@ main {
   line-height: 1;
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
-  background: linear-gradient(100deg, #45c97f 0%, #b9ffd0 48%, #45c97f 100%);
-  background-size: 220% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  /* solid money green (P's call). The old gradient-text sheen looped forever and
+     repainted the price + its glow filter on every frame, idle or not (G3) */
+  color: var(--money);
   filter: drop-shadow(0 0 16px color-mix(in srgb, var(--money) 45%, transparent));
-  animation: moneySheen 4.5s linear infinite;
 }
-@keyframes moneySheen { to { background-position: 220% 0; } }
 .cap-price.t5 {
   filter: drop-shadow(0 0 22px color-mix(in srgb, var(--money) 70%, transparent))
           drop-shadow(0 0 46px color-mix(in srgb, var(--money) 32%, transparent));
 }
 .cap-price.none {
-  background: none;
-  -webkit-text-fill-color: var(--text-faint);
   color: var(--text-faint);
   filter: none;
-  animation: none;
 }
 /* price centred on its own line; the trend stamp sits BELOW so it never shifts it */
 .cap-price-row {
@@ -829,9 +827,16 @@ body[data-game="pokemon"] #zoomBgArt { opacity: 0.16; }            /* card art =
 /* elegant, simple action row — clean segmented control, capped to the card width */
 /* action row — three clean editorial buttons, capped to the card width */
 /* toggle-able whole-card light wash on the inspect card */
-.z-lightwash { position: absolute; inset: 0; z-index: 4; border-radius: inherit; pointer-events: none;
-  opacity: 0; transition: opacity 0.22s ease; mix-blend-mode: screen;
-  background: radial-gradient(125% 105% at 50% 55%, rgba(255,252,240,0.34), rgba(255,250,236,0.2) 64%, rgba(255,255,255,0.06) 100%); }
+/* the lamp: a specular highlight where the light hits (it follows the pointer
+   through --lx/--ly) and, on foils, a holo band that slides across the card */
+.z-lightwash { position: absolute; inset: 0; z-index: 4; border-radius: inherit; pointer-events: none; overflow: hidden;
+  opacity: 0; transition: opacity 0.25s ease; mix-blend-mode: screen;
+  background: radial-gradient(46% 34% at calc(var(--lx, 0.5) * 100%) calc(var(--ly, 0.28) * 100%),
+    rgba(255, 253, 245, 0.8), rgba(255, 250, 238, 0.2) 46%, transparent 74%); }
+.z-lightwash::after { content: ''; position: absolute; inset: 0; border-radius: inherit; mix-blend-mode: color-dodge; opacity: 0.16;
+  background: linear-gradient(115deg, transparent 22%, rgba(255, 92, 170, 0.6) 36%, rgba(255, 214, 84, 0.6) 44%, rgba(96, 255, 205, 0.6) 52%, rgba(98, 160, 255, 0.6) 60%, transparent 76%);
+  background-size: 260% 260%; background-position: calc(var(--lx, 0.5) * 100%) calc(var(--ly, 0.28) * 100%); }
+.card-faces.lit[data-foil="1"] .z-lightwash::after { opacity: 0.7; }
 .card-faces.lit .z-lightwash { opacity: 1; }
 .card-actions #lightBtn[aria-pressed="true"] { --back-color: 45, 90%; color: #1a1206; }
 .card-actions {
@@ -873,6 +878,15 @@ body[data-game="pokemon"] #zoomBgArt { opacity: 0.16; }            /* card art =
 .card-actions #collBtn  { --back-color: 34, 72%; }  /* amber */
 .card-actions #shareBtn { --back-color: 162, 50%; } /* teal  */
 .card-actions .ic { font-size: 18px; line-height: 1; }
+.card-actions .ic.ja { font-size: 12px; letter-spacing: 0; }
+/* the share menu: plain choices under the button, no chips */
+.share-menu { position: absolute; z-index: 6; right: 0; top: calc(100% + 8px); display: flex; flex-direction: column; min-width: 220px; padding: 6px;
+  border-radius: 12px; background: rgba(12, 12, 16, 0.96); box-shadow: 0 18px 44px -14px rgba(0, 0, 0, 0.85); }
+.share-menu[hidden] { display: none; }
+.card-actions .share-menu button { display: block; width: 100%; padding: 11px 12px; border-radius: 8px; background: none; box-shadow: none; text-align: left;
+  font: 500 15px/1.2 var(--cw-ui, 'DM Sans', sans-serif); letter-spacing: 0; color: #ece9e2; transform: none; }
+.card-actions .share-menu button:hover { background: rgba(255, 255, 255, 0.07); transform: none; text-shadow: none; box-shadow: none; }
+.card-actions .share-menu button[hidden] { display: none; }
 .card-actions .lb { white-space: nowrap; }
 .card-actions button:hover, .card-actions a:hover {
   --edge-light: hsla(0, 0%, 72%, 1);
@@ -1527,161 +1541,273 @@ body[data-game="pokemon"] #zoomBgArt { opacity: 0.16; }            /* card art =
 html.motion-reduced .ticks i,
 html.motion-reduced .rail-thumb,
 html.motion-reduced .zoom-close,
-html.motion-reduced .stage-glow,
 html.motion-reduced .card img { transition: none; }
 html.motion-reduced .shine { display: none; }
 
-/* ====================== HOME — the front door ====================== */
-/* ---------- HOME: hero → "Get started" → "Pick one" 3D card spread ---------- */
-.home { position: fixed; inset: 0; z-index: 50; background: radial-gradient(80% 60% at 50% 0%, rgba(127,212,244,0.06), transparent 64%), #07060c; }
+/* ====================== SET BROWSER + SET HEADER + GRID (27 Oct overhaul, pass 2) ======================
+   Ground: app-bg.css (near-black satin, one light pool, static grain; no navy, no contours).
+   Type: Anton for display, DM Sans for everything else with tabular figures; gold is spent
+   only on money that matters (top-card prices, the active game, the active view).
+   Slop pass (Faisal: "the way you put text and the paneling"): no bordered panels around
+   tiles or stats, no tracked-caps labels over values. A set is its real logo and real cards
+   on a soft wash of its own colour, with a plain caption under it; numbers carry their
+   meaning in words after them ("$463.35 set value"), like Scryfall's set line.
+   References: Scryfall set page, Pokedesk set row, Wizards' Hobbit gallery. */
+:root {
+  --cw-ink: #eef0f3; --cw-dim: #a3a7af; --cw-faint: #737882;
+  --cw-gold: #ffd24a; --cw-gold-lt: #ffe9a8; --cw-gold-dk: #d99a2e;
+  --cw-blue: #6aa8ff; --cw-line: rgba(255, 255, 255, 0.08);
+  --cw-fill: rgba(255, 255, 255, 0.045); --cw-fill-2: rgba(255, 255, 255, 0.08);
+  --cw-display: 'Anton', 'DM Sans', sans-serif; --cw-ui: 'DM Sans', system-ui, sans-serif;
+  --cw-body: clamp(16px, 0.66vw, 17px);      /* 17px at 2560, 16px floor */
+  --cw-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- the browser shell ---------- */
+.home { position: fixed; inset: 0; z-index: 50; background: transparent; }
 .home[hidden] { display: none; }
-body.home-open main, body.home-open .minimap, body.home-open .site-foot { visibility: hidden; }
-/* keep the Crowns brand on the universe picker; hide only the set-specific controls */
-body.home-open .set-dropdown, body.home-open .chrome-right { visibility: hidden; }
-.home-scroll { position: absolute; inset: 0; overflow: hidden; }
-.home-stage { position: absolute; inset: 0; perspective: 1500px; }
-.hv { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 8vh 6vw; box-sizing: border-box; transform-style: preserve-3d; }
-.hv[hidden] { display: none; }
+/* the floating header reads on the ground's own darkest tone; content slides under it */
+.home::after { content: ''; position: fixed; left: 0; right: 0; top: 0; height: 96px; z-index: 2; pointer-events: none;
+  background: linear-gradient(180deg, rgba(8, 9, 12, 0.96) 30%, rgba(8, 9, 12, 0)); }
+body.home-open main, body.home-open .minimap, body.home-open .site-foot, body.home-open .set-head { visibility: hidden; }
+/* the wheel shows its cards with an inline style.visibility, which beats the hidden
+   they'd inherit: without this the last set's cards stayed painted over the browser
+   after going back (Faisal, 27 Oct: "everything just hovers over") */
+body.home-open main *, body.home-open .minimap *, body.home-open .site-foot *, body.home-open .set-head * { visibility: hidden !important; }
+body.home-open #counter { display: none; }
+/* the app ground's light pool sits over each screen's focal content: the wheel by
+   default (app-bg.css :root), the tiles in the browser, the card grid in grid view */
+body.home-open { --app-pool-y: 34%; --app-pool-w: 70vmax; --app-pool-h: 46vmax; }
+body.grid-on { --app-pool-y: 40%; --app-pool-w: 74vmax; --app-pool-h: 50vmax; --app-pool-strength: 8%; }
+.home-scroll { position: absolute; inset: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.18) transparent; }
+.sb { position: relative; z-index: 1; max-width: 2300px; margin: 0 auto;
+  padding: clamp(84px, 9vh, 112px) clamp(16px, 4.6vw, 132px) clamp(56px, 8vh, 112px);
+  font-family: var(--cw-ui); font-size: var(--cw-body); line-height: 1.45; color: var(--cw-ink); }
 
-/* hero view */
-.hero-glow { position: absolute; left: 0; right: 0; top: -6%; height: 72vh; pointer-events: none;
-  background: radial-gradient(58% 70% at 50% 0%, rgba(127,212,244,0.20), rgba(196,75,173,0.10) 42%, transparent 72%); filter: blur(18px); }
-.hero-kicker { position: relative; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.42em; text-transform: uppercase; color: var(--spectral-bright); opacity: 0.9; margin-bottom: 20px; }
-.hero-title { position: relative; font-family: var(--font-display); font-weight: 700; line-height: 0.92; font-size: clamp(46px, 9.4vw, 138px); letter-spacing: -0.02em; color: #fff; }
-.hero-title span { display: block; }
-.hero-title .ht2 { background: linear-gradient(100deg, var(--spectral-bright), var(--phantom), var(--ember-glint)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
-.hero-sub { position: relative; margin-top: 24px; font-family: var(--font-ui); font-size: clamp(14px, 1.7vw, 19px); color: var(--text-dim); letter-spacing: 0.03em; }
-.pick-prompt .sets-logo { display: block; margin: 0 auto; width: auto; filter: drop-shadow(0 3px 12px rgba(0,0,0,.55)); }
-.get-started { position: relative; margin-top: clamp(28px, 5vh, 54px); font-family: var(--font-ui); font-weight: 600; font-size: 16px; color: #06121a; background: linear-gradient(100deg, var(--spectral-bright), #c9b3ff); border: none; border-radius: 999px; padding: 15px 34px; cursor: pointer; display: inline-flex; align-items: center; gap: 9px; box-shadow: 0 16px 40px rgba(127,212,244,0.3); transition: transform 0.2s, box-shadow 0.2s; }
-.get-started span { transition: transform 0.2s; }
-.get-started:hover { transform: translateY(-2px); box-shadow: 0 22px 52px rgba(127,212,244,0.46); }
-.get-started:hover span { transform: translateX(4px); }
+/* ---------- game switch: the four real game logos (kept: Faisal likes them) ---------- */
+.sb-games { display: flex; justify-content: center; align-items: center; flex-wrap: wrap;
+  gap: clamp(4px, 2vw, 52px); margin-bottom: clamp(26px, 3.6vh, 52px); }
+.sb-games { --gs: 1; }
+@media (max-width: 1999px) { .sb-games { --gs: 0.84; } }
+@media (max-width: 1499px) { .sb-games { --gs: 0.74; } }
+.sb-game { position: relative; display: grid; place-items: center; height: clamp(64px, 5vw, 112px);
+  padding: 0 clamp(8px, 1.3vw, 30px); border: 0; border-radius: 14px; background: none; cursor: pointer;
+  opacity: 0.8; transition: opacity 0.18s; }
+/* --lh = each logo's own optical height (app.js HOME_GAMES), scaled with the screen */
+.sb-game img { height: calc(var(--lh) * var(--gs)); width: auto; display: block; pointer-events: none;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5)); transition: transform 0.45s var(--cw-ease); }
+.sb-game:hover { opacity: 1; }
+.sb-game:hover img { transform: translateY(-2px); }
+.sb-game.on { opacity: 1; }
+.sb-game.on img { transform: scale(1.08); }
+.sb-game::after { content: ''; position: absolute; left: 50%; bottom: 2px; width: 46px; height: 3px; margin-left: -23px; border-radius: 2px;
+  background: var(--cw-gold); transform: scaleX(0); transition: transform 0.45s var(--cw-ease); }
+.sb-game.on::after { transform: scaleX(1); }
+.sb-game:focus-visible { outline: 2px solid var(--cw-blue); outline-offset: 2px; }
 
-/* pick a universe — bare logos floating in 3D (no cards) */
-/* pointer-events:none so the full-screen plane can NEVER intercept a logo that
-   the parallax tilt has swung behind it — only the .pick-logo buttons are hit */
-.hv-pick { perspective: 1300px; pointer-events: none; }
-.pick-prompt { position: relative; font-family: var(--font-display); font-weight: 700; font-size: clamp(20px, 2.6vw, 36px); letter-spacing: 0.01em; color: #fff; margin-bottom: clamp(30px, 6vh, 72px); }
-.pick-logos { display: flex; gap: clamp(14px, 2.6vw, 66px); align-items: center; justify-content: center; flex-wrap: nowrap; transform-style: preserve-3d; pointer-events: none; }
-.pick-logo {
-  --z: 0px; position: relative; min-width: 0; pointer-events: auto; background: none; border: none; cursor: pointer; padding: clamp(10px, 1.3vw, 24px);
-  display: flex; align-items: center; justify-content: center; transform-style: preserve-3d;
-  will-change: transform, filter, opacity; animation: logoFloat 6.5s ease-in-out infinite;
+/* ---------- title row: one big name, one plain line under it ---------- */
+.sb-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px 32px; flex-wrap: wrap;
+  margin-bottom: clamp(30px, 4vh, 56px); }
+.sb-title { font-family: var(--cw-display); font-weight: 400; font-size: clamp(38px, 3vw, 78px); line-height: 1.04;
+  letter-spacing: 0.006em; text-transform: uppercase; color: #fff; }
+.sb-sub { margin-top: clamp(12px, 0.75vw, 18px); color: var(--cw-dim); }
+.sb-find input { width: clamp(220px, 17vw, 380px); height: 46px; padding: 0 20px; border-radius: 999px;
+  border: 1px solid transparent; background: var(--cw-fill); color: var(--cw-ink);
+  font: 500 16px/1 var(--cw-ui); outline: none; transition: border-color 0.18s, background-color 0.18s; }
+.sb-find input::placeholder { color: var(--cw-faint); }
+.sb-find input:hover { background: var(--cw-fill-2); }
+.sb-find input:focus { border-color: var(--cw-blue); background: var(--cw-fill-2); }
+.sb-empty { color: var(--cw-dim); padding: 40px 0; text-align: center; }
+.sb-quiet { color: var(--cw-dim); }
+
+/* ---------- era groups: a heavy heading and its count, then the sets ---------- */
+.sb-group { margin-bottom: clamp(44px, 5.4vh, 80px); }
+.sb-group[hidden] { display: none; }
+.sb-era { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 16px; margin-bottom: clamp(18px, 2.2vh, 28px); font-weight: 400; }
+.sb-era-t { font-family: var(--cw-display); font-size: clamp(26px, 1.45vw, 38px); line-height: 1; letter-spacing: 0.01em; text-transform: uppercase; color: #fff; }
+.sb-era-m { color: var(--cw-dim); }
+.sb-grid { display: grid; grid-template-columns: repeat(var(--cols, 6), minmax(0, 1fr)); gap: clamp(22px, 1.6vw, 40px) clamp(14px, 1.15vw, 28px); }
+.sb-grid { --cols: 6; }
+@media (max-width: 2199px) { .sb-grid { --cols: 5; } }
+@media (max-width: 1799px) { .sb-grid { --cols: 4; } }
+@media (max-width: 1399px) { .sb-grid { --cols: 3; } }
+@media (max-width: 1099px) { .sb-grid { --cols: 3; } }
+
+/* ---------- a set: its mark in its own light, one short line under it ---------- */
+.sbt { position: relative; display: flex; flex-direction: column; align-items: center; min-width: 0; color: inherit; text-decoration: none; }
+.sbt[hidden] { display: none; }
+.sbt:focus-visible { outline: 2px solid var(--cw-blue); outline-offset: 4px; border-radius: 16px; }
+.sbt-art { --la: clamp(84px, 5vw, 128px); position: relative; width: 100%; height: clamp(128px, 7vw, 176px); display: flex; align-items: center;
+  justify-content: center; isolation: isolate; }
+/* the set's own colour as light behind its mark, fading out before any edge (CR8, CR10) */
+.sbt-art::before { content: ''; position: absolute; z-index: -1; pointer-events: none; left: 2%; top: -18%; width: 96%; height: 136%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--wash) 50%, transparent), color-mix(in srgb, var(--wash) 12%, transparent) 62%, transparent);
+  opacity: 0.8; transition: opacity 0.3s; }
+.sbt:hover .sbt-art::before { opacity: 1; }
+/* equal optical area for every set mark: wide wordmarks get width, tall badges get
+   height (--ar is the logo's aspect, set by app.js when it loads; G13) */
+.sbt-logo { width: calc(var(--la) * sqrt(var(--ar, 2.2))); max-width: 88%; max-height: 86%; height: auto; object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.55)); transition: transform 0.45s var(--cw-ease); }
+.sbt-logo.sym { width: calc(var(--la) * 0.66); height: calc(var(--la) * 0.66); filter: invert(1) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5)); }
+.sbt:hover .sbt-logo { transform: scale(1.04); }
+.sbt-logo.on-light, .set-head .set-btn img.on-light { background: linear-gradient(180deg, #f4ede0, #e3d8c4); padding: 8px 12px; border-radius: 8px;
+  box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.7); filter: none; }
+/* no set mark anywhere: the set's name, set in the display face, stands in for it */
+.sbt-mark { max-width: 88%; font-family: var(--cw-display); font-weight: 400; font-size: clamp(20px, 1.15vw, 30px); line-height: 1.08;
+  text-transform: uppercase; text-align: center; text-wrap: balance; color: #fff; text-shadow: 0 4px 18px rgba(0, 0, 0, 0.6); transition: transform 0.45s var(--cw-ease); }
+.sbt:hover .sbt-mark { transform: scale(1.04); }
+.sbt-art:has(.sym) { flex-direction: column; gap: clamp(8px, 0.6vw, 14px); }
+.sbt-logo.sym { width: calc(var(--la) * 0.5); height: calc(var(--la) * 0.5); }
+.sbt-mark.with-sym { font-size: clamp(17px, 0.95vw, 24px); }
+.sbt-line { max-width: 100%; margin-top: clamp(8px, 0.6vw, 14px); color: var(--cw-dim); text-align: center; font-variant-numeric: tabular-nums; text-wrap: balance; transition: color 0.18s; }
+.sbt:hover .sbt-line { color: var(--cw-ink); }
+.sbt.opening .sbt-line::after { content: ' · opening'; color: var(--cw-gold-lt); }
+
+/* ---------- SET HEADER over the wheel (Scryfall's slim set band) ---------- */
+.set-head { position: absolute; left: 0; right: 0; top: 72px; z-index: 150; display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 24px; padding: 6px clamp(18px, 1.6vw, 40px) 0; pointer-events: none; font-family: var(--cw-ui); color: var(--cw-ink); }
+.set-head > * { pointer-events: auto; }
+/* the wheel and its caption share the room under the set header: the wheel gives
+   up height on short screens instead of riding up under the header (app.js keeps
+   --sh-h = the header's height and re-measures the wheel when it changes) */
+body:not(.mobile) main { padding-top: var(--sh-h, 0px); }
+body:not(.mobile) .wheel { flex: 1 1 auto; height: auto; max-height: 60vh; }
+/* the INSPECT tag hangs 52px under the focused card: the card name starts below it */
+body:not(.mobile) .caption { padding-top: clamp(50px, 4vh, 56px); }
+.sh-id { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.sh-back { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; padding: 4px 2px; color: var(--cw-dim); text-decoration: none;
+  font-size: var(--cw-body); font-weight: 500; transition: color 0.18s; }
+.sh-back-ar { font-size: 1.35em; line-height: 0.8; transition: transform 0.3s var(--cw-ease); }
+.sh-back:hover { color: var(--cw-gold-lt); }
+.sh-back:hover .sh-back-ar { transform: translateX(-3px); }
+.sh-back:focus-visible { outline: 2px solid var(--cw-blue); outline-offset: 2px; border-radius: 6px; }
+.sh-row { display: flex; align-items: center; gap: clamp(12px, 1vw, 22px); min-width: 0; }
+.sh-text { min-width: 0; }
+.sh-name { font-family: var(--cw-display); font-weight: 400; font-size: clamp(22px, 1.25vw, 34px); line-height: 1.16; letter-spacing: 0.01em;
+  text-transform: uppercase; color: #fff; }
+.sh-meta { margin-top: 6px; color: var(--cw-dim); font-size: var(--cw-body); line-height: 1.3; white-space: nowrap; }
+/* money: the figures speak, a plain word after each says what it is */
+.sh-money { display: flex; align-items: center; gap: clamp(18px, 1.6vw, 40px); padding-top: 30px; }
+.sh-stat { display: flex; flex-direction: column; align-items: flex-end; }
+.sh-vrow { display: flex; align-items: baseline; gap: 8px; }
+.sh-stat[hidden] { display: none; }
+.sh-v { font-weight: 700; font-size: clamp(22px, 1.15vw, 30px); line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--cw-ink); }
+.sh-k { color: var(--cw-dim); font-size: var(--cw-body); }
+.sh-sub { display: block; font-size: 14px; color: var(--cw-dim); }
+.sh-top { display: flex; align-items: center; gap: 12px; padding: 0; border: 0; background: none; cursor: pointer;
+  color: inherit; font: inherit; text-align: left; }
+.sh-top[hidden] { display: none; }
+.sh-top:focus-visible { outline: 2px solid var(--cw-blue); outline-offset: 4px; border-radius: 8px; }
+.sh-top img { width: clamp(40px, 2.1vw, 52px); aspect-ratio: 734 / 1024; object-fit: cover; border-radius: 3px; background: #16181d; display: block;
+  box-shadow: 0 8px 18px -8px rgba(0, 0, 0, 0.8); rotate: 4deg; transition: rotate 0.45s var(--cw-ease); }
+.sh-top:hover img { rotate: 0deg; }
+.sh-top-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.sh-top-name { font-size: var(--cw-body); max-width: 17em; line-height: 1.3; color: var(--cw-dim); transition: color 0.18s; }   /* a long name wraps, never cut */
+.sh-top:hover .sh-top-name { color: var(--cw-ink); }
+.sh-top-price { font-weight: 700; font-size: clamp(20px, 1.05vw, 26px); line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--cw-gold-lt); }
+/* the view switch Faisal likes: one quiet track, gold on the active side */
+.sh-views { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--cw-fill); }
+.sh-view { min-width: 74px; height: 36px; padding: 0 16px; border: 0; border-radius: 999px; background: none; cursor: pointer;
+  font: 600 16px/1 var(--cw-ui); color: var(--cw-dim); transition: color 0.18s, background-color 0.18s; }
+.sh-view:hover { color: var(--cw-ink); }
+.sh-view[aria-pressed="true"] { background: var(--cw-gold); color: #151006; }
+.sh-view:focus-visible { outline: 2px solid var(--cw-blue); outline-offset: 2px; }
+/* the set switcher lives in the header band: its menu opens down and left-aligned */
+.set-head .set-dropdown { position: relative; left: auto; top: auto; transform: none; flex: none; }
+.set-head .set-btn { padding: 4px 8px 4px 4px; border-radius: 12px; clip-path: none; }
+.set-head .set-btn img { height: clamp(48px, 3.1vw, 76px); width: auto; max-width: clamp(150px, 10vw, 260px); object-fit: contain; filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.55)); }
+.set-head .set-menu { left: 0; transform: none; top: calc(100% + 8px); }
+@media (max-width: 1600px) {
+  .sh-top-nm { display: none; }
 }
-/* depth arc kept fully in FRONT of the z=0 container plane, else the receded
-   outer logos sit behind it and it eats their clicks (Pokémon/One Piece bug) */
-.pick-logo:nth-child(1) { --z: 6px; } .pick-logo:nth-child(2) { --z: 54px; animation-delay: -1.6s; }
-.pick-logo:nth-child(3) { --z: 54px; animation-delay: -3.2s; } .pick-logo:nth-child(4) { --z: 6px; animation-delay: -4.8s; }
-@keyframes logoFloat { 0%, 100% { transform: translateZ(var(--z)) translateY(0); } 50% { transform: translateZ(var(--z)) translateY(-10px); } }
-.pl-glow { position: absolute; inset: -22% -12%; border-radius: 50%; pointer-events: none; opacity: 0; transition: opacity 0.3s;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 55%, transparent), transparent 68%); filter: blur(26px); }
-.pick-logo img { width: clamp(120px, 14vw, 292px); max-height: clamp(72px, 11vh, 152px); object-fit: contain;
-  filter: drop-shadow(0 12px 34px rgba(0,0,0,0.62)); transition: transform 0.32s var(--ease-snap), filter 0.32s; }
-.pick-logo:hover img { transform: translateZ(60px) scale(1.09); filter: drop-shadow(0 22px 48px rgba(0,0,0,0.7)) drop-shadow(0 0 28px color-mix(in srgb, var(--accent) 65%, transparent)); }
-.pick-logo:hover .pl-glow { opacity: 1; }
-.pick-logo:focus-visible { outline: none; }
-.pick-logo:focus-visible .pl-glow { opacity: 0.7; }
-
-/* hallway intro: a real card per game flies out of the corridor and dissolves
-   into its logo. Positioned on the logo centre; GSAP drives the 3D fly-in. */
-.hall-card { position: absolute; left: 50%; top: 50%; width: clamp(124px, 12.5vw, 208px);
-  aspect-ratio: 734 / 1024; object-fit: cover; border-radius: 11px; pointer-events: none;
-  z-index: 6; backface-visibility: hidden; will-change: transform, opacity, filter;
-  box-shadow: 0 38px 72px rgba(0, 0, 0, 0.62), 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 60px rgba(124, 92, 255, 0.12); }
-
-/* set selector — the chosen universe's SHELF */
-/* the set screen wears the universe's colour full-bleed, so the expanded picker
-   column resolves straight into it with no colour jump; its sigil watermarks
-   the room and every set is an engraved cut-corner plate */
-.hv-sets { background: linear-gradient(170deg, color-mix(in srgb, var(--accent, #7fd4f4) 24%, #0a1126) 0%, #070c1a 58%, #05091a 100%);
-  overflow: hidden; padding: 0; }   /* the ix-list owns its own scroll */
-.hv-sets .ix { padding-top: clamp(132px, 16vh, 168px); }   /* the eyebrow clears the back pill */
-/* fixed so the watermark holds the room while the shelf scrolls (the ancestor
-   perspective re-anchors fixed to the stage, which is full-viewport anyway) */
-/* ===== THE INDEX — one interaction system for both select levels. Rows of
-   huge editorial type carry all the function on the left; the right pane
-   answers the cursor with the hovered universe/set's identity, a giant
-   outlined ghost numeral behind it, and the whole room tints to the accent. */
-.ix { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
-  gap: clamp(24px, 4vw, 72px); padding: clamp(84px, 11vh, 112px) clamp(20px, 4.5vw, 84px) clamp(16px, 3vh, 36px); }
-/* the room: a living accent wash bleeding from the preview side */
-.ix::before { content: ''; position: absolute; inset: 0; pointer-events: none;
-  background:
-    radial-gradient(58% 78% at 76% 46%, color-mix(in srgb, var(--accent, #7fd4f4) 13%, transparent), transparent 72%),
-    radial-gradient(40% 50% at 8% 100%, color-mix(in srgb, var(--accent, #7fd4f4) 7%, transparent), transparent 70%);
-  transition: opacity 0.5s; }
-.ix-list { position: relative; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; display: flex; flex-direction: column; padding-right: 6px; }
-.ix-list::-webkit-scrollbar { display: none; }
-.ix-eyebrow { display: flex; align-items: center; gap: 16px; font-family: var(--font-mono); font-size: 10.5px;
-  letter-spacing: 0.3em; text-transform: uppercase; color: var(--text-dim); padding: 4px 2px 20px; }
-.ix-unilogo { height: 34px; width: auto; }
-.ix-row { position: relative; display: grid; grid-template-columns: auto 1fr auto auto; align-items: baseline; gap: clamp(14px, 2vw, 30px);
-  text-align: left; padding: clamp(15px, 3vh, 30px) 4px; background: none; border: 0;
-  border-bottom: 1px solid rgba(190, 205, 235, 0.12); cursor: pointer;
-  transition: opacity 0.25s; }
-/* the accent line draws itself under the considered row */
-.ix-row::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
-  background: var(--accent, #7fd4f4); transform: scaleX(0); transform-origin: left center;
-  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
-.ix-row:hover::after, .ix-row:focus-visible::after { transform: scaleX(1); }
-/* focus theatre: the considered row holds the light, the rest recede */
-.ix-list:has(.ix-row:hover) .ix-row:not(:hover),
-.ix-list:has(.ix-row:focus-visible) .ix-row:not(:focus-visible) { opacity: 0.42; }
-/* numbers ride high beside the name, editorial-superscript style */
-.ix-num { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); align-self: start; margin-top: 0.55em; transition: color 0.2s; }
-/* the voice: a light serif — names read like a magazine contents page,
-   turning italic under the cursor */
-.ix-name { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; line-height: 1; letter-spacing: 0.002em;
-  color: #eef2fc; transform-origin: left center;
-  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s; }
-.ix-row:hover .ix-name, .ix-row:focus-visible .ix-name { font-style: italic; }
-/* universe level: only four rows — they own the column at full scale */
-#uniList .ix-name { font-size: clamp(46px, 5.6vw, 92px); }
-#uniList .ix-row { padding: clamp(22px, 4.6vh, 46px) 4px; }
-#setGrid .ix-name { font-size: clamp(27px, 3vw, 48px); }
-.ix-meta { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); white-space: nowrap; }
-.ix-arrow { font-size: 19px; color: var(--accent, #7fd4f4); opacity: 0; transform: translateX(-10px);
-  transition: opacity 0.22s, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-.ix-row:hover, .ix-row:focus-visible { outline: none; }
-.ix-row:hover .ix-name, .ix-row:focus-visible .ix-name { transform: translateX(14px); color: #fff; }
-.ix-row:hover .ix-num, .ix-row:focus-visible .ix-num { color: var(--accent, #7fd4f4); }
-.ix-row:hover .ix-arrow, .ix-row:focus-visible .ix-arrow { opacity: 1; transform: translateX(0); }
-.ix-break { display: flex; align-items: center; gap: 14px; padding: clamp(20px, 3.6vh, 34px) 4px 8px; }
-.ix-break span { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--text-dim); white-space: nowrap; }
-.ix-break::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(190, 205, 235, 0.16), transparent); }
-.ix-foot { padding: 24px 4px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
-  color: color-mix(in srgb, var(--text-dim) 55%, transparent); }
-/* the answering pane: pure typography — a monumental outlined numeral and one
-   quiet meta line (the imagery follows the cursor instead) */
-.ix-view { position: relative; display: flex; align-items: center; justify-content: center; min-height: 0; }
-.ixv-in { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.ixv-ghost { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: clamp(260px, 42vh, 480px); line-height: 0.9;
-  color: transparent; -webkit-text-stroke: 1.5px color-mix(in srgb, var(--accent, #7fd4f4) 36%, transparent);
-  letter-spacing: -0.05em; user-select: none; pointer-events: none; }
-.ixv-meta { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--text-dim); }
-/* the chasing preview: one image trailing the cursor with lag + lean. drop-shadow,
-   not box-shadow — sealed boxes + logos are transparent cut-outs, and a box-shadow
-   paints a dark rectangle behind them */
-.ix-cursor { position: fixed; left: 0; top: 0; width: clamp(180px, 15vw, 250px); border-radius: 10px; z-index: 58;
-  pointer-events: none; opacity: 0; will-change: transform, opacity;
-  filter: drop-shadow(0 28px 40px rgba(0, 0, 0, 0.62)); }
-@media (max-width: 900px) {
-  .ix { grid-template-columns: 1fr; padding-top: 84px; }
-  .ix-view { display: none; }
-  .ix-cursor { display: none; }
-  #uniList .ix-name { font-size: clamp(30px, 9vw, 44px); }
-  #setGrid .ix-name { font-size: clamp(23px, 6.6vw, 32px); }
+@media (max-width: 1300px) {
+  .sh-money { gap: 14px; }
+  .sh-view { min-width: 0; padding: 0 12px; }
 }
-.pick-back { position: absolute; top: clamp(78px, 11vh, 104px); left: clamp(18px, 4vw, 46px); z-index: 6; margin: 0; display: inline-flex; align-items: center; gap: 10px;
-  font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff;
-  background: color-mix(in srgb, var(--accent, #7fd4f4) 16%, rgba(8, 13, 30, 0.55)); border: 1px solid color-mix(in srgb, var(--accent, #7fd4f4) 50%, transparent);
-  border-radius: 30px; padding: 11px 20px 11px 16px; cursor: pointer; backdrop-filter: blur(6px);
-  transition: color 0.18s, border-color 0.18s, background 0.18s, transform 0.18s; }
-.pick-back .pb-arrow { display: inline-flex; font-size: 17px; line-height: 1; transition: transform 0.2s; }
-.pick-back:hover { background: color-mix(in srgb, var(--accent, #7fd4f4) 30%, rgba(8, 13, 30, 0.55)); border-color: var(--accent, #7fd4f4); transform: translateX(-2px); }
-.pick-back:hover .pb-arrow { transform: translateX(-3px); }
-@media (max-width: 640px) {
-  .pick-logos { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 26px; }
-  .pick-logo img { width: 34vw; max-height: 15vh; }
+
+/* ---------- GRID view: the whole set at once (Scryfall browse) ---------- */
+/* fixed to the viewport, under the brand bar + set header, so the grid owns the
+   whole stage (the wheel, caption, dial and footer step out while it is open) */
+.grid-view { position: fixed; left: 0; right: 0; bottom: 0; top: 0; z-index: 120; overflow-y: auto; overscroll-behavior: contain;
+  padding: clamp(206px, 15.5vw, 236px) clamp(18px, 1.6vw, 40px) 56px; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, transparent clamp(178px, 13.4vw, 204px), #000 clamp(206px, 15.5vw, 236px));
+          mask-image: linear-gradient(180deg, transparent 0, transparent clamp(178px, 13.4vw, 204px), #000 clamp(206px, 15.5vw, 236px)); }
+.grid-view[hidden] { display: none; }
+body.grid-on .wheel .card { visibility: hidden !important; }
+body.grid-on .wheel { pointer-events: none; }
+body.grid-on .caption, body.grid-on .minimap, body.grid-on .site-foot, body.grid-on #capShare { visibility: hidden; }
+body.grid-on .stage-arc, body.grid-on #stageFloor { opacity: 0; }
+/* columns top out at 236px: the grid thumbnails are ~245px scans, so they draw 1:1 (crisp) at 2560 */
+.gv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(150px, 8.6vw, 200px), 236px)); justify-content: center;
+  gap: clamp(18px, 1.3vw, 32px) clamp(12px, 0.9vw, 22px); font-family: var(--cw-ui); }
+.gv-card { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 0; border: 0; background: none; color: var(--cw-ink); cursor: pointer; text-align: left; font: inherit; }
+.gv-img { display: block; border-radius: 4.5% / 3.2%; overflow: hidden; aspect-ratio: 734 / 1024; background: #16181d;
+  box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.85); transition: translate 0.45s var(--cw-ease); }
+.gv-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gv-card.sealed .gv-img { background: none; box-shadow: none; }
+.gv-card.sealed .gv-img img { object-fit: contain; }
+.gv-card:hover .gv-img { translate: 0 -4px; }
+.gv-card:hover .gv-name { color: var(--cw-gold-lt); }
+.gv-card:focus-visible { outline: 2px solid var(--cw-blue); outline-offset: 4px; border-radius: 8px; }
+.gv-name { margin-top: 8px; font-weight: 600; font-size: clamp(14px, 0.64vw, 16px); line-height: 1.25; overflow-wrap: anywhere; transition: color 0.18s; }
+.gv-meta { display: flex; justify-content: space-between; gap: 8px; font-size: clamp(13px, 0.6vw, 15px); color: var(--cw-dim); font-variant-numeric: tabular-nums; }
+.gv-meta b { font-weight: 700; color: var(--cw-gold-lt); }
+.gv-np { color: var(--cw-faint); }
+
+/* ---------- narrow screens ---------- */
+@media (max-width: 760px) {
+  .sb { padding-top: 76px; }
+  .sb-games { gap: 2px; justify-content: space-between; flex-wrap: nowrap; }
+  .sb-game { padding: 0 4px; height: 52px; }
+  .sb-games { --gs: 0.42; }
+  .sb-head { align-items: stretch; flex-direction: column; }
+  .sb-find input { width: 100%; }
+  .sb-grid { --cols: 2; gap: 22px 12px; }
+  .sbt-art { --la: 56px; height: 96px; }
+  .sbt-mark { font-size: 18px; }
+  .sbt-mark.with-sym { font-size: 15px; }
+  .sbt-art:has(.sym) { height: 112px; }
+  .grid-view { position: absolute; inset: 0; padding: 12px 12px 32px; -webkit-mask-image: none; mask-image: none; }
+  .gv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-.hv-pick { padding: 0; pointer-events: auto; }
+html.motion-reduced .sbt-logo, html.motion-reduced .sbt-mark, html.motion-reduced .sh-top img { transition: none; }
+
+/* an open inspect is opaque: once its backdrop has faded in, the page beneath stops
+   drawing (app.js adds body.zoom-open; removed the moment the inspect starts to close) */
+body.zoom-open > header.chrome, body.zoom-open .set-head, body.zoom-open main, body.zoom-open .minimap,
+body.zoom-open .site-foot, body.zoom-open .m-stage, body.zoom-open .m-scrub, body.zoom-open .app-ground,
+body.zoom-open .wheel .card, body.zoom-open .grid-view { visibility: hidden !important; }
+.site-foot .snapshot { font-family: var(--cw-ui); font-size: 14px; letter-spacing: 0; color: var(--cw-faint); }
+
+/* inspect panel on big screens: its mono labels were 9.5-12px at 2560 (G6: they need
+   no zoom to read). Same layout and voice, a size step up. */
+@media (min-width: 1800px) {
+  .z-price .lbl { font-size: 14px; }
+  .z-price .src, .spark-val { font-size: 13px; }
+  .z-quick .q .k, .z-credit, .chart figcaption { font-size: 13px; }
+  .spark-lab { font-size: 12px; }
+  .disc-sum, .mc-label { font-size: 14px; }
+  .z-table .row, .pull-row { font-size: 15px; }
+  .z-rarity-line { font-size: 15px; }
+}
+
+/* controls switched off for now (the Sealed button) stay out of the header row */
+.chrome-right [hidden] { display: none !important; }
+/* a set switch in progress: the current wheel dims while the next set's cards decode */
+main { transition: opacity 0.3s ease; }
+body.switching main { opacity: 0.5; }
+/* inspect on shorter screens: the card number never sits on the big price below it */
+@media (max-height: 1000px) and (min-width: 1024px) { .z-header { margin-bottom: 22px; } }
+
+/* inspect, stripped to what matters (Faisal, 27 Oct: "text pollution"): the name,
+   one plain line with the set, the price, one trend line */
+.z-rarity-line { display: none; }
+.z-number { font-family: var(--cw-ui, 'DM Sans', sans-serif); font-size: clamp(15px, 0.9vw, 20px); font-weight: 500; letter-spacing: 0; text-transform: none; color: rgba(233, 230, 223, 0.74); }
+#zPrice .lbl, #zPrice .src, .z-charts, .z-table, .z-credit, #pullsBox { display: none !important; }
+.z-trend { margin-top: 12px; font: 500 clamp(15px, 0.9vw, 20px)/1.4 var(--cw-ui, 'DM Sans', sans-serif); color: rgba(233, 230, 223, 0.74); font-variant-numeric: tabular-nums; }
+.z-trend b { font-weight: 700; }
+.z-trend b.up { color: #4fd17a; }
+.z-trend b.down { color: #ff8a7a; }
+.mc-label { font-family: var(--cw-ui, 'DM Sans', sans-serif); font-size: 15px; letter-spacing: 0; text-transform: none; }

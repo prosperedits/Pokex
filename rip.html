@@ -3,248 +3,192 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crowns — Rip Lab</title>
-<meta name="description" content="Sealed-pack rip economics: expected value, ROI and break-even odds for every Pokémon set — built on documented pull rates and live market prices.">
-<link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
+<title>Rip Lab · Crowns</title>
+<meta name="description" content="Rip a real Pokémon booster pack in 3D: a simulated pull on documented pull rates and live market prices, plus the expected value of every sealed product.">
+<link rel="icon" type="image/png" href="assets/favicon-64.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --navy:#060c1e; --navy-2:#0b1838; --blue:#3b82ff; --blue-bright:#6aa8ff; --ink:#eaf2ff; --dim:#90a6cc;
-  --gold:#ffd24a; --gold-lt:#ffe9a8; --gold-dk:#d99a2e;
-  --font:'DM Sans', system-ui, sans-serif; --font-display:'Anton','DM Sans',sans-serif;
-  --hairline:rgba(106,168,255,.16); --money:#4ade80; --ember:#ff9a3d;
-}
-*{margin:0;padding:0;box-sizing:border-box;font-synthesis:none}
-html{background:#05091c;scroll-behavior:smooth}
-html,body{min-height:100%}
-body{color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden;background:#04071a}
-.vign{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 90% at 50% 0%, rgba(20,34,72,.22), transparent 60%)}
-
-/* ---- header ---- */
-.chrome{position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:16px;
-  max-width:1180px;margin:0 auto;padding:20px clamp(16px,4vw,48px) 8px}
-.brand{display:inline-flex;align-items:center;gap:9px;border:2px solid var(--blue-bright);font-family:var(--font-display);
-  padding:8px 13px 5px;letter-spacing:.16em;font-size:19px;line-height:1;color:var(--gold);background:rgba(7,13,32,.55);
-  backdrop-filter:blur(10px);text-shadow:0 0 12px rgba(255,210,74,.35);box-shadow:0 0 16px -4px rgba(106,168,255,.4);text-decoration:none}
-.brand svg{width:1em;height:1em;color:var(--gold)}
-.back{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-display);font-size:13px;font-weight:600;
-  letter-spacing:.14em;text-transform:uppercase;color:rgba(244,238,222,.84);text-decoration:none;white-space:nowrap;
-  padding:10px 18px;border-radius:13px;border:1px solid rgba(255,214,102,.22);background:rgba(11,24,56,.5);
-  -webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 18px 40px -22px rgba(0,0,0,.7);transition:color .22s,border-color .22s,background .22s}
-.back:hover{color:var(--gold);border-color:rgba(255,214,102,.5);background:rgba(13,28,64,.62)}
-
-main{position:relative;z-index:10;max-width:1180px;margin:0 auto;padding:8px clamp(16px,4vw,48px) 96px}
-
-h1.title{font-family:var(--font-display);font-weight:400;font-size:clamp(40px,7vw,82px);letter-spacing:.005em;line-height:.96;
-  margin-bottom:10px;text-transform:uppercase}
-h1.title .accent{color:var(--gold);text-shadow:0 0 30px rgba(255,210,74,.45)}
-.lede{color:var(--dim);font-size:clamp(15px,2.2vw,18px);max-width:820px;line-height:1.55;margin-bottom:30px}
-.lede b{color:var(--ink);font-weight:600}
-.lede .up{color:var(--money);font-weight:600} .lede .dn{color:var(--ember);font-weight:600}
-
-/* ---- cross-set leaderboard ---- */
-.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(188px,1fr));gap:12px;margin-bottom:18px}
-.bcard{text-align:left;background:linear-gradient(180deg,rgba(20,38,79,.5),rgba(8,16,40,.55));border:1px solid var(--hairline);
-  border-radius:15px;padding:15px 16px 14px;cursor:pointer;position:relative;overflow:hidden;color:var(--ink);font-family:var(--font);
-  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:.16s}
-.bcard:hover{border-color:rgba(106,168,255,.4);transform:translateY(-2px)}
-.bcard.on{border-color:rgba(255,210,74,.55);box-shadow:0 0 0 1px rgba(255,210,74,.18),0 16px 40px -18px rgba(255,200,70,.32)}
-.bcard .rank{font-family:var(--font-display);font-size:12px;color:var(--dim);letter-spacing:.1em}
-.bcard .bname{font-weight:600;font-size:15px;margin:3px 0 8px;line-height:1.15}
-.bcard .broi{font-family:var(--font-display);font-size:30px;line-height:1}
-.bcard .bsub{font-size:11.5px;color:var(--dim);margin-top:6px;line-height:1.35}
-.bcard.pos .broi{color:var(--money)} .bcard.neg .broi{color:var(--ember)} .bcard.even .broi{color:var(--blue-bright)}
-.board-note{font-size:12px;color:var(--dim);margin:-4px 0 36px}
-
-/* ---- set bar ---- */
-.setbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:8px 0 22px;padding-top:26px;border-top:1px solid var(--hairline)}
-.eyebrow{font-family:var(--font-display);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600}
-.setpick{background:rgba(11,24,56,.6);color:var(--ink);border:1px solid var(--hairline);border-radius:11px;padding:9px 14px;
-  font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.setpick:focus{outline:none;border-color:var(--blue-bright)}
-.setmeta{font-size:13px;color:var(--dim)}
-.ratesrc{font-size:11.5px;color:var(--dim);border:1px solid var(--hairline);border-radius:20px;padding:5px 11px}
-.ratesrc b{color:var(--gold-lt);font-weight:600}
-
-.verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:46px}
-.vcard{background:linear-gradient(180deg,rgba(20,38,79,.5),rgba(8,16,40,.55));border:1px solid var(--hairline);border-radius:16px;
-  padding:22px 20px 18px;position:relative;overflow:hidden;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.vcard .k{font-family:var(--font-display);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:10px}
-.vcard .v{font-family:var(--font-display);font-weight:400;font-size:34px;line-height:1;letter-spacing:.01em}
-.vcard .sub{font-size:12.5px;color:var(--dim);margin-top:9px;line-height:1.45}
-.vcard.good .v{color:var(--money)} .vcard.warn .v{color:var(--gold)} .vcard.cool .v{color:var(--blue-bright)}
-.vcard .glow{position:absolute;inset:0;opacity:.4;pointer-events:none;background:radial-gradient(120% 80% at 80% -10%,currentColor 0%,transparent 55%)}
-.vcard.good{color:var(--money)} .vcard.warn{color:var(--gold)} .vcard.cool{color:var(--blue-bright)}
-
-section{margin-bottom:50px}
-h2.sec{font-family:var(--font-display);font-weight:400;font-size:clamp(24px,3vw,34px);letter-spacing:.01em;text-transform:uppercase;
-  margin-bottom:6px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-h2.sec .hint{font-family:var(--font);font-size:13px;font-weight:400;color:var(--dim);letter-spacing:0;text-transform:none}
-.sec-note{color:var(--dim);font-size:13.5px;margin-bottom:20px;max-width:820px;line-height:1.55}
-.sec-note b{color:var(--ink)}
-
-/* ---- product ROI rows ---- */
-.prod{display:grid;grid-template-columns:1fr;gap:12px}
-.prow{display:grid;grid-template-columns:1.4fr .8fr .8fr 1.5fr .9fr;gap:14px;align-items:center;
-  background:rgba(11,22,50,.5);border:1px solid var(--hairline);border-radius:14px;padding:16px 18px;transition:.18s;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.prow:hover{border-color:rgba(106,168,255,.35);background:rgba(14,28,62,.62)}
-.prow.best{border-color:rgba(255,210,74,.5);box-shadow:0 0 0 1px rgba(255,210,74,.16),0 14px 36px -16px rgba(255,200,70,.3)}
-.prow .pname{font-weight:600;font-size:16px}
-.prow .pname small{display:block;color:var(--dim);font-weight:400;font-size:12.5px;margin-top:3px}
-.prow .num{font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
-.prow .num small{color:var(--dim);font-size:11px;display:block;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
-.roi-wrap{display:flex;flex-direction:column;gap:5px}
-.roi-bar{height:9px;border-radius:6px;background:rgba(106,168,255,.1);overflow:hidden;position:relative}
-.roi-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
-.roi-bar .mark{position:absolute;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.6)}
-.roi-label{font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
-.tag{justify-self:end;font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
-  padding:6px 12px;border-radius:20px;white-space:nowrap}
-.tag.profit{color:var(--money);background:rgba(74,222,128,.12)} .tag.loss{color:var(--ember);background:rgba(255,154,61,.12)} .tag.even{color:var(--blue-bright);background:rgba(106,168,255,.12)}
-
-/* ---- per-pack panel ---- */
-.panel{display:grid;grid-template-columns:1.1fr 1fr;gap:22px;align-items:start}
-.dist,.model{background:rgba(11,22,50,.5);border:1px solid var(--hairline);border-radius:16px;padding:22px 22px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.dist h3,.model h3{font-size:14px;font-weight:600;margin-bottom:14px;color:var(--ink)}
-.histo{display:flex;align-items:flex-end;gap:4px;height:120px;margin-bottom:8px}
-.histo .b{flex:1;background:linear-gradient(180deg,var(--blue-bright),rgba(59,130,255,.2));border-radius:3px 3px 0 0;min-height:2px;transition:.2s}
-.histo .b.hot{background:linear-gradient(180deg,var(--gold),rgba(255,210,74,.2))}
-.axis{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
-.pctl{display:grid;grid-template-columns:1fr auto;gap:7px 14px;margin-top:16px;font-size:13.5px}
-.pctl .lbl{color:var(--dim)} .pctl .val{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
-.model .mnote{font-size:12px;color:var(--dim);margin-bottom:16px;line-height:1.5}
-.mslotlbl{font-family:var(--font-display);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--blue-bright);margin:6px 0 8px}
-.mrow{display:grid;grid-template-columns:1.1fr 64px 1fr;gap:10px;align-items:center;margin-bottom:11px}
-.mrow label{font-size:13.5px;font-weight:500}
-.mrow input[type=number]{width:100%;background:rgba(6,12,30,.7);border:1px solid var(--hairline);color:var(--ink);border-radius:8px;
-  padding:6px 8px;font-family:var(--font);font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
-.mrow input[type=number]:focus{outline:none;border-color:var(--blue-bright)}
-.mrow .oneIn{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
-.mreset{margin-top:10px;background:none;border:1px solid var(--hairline);color:var(--dim);border-radius:8px;padding:8px 13px;
-  font-size:12.5px;cursor:pointer;font-family:var(--font);font-weight:600;transition:.15s}
-.mreset:hover{color:var(--gold);border-color:rgba(255,214,102,.5)}
-
-/* ---- rarity ladder ---- */
-.ladder{display:flex;flex-direction:column;gap:12px}
-.rung{background:rgba(11,22,50,.5);border:1px solid var(--hairline);border-radius:14px;padding:14px 16px;
-  display:grid;grid-template-columns:1.6fr 2.2fr;gap:16px;align-items:center;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.rung .rinfo .rname{font-weight:600;font-size:15.5px;display:flex;align-items:center;gap:8px}
-.rung .rinfo .dot{width:9px;height:9px;border-radius:50%;flex:none}
-.rung .rinfo .rstats{font-size:12.5px;color:var(--dim);margin-top:5px;font-variant-numeric:tabular-nums}
-.rung .rinfo .rrate{font-size:12px;color:var(--blue-bright);margin-top:3px;font-weight:600}
-.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
-.chip{flex:none;width:74px;text-decoration:none}
-.chip img{width:74px;height:103px;object-fit:cover;border-radius:7px;background:#0b1838;border:1px solid var(--hairline);display:block}
-.chip .cp{font-weight:700;font-size:12px;color:var(--money);margin-top:4px;text-align:center;font-variant-numeric:tabular-nums}
-.chip .cn{font-size:10.5px;color:var(--dim);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-.method{font-size:12.5px;color:var(--dim);line-height:1.6;border-top:1px solid var(--hairline);padding-top:22px}
-.method a{color:var(--blue-bright)} .method b{color:var(--ink)}
-
-@media (max-width:760px){
-  .prow{grid-template-columns:1fr 1fr;gap:10px}
-  .prow .roi-wrap{grid-column:1 / -1}
-  .prow .tag{justify-self:start}
-  .panel{grid-template-columns:1fr}
-  .rung{grid-template-columns:1fr;gap:12px}
-}
-</style>
+<link rel="stylesheet" href="rip.css?v=28">
+<script src="crown-spin.js?v=13" defer></script>
 </head>
 <body>
+<canvas id="topo" aria-hidden="true"></canvas>
 <div class="vign"></div>
 
-<header class="chrome">
-  <a class="brand" href="index.html"><svg viewBox="0 0 24 22"><path fill="currentColor" d="M2.4 7l4.3 3.5L12 3l5.3 7.5L21.6 7l-1.8 11.6H4.2L2.4 7z"/><rect x="4" y="19.2" width="16" height="1.9" rx=".95" fill="currentColor"/></svg>CROWNS</a>
-  <a class="back" href="index.html"><span aria-hidden="true">&larr;</span> Back to wheel</a>
+<header class="topbar" id="topbar">
+  <a class="brand" href="index.html" aria-label="Crowns home">
+    <span class="crown-spin brand-crown" aria-hidden="true"></span>
+  </a>
+  <h1 class="page-title"><img src="assets/rip/rip-title.webp?v=1" srcset="assets/rip/rip-title.webp?v=1 1x, assets/rip/rip-title@2x.webp?v=1 2x" alt="Rip a pack" width="243" height="150"></h1>
+  <div class="topbar-right">
+    <nav class="nav" aria-label="Main">
+      <a href="app.html">Sets</a>
+      <a class="on" href="rip.html" aria-current="page">Rip Lab</a>
+      <a href="data.html">Live data</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="faq.html">FAQ</a>
+    </nav>
+    <span class="topbar-div" aria-hidden="true"></span>
+    <a class="join-now" href="app.html">Join now</a>
+  </div>
 </header>
 
-<main>
-  <h1 class="title">Should you <span class="accent">rip</span> it?</h1>
-  <p class="lede" id="lede">Crunching every Pokémon set against live prices&hellip;</p>
-
-  <section>
-    <h2 class="sec">Best rip across Pokémon <span class="hint">every set, ranked by its best sealed product's expected return</span></h2>
-    <div class="board" id="board"></div>
-    <p class="board-note" id="boardNote"></p>
-  </section>
-
-  <div class="setbar">
-    <span class="eyebrow">Set</span>
-    <select id="setPick" class="setpick" aria-label="Choose a set"></select>
-    <span class="setmeta" id="setMeta"></span>
-    <span class="ratesrc" id="rateSrc"></span>
+<section class="rip-hero" id="ripHero" aria-label="Rip a pack">
+  <div class="picker">
+    <div class="packs" id="packPick" role="group" aria-label="Pick a pack"></div>
   </div>
 
-  <div class="verdict" id="verdict"></div>
+  <div class="stage" id="ripStage">
+    <div class="stage-set">
+      <img id="stageLogo" class="stage-logo" alt="" hidden>
+      <p class="set-name" id="stageName" hidden></p>
+    </div>
+    <div class="stage-canvas" id="ripStageWrap">
+      <canvas id="ripCanvas" tabindex="0" role="img" aria-label="Sealed booster pack. Press Enter to tear it open."></canvas>
+      <button class="tear-btn" id="tearBtn" type="button" hidden><svg class="scissors" viewBox="0 0 32 32" aria-hidden="true"><path fill-rule="evenodd" d="M8 3.6a5.2 5.2 0 1 0 0 10.4a5.2 5.2 0 1 0 0-10.4zm0 2.6a2.6 2.6 0 1 1 0 5.2a2.6 2.6 0 1 1 0-5.2zM8 18a5.2 5.2 0 1 0 0 10.4a5.2 5.2 0 1 0 0-10.4zm0 2.6a2.6 2.6 0 1 1 0 5.2a2.6 2.6 0 1 1 0-5.2zM11.9 11.5 30 21.6 28.4 23.6 10.7 13.6z M11.9 20.5 30 10.4 28.4 8.4 10.7 18.4z"/></svg>Tear here</button>
+      <button class="next-pill" id="nextBtn" type="button" hidden>Next <span aria-hidden="true">&rarr;</span></button>
+      <p class="car-name" id="carName" hidden></p>
+      <p class="stage-fallback" id="ripFallback" hidden>This browser can&rsquo;t draw the 3D pack. The odds and prices below still work.</p>
+    </div>
+    <div class="stage-cta">
+      <button class="snd" id="ripSound" type="button" aria-pressed="true" hidden>Sound on</button>
+      <button class="navb" id="ripPrev" type="button" aria-label="Previous card" hidden>&larr;</button>
+      <p class="now" id="ripNow" aria-hidden="true" hidden></p>
+      <button class="navb" id="ripNext" type="button" aria-label="Next card" hidden>&rarr;</button>
+      <p class="hint" id="ripHint">Drag across the top seal to tear it open</p>
+      <button class="btn gold" id="ripBtn" type="button" hidden>Rip another</button>
+      <button class="btn ghost" id="ripAll" type="button" hidden>Reveal all</button>
+    </div>
+  </div>
 
-  <section>
-    <h2 class="sec">Sealed products <span class="hint">ranked by expected return on a rip</span></h2>
-    <p class="sec-note"><b>EV</b> = what the pulled singles would actually <b>net you reselling</b> them — live market less ~20% for fees &amp; shipping, with sub-$2 bulk (commons, most reverses, plain rares) counted as $0 because you can't profitably flip it. <b>ROI</b> = net EV &divide; what the sealed costs. <b>Profit odds</b> = how often a rip clears its price after fees (20,000 simulated rips). This is the honest "rip to make money" math — it's a paid gamble, and the cheapest per-pack product is the least-bad rip.</p>
+  <div class="side">
+    <div class="price-hero" id="heroPrice"></div>
+    <aside class="receipt" id="receipt" aria-label="This pack"></aside>
+  </div>
+  <p class="sr" id="ripLive" aria-live="polite"></p>
+</section>
+
+<div class="calm">
+<main class="wrap">
+  <section class="sec" id="analysis">
+    <div class="sec-head">
+      <h2>Should you rip it?</h2>
+    </div>
+    <p class="lede" id="lede">Crunching the set against live prices&hellip;</p>
+    <div class="setband" id="setband"></div>
+  </section>
+
+  <section class="sec" id="sec-sealed">
+    <div class="sec-head"><h2>Sealed products</h2><p>Ranked by expected return on a rip.</p></div>
+    <p class="note"><b>Net resale</b> is what the pulled singles would net you reselling them: live market less about 20% for fees and shipping, with bulk under $2 (commons, most reverses, plain rares) counted as $0 because it can&rsquo;t be flipped at a profit. <b>Return</b> is net resale divided by what the sealed product costs. <b>Profit odds</b> is how often a rip clears its price after fees, across 20,000 simulated rips.</p>
     <div class="prod" id="prod"></div>
   </section>
 
-  <section>
-    <h2 class="sec">One pack, up close <span class="hint">where the money actually is</span></h2>
-    <p class="sec-note">A Scarlet &amp; Violet pack has <b>two</b> hit slots: a rare slot (Rare &rarr; ex &rarr; full art) and a reverse-holo slot that upgrades to Illustration / Special Illustration / Hyper rares. Most packs are bulk; a few carry the whole set. Tune any rate on the right and everything recomputes live.</p>
+  <section class="sec" id="sec-pack">
+    <div class="sec-head"><h2>One pack, up close</h2><p>Where the money is.</p></div>
+    <p class="note">A Scarlet &amp; Violet era pack has <b>two</b> hit slots: a rare slot (Rare, Double Rare, Ultra Rare) and a reverse-holo slot that upgrades to Illustration, Special Illustration and Hyper Rares. Most packs are bulk; a few carry the set. Change any rate on the right and everything on this page recomputes, the pack above included.</p>
     <div class="panel">
-      <div class="dist">
-        <h3>Value of a single pack <span id="ppCost" style="color:var(--dim);font-weight:400"></span></h3>
+      <div class="box">
+        <h3>Net resale of a single pack <span id="ppCost"></span></h3>
+        <p class="mnote" id="histoNote"></p>
         <div class="histo" id="histo"></div>
-        <div class="axis"><span>$0</span><span id="axMid"></span><span id="axMax"></span></div>
+        <div class="axis"><span>$0.01</span><span id="axMid"></span><span id="axMax"></span></div>
         <div class="pctl" id="pctl"></div>
       </div>
-      <div class="model">
-        <h3>Pull rates &mdash; per pack</h3>
+      <div class="box">
+        <h3>Pull rates per pack</h3>
         <p class="mnote" id="mnote"></p>
         <div id="modelRows"></div>
-        <button class="mreset" id="mreset">Reset to documented rates</button>
+        <button class="btn ghost mreset" id="mreset" type="button">Reset to documented rates</button>
       </div>
     </div>
   </section>
 
-  <section>
-    <h2 class="sec">Top hits by rarity <span class="hint">the cards you're chasing</span></h2>
-    <p class="sec-note">Each rarity's per-pack odds, card count, and the priciest pulls in the set &mdash; the ones that make a rip worth it.</p>
+  <section class="sec" id="sec-hits">
+    <div class="sec-head"><h2>Top hits by rarity</h2><p>The cards a rip is chasing, with their odds.</p></div>
     <div class="ladder" id="ladder"></div>
+  </section>
+
+  <section class="sec" id="sec-board">
+    <div class="sec-head"><h2>Every set, ranked</h2><p>Each set by its best sealed product&rsquo;s expected return. Pick one to load it above.</p></div>
+    <div class="board" id="board"></div>
+    <p class="board-note" id="boardNote"></p>
   </section>
 
   <p class="method" id="method"></p>
 </main>
+</div>
 
 <script src="data/sealed.js"></script>
+<script src="data/set-colors.js"></script>
 <script>
-(() => {
+// Rip Lab model + analysis. Exposes window.RIPLAB so rip3d.js rips packs with the same pull-rate model.
+window.RIPLAB = (() => {
   'use strict';
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (n||0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmt0 = (n) => '$' + Math.round(n||0).toLocaleString('en-US');
   const pct = (x) => (x*100).toFixed(x>0 && x<0.1 ? 1 : 0) + '%';
-  const oneIn = (r) => r>0 ? '1 in ' + (1/r>=20 ? Math.round(1/r) : (1/r).toFixed(1)) : '—';
+  const oneIn = (r) => r>0 ? '1 in ' + (1/r>=20 ? Math.round(1/r) : (1/r).toFixed(1)) : 'not in this set';
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+  const titleRarity = (r) => String(r || '').replace(/\b([a-z])/g, (m) => m.toUpperCase()).replace('Ace Spec', 'ACE SPEC');
 
   // ----- every Pokémon set with sealed-product data, newest first -----
   const SET_IDS = ['me04','me03','me02.5','me02','me01','sv10.5w','sv10.5b','sv10','sv09','sv08.5','sv08','sv07','sv06.5','sv06','sv05','sv04.5','sv04','sv03.5','sv03','sv02','sv01'];
+  // tcgdex logo for each set (series = the id's letters); sv05's tcgdex path is wrong, so it uses the local wordmark
+  const LOGO_OVERRIDE = { sv05: 'assets/setlogos/sv05.png' };
+  const logoOf = (id) => LOGO_OVERRIDE[id] || `https://assets.tcgdex.net/en/${id.replace(/[^a-z].*$/, '')}/${id}/logo.webp`;
 
   // which slot each hit rarity rolls in (everything else in a slot = its floor)
   const RARE_SLOT = ['Double rare','Ultra Rare'];                       // floor = 'Rare'
   const REV_SLOT  = ['Illustration rare','Special illustration rare','Hyper rare','ACE SPEC Rare','Shiny rare','Shiny Ultra Rare','Mega Hyper Rare','Black White Rare']; // floor = reverse holo
 
-  // documented per-pack odds. Default = base Scarlet & Violet aggregate; the rest are
-  // midpoints of published S&V studies, only used for a rarity a set actually contains.
-  const FALLBACK = {
-    'Double rare':0.135,'Ultra Rare':0.065,
-    'Illustration rare':0.075,'Special illustration rare':0.025,'Hyper rare':0.013,
-    'ACE SPEC Rare':0.04,'Shiny rare':0.05,'Shiny Ultra Rare':0.013,
-    'Mega Hyper Rare':0.012,'Black White Rare':0.010
+  // Per-pack odds, set by set, each traced to a published pack-opening sample (audited 27 Oct 2026).
+  // Every value is [probability per pack, source key]. Nobody publishes official odds; these are the largest
+  // samples we could find. A set-specific figure beats an era figure; an era figure is labelled as one.
+  const SOURCES = {
+    csl:   { label: 'Card Shop Live, 1,728 Scarlet & Violet packs', url: 'https://cardshoplive.com/pages/hit-rates-for-pokemon-tcg-scarlet-and-violet' },
+    tcg:   { label: 'TCGplayer pack samples, per set (via Ripster, Oct 2026)', url: 'https://www.ripster.gg/blog/pokemon-sets-ranked-by-pull-rate' },
+    tcgSv: { label: 'TCGplayer, Scarlet & Violet series rates (via PokéBeach)', url: 'https://www.pokebeach.com/2025/09/mega-evolution-pull-rates-revealed-gold-cards-nearly-impossible-to-pull-at-highest-pull-rates-ever-seen' },
+    tcgMe: { label: 'TCGplayer, 5,000+ Mega Evolution packs (via PokéBeach)', url: 'https://www.pokebeach.com/2025/09/mega-evolution-pull-rates-revealed-gold-cards-nearly-impossible-to-pull-at-highest-pull-rates-ever-seen' },
+    tcgTef:{ label: 'TCGplayer, Temporal Forces sample (via PokéBeach)', url: 'https://www.pokebeach.com/2024/03/temporal-forces-has-hardest-pull-rates-of-scarlet-violet-sets-for-highest-rarities' },
+    pre:   { label: 'TCGplayer, 1,200 Prismatic Evolutions packs (via PokéBeach)', url: 'https://pokebeach.com/2025/01/prismatic-evolutions-pull-rates-revealed-special-illustration-rares-twice-as-easy-to-pull' },
+    preDr: { label: 'TCGTalk, Prismatic Evolutions guide', url: 'https://tcgtalk.com/guides/prismatic-evolutions-pack-opening-value-guide' },
+    bbwf:  { label: 'TCGplayer, Black Bolt / White Flare (via Deltia’s Gaming)', url: 'https://deltiasgaming.com/?p=299238' },
+    bwr:   { label: 'Card Codex, 1,000 Black Bolt / White Flare packs', url: 'https://cardcodex.com/blog/black-bolt-white-flare-pull-rates/' },
+    asc:   { label: 'TCGplayer, 2,000+ Ascended Heroes packs (via CardTracker)', url: 'https://cardtracker.au/insights/guides/pokemon-card-pull-rates' },
+    cri:   { label: 'Obsidia TCG community sample, Chaos Rising (via CardTracker)', url: 'https://cardtracker.au/insights/guides/pokemon-card-pull-rates' },
+    mhr:   { label: 'TCGplayer Mega Hyper Rare rates (via Ripster)', url: 'https://www.ripster.gg/blog/pokemon-pull-rates-getting-worse' },
+    est:   { label: 'estimate: no published sample for this rarity', url: '' },
   };
-  // per-set studies override the fallback (per-pack probabilities)
-  const STUDY = {
-    'sv01':  {src:'Card Shop Live · 1,728 packs', r:{'Double rare':0.1354,'Ultra Rare':0.0648,'Illustration rare':0.0752,'Special illustration rare':0.0301,'Hyper rare':0.0185}},
-    'sv05':  {src:'TCGplayer · Temporal Forces',  r:{'Special illustration rare':0.0116,'Hyper rare':0.0072,'ACE SPEC Rare':0.05}},
-    'sv08':  {src:'TCGplayer · Surging Sparks',   r:{'Double rare':0.167,'Ultra Rare':0.067,'Illustration rare':0.0769,'Special illustration rare':0.0115,'Hyper rare':0.0053,'ACE SPEC Rare':0.05}},
-    'sv04':  {src:'TCGplayer · Paradox Rift',     r:{'ACE SPEC Rare':0.0213}},
-    'sv04.5':{src:'Paldean Fates · shiny set (est.)', r:{'Shiny rare':0.18,'Shiny Ultra Rare':0.035,'Special illustration rare':0.02,'Hyper rare':0.012}},
+  const P = (n) => 1 / n;                                   // "1 in n packs"
+  // shared era rows
+  const SV_EARLY = { 'Double rare': [0.1354, 'csl'], 'Ultra Rare': [0.0648, 'csl'], 'Illustration rare': [0.0752, 'csl'], 'Hyper rare': [0.0185, 'csl'] };
+  const SV_LATE  = { 'Double rare': [P(5), 'tcgSv'], 'Ultra Rare': [P(15), 'tcgSv'], 'Illustration rare': [P(12), 'tcgSv'], 'ACE SPEC Rare': [P(20), 'tcgTef'] };
+  const ME_ERA   = { 'Double rare': [P(5), 'tcgMe'], 'Ultra Rare': [P(12), 'tcgMe'], 'Illustration rare': [P(9), 'tcgMe'] };
+  const RATES = {
+    'sv01':    { ...SV_EARLY, 'Special illustration rare': [0.0301, 'csl'] },
+    'sv02':    { ...SV_EARLY, 'Special illustration rare': [0.0317, 'tcg'] },
+    'sv03':    { ...SV_EARLY, 'Special illustration rare': [0.0313, 'tcg'] },
+    'sv03.5':  { ...SV_EARLY, 'Special illustration rare': [0.0311, 'tcg'] },
+    'sv04':    { ...SV_LATE, 'Special illustration rare': [P(47), 'tcg'], 'Hyper rare': [P(82), 'tcg'] },
+    'sv04.5':  { ...SV_LATE, 'Special illustration rare': [P(58), 'tcg'], 'Shiny rare': [P(4), 'tcg'], 'Shiny Ultra Rare': [0.035, 'est'], 'Hyper rare': [0.012, 'est'] },
+    'sv05':    { 'Double rare': [P(6), 'tcgTef'], 'Ultra Rare': [P(15), 'tcgTef'], 'Illustration rare': [P(13), 'tcgTef'], 'ACE SPEC Rare': [P(20), 'tcgTef'],
+                 'Special illustration rare': [P(86), 'tcgTef'], 'Hyper rare': [P(139), 'tcgTef'] },
+    'sv06':    { ...SV_LATE, 'Special illustration rare': [P(86), 'tcg'], 'Hyper rare': [P(146), 'tcg'] },
+    'sv06.5':  { ...SV_LATE, 'Special illustration rare': [P(90), 'tcgSv'], 'Hyper rare': [P(140), 'est'] },
+    'sv07':    { ...SV_LATE, 'Special illustration rare': [0.0111, 'tcg'], 'Hyper rare': [P(137), 'tcg'] },
+    'sv08':    { ...SV_LATE, 'Special illustration rare': [P(87), 'tcg'], 'Hyper rare': [P(188), 'tcg'] },
+    'sv08.5':  { 'Double rare': [0.18, 'preDr'], 'Ultra Rare': [P(13), 'pre'], 'ACE SPEC Rare': [P(21), 'pre'], 'Special illustration rare': [P(45), 'pre'], 'Hyper rare': [P(180), 'pre'] },
+    'sv09':    { ...SV_LATE, 'Special illustration rare': [P(86), 'tcg'], 'Hyper rare': [P(137), 'tcg'] },
+    'sv10':    { ...SV_LATE, 'Special illustration rare': [P(94), 'tcg'], 'Hyper rare': [P(149), 'tcg'] },
+    'sv10.5b': { 'Double rare': [0.2111, 'bbwf'], 'Ultra Rare': [0.0583, 'bbwf'], 'Illustration rare': [0.1639, 'bbwf'], 'Special illustration rare': [0.0125, 'bbwf'], 'Black White Rare': [0.002, 'bwr'] },
+    'sv10.5w': { 'Double rare': [0.2111, 'bbwf'], 'Ultra Rare': [0.0583, 'bbwf'], 'Illustration rare': [0.1639, 'bbwf'], 'Special illustration rare': [0.0125, 'bbwf'], 'Black White Rare': [0.002, 'bwr'] },
+    'me01':    { ...ME_ERA, 'Special illustration rare': [P(101), 'tcgMe'], 'Mega Hyper Rare': [P(1260), 'tcgMe'] },
+    'me02':    { ...ME_ERA, 'Special illustration rare': [P(80), 'tcg'], 'Mega Hyper Rare': [P(1260), 'tcg'] },
+    'me02.5':  { 'Double rare': [P(5), 'asc'], 'Ultra Rare': [P(21), 'asc'], 'Illustration rare': [P(9), 'asc'], 'Special illustration rare': [P(70), 'asc'], 'Mega Hyper Rare': [P(540), 'asc'] },
+    'me03':    { ...ME_ERA, 'Special illustration rare': [P(81), 'tcg'], 'Mega Hyper Rare': [P(1786), 'mhr'] },
+    'me04':    { 'Double rare': [0.203, 'cri'], 'Ultra Rare': [0.0829, 'cri'], 'Illustration rare': [0.1066, 'cri'], 'Special illustration rare': [P(83), 'tcg'], 'Mega Hyper Rare': [P(956), 'mhr'] },
   };
 
   const RARITY_COLOR = {
@@ -266,12 +210,16 @@ h2.sec .hint{font-family:var(--font);font-size:13px;font-weight:400;color:var(--
 
   // ---- effective per-pack rates for a set (only rarities the set actually has) ----
   function ratesFor(id, present) {
-    const study = STUDY[id]; const r = {};
+    const table = RATES[id] || {}; const r = {}, used = [];
     for (const rar of present) {
-      if (RARE_SLOT.includes(rar) || REV_SLOT.includes(rar))
-        r[rar] = (study && study.r[rar] != null) ? study.r[rar] : (FALLBACK[rar] || 0);
+      if (!(RARE_SLOT.includes(rar) || REV_SLOT.includes(rar))) continue;
+      const row = table[rar] || [0, 'est'];
+      r[rar] = row[0];
+      if (!used.includes(row[1])) used.push(row[1]);
     }
-    return { r, src: study ? study.src : 'S&V-era estimate' };
+    const links = used.map((k) => SOURCES[k]).filter(Boolean);
+    const main = links.find((l) => l.url) || links[0] || SOURCES.est;
+    return { r, src: main.label, links };
   }
 
   // ---- analytic per-pack EV + structure for a set ----
@@ -297,37 +245,42 @@ h2.sec .hint{font-family:var(--font);font-size:13px;font-weight:400;color:var(--
     const revSlotEV  = revFloor*reverseAvg   + revHits.reduce((s,r)=>s+(rates[r]||0)*avg(r),0);
     const packEV = 4*avg('Common') + 3*avg('Uncommon') + reverseAvg + revSlotEV + rareSlotEV;
 
-    const products = ((window.SEALED_PRODUCTS||{})[id]||[]).map(p => {
+    const products = ((window.SEALED_PRODUCTS||{})[id]||[]).filter(p => p.marketUsd > 0).map(p => {
       const packs = packsOf(p), ev = packs*packEV;
       return { ...p, packs, perPack: p.marketUsd/packs, ev, roi: ev/p.marketUsd };
     }).sort((a,b)=>b.roi-a.roi);
 
-    return { id, S, byR, present, avg, rates, rareHits, revHits, rareFloor, revFloor,
-             reverseAvg, packEV, products, src: base.src, baseRates: base.r };
+    return { id, S, byR, present, avg, rates, rareHits, revHits, rareFloor, revFloor, sumRare, sumRev,
+             reverseAvg, packEV, products, src: base.src, links: base.links, baseRates: base.r };
   }
+  // the cheapest way to buy one pack of the set = the "box rate" every rip is measured against
+  const packPrice = (A) => A.products.reduce((b, p) => (!b || p.perPack < b.perPack) ? p : b, null);
 
   // ---------------------------------------------------------------------------
   let CUR = null;            // current set analysis
   let curRates = null;       // editable rate overrides for the current set
   const ALL = {};            // analysis per set (default rates)
+  let HAVE = [];
+  const listeners = [];
+  const emit = (why) => listeners.forEach(fn => { try { fn(CUR, why); } catch (e) { console.error(e); } });
 
-  // ===== cross-set leaderboard =====
+  // ===== every set ranked =====
   function buildBoard() {
-    const rows = SET_IDS.map(id => ALL[id]).filter(a => a && a.products.length)
-      .map(a => ({ a, best: a.products[0] })).filter(x => x.best)
-      .sort((x,y) => y.best.roi - x.best.roi);
-    const top = rows[0];
+    const rows = HAVE.map(id => ALL[id]).filter(a => a && a.products.length)
+      .map(a => ({ a, best: a.products[0] })).sort((x,y) => y.best.roi - x.best.roi);
+    const maxRoi = Math.max(1.1, ...rows.map(x => x.best.roi));
     $('board').innerHTML = rows.map((x,i) => {
-      const r = x.best.roi, cls = r>=1 ? 'pos' : r>=0.85 ? 'even' : 'neg';
-      return `<button class="bcard ${cls} ${CUR && CUR.id===x.a.id?'on':''}" data-id="${x.a.id}">
-        <span class="rank">#${i+1}</span>
-        <div class="bname">${x.a.S.set.name}</div>
-        <div class="broi">${pct(r)}</div>
-        <div class="bsub">best: ${x.best.name.replace('Pokémon Center','PC')} · ${fmt0(x.best.perPack)}/pack</div>
+      const r = x.best.roi, col = r>=1 ? 'var(--up)' : 'var(--blue-bright)', ink = r>=1 ? 'var(--up)' : 'var(--ink)';
+      return `<button class="brow" type="button" data-id="${x.a.id}" aria-label="${esc(x.a.S.set.name)}: ${pct(r)} expected return">
+        <span class="rk">${i+1}</span>
+        <img class="lg" src="${logoOf(x.a.id)}" alt="" loading="lazy">
+        <span class="bn"><b>${esc(x.a.S.set.name)}</b><span>${esc(x.best.name)} · ${fmt(x.best.perPack)} a pack</span></span>
+        <span class="bbw"><span class="bb"><i style="width:${Math.min(100, r/maxRoi*100)}%;background:${col}"></i><span class="mark" style="left:${100/maxRoi}%"></span></span></span>
+        <span class="pc" style="color:${ink}">${pct(r)}</span>
       </button>`;
     }).join('');
-    $('board').querySelectorAll('.bcard').forEach(b => b.addEventListener('click', () => selectSet(b.dataset.id, true)));
-    return top;
+    $('board').querySelectorAll('.brow').forEach(b => b.addEventListener('click', () => { selectSet(b.dataset.id); $('ripHero').scrollIntoView({ behavior: 'smooth' }); }));
+    return rows[0];
   }
 
   // ===== Monte Carlo for the selected set (distribution / profit odds) =====
@@ -359,90 +312,114 @@ h2.sec .hint{font-family:var(--font);font-size:13px;font-weight:400;color:var(--
     for (let t=0;t<T;t++){ let s=0; for (let p=0;p<packs;p++) s+=pool[(Math.random()*POOL_N)|0]; totals[t]=s; }
     return fracAtLeast(totals, price);
   }
+  // every source a set's odds use, as links (sources without a page are named plainly)
+  // as a list, one source per line (a sentence of wrapped links reads as a clash)
+  const oddsLinks = (A) => `<span class="srcs">${(A.links || []).map((l) => l.url ? `<a href="${l.url}" target="_blank" rel="noopener">${esc(l.label)}</a>` : `<span>${esc(l.label)}</span>`).join('')}</span>`;
+  const topChase = (A) => A.S.cards.reduce((a,b)=>(b.priceUsd||0)>(a.priceUsd||0)?b:a);
 
-  // ===== render the selected set =====
+  // ===== hero copy: set logo, pack price, picker state =====
+  function renderHero() {
+    const A = CUR, S = A.S, pp = packPrice(A);
+    const logo = $('stageLogo');
+    // the set's logo sits above the pack; one that fails to load gives way to the set's name, never a broken-image box
+    logo.onerror = () => { logo.hidden = true; $('stageName').hidden = false; };
+    logo.onload = () => { logo.hidden = false; $('stageName').hidden = true; };
+    $('stageName').textContent = S.set.name;
+    logo.alt = S.set.name; logo.src = logoOf(A.id);
+    // the pack price leads the right column (Faisal, 27 Oct)
+    $('heroPrice').innerHTML = `<span class="ph-k">Pack price</span><b class="num">${fmt(pp.perPack)}</b><span class="ph-s">${esc(pp.name)} ${fmt0(pp.marketUsd)} ÷ ${pp.packs} packs</span>`;
+    $('packPick').querySelectorAll('.pk').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === A.id ? 'true' : 'false'));
+    const glow = (window.SET_COLORS || {})[A.id];
+    if (glow && glow[0]) document.documentElement.style.setProperty('--set-glow', glow[0]);
+  }
+
+  // ===== the pack picker: every pack at once, in as few columns as still fit the column's height (Faisal, 27 Oct)
+  function fitPacks() {
+    const grid = $('packPick'), n = grid.children.length; if (!n) return;
+    if (matchMedia('(max-width: 980px)').matches) { grid.style.removeProperty('--cols'); grid.classList.remove('scroll'); return; }
+    const cs = getComputedStyle(grid), W = grid.clientWidth - 8, H = grid.clientHeight - 8, gap = parseFloat(cs.columnGap) || 10;
+    let cols = 3, fits = false;
+    for (; cols <= 8; cols++) {
+      const w = (W - gap * (cols - 1)) / cols, rows = Math.ceil(n / cols);
+      if (rows * (w / 0.56) + (rows - 1) * gap <= H) { fits = true; break; }
+    }
+    grid.style.setProperty('--cols', String(Math.min(cols, 8)));   // a short last row sits centred under the others
+    grid.classList.toggle('scroll', !fits);
+  }
+
+  // ===== render the selected set's analysis =====
   function renderSet() {
     const A = CUR; const S = A.S;
-    const packEV = mean(pool);
+    const packEV = A.packEV;                 // the analytic expectation, same figure as the hero; the pool drives the spread
     const sorted = Float64Array.from(pool).sort();
-    const bestPackCost = Math.min(...A.products.map(p=>p.perPack));
+    const pp = packPrice(A), bestPackCost = pp.perPack;
     const ppBreakeven = fracAtLeast(pool, bestPackCost);
     const best = A.products[0];
     const chase = topChase(A);
 
-    $('setMeta').textContent = `${S.set.total} cards · ${A.products.length} sealed products · prices ${new Date(S.snapshotAt).toLocaleDateString()}`;
-    $('rateSrc').innerHTML = `pull rates: <b>${A.src}</b>`;
+    const word = best.roi>=1.02 ? `<span class="up">a winning rip</span>` : best.roi>=0.88 ? `roughly <b>break-even</b>` : `a <span class="dn">losing rip</span>`;
+    $('lede').innerHTML = `<b>${esc(S.set.name)}</b>: the best sealed product to rip (<b>${esc(best.name)}</b>) is ${word} right now. A pack nets about ${fmt(packEV)} of resellable singles after fees against the ${fmt(bestPackCost)} it costs at the box rate, and only <b>${pct(ppBreakeven)}</b> of packs clear that. The chase cards carry the set; the bulk is worth nothing to flip.`;
 
-    $('verdict').innerHTML = `
-      <div class="vcard ${best.roi>=1?'good':'warn'}"><span class="glow"></span>
-        <div class="k">Best product to rip</div><div class="v" style="font-size:26px">${best.name.replace('Pokémon Center','PC')}</div>
-        <div class="sub">${pct(best.roi)} expected return · ${fmt(best.perPack)}/pack</div></div>
-      <div class="vcard cool"><span class="glow"></span>
-        <div class="k">Net resale / pack</div><div class="v">${fmt(packEV)}</div>
-        <div class="sub">after fees, vs ${fmt(bestPackCost)} you pay at the box rate</div></div>
-      <div class="vcard warn"><span class="glow"></span>
-        <div class="k">Pack beats its cost</div><div class="v">${pct(ppBreakeven)}</div>
-        <div class="sub">of single packs earn the box-rate price back</div></div>
-      <div class="vcard ${best.roi>=1?'good':'warn'}"><span class="glow"></span>
-        <div class="k">Set chase</div><div class="v" style="font-size:23px">${chase.name}</div>
-        <div class="sub">${fmt(chase.priceUsd)} · ${chase.rarity}</div></div>`;
-
-    const word = best.roi>=1.02 ? `<span class="up">+EV to rip</span>` : best.roi>=0.88 ? `roughly <b>break-even</b>` : `a <span class="dn">losing rip</span>`;
-    $('lede').innerHTML = `<b>${S.set.name}</b>: the best sealed product (<b>${best.name}</b>) is ${word} right now — a box nets ~${fmt(packEV)} of resellable singles per pack after fees against ${fmt(bestPackCost)} you pay, and only <b>${pct(ppBreakeven)}</b> of packs clear that. The chase hits carry the whole set; the bulk is worthless to flip.`;
+    $('setband').innerHTML = `
+      <div class="sb-logo"><img src="${logoOf(A.id)}" alt="${esc(S.set.name)}"><span>${S.set.total} cards · ${A.products.length} sealed products</span></div>
+      <div><div class="k">Average pack resells for</div><div class="v">${fmt(packEV)}</div><div class="sub">after fees, against ${fmt(bestPackCost)} at the ${esc(pp.name)} rate</div></div>
+      <div><div class="k">Packs that beat their cost</div><div class="v gold">${pct(ppBreakeven)}</div><div class="sub">of single packs earn the box-rate price back</div></div>
+      <div><div class="k">Set chase</div><div class="chase"><img src="${chase.image}/low.webp" alt="" loading="lazy"><div><b>${esc(chase.name)}</b><div class="sub" style="margin-top:2px">${esc(titleRarity(chase.rarity))}</div><div class="v">${fmt(chase.priceUsd)}</div></div></div></div>`;
 
     const maxRoi = Math.max(1.15, ...A.products.map(p=>p.roi));
     $('prod').innerHTML = A.products.map((p,i) => {
       const w = Math.min(100, (p.roi/maxRoi)*100), oneW = (1/maxRoi)*100;
-      const col = p.roi>=1 ? 'var(--money)' : p.roi>=0.85 ? 'var(--blue-bright)' : 'var(--ember)';
+      const col = p.roi>=1 ? 'var(--up)' : 'var(--blue-bright)', ink = p.roi>=1 ? 'var(--up)' : 'var(--ink)';
       const tag = p.roi>=1 ? 'profit' : p.roi>=0.85 ? 'even' : 'loss';
-      const tagTxt = p.roi>=1 ? 'good rip' : p.roi>=0.85 ? 'coin flip' : 'collector tax';
+      const tagTxt = p.roi>=1 ? 'Good rip' : p.roi>=0.85 ? 'Coin flip' : 'Collector tax';
       return `<div class="prow ${i===0?'best':''}">
-        <div class="pname">${p.name}<small>${p.detail||''} · ${fmt(p.perPack)}/pack</small></div>
-        <div class="num"><small>Price</small>${fmt(p.marketUsd)}</div>
-        <div class="num"><small>Net resale</small>${fmt0(p.ev)}</div>
-        <div class="roi-wrap">
+        <img class="pimg" src="${esc(p.img)}" alt="" loading="lazy">
+        <div class="pname"><b>${esc(p.name)}</b><span>${esc(p.detail||'')} · ${fmt(p.perPack)} a pack</span></div>
+        <div class="cell"><small>Price</small>${fmt(p.marketUsd)}</div>
+        <div class="cell netc"><small>Net resale</small>${fmt0(p.ev)}</div>
+        <div class="roi">
           <div class="roi-bar"><i style="width:${w}%;background:${col}"></i><span class="mark" style="left:${oneW}%"></span></div>
-          <span class="roi-label" style="color:${col}">${pct(p.roi)} return · ${pct(simProfit(p.packs,p.marketUsd))} profit odds</span>
+          <span class="roi-label"><b style="color:${ink}">${pct(p.roi)} return</b> · ${pct(simProfit(p.packs,p.marketUsd))} profit odds</span>
         </div>
         <span class="tag ${tag}">${tagTxt}</span></div>`;
     }).join('');
 
-    // histogram
-    const cap = Math.max(quantile(sorted,0.97), bestPackCost*1.5, 1);
+    // histogram: all-bulk packs ($0 resale) are stated, then the spread of the packs that resell for something
+    const zeroFrac = 1 - fracAtLeast(pool, 0.005);
+    const paying = sorted.filter(v => v >= 0.005);
+    const cap = Math.max(quantile(paying.length ? paying : sorted,0.95), bestPackCost*1.5, 1);
     const BINS=26, binW=cap/BINS, counts=new Array(BINS).fill(0);
-    for (let i=0;i<pool.length;i++){ let b=Math.floor(pool[i]/binW); if (b>=BINS) b=BINS-1; counts[b]++; }
-    const maxC = Math.max(...counts);
+    for (let i=0;i<paying.length;i++){ let b=Math.floor(paying[i]/binW); if (b>=BINS) b=BINS-1; counts[b]++; }
+    const maxC = Math.max(1, ...counts);
     const costBin = Math.min(BINS-1, Math.floor(bestPackCost/binW));
-    $('histo').innerHTML = counts.map((c,i)=>`<div class="b ${i>=costBin?'hot':''}" style="height:${(c/maxC)*100}%" title="${fmt(i*binW)}–${fmt((i+1)*binW)}: ${pct(c/pool.length)}"></div>`).join('');
+    $('histo').innerHTML = counts.map((c,i)=>`<div class="b ${i>=costBin?'hot':''}" style="height:${(c/maxC)*100}%" title="${fmt(i*binW)} to ${fmt((i+1)*binW)}: ${pct(c/pool.length)} of packs"></div>`).join('');
     $('axMid').textContent = fmt(cap/2); $('axMax').textContent = fmt(cap)+'+';
     $('ppCost').textContent = `· you pay ${fmt(bestPackCost)}`;
+    $('histoNote').innerHTML = `<b>${pct(zeroFrac)}</b> of packs are all bulk and resell for $0. The other ${pct(1-zeroFrac)} spread like this; gold bars clear the pack price.`;
     $('pctl').innerHTML = [
-      ['Median pack', quantile(sorted,0.5)],
-      ['Typical (25–75%)', null, fmt(quantile(sorted,0.25))+' – '+fmt(quantile(sorted,0.75))],
-      ['Top 10% of packs', quantile(sorted,0.9), '≥ '],
-      ['Top 1% of packs', quantile(sorted,0.99), '≥ '],
-      ['Best 0.1%', quantile(sorted,0.999), '≥ '],
-    ].map(([l,v,pre])=>`<div class="lbl">${l}</div><div class="val">${typeof pre==='string'&&v==null?pre:(pre||'')+fmt(v)}</div>`).join('');
+      ['Median pack', fmt(quantile(sorted,0.5))],
+      ['Typical (25 to 75%)', fmt(quantile(sorted,0.25))+' to '+fmt(quantile(sorted,0.75))],
+      ['Top 10% of packs', '≥ '+fmt(quantile(sorted,0.9))],
+      ['Top 1% of packs', '≥ '+fmt(quantile(sorted,0.99))],
+      ['Best 0.1%', '≥ '+fmt(quantile(sorted,0.999))],
+    ].map(([l,v])=>`<div class="lbl">${l}</div><div class="val">${v}</div>`).join('');
 
     renderLadder(A);
-    $('method').innerHTML = `<b>Method.</b> Card prices are live TCGplayer market values from our data (snapshot ${new Date(S.snapshotAt).toLocaleDateString()}). Each S&amp;V pack is modelled as 4 commons + 3 uncommons + 1 reverse holo + a <b>reverse-holo+ slot</b> (upgrades to Illustration / Special Illustration / Hyper / ACE SPEC) + a <b>rare slot</b> (Rare &rarr; Double Rare &rarr; Ultra Rare). EV is the probability-weighted <b>resale</b> value of every slot — live market less ~20% (TCGplayer/eBay fees + shipping), with sub-$2 bulk floored to $0 since it can't be flipped for profit; ${POOL_N.toLocaleString()} packs are simulated for the distribution and each product by 20,000 rips for profit odds. Reverse slots are valued at the reverse-holofoil price; each hit card is equally likely within its rarity. Pull rates are community studies, not official — base S&amp;V from <a href="https://cardshoplive.com/pages/hit-rates-for-pokemon-tcg-scarlet-and-violet" target="_blank" rel="noopener">Card Shop Live (1,728 packs)</a>, set-specific figures from <a href="https://www.tcgplayer.com/content/article/Pok%C3%A9mon-TCG-Scarlet-Violet-Pull-Rates/a7702fce-dd64-4a58-beb1-0f871c853215/" target="_blank" rel="noopener">TCGplayer</a> &amp; <a href="https://www.pokebeach.com/2024/03/temporal-forces-has-hardest-pull-rates-of-scarlet-violet-sets-for-highest-rarities" target="_blank" rel="noopener">PokéBeach</a>. Sets without a published study use the S&amp;V-era aggregate (flagged above) and tend to read as an upper bound — adjust any rate above. Prices move daily; treat ROI as a live estimate, not a guarantee.`;
+    $('method').innerHTML = `<b>Method.</b> Card prices are live TCGplayer market values from our data (snapshot ${new Date(S.snapshotAt).toLocaleDateString()}). Each Scarlet &amp; Violet era pack is modelled as 4 commons, 3 uncommons, 1 reverse holo, a <b>reverse-holo slot</b> that can upgrade to Illustration, Special Illustration, Hyper or ACE SPEC, and a <b>rare slot</b> (Rare, Double Rare, Ultra Rare). The pack you rip above is one draw from exactly this model. Expected value is the probability-weighted <b>resale</b> value of every slot: live market less about 20% (TCGplayer and eBay fees plus shipping), with bulk under $2 counted as $0. ${POOL_N.toLocaleString()} packs are simulated for the distribution and each product by 20,000 rips for its profit odds. Reverse slots use the reverse-holofoil price; within a rarity every card is equally likely. Pull rates are pack-opening samples, not official odds (none are published). Where a set has no sample of its own for a rarity, the era rate for that rarity is used and named as such. Pack art: the official wrapper renders from the TCGplayer catalogue. Prices move daily; treat every return as a live estimate, not a promise. Odds for ${esc(S.set.name)} come from: ${oddsLinks(A)}`;
   }
-
-  function topChase(A){ return A.S.cards.reduce((a,b)=>(b.priceUsd||0)>(a.priceUsd||0)?b:a); }
 
   function renderLadder(A){
     $('ladder').innerHTML = LADDER_ORDER.filter(r=>A.byR[r]).map(rar=>{
       const cards = [...A.byR[rar]].sort((a,b)=>(b.priceUsd||0)-(a.priceUsd||0));
       const v = cards.map(c=>c.priceUsd||0), avg = mean(v), max = Math.max(...v);
-      const isRare = rar==='Rare';
-      const rate = isRare ? A.rareFloor : (A.rates[rar]||0);
+      const rate = rar==='Rare' ? A.rareFloor : (A.rates[rar]||0);
       const col = RARITY_COLOR[rar]||'#9a96a8';
-      const top = cards.slice(0,6).map(c=>`<a class="chip" href="index.html?set=${A.id}" title="${c.name}">
-           <img loading="lazy" src="${c.image}/low.webp" alt=""><div class="cp">${fmt(c.priceUsd||0)}</div><div class="cn">${c.name}</div></a>`).join('');
-      return `<div class="rung"><div class="rinfo">
-          <div class="rname"><span class="dot" style="background:${col}"></span>${rar}</div>
+      const top = cards.slice(0,8).map(c=>`<a class="chip" href="index.html?set=${A.id}" title="${esc(c.name)}">
+           <img loading="lazy" src="${c.image}/low.webp" alt=""><div class="cp">${fmt(c.priceUsd||0)}</div><div class="cn">${esc(c.name)}</div></a>`).join('');
+      return `<div class="rung"><div>
+          <div class="rname"><i style="background:${col}"></i>${esc(titleRarity(rar))}</div>
           <div class="rrate">${oneIn(rate)} packs · ${pct(rate)}</div>
-          <div class="rstats">${cards.length} cards · avg ${fmt(avg)} · top ${fmt(max)}</div>
+          <div class="rstats">${cards.length} cards · average ${fmt(avg)} · top ${fmt(max)}</div>
         </div><div class="chips">${top}</div></div>`;
     }).join('');
   }
@@ -452,12 +429,12 @@ h2.sec .hint{font-family:var(--font);font-size:13px;font-weight:400;color:var(--
     const A = CUR;
     const slot = (title, list) => list.length ? `<div class="mslotlbl">${title}</div>` + list.map(r=>`
       <div class="mrow">
-        <label><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${RARITY_COLOR[r]||'#9a96a8'};margin-right:6px"></span>${r}</label>
-        <input type="number" data-rar="${r}" min="0" max="100" step="0.01" value="${((A.rates[r]||0)*100).toFixed(2)}">
+        <label for="rate-${r.replace(/\W+/g,'-')}"><i style="background:${RARITY_COLOR[r]||'#9a96a8'}"></i>${esc(titleRarity(r))}</label>
+        <input id="rate-${r.replace(/\W+/g,'-')}" type="number" data-rar="${r}" min="0" max="100" step="0.01" value="${((A.rates[r]||0)*100).toFixed(2)}" aria-label="${esc(titleRarity(r))} percent per pack">
         <span class="oneIn">${oneIn(A.rates[r]||0)}</span>
       </div>`).join('') : '';
-    $('mnote').innerHTML = `Per-pack odds for <b>${A.S.set.name}</b> — source: <b>${A.src}</b>. Floors (plain Rare / reverse holo) are the remainder.`;
-    $('modelRows').innerHTML = slot('Rare slot', A.rareHits) + slot('Reverse-holo+ slot', A.revHits);
+    $('mnote').innerHTML = `Per-pack odds for ${esc(A.S.set.name)}. The floors (plain Rare, reverse holo) are the remainder. Sources: ${oddsLinks(A)}`;
+    $('modelRows').innerHTML = slot('Rare slot', A.rareHits) + slot('Reverse-holo slot', A.revHits);
     $('modelRows').querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => {
       curRates[inp.dataset.rar] = Math.max(0, (+inp.value||0)/100);
       recompute();
@@ -465,19 +442,22 @@ h2.sec .hint{font-family:var(--font);font-size:13px;font-weight:400;color:var(--
   }
   function recompute(){
     CUR = analyse(CUR.id, curRates);
-    buildPool(CUR); renderSet();
+    buildPool(CUR); renderSet(); renderHero();
     $('modelRows').querySelectorAll('input').forEach(inp => { const sib = inp.nextElementSibling; if (sib) sib.textContent = oneIn(CUR.rates[inp.dataset.rar]||0); });
+    emit('rates');
   }
-  $('mreset').addEventListener('click', () => { selectSet(CUR.id, false); });
+  $('mreset').addEventListener('click', () => { selectSet(CUR.id, true); });
 
-  // ===== set selection =====
-  function selectSet(id, scroll){
+  // ===== set selection (the pack picker, the board and the API all land here) =====
+  function selectSet(id, force){
+    if (!ALL[id]) return;
+    if (CUR && CUR.id === id && !force) return;
     CUR = analyse(id);                       // default documented rates
     curRates = { ...CUR.rates };
-    [...$('setPick').options].forEach(o => o.selected = o.value===id);
-    buildPool(CUR); renderSet(); buildEditor();
-    $('board').querySelectorAll('.bcard').forEach(b => b.classList.toggle('on', b.dataset.id===id));
-    if (scroll) $('setPick').scrollIntoView({behavior:'smooth', block:'start'});
+    buildPool(CUR); renderHero(); renderSet(); buildEditor();
+    $('board').querySelectorAll('.brow').forEach(b => b.classList.toggle('on', b.dataset.id===id));
+    try { history.replaceState(null, '', '?set=' + encodeURIComponent(id) + (location.search.match(/[?&]motion=[^&]*/)||[''])[0].replace('?','&')); } catch (e) {}
+    emit('set');
   }
 
   // ===== boot: load every set's card data, then compute =====
@@ -488,23 +468,42 @@ h2.sec .hint{font-family:var(--font);font-size:13px;font-weight:400;color:var(--
       document.head.appendChild(s);
     });
   }
-  (async () => {
+  const ready = (async () => {
     await Promise.all(SET_IDS.map(loadSet));
     window.CARD_SETS = window.CARD_SETS || {};
     // a set is only usable if we actually have prices for it — exclude sets whose price
     // snapshot is missing (they'd compute a bogus ~$0 EV and read as a fake "0% rip").
     const coverage = (id) => { const S = window.CARD_SETS[id]; return S && S.cards.length ? S.cards.filter(c => c.priceUsd > 0).length / S.cards.length : 0; };
-    const have = SET_IDS.filter(id => window.CARD_SETS[id] && (window.SEALED_PRODUCTS||{})[id] && coverage(id) >= 0.5);
-    for (const id of have) ALL[id] = analyse(id);
-    $('setPick').innerHTML = have.map(id => `<option value="${id}">${window.CARD_SETS[id].set.name}</option>`).join('');
-    $('setPick').addEventListener('change', () => selectSet($('setPick').value, false));
+    HAVE = SET_IDS.filter(id => window.CARD_SETS[id] && (window.SEALED_PRODUCTS||{})[id] && coverage(id) >= 0.5);
+    for (const id of HAVE) ALL[id] = analyse(id);
+    HAVE = HAVE.filter(id => ALL[id].products.length);
+    $('packPick').innerHTML = HAVE.map(id => `<button class="pk" type="button" data-id="${id}" aria-pressed="false" aria-label="${esc(window.CARD_SETS[id].set.name)}" title="${esc(window.CARD_SETS[id].set.name)}"><img class="pk-art" src="assets/packs/${id}.webp" alt="" loading="lazy" decoding="async"></button>`).join('');
+    $('packPick').querySelectorAll('.pk').forEach(b => b.addEventListener('click', () => selectSet(b.dataset.id)));
+    fitPacks();
+    addEventListener('resize', () => { clearTimeout(fitPacks.t); fitPacks.t = setTimeout(fitPacks, 120); });
     const top = buildBoard();
-    const startId = (top && top.a.id) || have[0];
-    selectSet(startId, false);
+    const asked = new URLSearchParams(location.search).get('set');
+    const startId = (asked && ALL[asked]) ? asked : (HAVE.includes('sv08') ? 'sv08' : (top && top.a.id) || HAVE[0]);
+    selectSet(startId, true);
     const n = Object.values(ALL).filter(a=>a.products[0] && a.products[0].roi>=1).length;
-    $('boardNote').innerHTML = `${have.length} Pokémon sets priced · ${n} currently +EV to rip at their best product. Click any set to break it down. Pull rates are community studies (not official) and prices move daily.`;
+    $('boardNote').textContent = `${HAVE.length} Pokémon sets priced · ${n} currently return more than they cost at their best product. Pull rates are community studies (not official) and prices move daily.`;
+    return HAVE;
   })();
+
+  // header: deepen behind the bar at the top, frosted once scrolled (same as the homepage)
+  const bar = $('topbar');
+  const onScroll = () => bar.classList.toggle('scrolled', scrollY > 40);
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  return {
+    ready, current: () => CUR, select: (id) => selectSet(id), onSelect: (fn) => listeners.push(fn),
+    packPrice, revPrice, net, fmt, esc, titleRarity, oneIn, pct, logoOf, RARITY_COLOR, LADDER_ORDER, oddsLinks, RARE_SLOT, REV_SLOT,
+  };
 })();
 </script>
+<script src="vendor/three.min.js"></script>
+<script src="vendor/RoomEnvironment.js"></script>
+<script src="vendor/gsap.min.js"></script>
+<script src="rip3d.js?v=26"></script>
 </body>
 </html>

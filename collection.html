@@ -2,164 +2,127 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POKEX — Collection</title>
-<meta name="description" content="Your POKEX wishlist and collection.">
-<link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Crowns · Your cards</title>
+<meta name="description" content="The cards you saved on Crowns: your collection and your wishlist, at today's market prices.">
+<link rel="icon" type="image/png" href="assets/favicon-64.png?v=2">
+<meta name="theme-color" content="#08090c">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="brand/tokens.css?v=23">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-bg.css?v=5">
+<script src="crown-spin.js?v=13" defer></script>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; font-synthesis: none; }
-html { background: var(--stage); }
-body {
-  min-height: 100vh;
-  color: var(--text);
-  font-family: var(--font-ui);
-  /* soft gold ambience — vault lighting, no harsh texture */
-  background:
-    radial-gradient(90% 60% at 50% -12%, rgba(249, 201, 64, 0.11) 0%, transparent 60%),
-    radial-gradient(70% 80% at 108% 92%, rgba(240, 140, 30, 0.08) 0%, transparent 55%),
-    radial-gradient(55% 65% at -8% 78%, rgba(201, 162, 75, 0.07) 0%, transparent 55%),
-    #0B0A10;
-}
-body::after { /* warm gold-leaning vignette */
-  content: '';
-  position: fixed; inset: 0; z-index: -1;
-  background: radial-gradient(120% 90% at 50% 40%,
-    rgba(46, 36, 12, 0.45) 0%, rgba(11, 10, 16, 0) 55%);
-  pointer-events: none;
-}
+/* Your cards: the visitor's saved collection and wishlist, in the app's language
+   (app-bg.css ground, Anton display, DM Sans body, tabular prices, gold only on money).
+   Same grammar as the set view's grid: the card art carries the page, a plain caption
+   under each card, totals said in words. Every price is a real market price: today's
+   for every card whose set ships with Crowns, otherwise the price on the day it was saved
+   (and the page says how many those are). */
+:root { --ink: #eef0f3; --dim: #a3a7af; --faint: #737882; --gold: #ffd24a; --gold-lt: #ffe9a8; --blue: #6aa8ff;
+  --font: 'DM Sans', system-ui, sans-serif; --display: 'Anton', 'DM Sans', sans-serif; --body: clamp(16px, 0.66vw, 17px);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1); --app-pool-y: 30%; --app-pool-w: 72vmax; --app-pool-h: 46vmax; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { background: #101216; }   /* = the ground's bottom tone, so the page continues seamlessly past the first screen */
+body { min-height: 100vh; color: var(--ink); font: 400 var(--body)/1.5 var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; }
 
-.chrome {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: var(--s-3) var(--s-5); min-height: 64px;
-}
-.logo-pokex { display: inline-flex; line-height: 1; user-select: none; text-decoration: none; }
-.logo-pokex .lx {
-  font-family: var(--font-logo-x);
-  font-size: 50px;
-  background: linear-gradient(178deg,
-    #EAF7FF 6%, var(--spectral-bright) 28%, var(--spectral) 54%, #1B5E96 78%, #9FE2FF 96%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 22px rgba(61, 155, 224, 0.55)) drop-shadow(0 0 48px rgba(127, 212, 244, 0.28));
-}
-.page-title {
-  font-family: var(--font-display);
-  font-size: clamp(18px, 2.2vw, 26px);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ember-glint);
-  text-shadow: 0 0 22px rgba(249, 201, 64, 0.35);
-}
-.back {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  text-decoration: none;
-  border: 1px solid var(--stage-line);
-  padding: 8px 16px;
-  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
-  transition: color var(--dur-fast), border-color var(--dur-fast);
-}
-.back:hover { color: var(--text); border-color: var(--text-faint); }
+/* the same floating bar as the other Crowns pages: crown home link left, pages right */
+.topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between;
+  padding: 18px clamp(16px, 4vw, 54px); background: linear-gradient(180deg, rgba(8, 9, 12, 0.94), rgba(8, 9, 12, 0.6) 70%, transparent); }
+.crown-spin { display: block; height: 52px; filter: drop-shadow(0 5px 13px rgba(0, 0, 0, 0.5)); }
+.nav { display: flex; align-items: center; gap: clamp(14px, 2vw, 34px); }
+.nav a { text-decoration: none; font-size: 15px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245, 239, 226, 0.92); padding: 6px 1px;
+  background-image: linear-gradient(var(--gold), var(--gold)); background-repeat: no-repeat; background-position: 0 100%; background-size: 0% 2px;
+  transition: color 0.2s, background-size 0.25s; }
+.nav a:hover, .nav a[aria-current] { color: var(--gold); background-size: 100% 2px; }
+.nav a:focus-visible, .card:focus-visible, .go:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; border-radius: 6px; }
 
-main { max-width: 1280px; margin: 0 auto; padding: var(--s-4) var(--s-5) var(--s-8); }
+main { max-width: 2300px; margin: 0 auto; padding: clamp(130px, 15vh, 190px) clamp(16px, 4.6vw, 132px) 120px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(42px, 3.4vw, 86px); line-height: 1.04; text-transform: uppercase; letter-spacing: 0.006em; }
+.lede { margin-top: clamp(12px, 0.8vw, 18px); color: var(--dim); max-width: 46em; }
+/* the two totals, said big: the figure, then what it is */
+.totals { display: flex; flex-wrap: wrap; gap: 14px clamp(36px, 4vw, 96px); margin-top: clamp(28px, 4vh, 52px); }
+.total b { display: block; font-weight: 700; font-size: clamp(30px, 1.9vw, 46px); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.total span { color: var(--dim); }
 
-.sect { margin-top: var(--s-6); }
-.sect-head {
-  display: flex; align-items: baseline; gap: var(--s-2);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-.sect-head::before {
-  content: '';
-  align-self: center;
-  width: 7px; height: 7px; flex: none;
-  clip-path: polygon(0 0, 100% 0, 100% 100%);
-}
-.sect-head.coll::before { background: var(--ember); }
-.sect-head.wish::before { background: var(--phantom); }
-.sect-head .n { margin-left: auto; color: var(--text-dim); }
-.sect-head .total { color: var(--money); font-weight: 600; }
+section { margin-top: clamp(56px, 7vh, 96px); }
+.head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 16px; margin-bottom: clamp(18px, 2.2vh, 28px); }
+h2 { font-family: var(--display); font-weight: 400; font-size: clamp(26px, 1.45vw, 38px); line-height: 1; text-transform: uppercase; letter-spacing: 0.01em; }
+.head span { color: var(--dim); font-variant-numeric: tabular-nums; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(150px, 8.6vw, 200px), 236px)); gap: clamp(22px, 1.4vw, 34px) clamp(12px, 0.9vw, 22px); }
+.card { display: flex; flex-direction: column; gap: 2px; min-width: 0; text-decoration: none; }
+.card .art { display: block; aspect-ratio: 734 / 1024; border-radius: 4.5% / 3.2%; overflow: hidden; background: #16181d;
+  box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.85); transition: translate 0.45s var(--ease); }
+.card.sealed .art { background: none; box-shadow: none; }
+.card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card.sealed img { object-fit: contain; }
+.card:hover .art { translate: 0 -4px; }
+.card .nm { margin-top: 8px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; transition: color 0.18s; }
+.card:hover .nm { color: var(--gold-lt); }
+.card .st { color: var(--dim); font-size: 0.92em; line-height: 1.3; overflow-wrap: anywhere; }
+.card .pr { font-weight: 700; color: var(--gold-lt); font-variant-numeric: tabular-nums; }
+.card .pr.none { color: var(--faint); font-weight: 500; }
+.card .pr small { font-weight: 500; font-size: 0.82em; color: var(--dim); margin-left: 6px; }
+.quiet { color: var(--dim); }
+.note { margin-top: 18px; color: var(--faint); font-size: 0.94em; }
 
-.grid {
-  margin-top: var(--s-4);
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: var(--s-4);
-}
-.tile {
-  display: flex; flex-direction: column; gap: var(--s-2);
-  background: linear-gradient(168deg, rgba(16, 14, 24, 0.66), rgba(11, 10, 16, 0.78));
-  border: 1px solid var(--stage-line);
-  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
-  padding: var(--s-3);
-  text-decoration: none;
-  color: var(--text);
-  transition: transform var(--dur-fast) var(--ease-snap), border-color var(--dur-fast), box-shadow var(--dur-fast);
-}
-.tile:hover {
-  transform: translateY(-4px);
-  border-color: var(--spectral);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
-}
-.tile img {
-  width: 100%;
-  aspect-ratio: 734 / 1024;
-  object-fit: cover;
-  border-radius: 6px;
-  background: var(--stage-raise) url('assets/card-back-phantasmal.svg') center / cover no-repeat;
-}
-.tile .nm {
-  font-family: var(--font-display);
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  line-height: 1.2;
-}
-.tile .st { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
-.tile .pr { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--money); }
+/* nothing saved: say so plainly and point at the one thing to do */
+.empty { margin-top: clamp(40px, 6vh, 80px); max-width: 40em; }
+.empty h2 { font-size: clamp(32px, 2.1vw, 52px); }
+.empty p { margin-top: 14px; color: var(--dim); }
+.go { display: inline-flex; align-items: center; gap: 8px; margin-top: 26px; padding: 13px 26px; border-radius: 999px; text-decoration: none;
+  font-weight: 700; color: #151006; background: linear-gradient(180deg, #ffe79a, #ffc63a); box-shadow: 0 10px 26px -10px rgba(255, 200, 60, 0.5);
+  transition: filter 0.18s; }
+.go:hover { filter: brightness(1.06); }
+[hidden] { display: none !important; }
 
-.empty {
-  margin-top: var(--s-4);
-  padding: var(--s-5);
-  border: 1px dashed var(--stage-line);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-dim);
-  text-align: center;
-  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+@media (max-width: 760px) {
+  .topbar { padding: 12px 14px; }
+  .crown-spin { height: 40px; }
+  .nav { gap: 12px; }
+  .nav a { font-size: 12px; letter-spacing: 0.06em; }
+  main { padding-top: 96px; }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 </style>
 </head>
 <body>
-  <header class="chrome">
-    <a class="logo-pokex" href="index.html" aria-label="POKEX home"><span class="lx">X</span></a>
-    <span class="page-title">Collection</span>
-    <a class="back" href="index.html">← back to the wheel</a>
+  <div class="app-ground" aria-hidden="true"></div>
+  <header class="topbar">
+    <a href="index.html" aria-label="Crowns home"><span class="crown-spin"></span></a>
+    <nav class="nav" aria-label="Pages"><a href="index.html">Home</a><a href="app.html">Sets</a><a href="rip.html">Rip Lab</a><a href="data.html">Live data</a></nav>
   </header>
 
   <main>
-    <section class="sect">
-      <div class="sect-head coll">◆ Collection <span class="n"><span id="collN">0</span> cards · <span class="total" id="collTotal">$0.00</span></span></div>
-      <div id="collGrid" class="grid"></div>
-      <div id="collEmpty" class="empty" hidden>Nothing collected yet — open a card on the wheel and hit ◇ collection.</div>
+    <h1>Your cards</h1>
+    <p class="lede">The cards you saved on this device, at today's market prices.</p>
+
+    <div class="totals" id="totals" hidden>
+      <div class="total"><b id="collTotal"></b><span id="collLine"></span></div>
+      <div class="total"><b id="wishTotal"></b><span id="wishLine"></span></div>
+    </div>
+
+    <div class="empty" id="allEmpty" hidden>
+      <h2>Nothing saved yet</h2>
+      <p>Open any set, inspect a card and press Collection for a card you own, or Wishlist for one you're after. It shows up here with its price.</p>
+      <a class="go" href="app.html">Browse sets</a>
+    </div>
+
+    <section id="collSect" aria-labelledby="collH" hidden>
+      <div class="head"><h2 id="collH">Collection</h2><span id="collCount"></span></div>
+      <div class="grid" id="collGrid"></div>
+      <p class="quiet" id="collEmpty" hidden>Nothing in your collection yet. Press Collection on a card you own.</p>
     </section>
-    <section class="sect">
-      <div class="sect-head wish">♥ Wishlist <span class="n"><span id="wishN">0</span> cards · <span class="total" id="wishTotal">$0.00</span></span></div>
-      <div id="wishGrid" class="grid"></div>
-      <div id="wishEmpty" class="empty" hidden>Wishlist is empty — open a card on the wheel and hit ♡ wishlist.</div>
+    <section id="wishSect" aria-labelledby="wishH" hidden>
+      <div class="head"><h2 id="wishH">Wishlist</h2><span id="wishCount"></span></div>
+      <div class="grid" id="wishGrid"></div>
+      <p class="quiet" id="wishEmpty" hidden>Nothing on your wishlist yet. Press Wishlist on a card you're after.</p>
     </section>
+    <p class="note" id="note" hidden></p>
   </main>
 
+  <!-- the sets that ship with Crowns: their cards get today's price on this page -->
   <script src="data/cards-sv01.js"></script>
   <script src="data/cards-sv02.js"></script>
   <script src="data/cards-sv03.js"></script>
@@ -181,59 +144,98 @@ main { max-width: 1280px; margin: 0 auto; padding: var(--s-4) var(--s-5) var(--s
   <script src="data/cards-me02.5.js"></script>
   <script src="data/cards-me03.js"></script>
   <script src="data/cards-me04.js"></script>
+  <script src="data/cards-me05.js"></script>
+  <script src="data/cards-30th.js"></script>
+  <script src="data/cards-30th-c.js"></script>
+  <script src="data/cards-fpic1.js"></script>
+  <script src="data/cards-fpic2.js"></script>
+  <script src="data/cards-fpic3.js"></script>
+  <script src="data/cards-fpp.js"></script>
+  <script src="data/cards-svp.js"></script>
+  <script src="data/cards-swshp.js"></script>
+  <script src="data/cards-smp.js"></script>
+  <script src="data/cards-xyp.js"></script>
+  <script src="data/cards-bwp.js"></script>
+  <script src="data/cards-dpp.js"></script>
+  <script src="data/cards-hgssp.js"></script>
+  <script src="data/cards-np.js"></script>
+  <script src="data/cards-basep.js"></script>
   <script>
   (() => {
     'use strict';
     const SETS = window.CARD_SETS || {};
-    const EUR_USD = 1.10; // keep in sync with app.js
-    const safeImg = (url) => (typeof url === 'string' && url.startsWith('https://assets.tcgdex.net/')) ? url : '';
-    const usd = (c) => typeof c.priceUsd === 'number' ? c.priceUsd
-      : (c.cardmarket?.trend != null ? c.cardmarket.trend * EUR_USD : null);
+    const $ = (id) => document.getElementById(id);
+    const money = (v) => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const day = (iso) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? `${+m[3]} ${MONTHS[+m[2] - 1]}` : ''; };
+    const okImg = (u) => typeof u === 'string' && (u.startsWith('assets/') || /^https:\/\/(assets\.tcgdex\.net|cards\.scryfall\.io|cards\.lorcast\.io|static\.dotgg\.gg|tcgplayer-cdn\.tcgplayer\.com)\//.test(u));
+    const read = (k, fb) => { try { return JSON.parse(localStorage.getItem(k) || 'null') ?? fb; } catch { return fb; } };
 
-    // card index by set-qualified id (same ids app.js persists)
-    const byId = new Map();
-    for (const [sid, set] of Object.entries(SETS)) {
-      for (const c of set.cards) byId.set(c.id, { setId: sid, setName: set.set.name, card: c });
+    // today's data for every card whose set ships with Crowns (ids match what the app saves)
+    const live = new Map();
+    for (const [sid, set] of Object.entries(SETS)) for (const c of set.cards || []) live.set(c.id, { setId: sid, setName: set.set.name, card: c });
+    const saved = read('crowns.saved', {}) || {};
+    let fromSaveDay = 0, unknown = 0;
+
+    function entry(id) {
+      const L = live.get(id), S = saved[id];
+      if (L) {
+        const c = L.card;
+        const img = c.fullImg ? c.image : (c.image ? c.image + '/low.webp' : '');
+        return { id, name: (c.name || '').split(' — ')[0], setId: L.setId, setName: L.setName, num: c.num, localId: c.localId, img, sealed: false,
+          price: typeof c.priceUsd === 'number' ? c.priceUsd : (S && typeof S.price === 'number' ? S.price : null),
+          stale: typeof c.priceUsd !== 'number' && S && typeof S.price === 'number', at: S && S.at };
+      }
+      if (S) return { id, name: S.name, setId: S.setId, setName: S.setName, num: S.num, localId: S.localId, img: S.img, sealed: !!S.sealed,
+        price: typeof S.price === 'number' ? S.price : null, stale: typeof S.price === 'number', at: S.at };
+      return null;
     }
-    const load = (key) => {
-      try { return JSON.parse(localStorage.getItem(key) || '[]'); }
-      catch { return []; }
-    };
-
-    function render(ids, gridId, emptyId, nId, totalId) {
-      const grid = document.getElementById(gridId);
-      const entries = ids.map(id => byId.get(id)).filter(Boolean)
-        .sort((a, b) => (usd(b.card) ?? -1) - (usd(a.card) ?? -1));
-      document.getElementById(nId).textContent = String(entries.length);
-      let total = 0;
-      for (const { setId, setName, card } of entries) {
+    function render(key, grid, sect, countEl, emptyEl) {
+      const ids = read(key, []);
+      const list = (Array.isArray(ids) ? ids : []).map(entry);
+      unknown += list.filter((x) => !x).length;
+      const rows = list.filter(Boolean).sort((a, b) => (b.price ?? -1) - (a.price ?? -1));
+      let total = 0, priced = 0;
+      grid.replaceChildren();
+      for (const r of rows) {
         const a = document.createElement('a');
-        a.className = 'tile';
-        a.href = `app.html?set=${encodeURIComponent(setId)}&card=${card.num}`;
-        const img = document.createElement('img');
-        img.loading = 'lazy';
-        img.alt = card.name;
-        img.src = safeImg(card.image + '/low.webp');
-        const nm = document.createElement('span');
-        nm.className = 'nm';
-        nm.textContent = card.name;
-        const st = document.createElement('span');
-        st.className = 'st';
-        st.textContent = `${setName} · ${card.localId}`;
-        const pr = document.createElement('span');
-        pr.className = 'pr';
-        const v = usd(card);
-        pr.textContent = v != null ? `$${v.toFixed(2)}` : '—';
-        if (v != null) total += v;
-        a.append(img, nm, st, pr);
+        a.className = 'card' + (r.sealed ? ' sealed' : '');
+        a.href = `app.html?set=${encodeURIComponent(r.setId)}` + (r.sealed ? '' : `&card=${encodeURIComponent(r.num)}`);
+        const art = document.createElement('span'); art.className = 'art';
+        const img = document.createElement('img'); img.loading = 'lazy'; img.decoding = 'async'; img.alt = r.name;
+        if (okImg(r.img)) img.src = r.img;
+        art.appendChild(img);
+        const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = r.name;
+        const st = document.createElement('span'); st.className = 'st'; st.textContent = r.sealed ? `${r.setName} · sealed` : `${r.setName} · #${r.localId}`;
+        const pr = document.createElement('span'); pr.className = 'pr';
+        if (r.price != null) {
+          pr.textContent = money(r.price); total += r.price; priced++;
+          if (r.stale) { fromSaveDay++; const sm = document.createElement('small'); sm.textContent = r.at ? `on ${day(r.at)}` : 'when saved'; pr.appendChild(sm); }
+        } else { pr.textContent = 'No price yet'; pr.classList.add('none'); }
+        a.append(art, nm, st, pr);
         grid.appendChild(a);
       }
-      document.getElementById(totalId).textContent = `$${total.toFixed(2)}`;
-      document.getElementById(emptyId).hidden = entries.length > 0;
+      countEl.textContent = `${rows.length} ${rows.length === 1 ? 'card' : 'cards'}` + (priced ? ` · ${money(total)}` : '');
+      emptyEl.hidden = rows.length > 0;
+      sect.hidden = false;
+      return { n: rows.length, total, priced };
     }
 
-    render(load('pokex.collection'), 'collGrid', 'collEmpty', 'collN', 'collTotal');
-    render(load('pokex.wishlist'), 'wishGrid', 'wishEmpty', 'wishN', 'wishTotal');
+    const coll = render('pokex.collection', $('collGrid'), $('collSect'), $('collCount'), $('collEmpty'));
+    const wish = render('pokex.wishlist', $('wishGrid'), $('wishSect'), $('wishCount'), $('wishEmpty'));
+    if (!coll.n && !wish.n) {
+      $('collSect').hidden = true; $('wishSect').hidden = true; $('allEmpty').hidden = false;
+    } else {
+      $('totals').hidden = false;
+      $('collTotal').textContent = money(coll.total);
+      $('collLine').textContent = `your collection · ${coll.n} ${coll.n === 1 ? 'card' : 'cards'}`;
+      $('wishTotal').textContent = money(wish.total);
+      $('wishLine').textContent = `your wishlist · ${wish.n} ${wish.n === 1 ? 'card' : 'cards'}`;
+    }
+    const notes = [];
+    if (fromSaveDay) notes.push(fromSaveDay === 1 ? '1 price is from the day you saved the card.' : `${fromSaveDay} prices are from the day you saved those cards.`);
+    if (unknown) notes.push(unknown === 1 ? "1 older save can't be shown here; save it again from its set to bring it back." : `${unknown} older saves can't be shown here; save them again from their sets to bring them back.`);
+    if (notes.length) { $('note').textContent = notes.join(' '); $('note').hidden = false; }
   })();
   </script>
 </body>

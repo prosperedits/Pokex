@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crowns tiers B: price list</title>
+<base href="../../../">
+<link rel="icon" type="image/png" href="assets/favicon-64.png?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* Option B: a calm price list. No boxes: type, rules and space carry it.
+   Refs: the hobby's own price list grammar (PSA /pricing: name, price, unit tight to the figure, every price on
+   one edge) without its boxes, with Crowns' Anton numerals at full size; Goldin for restraint only (culture
+   study §3). Set like a book table: heavy rule above and below, hairlines between rows. The price is the first
+   and largest thing in every row; gold goes on the one price the headline points at. */
+:root{
+  --ground:#0c1a3c;            /* measured: .lightzone behind #pricing on index.html */
+  --ink:#eaf2ff; --dim:#90a6cc; --blue-bright:#6aa8ff;
+  --gold:#ffd24a; --gold-lt:#ffe9a8; --gold-dk:#d99a2e;
+  --rule-strong:rgba(234,242,255,.62); --rule:rgba(144,166,204,.4);
+  --font:'DM Sans', system-ui, sans-serif; --font-display:'Anton','DM Sans',sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --name:clamp(24px,1.5vw,40px);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{background:var(--ground)}
+body{background:var(--ground);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:var(--gold);color:#10131f}
+
+.pricing{min-height:100dvh;display:grid;align-content:center;padding:clamp(56px,4.6vw,120px) clamp(16px,6vw,220px)}
+.sheet{width:100%;max-width:2160px;margin:0 auto}
+
+.sheet h2{font-family:var(--font);font-weight:700;font-size:clamp(34px,2.1vw,56px);line-height:1.08;letter-spacing:-.012em;color:#fff;
+  max-width:24ch;margin-bottom:clamp(28px,2.4vw,64px);text-wrap:balance}
+.sheet h2 em{font-style:normal;color:var(--gold)}
+
+.list{position:relative;list-style:none}
+/* book-table rules: heavy above and below the list, hairlines between rows */
+.list::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--rule-strong);transform-origin:0 50%}
+.row{position:relative;display:grid;grid-template-columns:minmax(0,22fr) minmax(0,56fr) auto;column-gap:clamp(28px,4vw,112px);
+  align-items:start;padding:clamp(28px,2.1vw,54px) 0}
+.row::before{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:var(--rule);transform-origin:0 50%}
+.row:first-child::before{height:2px;background:var(--rule-strong)}
+
+/* the price: first and loudest in the row, every figure on one left edge */
+.price{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px clamp(8px,.5vw,14px);line-height:.8;white-space:nowrap}
+/* the box hugs Anton's ink (digits rise .86em, $ drops .05em), and it is the ticker's window */
+.amt{flex:none;display:inline-block;line-height:.96;overflow:hidden;font-family:var(--font-display);font-weight:400;font-size:clamp(88px,7.4vw,200px);letter-spacing:-.005em;color:#fff}
+.amt .dg{display:inline-block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.per{font-weight:600;font-size:clamp(17px,.95vw,26px);color:var(--dim)}
+.row.premium .amt{color:var(--gold)}
+.note{margin-top:clamp(14px,1.1vw,28px);font-size:clamp(17px,.95vw,26px);line-height:1.45;color:var(--dim);text-wrap:balance}
+
+/* the name heads the feature list it owns */
+.name{font-family:var(--font);font-weight:700;font-size:var(--name);line-height:1.1;letter-spacing:-.01em;color:#fff;margin-bottom:clamp(12px,1vw,24px)}
+.feats{list-style:none;columns:2;column-gap:clamp(28px,3vw,80px)}
+.feats li{break-inside:avoid;font-size:clamp(16px,.72vw,19px);line-height:1.45;color:#c9d6ee;padding:0 0 clamp(8px,.5vw,12px);text-wrap:pretty}
+.feats li.carry{color:var(--dim)}
+
+/* the action sits on its tier name's line; one width, one right edge */
+.cta{align-self:start;margin-top:calc((var(--name) * 1.1 - 54px) / 2);display:inline-flex;align-items:center;justify-content:center;
+  height:54px;width:clamp(184px,9vw,230px);border-radius:999px;font-weight:700;font-size:clamp(16px,.72vw,18px);text-decoration:none;
+  white-space:nowrap;transition:transform .18s var(--ease)}
+.cta.ghost{color:var(--ink);box-shadow:inset 0 0 0 1.5px rgba(234,242,255,.55)}
+.cta.gold{color:#10131f;background:var(--gold)}
+.cta:focus-visible{outline:2px solid var(--blue-bright);outline-offset:4px}
+@media (hover:hover) and (pointer:fine){ .cta:hover{transform:scale(1.05)} }
+
+/* before the entrance (set by the script only when it will play) */
+.pre .row::before, .pre.list::after{transform:scaleX(0)}
+.pre .amt .dg{transform:translateY(105%)}
+.pre .what, .pre .note, .pre .per, .pre .cta{opacity:0}
+
+/* laptop: one feature column */
+@media (max-width:1300px){
+  .row{grid-template-columns:minmax(0,30fr) minmax(0,48fr) auto}
+  .feats{columns:1}
+}
+/* phone: each row reads top to bottom, price first */
+@media (max-width:760px){
+  .row{grid-template-columns:1fr;row-gap:22px;padding:32px 0 36px}
+  .amt{font-size:96px}
+  .per{font-size:17px}
+  .name{margin-bottom:10px}
+  .feats{columns:1}
+  .cta{width:100%;margin-top:6px}
+}
+</style>
+</head>
+<body>
+<main>
+  <section class="pricing" id="pricing" aria-labelledby="pricing-title">
+    <div class="sheet">
+      <h2 id="pricing-title">Track free.<br>Go deeper for <em>less than a&nbsp;booster</em>.</h2>
+
+      <ol class="list">
+        <li class="row free">
+          <div class="cost"><p class="price"><span class="amt">$0</span><span class="per">/mo</span></p></div>
+          <div class="what">
+            <h3 class="name">Free</h3>
+            <ul class="feats">
+              <li>Free access to the last 3 sets of every universe</li>
+              <li>Live prices &amp; daily USD/EUR snapshots</li>
+              <li>Basic watchlist</li>
+            </ul>
+          </div>
+          <a class="cta ghost" href="app.html">Start free</a>
+        </li>
+
+        <li class="row premium">
+          <div class="cost"><p class="price"><span class="amt">$6</span><span class="per">/mo</span></p></div>
+          <div class="what">
+            <h3 class="name">Premium</h3>
+            <ul class="feats">
+              <li class="carry">Everything in Free</li>
+              <li>Access to every set in every universe</li>
+              <li>Full collection value</li>
+              <li>Price alerts &amp; trend charts</li>
+              <li>Rip Lab EV calculator</li>
+              <li>Early access to new universes</li>
+            </ul>
+          </div>
+          <a class="cta gold" href="app.html">Get Premium</a>
+        </li>
+
+        <li class="row collector">
+          <div class="cost">
+            <p class="price"><span class="amt">$12</span><span class="per">first month</span></p>
+            <p class="note">then $25/mo, cancel anytime</p>
+          </div>
+          <div class="what">
+            <h3 class="name">Collector</h3>
+            <ul class="feats">
+              <li class="carry">Everything in Premium</li>
+              <li>Real-time cross-market arbitrage engine</li>
+              <li>AI price forecasts &amp; breakout alerts</li>
+              <li>Portfolio analytics, P&amp;L &amp; CSV&nbsp;/&nbsp;API export</li>
+              <li>Unlimited watchlists &amp;&nbsp;priority data refresh</li>
+              <li>Grading ROI &amp; population insights</li>
+              <li>Concierge deal-sourcing &amp;&nbsp;1:1&nbsp;onboarding</li>
+            </ul>
+          </div>
+          <a class="cta ghost" href="app.html">Get Collector</a>
+        </li>
+      </ol>
+    </div>
+  </section>
+</main>
+<script>
+// Once per row, as it first shows: the row's rule draws left to right, then its price rolls up into its
+// window figure by figure like a ticker, then its words fade in. Wide screens play the list as one sequence;
+// phones play each row when it scrolls in. Crowns runs full motion by default (owner's call, see app.js);
+// ?motion=reduced opts out. Without the script everything is simply in place.
+(() => {
+  if (new URLSearchParams(location.search).get('motion') === 'reduced') return;
+  const E = 'cubic-bezier(.16,1,.3,1)';
+  const list = document.querySelector('.list');
+  const rows = [...list.querySelectorAll('.row')];
+  rows.forEach(r => {                                   // one span per figure, so each can roll on its own
+    const amt = r.querySelector('.amt'), t = amt.textContent;
+    amt.innerHTML = `<span class="sr">${t}</span>` + [...t].map(ch => `<span class="dg" aria-hidden="true">${ch}</span>`).join('');
+  });
+  list.classList.add('pre');
+  const anims = [];
+  const playRow = (r, d) => {
+    anims.push(r.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 900, delay: d, easing: E, fill: 'backwards', pseudoElement: '::before' }));
+    r.querySelectorAll('.amt .dg').forEach((g, k) => anims.push(g.animate([{ transform: 'translateY(105%)' }, { transform: 'none' }],
+      { duration: 700, delay: d + 180 + k * 60, easing: E, fill: 'backwards' })));
+    r.querySelectorAll('.what, .note, .per, .cta').forEach(el => anims.push(el.animate([{ opacity: 0 }, { opacity: 1 }],
+      { duration: 450, delay: d + 420, easing: E, fill: 'backwards' })));
+  };
+  if (matchMedia('(max-width:760px)').matches) {
+    // phones: each row owns its entrance; the class comes off per row so nothing waits on rows below the fold
+    list.classList.remove('pre');
+    rows.forEach(r => r.classList.add('pre-row'));
+    const style = document.createElement('style');
+    style.textContent = '.pre-row::before{transform:scaleX(0)} .pre-row .amt .dg{transform:translateY(105%)} .pre-row .what,.pre-row .note,.pre-row .per,.pre-row .cta{opacity:0}';
+    document.head.appendChild(style);
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting) return;
+      io.unobserve(e.target); playRow(e.target, 0); e.target.classList.remove('pre-row');
+    }), { threshold: .3 });
+    rows.forEach(r => io.observe(r));
+  } else {
+    const io = new IntersectionObserver(es => {
+      if (!es.some(e => e.isIntersecting)) return;
+      io.disconnect();
+      rows.forEach((r, i) => playRow(r, i * 130));
+      anims.push(list.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
+        { duration: 900, delay: rows.length * 130, easing: E, fill: 'backwards', pseudoElement: '::after' }));
+      list.classList.remove('pre');
+    }, { threshold: .2, rootMargin: '0px 0px -35% 0px' });
+    io.observe(list);
+  }
+})();
+</script>
+</body>
+</html>

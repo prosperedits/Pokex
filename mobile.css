@@ -20,8 +20,7 @@
   }
   body.mobile > nav.minimap,
   body.mobile > .site-foot { display: none; }
-  body.mobile #wheel,
-  body.mobile #stageGlow { display: none; }   /* the 3D wheel is replaced here */
+  body.mobile #wheel { display: none; }   /* the 3D wheel is replaced here */
 
   /* ---- compact header: brand · set switcher · search ---------------------- */
   body.mobile > header.chrome {
@@ -34,14 +33,14 @@
     height: auto;
     min-height: 0;
     padding: calc(9px + env(safe-area-inset-top)) 14px 9px;
-    background: linear-gradient(180deg, rgba(9, 16, 36, .94) 0%, rgba(9, 16, 36, 0) 100%);
+    background: linear-gradient(180deg, rgba(8, 9, 12, .94) 0%, rgba(8, 9, 12, 0) 100%);
   }
   body.mobile .lockup { flex: 0 0 auto; gap: 0; }
   body.mobile .lockup-crown { display: none; }
   body.mobile .lockup-logo { width: 92px; height: auto; }
-  body.mobile .set-dropdown { margin: 0 auto; }          /* set switcher centred */
-  body.mobile .set-btn { padding: 4px 8px; }
-  body.mobile .set-btn img { height: 38px; }
+  /* the set switcher lives in the set header row now (see below) */
+  body.mobile .set-btn { padding: 2px 4px 2px 2px; }
+  body.mobile .set-head .set-btn img { height: 36px; max-width: 112px; }
   body.mobile .chrome-right { margin-left: auto; gap: 6px; }
   /* declutter: counts, dividers, counter, sealed all move out of the top bar */
   body.mobile .chrome-right .list-counts,
@@ -55,9 +54,9 @@
     flex: 0 0 auto;
     width: 40px; height: 40px;
     display: grid; place-items: center;
-    border: 1px solid rgba(140, 168, 224, .26);
+    border: 1px solid rgba(255, 255, 255, .12);
     border-radius: 11px;
-    background: rgba(20, 32, 64, .5);
+    background: rgba(255, 255, 255, .05);
     color: #cdddff;
     -webkit-tap-highlight-color: transparent;
   }
@@ -74,6 +73,38 @@
     padding: 13px 16px;
   }
   body.mobile.msearch-open .search { display: block; }
+
+  /* ---- set header: a compact two-row band under the brand bar -------------
+     row 1: back · set logo (switcher) · name + count · Wheel/Grid
+     row 2: set value · top card                                              */
+  body.mobile > .set-head {
+    position: relative; top: auto; z-index: 25; flex: 0 0 auto;
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center;
+    gap: 4px 10px; padding: 0 14px 8px;
+  }
+  body.mobile .sh-id, body.mobile .sh-row, body.mobile .sh-text, body.mobile .sh-money { display: contents; }
+  body.mobile .sh-back { grid-column: 1; grid-row: 1; padding: 8px 4px 8px 0; font-size: 20px; line-height: 1; }
+  body.mobile .sh-back #shBackLbl,
+  body.mobile .sh-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  body.mobile .set-head .set-dropdown { grid-column: 2; grid-row: 1; justify-self: start; }
+  body.mobile .sh-views { grid-column: 3; grid-row: 1; }
+  body.mobile .sh-view { height: 32px; min-width: 0; padding: 0 11px; font-size: 13px; }
+  body.mobile .sh-meta { grid-column: 1 / span 3; grid-row: 2; font-size: 13px; margin: 0; white-space: normal; }
+  body.mobile .sh-stat { grid-column: 1 / span 2; grid-row: 3; flex-direction: row; align-items: baseline; gap: 8px; }
+  body.mobile .sh-sub { display: none; }
+  body.mobile .sh-v { font-size: 18px; }
+  body.mobile .sh-top { grid-column: 3; grid-row: 3; gap: 8px; }
+  body.mobile .sh-top img { width: 26px; }
+  body.mobile .sh-top-price { font-size: 16px; }
+  body.mobile .set-head .set-menu { width: min(340px, calc(100vw - 28px)); }
+  /* grid view takes the stage: carousel, caption and scrubber step aside */
+  body.mobile.grid-on .m-stage, body.mobile.grid-on .m-scrub { display: none; }
+  body.mobile.grid-on > main { flex: 1 1 auto; min-height: 0; position: relative; }
+  body.mobile.grid-on .caption { display: none; }
+  /* the set browser covers the phone stage: its carousel and scrubber step out */
+  body.mobile.home-open .m-stage, body.mobile.home-open .m-scrub { visibility: hidden; }
+  /* the browser sits above the stage; the brand bar stays above the browser */
+  body.mobile.home-open > header.chrome { z-index: 60; }
 
   /* ---- the carousel ------------------------------------------------------- */
   body.mobile > main { flex: 0 0 auto; display: block; }
@@ -154,60 +185,27 @@
   .m-scrub {
     position: relative;
     flex: 0 0 auto;
-    padding: 6px 26px calc(12px + env(safe-area-inset-bottom));
+    padding: 6px 22px calc(10px + env(safe-area-inset-bottom));
     touch-action: none;
   }
-  .m-scrub-track {
-    position: relative;
-    height: 26px;
-    display: flex;
-    align-items: center;
-  }
-  .m-scrub-track::before {            /* the rail */
-    content: "";
-    position: absolute;
-    left: 0; right: 0;
-    height: 4px;
-    border-radius: 999px;
-    background: rgba(140, 168, 224, .22);
-  }
-  .m-scrub-fill {
-    position: absolute;
-    left: 0;
-    height: 4px;
-    width: 0;
-    border-radius: 999px;
-    background: rgba(126, 180, 255, .7);
-  }
-  .m-scrub-thumb {
-    position: absolute;
-    left: 0;
-    width: 18px; height: 18px;
-    margin-left: -9px;
-    border-radius: 50%;
-    background: #eaf1ff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .5);
-  }
-  .m-scrub-bubble {
-    position: absolute;
-    bottom: calc(100% - 2px);
-    transform: translateX(-50%);
-    padding: 4px 9px;
-    border-radius: 8px;
-    background: rgba(12, 22, 48, .96);
-    border: 1px solid rgba(140, 168, 224, .3);
-    color: #eaf1ff;
-    font: 600 12px/1 'JetBrains Mono', ui-monospace, monospace;
-    white-space: nowrap;
-    pointer-events: none;
-  }
-  .m-scrub-bubble[hidden] { display: none; }
+  /* the same scrub track as the desktop dial, a thumb-sized knob, the legend under it */
+  .m-scrub .sd { position: relative; left: auto; right: auto; bottom: auto; height: 58px; }
+  .m-scrub .sd-track { height: 8px; bottom: 10px; border-radius: 4px; }
+  .m-scrub .sd-knob { width: 28px; height: 28px; margin-left: -14px; bottom: 0; }
+  .m-scrub .sd-read { bottom: 34px; font-size: 14px; }
+  .m-scrub .sd-end { bottom: 34px; font-size: 13px; }
+  .m-scrub .m-legend { position: static; display: flex; justify-content: center; max-width: none; margin-top: 8px; gap: 4px 12px; font-size: 12px; }
 
   /* ---- inspect dialog: stack the two columns + scroll on a phone --------- */
   body.mobile .zoom-body { padding: 0; }
+  /* the card name starts below the Back / close buttons and wraps at phone size,
+     so it never sits under them or over the card (G1) */
+  body.mobile .z-header { margin-top: 0; padding: 74px 18px 0; }
+  body.mobile .z-title { font-size: clamp(28px, 8.6vw, 40px); line-height: 1; }
   body.mobile .z-stage {
     flex-direction: column;
     align-items: center;
+    justify-content: flex-start;   /* centred, the tall column overflowed UP past the scroll top and hid the card */
     gap: 16px;
     overflow-y: auto;
     overflow-x: hidden;

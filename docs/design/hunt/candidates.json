@@ -1,0 +1,466 @@
+[
+ {
+  "area": "hero-crown",
+  "n": 1,
+  "title": "Shaky Picks (awwwards Honorable Mention, Jul 2026)",
+  "page_url": "https://myshaky.com/picks",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\hero-crown\\shaky-picks.jpg",
+  "take": "A full ring of about 30 small cards circles one centred title and Start button, spun by trig with GSAP states: swap the title for the 3D crown and the tiles for real card art."
+ },
+ {
+  "area": "hero-crown",
+  "n": 2,
+  "title": "Rabo Art Collection (awwwards Honorable Mention, Sep 2025)",
+  "page_url": "https://art.rabobank.nl/en/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\hero-crown\\aw-rabo-art-collection.jpg",
+  "take": "Hundreds of artworks on a tilted 3D ellipse that passes in front of and behind the centre title: take that depth ordering so near cards cross over the crown and far ones go behind it. (Live site refused the headless browser; image is the awwwards submission shot.)"
+ },
+ {
+  "area": "hero-crown",
+  "n": 3,
+  "title": "3D Orbit Gallery (21st.dev component)",
+  "page_url": "https://21st.dev/@moazamtrade/components/3d-orbit-gallery",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\hero-crown\\21st-3d-orbit-gallery.jpg",
+  "take": "Ready React/WebGL ring of image planes on black with an empty centre: closest copy-prompt starting point; drop the crown into the middle and restyle to navy."
+ },
+ {
+  "area": "hero-crown",
+  "n": 4,
+  "title": "ChronosEngine (21st.dev component)",
+  "page_url": "https://21st.dev/@dhileepkumargm/components/chronos-engine",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\hero-crown\\21st-chronos-engine.jpg",
+  "take": "A glowing gold core with shards orbiting at different radii on a navy grid: already in the Crowns palette; take the multi-radius orbit and the core glow, with cards in place of shards."
+ },
+ {
+  "area": "hero-crown",
+  "n": 5,
+  "title": "Unveil studio site",
+  "page_url": "https://unveil.fr",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\hero-crown\\unveil.jpg",
+  "take": "Image planes stacked in real 3D perspective, fading into depth (the model the Clauder hub carousel was built from): take the camera angle and plane spacing, not the white page."
+ },
+ {
+  "area": "hero-crown",
+  "n": 6,
+  "title": "Punchi-Kun interactive hero (Dribbble)",
+  "page_url": "https://dribbble.com/shots/27152822-Punchi-Kun-The-Journey-of-Emotions-Interactive-Hero-Experience",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\hero-crown\\dribbble-punchi-kun.jpg",
+  "take": "The 3D object stays fixed in the centre while a curved arc of picks rotates beneath it with a 2 / 5 counter and arrows: a calmer, navigable version of the orbit."
+ },
+ {
+  "area": "hero-crown",
+  "n": 7,
+  "title": "DepthForge 3D slider (Dribbble)",
+  "page_url": "https://dribbble.com/shots/27667892-DepthForge-Interactive-3D-Slider-for-WordPress",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\hero-crown\\dribbble-depthforge.jpg",
+  "take": "One 3D object with a tilted orbital ring around it, framed by a heavy condensed headline on the left: shows how the centrepiece and Anton-style type share a hero."
+ },
+ {
+  "area": "hero-crown",
+  "n": 8,
+  "title": "Spinning 3D card ring (P's DRD, Pinterest video)",
+  "page_url": "https://www.pinterest.com/pin/578431145912972061/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\hero-crown\\drd-spinning-card-ring.jpg",
+  "take": "From DRD: 8 to 10 cards on a ring tilted about 20 degrees, linear 360 degrees per about 12 s, back arc blurred and greyed so the front cards pop. Take the motion recipe, ignore the chart cards."
+ },
+ {
+  "area": "hero-crown",
+  "n": 9,
+  "title": "Interactive 3D Photo Carousel, GSAP and CSS (Dribbble)",
+  "page_url": "https://dribbble.com/shots/27569893-Interactive-3D-Photo-Carousel-GSAP-CSS",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\hero-crown\\dribbble-3d-photo-carousel.jpg",
+  "take": "Cards bow round the viewer in a shallow arc with the front card named underneath: nearest to today's Crowns carousel, useful as the no-crown fallback."
+ },
+ {
+  "area": "hero-crown",
+  "n": 10,
+  "title": "James Murray 3D portfolio (awwwards, Jan 2026)",
+  "page_url": "https://jamesmurray.ca/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\hero-crown\\james-murray.jpg",
+  "take": "A central globe with project tiles orbiting at different depths, click a tile to enter: proof that object plus orbiting items works as navigation. Leave the sci-fi blue styling."
+ },
+ {
+  "area": "set-page",
+  "n": 1,
+  "title": "Scryfall set page: Final Fantasy (FIN)",
+  "page_url": "https://scryfall.com/sets/fin",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\set-page\\scryfall-fin.jpg",
+  "take": "One slim set header (icon, 598 cards, release date, total set value in USD, EUR and TIX) with Jump to / Images / sorted by controls, then a dense card-image grid: the fastest whole-set browse found."
+ },
+ {
+  "area": "set-page",
+  "n": 2,
+  "title": "Player Album team page (awwwards Honorable Mention, Jun 2026)",
+  "page_url": "https://playeralbum.com/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\set-page\\playeralbum-team.jpg",
+  "take": "One page per team: crest as the centrepiece, owned stickers shown, missing ones as blank slots, 0/11 counter in the header: turns have vs need into an album."
+ },
+ {
+  "area": "set-page",
+  "n": 3,
+  "title": "Magic: The Hobbit Card Image Gallery (official)",
+  "page_url": "https://magic.wizards.com/en/products/the-hobbit/card-image-gallery",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\set-page\\mtg-hobbit-gallery.jpg",
+  "take": "Set hero with key art, title and release date, a Where to Buy strip, then cards grouped by colour with counts (White 83) plus filters and search: set hero and grouped browse in one page."
+ },
+ {
+  "area": "set-page",
+  "n": 4,
+  "title": "Pokedesk card collector app (Dribbble)",
+  "page_url": "https://dribbble.com/shots/22539361-Pokedesk-Pok-mon-Card-App-Collector",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\set-page\\dribbble-pokedesk.jpg",
+  "take": "Set row with the real Brilliant Stars logo, a completion bar (25%, 3 of 230 cards) and total value, then owned cards with prices: the collector framing a tracker set page needs."
+ },
+ {
+  "area": "set-page",
+  "n": 5,
+  "title": "GoShuin stamp journal (awwwards, Oct 2026)",
+  "page_url": "https://aestudio.studio/goshuin/en",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\set-page\\goshuin.jpg",
+  "take": "A collection presented as a paged book: title and tagline on the left page, art on the right, page counter along the bottom: premium album pacing instead of a grid."
+ },
+ {
+  "area": "set-page",
+  "n": 6,
+  "title": "Qatar Museums Online Collection (awwwards, Jan 2026)",
+  "page_url": "https://collections.qm.org.qa/en",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\set-page\\qatar-museums-collection.jpg",
+  "take": "Search bar and category chips float over a loose wall of cut-out objects on white: browsing feels like a vitrine, not a table."
+ },
+ {
+  "area": "set-page",
+  "n": 7,
+  "title": "Karma Worlds archive (awwwards, Oct 2026)",
+  "page_url": "https://karma-tracks.com/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\set-page\\aw-karma-worlds.jpg",
+  "take": "Every track drawn as its own card and laid out in themed worlds: a whole archive as one explorable field with per-item art."
+ },
+ {
+  "area": "set-page",
+  "n": 8,
+  "title": "One Piece Card Game card list (official)",
+  "page_url": "https://en.onepiece-cardgame.com/cardlist/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\set-page\\onepiece-cardlist.jpg",
+  "take": "Booster selector, colour / card type / illustration / block filters, then a 169-result card grid: the filter vocabulary collectors already know."
+ },
+ {
+  "area": "set-page",
+  "n": 9,
+  "title": "PIKADEX Pokemon card store and collection (Dribbble)",
+  "page_url": "https://dribbble.com/shots/27261888-PIKADEX-Pokemon-Card-Store-Collection",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\set-page\\dribbble-pikadex.jpg",
+  "take": "Mobile concept pairing a spotlight card and an owned-card grid with prices: a reference for the phone version of the set page."
+ },
+ {
+  "area": "set-page",
+  "n": 10,
+  "title": "TCGplayer Prismatic Evolutions price guide",
+  "page_url": "https://www.tcgplayer.com/categories/trading-and-collectible-card-games/pokemon/price-guides/sv-prismatic-evolutions",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\set-page\\tcgplayer-set.jpg",
+  "take": "The functional baseline: every card as a sortable row (printing, condition, rarity, number, market price, add to cart). Match its speed, not its look."
+ },
+ {
+  "area": "product-page",
+  "n": 1,
+  "title": "Nothing Phone (3) product page",
+  "page_url": "https://us.nothing.tech/products/phone-3",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\product-page\\nothing-phone3.jpg",
+  "take": "Product image centred with feature callouts floating round it as small tiles, and a compact buy panel (colour, storage, price, add to bag, pick up today) docked over the image: the most distinctive PDP found."
+ },
+ {
+  "area": "product-page",
+  "n": 2,
+  "title": "StockX: Chaos Rising Pokemon Center Elite Trainer Box",
+  "page_url": "https://stockx.com/2026-pokemon-mega-evolution-chaos-rising-pokemon-center-elite-trainer-box",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\product-page\\stockx-etb.jpg",
+  "take": "The exact sealed product Crowns tracks: Buy Now price beside Make Offer, last sale and highest offer, delivery date, then Buyer Promise and StockX Verified rows. Trust details for sealed product."
+ },
+ {
+  "area": "product-page",
+  "n": 3,
+  "title": "Alt graded card listing (Rayquaza VMAX, PSA 10)",
+  "page_url": "https://alt.xyz/itm/c67a39aa-421e-4426-b21f-a3d2c0180fe8",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\product-page\\alt-item.jpg",
+  "take": "Slab photo, PSA grade and population, list price with Buy Now / Offer, and a one-year Alt Value chart with range tabs: the data-backed trust a single-card page needs."
+ },
+ {
+  "area": "product-page",
+  "n": 4,
+  "title": "Teenage Engineering EP-133 store page",
+  "page_url": "https://teenage.engineering/store/ep-133",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\product-page\\te-ep133.jpg",
+  "take": "Large product image left; name, price, ships from the U.S. and one black add to cart on the right; specs as a plain list. Extreme restraint."
+ },
+ {
+  "area": "product-page",
+  "n": 5,
+  "title": "Apple: Shop iPhone 18 Pro",
+  "page_url": "https://www.apple.com/shop/buy-iphone/iphone-18-pro",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\product-page\\apple-iphone18pro-buy.jpg",
+  "take": "Model choice as stacked selectable cards with price and monthly next to a large image: the configure-then-buy step pattern."
+ },
+ {
+  "area": "product-page",
+  "n": 6,
+  "title": "Analogue 3D launch page",
+  "page_url": "https://www.analogue.co/3d",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\product-page\\analogue-3d.jpg",
+  "take": "The console on black with its own cartridges floating round it under one big headline: sells the object before the buy flow (and is itself a centrepiece with orbit)."
+ },
+ {
+  "area": "product-page",
+  "n": 7,
+  "title": "Playdate shop (out of stock state)",
+  "page_url": "https://play.date/shop/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\product-page\\playdate-shop.jpg",
+  "take": "Honest sold-out state: Out of stock pill, a notify-me form at the top, product still fully presented with price: a template for a sold-out booster box."
+ },
+ {
+  "area": "product-page",
+  "n": 8,
+  "title": "Off-White luxury PDP (Dribbble)",
+  "page_url": "https://dribbble.com/shots/24684535-Off-White-Luxury-E-commerce-Product-Detail-Page",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\product-page\\dribbble-offwhite-pdp.jpg",
+  "take": "Vertical thumbnail rail, one big image, size grid, add to bag beside buy now, accordions for details and shipping: the luxury fashion PDP skeleton."
+ },
+ {
+  "area": "product-page",
+  "n": 9,
+  "title": "Chronoswiss tourbillon watch store (Dribbble)",
+  "page_url": "https://dribbble.com/shots/23365393-E-commerce-Watches-Web-Design",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\product-page\\dribbble-watch-tourbillon.jpg",
+  "take": "Dark watch hero with the piece centred, model name stacked left and a strip of story images below: luxury pacing for a single collectible."
+ },
+ {
+  "area": "product-page",
+  "n": 10,
+  "title": "Skeltec watch store, dark (Dribbble)",
+  "page_url": "https://dribbble.com/shots/22905919-Watch-Store-Redesign-Concept",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\product-page\\dribbble-watch-store-dark.jpg",
+  "take": "Near-black stage, product lit from one side, a single copper accent on the buy control: one-accent discipline for a dark store."
+ },
+ {
+  "area": "pack-rip",
+  "n": 1,
+  "title": "Pokemon TCG Pocket (App Store screenshots)",
+  "page_url": "https://apps.apple.com/us/app/pok%C3%A9mon-tcg-pocket/id6479970832",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\pack-rip\\tcg-pocket-appstore.jpg",
+  "take": "The reference interaction: pick a pack, swipe across the top and the tear follows your finger, then the cards. First screenshot shows the pack screen; copy the gesture, not the pastel UI."
+ },
+ {
+  "area": "pack-rip",
+  "n": 2,
+  "title": "Pack Opening 3D, official sports cards (Dribbble)",
+  "page_url": "https://dribbble.com/shots/26854956-Pack-Opening-3D-for-Web-3-Official-Sports-Cards",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\pack-rip\\dribbble-pack-opening-sports.jpg",
+  "take": "Gold foil pack with real crinkle and specular highlights on near-black: the material quality a 3D pack must hit, and already gold on dark like Crowns."
+ },
+ {
+  "area": "pack-rip",
+  "n": 3,
+  "title": "FrameMon pack opener (Framer community entry)",
+  "page_url": "https://www.framer.com/community/contests/agents-hackathon/submissions/6CYmCTw2VjeFWLjW4yQWhw/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\pack-rip\\framemon-tear.jpg",
+  "take": "Browser pack opener (Open a pack. Pull a card.) on dark navy; per the entry you drag along the seam and the lid curls away: proof the tear works on the web, not just in an app."
+ },
+ {
+  "area": "pack-rip",
+  "n": 4,
+  "title": "Player Album scratch reveal (awwwards Honorable Mention, Jun 2026)",
+  "page_url": "https://playeralbum.com/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\pack-rip\\playeralbum-scratch.jpg",
+  "take": "Scratch-to-reveal on each sticker slot: the player appears under your cursor stroke by stroke. Same earn-the-reveal feeling as a tear, in plain web."
+ },
+ {
+  "area": "pack-rip",
+  "n": 5,
+  "title": "3D Pack Opening interactive app concept (Dribbble)",
+  "page_url": "https://dribbble.com/shots/27777873-3D-Pack-Opening-Interactive-App-Concept",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\pack-rip\\dribbble-3d-pack-opening.jpg",
+  "take": "Pack fills the screen in fire-lit foil just before the tear: the dramatic light for the moment of anticipation."
+ },
+ {
+  "area": "pack-rip",
+  "n": 6,
+  "title": "Card Pack Opening Animation (Dribbble)",
+  "page_url": "https://dribbble.com/shots/27831609-Card-Pack-Opening-Animation-Game-Design",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\pack-rip\\dribbble-card-pack-animation.jpg",
+  "take": "Booster with crimped ends, a holo art window and a brand header on dark: a clean model of real pack geometry to build in 3D."
+ },
+ {
+  "area": "pack-rip",
+  "n": 7,
+  "title": "Cardshop app pack opening (Dribbble)",
+  "page_url": "https://dribbble.com/shots/17024117-Cardshop-App-Digital-card-pack-opening",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\pack-rip\\dribbble-cardshop-pack.jpg",
+  "take": "Black pack backed by a burst of coloured light: a rarity glow that hints at what is inside before the tear."
+ },
+ {
+  "area": "pack-rip",
+  "n": 8,
+  "title": "Pack Opening Animation, Core Pack (Dribbble)",
+  "page_url": "https://dribbble.com/shots/25325629-Pack-Opening-Animation",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\pack-rip\\dribbble-pack-opening-core.jpg",
+  "take": "A single tilted pack in soft grey studio light: the restrained version that would sit quietly on Crowns navy."
+ },
+ {
+  "area": "pack-rip",
+  "n": 9,
+  "title": "Just The Rip (Threshline portfolio)",
+  "page_url": "https://threshline.pages.dev/portfolio/justtherip/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\pack-rip\\justtherip.jpg",
+  "take": "A real platform that rips real packs online and ships the physical cards: a business-model reference more than a look."
+ },
+ {
+  "area": "scrubber",
+  "n": 1,
+  "title": "Ruler Picker, night (21st.dev component)",
+  "page_url": "https://21st.dev/@ham7a311/components/ruler-picker/night",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\scrubber\\21st-ruler-picker-night.jpg",
+  "take": "Big number readout (72.4) above a tick ruler that you drag; it coasts and settles, with keyboard and wheel support: almost exactly the bottom dial wanted, ready as a copy-prompt."
+ },
+ {
+  "area": "scrubber",
+  "n": 2,
+  "title": "Dorot: The Jewish Timeline (awwwards, Jul 2026)",
+  "page_url": "https://dorot.tali.org.il/en/from:1550/to:1750",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\scrubber\\aw-dorot.jpg",
+  "take": "Range readout pinned at both ends (580 / 1010) over lanes of dots, plus a mini-map strip along the bottom to jump anywhere: a long horizontal set where you always know where you are."
+ },
+ {
+  "area": "scrubber",
+  "n": 3,
+  "title": "OSI 90th anniversary timeline (awwwards Honorable Mention, Jul 2026)",
+  "page_url": "https://storia.osi.swiss/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\scrubber\\aw-osi-90.jpg",
+  "take": "Years laid on a shallow arc like a dial; the current year sits at top centre and the rest curve away: a dial, not a bar."
+ },
+ {
+  "area": "scrubber",
+  "n": 4,
+  "title": "18 Years of Buro (awwwards Site of the Day, Sep 2025)",
+  "page_url": "https://18.burocratik.com/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\scrubber\\buro-18.jpg",
+  "take": "Years plotted on a spiral of ellipses with the first and last year pinned in the corners (2006 / 2024): a scrubber that doubles as the hero graphic."
+ },
+ {
+  "area": "scrubber",
+  "n": 5,
+  "title": "Filmstrip Scrub (21st.dev component)",
+  "page_url": "https://21st.dev/@rmahammad/components/filmstrip-scrub",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\scrubber\\21st-filmstrip-scrub.jpg",
+  "take": "Strip of thumbnails with a spring-loaded playhead and a live monospace timecode; drag or hover the strip to crossfade the big preview above."
+ },
+ {
+  "area": "scrubber",
+  "n": 6,
+  "title": "Timeline Scrubber, dark (Dribbble)",
+  "page_url": "https://dribbble.com/shots/10113718-Timeline-Scrubber",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\scrubber\\dribbble-timeline-scrubber-dark.jpg",
+  "take": "Three hairline scrubber variants on black with ticks, a labelled playhead and range handles: no chrome, only lines and one label."
+ },
+ {
+  "area": "scrubber",
+  "n": 7,
+  "title": "Precision Scrubber (Dribbble)",
+  "page_url": "https://dribbble.com/shots/3154011-Presicion-Scrubber",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\scrubber\\dribbble-precision-scrubber.jpg",
+  "take": "Drag the timecode label itself to scrub, swipe moves one frame at a time, thumbnails ride above: annotated interaction rules worth copying."
+ },
+ {
+  "area": "scrubber",
+  "n": 8,
+  "title": "Traversing Days in a Timeline (Dribbble)",
+  "page_url": "https://dribbble.com/shots/1916176-Traversing-Days-in-a-Timeline",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\scrubber\\dribbble-traversing-days.jpg",
+  "take": "A card stack driven by a scrubber along the bottom: scrubbing swaps the big card above, which is the set page browse pattern."
+ },
+ {
+  "area": "scrubber",
+  "n": 9,
+  "title": "Timeline with ticks and NOW marker (Dribbble)",
+  "page_url": "https://dribbble.com/shots/634975-Timeline",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\scrubber\\dribbble-timeline-ticks.jpg",
+  "take": "Ticked strip with dated labels, coloured event marks and a red NOW marker: the simplest readable version (small, older shot)."
+ },
+ {
+  "area": "trending-strip",
+  "n": 1,
+  "title": "PokeData home",
+  "page_url": "https://www.pokedata.io/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\trending-strip\\pokedata.jpg",
+  "take": "On dark: the real 30th Celebration set logo, set name, release date and All cards link, then a row of that set's top cards with prices. Exactly the feature-then-row pattern with a real set mark."
+ },
+ {
+  "area": "trending-strip",
+  "n": 2,
+  "title": "Netflix Trending Now",
+  "page_url": "https://www.netflix.com/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\trending-strip\\netflix-trending.jpg",
+  "take": "Ranked row with huge outlined numerals 1 to 10 tucked behind each poster: rank reads before the art. Could rank the hottest sets or cards."
+ },
+ {
+  "area": "trending-strip",
+  "n": 3,
+  "title": "Collectr site (competitor)",
+  "page_url": "https://getcollectr.com/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\trending-strip\\collectr-site.jpg",
+  "take": "A two-column grid of real game logos on dark tiles (Magic, Yu-Gi-Oh!, One Piece, Flesh and Blood, Dragon Ball Fusion World, Weiss Schwarz, Star Wars Unlimited) beside the portfolio phone: how mixed TCG marks sit together."
+ },
+ {
+  "area": "trending-strip",
+  "n": 4,
+  "title": "Magic: Latest Products (official)",
+  "page_url": "https://magic.wizards.com/en/products",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\trending-strip\\mtg-products.jpg",
+  "take": "Four tall key-art panels side by side, each with set name and release month at the foot: a cinematic new-releases strip."
+ },
+ {
+  "area": "trending-strip",
+  "n": 5,
+  "title": "Fanatics Collect home",
+  "page_url": "https://www.fanaticscollect.com/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\trending-strip\\fanatics-collect.jpg",
+  "take": "Feature tiles of graded slabs per weekly auction, then a Trending searches chip row (Charizard, Gengar, Riftbound and more): feature, then what is hot."
+ },
+ {
+  "area": "trending-strip",
+  "n": 6,
+  "title": "Alt home: Featured Auctions",
+  "page_url": "https://alt.xyz/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\trending-strip\\alt-home.jpg",
+  "take": "Row of slab photos with current bid and time left on dark, Top rising / falling tabs by category below: a market-moving strip."
+ },
+ {
+  "area": "trending-strip",
+  "n": 7,
+  "title": "GOAT home: Just Dropped",
+  "page_url": "https://www.goat.com/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\trending-strip\\goat-home.jpg",
+  "take": "Dense black grid of cut-out sneakers with an item count, then New in collab rows: drops as a calm product wall, no banners."
+ },
+ {
+  "area": "trending-strip",
+  "n": 8,
+  "title": "Pokellector home",
+  "page_url": "https://www.pokellector.com/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\trending-strip\\pokellector.jpg",
+  "take": "Newest TCG series shown as a row of real set logos, then the latest set's cards: dated look, right content model."
+ },
+ {
+  "area": "trending-strip",
+  "n": 9,
+  "title": "TCG Collector home",
+  "page_url": "https://www.tcgcollector.com/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\trending-strip\\tcgcollector.jpg",
+  "take": "Set chips made of a real set logo plus a completion bar (69%): new-set strip and your-progress in one tile."
+ },
+ {
+  "area": "trending-strip",
+  "n": 10,
+  "title": "TCGplayer home",
+  "page_url": "https://www.tcgplayer.com/",
+  "image": "C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\docs\\design\\hunt\\trending-strip\\tcgplayer-home.jpg",
+  "take": "Full-width banner for the newest set, then a Best Sellers product row: the marketplace default to beat."
+ }
+]

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Crown test</title>
+<style>html,body{margin:0;height:100%;background:#060c1e}canvas{display:block;width:100vw;height:100vh}</style>
+</head><body>
+<canvas id="c"></canvas>
+<script src="../../../vendor/three.min.js"></script>
+<script src="../../../vendor/GLTFLoader.js"></script>
+<script src="../../../crown3d.js?v=18"></script>
+<script>
+  const q = new URLSearchParams(location.search);
+  const crown = CrownMark.mount(document.getElementById('c'), { model: '../../../assets/crown/crown.glb', onload: () => { window.__loaded = true; } });
+  const t = +(q.get('t') || 0);           // fixed pose for shots: ?t=ms
+  addEventListener('resize', crown.resize);
+  function loop(now) { crown.render(q.has('t') ? t : now, 0, 0); requestAnimationFrame(loop); }
+  requestAnimationFrame(loop);
+  window.__crown = crown;
+</script>
+</body></html>

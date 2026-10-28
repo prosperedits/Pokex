@@ -1,0 +1,21 @@
+﻿<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Crown sprite frames</title>
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style>
+</head><body>
+<canvas id="c" style="width:720px;height:480px"></canvas>
+<script src="../../../vendor/three.min.js"></script>
+<script src="../../../vendor/GLTFLoader.js"></script>
+<script src="../../../data/home-trending.js"></script>
+<script src="../../../crown3d.js?v=20"></script>
+<script>
+  // one full turn of the royal crown, its band set with the chase cards; window.__frame(i, n) poses frame i of n
+  const cards = (HOME_TRENDING.chase || []).filter((c) => c.local).map((c) => ({ src: '../../../' + c.local }));
+  const crown = CrownMark.mount(document.getElementById('c'), {
+    pixelRatio: 1, capture: true, exposure: 1.4, model: '../../../assets/crown/crown-royal.glb?v=1', cards,
+    band: { count: 14, y: 0.315, h: 0.335, r: 0.99 }, camera: [[0, 0.9, 3.4], [0, 0.6, 0]],
+    onload: () => { setTimeout(() => { window.__ready = true; }, 1500); },   // let the card textures arrive
+  });
+  let at = 0;
+  window.__frame = (i, n) => { const want = i / n * Math.PI * 2; crown.nudge(want - at); at = want; crown.render(1000, 0, 0); return true; };
+</script>
+</body></html>

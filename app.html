@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Crowns — Phantasmal Flames</title>
+<title>Crowns · Sets</title>
 <meta name="description" content="Every card of the Pokémon TCG Phantasmal Flames set, on one wheel. Market-price heatmap included.">
-<link rel="icon" type="image/png" href="assets/pokex-ball-64.png">
+<link rel="icon" type="image/png" href="assets/favicon-64.png?v=2">
 <!-- PWA / installable app -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0c1a3c">
+<meta name="theme-color" content="#08090c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,18 +18,23 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://assets.tcgdex.net" crossorigin>
 <link rel="preconnect" href="https://tcgplayer-cdn.tcgplayer.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>document.fonts&&['400 16px "DM Sans"','600 16px "DM Sans"','700 16px "DM Sans"','16px Anton'].forEach(function(f){document.fonts.load(f).catch(function(){})})</script>
 <link rel="stylesheet" href="brand/tokens.css?v=49">
-<link rel="stylesheet" href="style.css?v=123">
-<link rel="stylesheet" href="universe-bg.css?v=5">
-<link rel="stylesheet" href="mobile.css?v=4">
-<script src="crown-spin.js?v=4" defer></script>
+<link rel="stylesheet" href="style.css?v=147">
+<link rel="stylesheet" href="app-bg.css?v=5">
+<link rel="stylesheet" href="universe-bg.css?v=9">
+<link rel="stylesheet" href="mobile.css?v=10">
+<script src="crown-spin.js?v=13" defer></script>
 </head>
 <body>
-  <!-- background layers driven by the rAF loop in app.js (CSS animation
-       timelines freeze on this machine; the physics loop never does).
-       The wrapper isolates blending so layers composite against its own
-       solid base, never against the live page (kills repaint flicker). -->
+  <!-- the app ground (app-bg.css, shared with the store page): near-black satin,
+       one soft light pool, static grain. It shows behind the set browser. -->
+  <div class="app-ground" aria-hidden="true"></div>
+  <!-- each game's own set background (restored 27 Oct): layers driven by the rAF
+       loop in app.js. The wrapper isolates blending so layers composite against its
+       own solid base, never against the live page (kills repaint flicker).
+       Exactly the layers the set pages had at the last commit (Faisal, 27 Oct). -->
   <div class="bg-stage" aria-hidden="true">
     <div id="bgGrain" class="bg-grain"></div>
     <div id="bgGlass" class="bg-glass"></div>
@@ -38,23 +43,12 @@
     <div id="bgStars" class="bg-stars"><div id="stars"></div><div id="stars2"></div><div id="stars3"></div></div>
     <div id="bgRain" class="bg-rain"></div>
     <canvas id="stageFloor"></canvas>
-    <!-- Magic stage: the gauntlet video presents the focused card (fitMagicVideo aligns them) -->
   </div>
 
   <header class="chrome">
     <div class="lockup">
       <span class="lockup-crown" aria-hidden="true"></span>
       <img class="lockup-logo" src="assets/crowns-logo.png?v=1" alt="Crowns" width="127" height="43">
-    </div>
-
-    <!-- set selector: current set logo opens an era-grouped menu (built by app.js) -->
-    <div class="set-dropdown">
-      <button id="setBtn" class="set-btn" aria-haspopup="true" aria-expanded="false" aria-label="Switch set">
-        <img id="setBtnLogo" alt="">
-        <span id="setBtnName" class="set-btn-name" hidden></span>
-        <span class="caret" aria-hidden="true">▾</span>
-      </button>
-      <div id="setMenu" class="set-menu" hidden></div>
     </div>
 
     <div class="chrome-right">
@@ -71,8 +65,9 @@
           <span id="collCount">0</span>
         </span>
       </a>
-      <span class="ctrl-div" aria-hidden="true"></span>
-      <button type="button" id="sealedBtn" class="ctrl ctrl-btn" aria-haspopup="dialog">
+      <span class="ctrl-div" aria-hidden="true" hidden></span>
+      <!-- sealed prices: off for now (Faisal, 27 Oct); the dialog code stays for its return -->
+      <button type="button" id="sealedBtn" class="ctrl ctrl-btn" aria-haspopup="dialog" hidden>
         <svg class="ctrl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="3" width="11" height="18" rx="1.6"/><path d="M6.5 7.5h11" stroke-linecap="round"/></svg>
         <span>Sealed</span>
       </button>
@@ -80,14 +75,50 @@
     </div>
   </header>
 
-  <!-- HOME: a scroll-driven cinematic front door (built by app.js buildHome()).
-       Hero blur-focuses in, then each TCG materialises out of blur as you scroll. -->
+  <!-- SET HEADER (Scryfall set page grammar): one slim band over the wheel.
+       Left = which set (its logo opens the set switcher), right = what it's worth. -->
+  <div id="setHead" class="set-head">
+    <div class="sh-id">
+      <a id="shBack" class="sh-back" href="app.html?game=pokemon"><span class="sh-back-ar" aria-hidden="true">&lsaquo;</span><span id="shBackLbl">All Pokémon sets</span></a>
+      <div class="sh-row">
+        <!-- set selector: current set logo opens the categorised set menu (built by app.js) -->
+        <div class="set-dropdown">
+          <button id="setBtn" class="set-btn" aria-haspopup="true" aria-expanded="false" aria-label="Switch set">
+            <img id="setBtnLogo" alt="">
+            <span id="setBtnName" class="set-btn-name" hidden></span>
+            <span class="caret" aria-hidden="true">▾</span>
+          </button>
+          <div id="setMenu" class="set-menu" hidden></div>
+        </div>
+        <div class="sh-text">
+          <h2 id="shName" class="sh-name"></h2>
+          <p id="shMeta" class="sh-meta"></p>
+        </div>
+      </div>
+    </div>
+    <div class="sh-money">
+      <div class="sh-stat" id="shValueBox">
+        <span class="sh-vrow"><b id="shValue" class="sh-v"></b><span class="sh-k">set value</span></span>
+        <span id="shPriced" class="sh-sub"></span>
+      </div>
+      <button type="button" id="shTop" class="sh-top" hidden>
+        <img id="shTopImg" alt="" decoding="async">
+        <span class="sh-top-txt"><span class="sh-top-name">Top card<span id="shTopName" class="sh-top-nm"></span></span><b id="shTopPrice" class="sh-top-price"></b></span>
+      </button>
+      <div class="sh-views" role="group" aria-label="How to show the set">
+        <button type="button" id="viewWheel" class="sh-view" aria-pressed="true">Wheel</button>
+        <button type="button" id="viewGrid" class="sh-view" aria-pressed="false">Grid</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SET BROWSER: game switch (real game logos) + every set as a tile, grouped
+       by era (built by app.js buildHome / renderBrowser) -->
   <div id="home" class="home" hidden>
-    <div class="home-scroll" id="homeScroll" aria-label="Pick a universe"></div>
+    <div class="home-scroll" id="homeScroll" aria-label="Choose a set"></div>
   </div>
 
   <main>
-    <div id="stageGlow" class="stage-glow" aria-hidden="true"></div>
     <section id="wheel" class="wheel" aria-label="Card carousel" aria-roledescription="carousel">
       <div id="stageArc" class="stage-arc" aria-hidden="true"></div>
       <div id="track" class="track"></div>
@@ -96,6 +127,11 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 14V4"/><path d="M8.5 7.5 12 4l3.5 3.5"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5"/></svg>
         <span>Share</span>
       </button>
+    </section>
+
+    <!-- dense grid of the whole set (Scryfall browse); click a card to inspect -->
+    <section id="gridView" class="grid-view" aria-label="Every card in this set" hidden>
+      <div id="gridCards" class="gv-grid"></div>
     </section>
 
     <section class="caption" aria-live="polite">
@@ -118,6 +154,10 @@
   <!-- Bottom navigator: a true arced, segmented (per-card), tapered dial drawn as
        SVG in app.js (buildDial). #ticks is retired (kept hidden = harmless no-op). -->
   <nav class="minimap" aria-label="Set navigator">
+    <!-- what the dial's colours mean (Faisal: "blue means this much, green means this much") -->
+    <ul class="dial-legend" aria-label="Bar colours by card price">
+      <li><i class="b0"></i>Under $1</li><li><i class="b1"></i>$1–5</li><li><i class="b2"></i>$5–15</li><li><i class="b3"></i>$15–50</li><li><i class="b4"></i>$50+</li>
+    </ul>
     <div id="rail" class="rail" role="slider" tabindex="0"
          aria-label="Card position" aria-valuemin="1" aria-valuemax="130" aria-valuenow="1">
       <div id="railArc" class="rail-arc" aria-hidden="true"></div>
@@ -161,14 +201,21 @@
           <div id="cardActions" class="card-actions">
             <button type="button" id="lightBtn" aria-pressed="false" aria-label="Toggle light">
               <span class="ic">☀</span><span class="lb">Light</span></button>
-            <button type="button" id="langBtn" aria-pressed="false" aria-label="Toggle Japanese printing" hidden>
-              <span class="ic">文</span><span class="lb">日本語</span></button>
+            <button type="button" id="langBtn" aria-pressed="false" aria-label="Show the Japanese printing" hidden>
+              <span class="ic ja" lang="ja">日本語</span><span class="lb">Japanese</span></button>
             <button type="button" id="wishBtn" aria-pressed="false" aria-label="Toggle wishlist">
               <span class="ic">♡</span><span class="lb">Wishlist</span></button>
             <button type="button" id="collBtn" aria-pressed="false" aria-label="Toggle collection">
               <span class="ic">◇</span><span class="lb">Collection</span></button>
-            <a id="shareBtn" href="#" aria-label="Copy a link to this card">
+            <a id="shareBtn" href="#" aria-haspopup="menu" aria-expanded="false" aria-label="Share this card">
               <span class="ic">⤴</span><span class="lb">Share</span></a>
+            <div id="shareMenu" class="share-menu" role="menu" hidden>
+              <button type="button" role="menuitem" data-share="link">Copy link</button>
+              <button type="button" role="menuitem" data-share="text">Copy name and price</button>
+              <button type="button" role="menuitem" data-share="x">Share on X</button>
+              <button type="button" role="menuitem" data-share="reddit">Share on Reddit</button>
+              <button type="button" role="menuitem" data-share="native" hidden>More options</button>
+            </div>
           </div>
         </div>
         <div id="zoomPanel" class="zoom-panel">
@@ -212,11 +259,11 @@
     </div>
   </footer>
 
-  <script src="layout-constants.js?v=72"></script>
+  <script src="layout-constants.js?v=73"></script>
   <script src="vendor/three.min.js"></script>
   <script src="vendor/gsap.min.js"></script>
   <script src="vendor/ScrollTrigger.min.js"></script>
-  <script src="data/cards-sv01.js"></script>
+  <script src="data/cards-sv01.js?v=2"></script>
   <script src="data/cards-sv02.js"></script>
   <script src="data/cards-sv03.js"></script>
   <script src="data/cards-sv03.5.js"></script>
@@ -230,16 +277,19 @@
   <script src="data/cards-sv08.5.js"></script>
   <script src="data/cards-sv09.js"></script>
   <script src="data/cards-sv10.js"></script>
-  <script src="data/cards-sv10.5b.js"></script>
+  <script src="data/cards-sv10.5b.js?v=2"></script>
   <script src="data/cards-sv10.5w.js"></script>
   <script src="data/cards-me01.js"></script>
   <script src="data/cards-me02.js"></script>
   <script src="data/cards-me02.5.js"></script>
   <script src="data/cards-me03.js"></script>
   <script src="data/cards-me04.js"></script>
-  <script src="data/cards-me05.js"></script>
+  <script src="data/cards-me05.js?v=2"></script>
+  <script src="data/cards-30th.js"></script>
+  <script src="data/cards-30th-c.js"></script>
   <script src="data/cards-fpic1.js"></script>
   <script src="data/cards-fpic2.js"></script>
+  <script src="data/cards-fpic3.js"></script>
   <script src="data/cards-fpp.js"></script>
   <script src="data/cards-svp.js"></script>
   <script src="data/cards-swshp.js"></script>
@@ -250,37 +300,37 @@
   <script src="data/cards-hgssp.js"></script>
   <script src="data/cards-np.js"></script>
   <script src="data/cards-basep.js"></script>
-  <script src="data/sealed.js?v=62"></script>
-  <script src="data/set-colors.js?v=63"></script>
-  <script src="data/magic-prices.js?v=74"></script>
-  <script src="data/ja-map.js?v=1" defer></script>   <!-- EN→JA printings (dexId+illustrator verified) -->
+  <script src="data/sealed.js?v=63"></script>
+  <script src="data/set-colors.js?v=64"></script>
+  <script src="data/magic-prices.js?v=75"></script>
+  <script src="data/ja-map.js?v=2" defer></script>   <!-- EN→JA printings (dexId+illustrator verified) -->
   <!-- the 5.4MB Pokémon card index no longer blocks boot (P: mobile loads) —
        it lazy-loads on idle / first search below; mergeFullSet self-heals -->
-  <script src="app.js?v=141"></script>
+  <script src="app.js?v=169"></script>
 
   <!-- ===== Global cross-set search (index-backed) ===== -->
   <style>
   .gsr{position:fixed;z-index:1200;width:min(400px,92vw);max-height:64vh;overflow-y:auto;border-radius:14px;
-    background:linear-gradient(180deg,rgba(14,24,48,.97),rgba(8,13,28,.98));border:1px solid rgba(106,168,255,.22);
+    background:linear-gradient(180deg,rgba(22,23,28,.97),rgba(12,13,16,.98));border:1px solid rgba(255,255,255,.12);
     box-shadow:0 30px 72px -20px rgba(0,0,0,.85);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);padding:6px;display:none}
   .gsr.on{display:block}
   .gsr-head{font:600 10.5px/1 'DM Sans',system-ui,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#8aa2cc;padding:9px 10px 7px}
   .gsr-item{display:flex;align-items:center;gap:11px;padding:6px 8px;border-radius:9px;cursor:pointer;text-decoration:none}
-  .gsr-item:hover{background:rgba(106,168,255,.13)}
-  .gsr-item img{width:38px;height:53px;object-fit:cover;border-radius:5px;background:#0b1838;flex:none}
+  .gsr-item:hover{background:rgba(255,255,255,.07)}
+  .gsr-item img{width:38px;height:53px;object-fit:cover;border-radius:5px;background:#16181d;flex:none}
   .gsr-item .nm{font:600 14px/1.2 'DM Sans',system-ui,sans-serif;color:#eaf2ff}
   .gsr-item .st{font:500 11.5px/1.3 'DM Sans',system-ui,sans-serif;color:#8aa2cc;margin-top:2px}
   .gsr-more{font:500 11px 'DM Sans',sans-serif;color:#8aa2cc;text-align:center;padding:9px}
   .gsr-pr{margin-left:auto;font:700 13px 'DM Sans',sans-serif;color:#4ade80;flex:none;padding-left:8px}
-  .gsd{position:fixed;inset:0;z-index:1300;display:none;place-items:center;background:rgba(4,7,18,.84);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)}
+  .gsd{position:fixed;inset:0;z-index:1300;display:none;place-items:center;background:rgba(6,7,9,.86);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)}
   .gsd.on{display:grid}
   .gsd-card{display:flex;flex-direction:column;align-items:center;gap:15px;max-width:90vw;padding:20px}
   .gsd-imgwrap{position:relative;height:min(68vh,540px);aspect-ratio:734/1024;max-width:88vw}
   .gsd-imgwrap img{height:100%;width:100%;object-fit:contain;display:block;border-radius:14px;box-shadow:0 40px 90px -28px #000}
-  .gsd-ph{position:absolute;inset:0;display:none;place-items:center;border-radius:14px;border:1px solid rgba(106,168,255,.22);background:linear-gradient(160deg,#16213f,#0a1326)}
+  .gsd-ph{position:absolute;inset:0;display:none;place-items:center;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(160deg,#1c1e24,#0e0f12)}
   .gsd-ph.on{display:grid}
   .gsd-ph span{font:700 19px 'DM Sans',sans-serif;color:#7d93bd;text-align:center;padding:24px;line-height:1.4}
-  .gsr-ph{width:38px;height:53px;border-radius:5px;background:linear-gradient(160deg,#1a2746,#0b1430);flex:none}
+  .gsr-ph{width:38px;height:53px;border-radius:5px;background:linear-gradient(160deg,#1c1e24,#0e0f12);flex:none}
   .gsd-meta{text-align:center;font-family:'DM Sans',system-ui,sans-serif}
   .gsd-meta .gnm{font-weight:700;font-size:23px;color:#fff;letter-spacing:.01em}
   .gsd-meta .gst{font-size:13px;color:#9bb0d0;margin-top:5px}
@@ -288,7 +338,7 @@
   .gvar{font:500 12.5px/1.7 'DM Sans',sans-serif;color:#9bb0d0;margin-top:7px}
   .gsd-go{display:inline-block;margin-top:17px;padding:10px 20px;border-radius:11px;background:linear-gradient(180deg,#ffe9a8,#ffd24a);color:#1a1205;font:700 13px 'DM Sans',sans-serif;text-decoration:none;box-shadow:0 10px 26px -10px rgba(255,210,74,.5)}
   .gsd-go:hover{filter:brightness(1.06)}
-  .gsd-x{position:fixed;top:18px;right:20px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(8,14,30,.72);color:#fff;font-size:21px;line-height:1;cursor:pointer}
+  .gsd-x{position:fixed;top:18px;right:20px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(12,13,16,.78);color:#fff;font-size:21px;line-height:1;cursor:pointer}
   .gsd-x:hover{border-color:#ffd24a;color:#ffd24a}
   </style>
   <div id="gsr" class="gsr" role="listbox" aria-label="Search results"></div>
@@ -306,7 +356,7 @@
     const loadPokeIndex = () => {
       if (pokeLoaded || window.CARD_INDEX) { pokeLoaded = true; return; }
       pokeLoaded = true;
-      const sc = document.createElement('script'); sc.src = 'data/card-index.js?v=3'; sc.async = true;
+      const sc = document.createElement('script'); sc.src = 'data/card-index.js?v=4'; sc.async = true;
       sc.onload = () => { if (box.classList.contains('on')) render(); };
       document.head.appendChild(sc);
     };
@@ -329,7 +379,7 @@
     let universesLoaded = false;
     const loadUniverses = () => {   // every universe searchable: Magic/Lorcana/One Piece load on first search (Magic ~21 MB)
       if (universesLoaded) return; universesLoaded = true;
-      ['card-index-lor.js?v=1', 'card-index-op.js?v=1', 'card-index-mtg.js?v=1'].forEach((f) => {
+      ['card-index-lor.js?v=2', 'card-index-op.js?v=2', 'card-index-mtg.js?v=2'].forEach((f) => {
         const sc = document.createElement('script'); sc.src = 'data/' + f; sc.async = true;
         sc.onload = () => { if (box.classList.contains('on')) render(); };   // refresh results as each universe's cards arrive
         document.head.appendChild(sc);

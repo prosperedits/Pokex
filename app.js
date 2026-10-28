@@ -5,6 +5,9 @@
 
 (() => {
   'use strict';
+  // the brand mark is the way home: bound first, so it works even if a later part
+  // of the boot fails (a half-loaded set must never trap the visitor)
+  document.querySelector('.lockup')?.addEventListener('click', () => { location.href = 'index.html'; });
 
   const SETS = window.CARD_SETS;
   // Immutable layout + transition blueprint (loaded before this file). Falls back
@@ -20,6 +23,10 @@
     document.getElementById('capName').textContent = 'No data — run scripts/refresh-data.mjs';
     return;
   }
+  // each bundled set's own numbered cards, captured before mergeFullSet folds in
+  // TCGplayer's pattern reprints: the set browser + set header count and value these
+  const ORIG_CARDS = {};
+  for (const id in SETS) ORIG_CARDS[id] = SETS[id].cards;
   // Active-set state — loadSet() swaps all three together
   let DATA = SETS[HOME_SET];
   let CARDS = DATA.cards;
@@ -36,12 +43,15 @@
   document.documentElement.classList.add(REDUCED ? 'motion-reduced' : 'motion-full');
 
   // --- Price tiers (TCGplayer USD market; thresholds from PLAN/brand) -------
+  // price bands (Faisal, 27 Oct): under $1 grey, $1-5 green, $5-15 blue, $15-50
+  // violet, $50+ chroma foil. The dial bars, its legend and the focus rim all read
+  // from these, so one colour always means one price range.
   const TIERS = [
-    { max: 1, var: '--tier-1', label: 'T1' },
-    { max: 5, var: '--tier-2', label: 'T2' },
-    { max: 20, var: '--tier-3', label: 'T3' },
-    { max: 75, var: '--tier-4', label: 'T4' },
-    { max: Infinity, var: '--tier-5', label: 'T5' },
+    { max: 1, var: '--tier-1', label: 'T1', band: 'b0' },
+    { max: 5, var: '--tier-2', label: 'T2', band: 'b1' },
+    { max: 15, var: '--tier-3', label: 'T3', band: 'b2' },
+    { max: 50, var: '--tier-4', label: 'T4', band: 'b3' },
+    { max: Infinity, var: '--tier-5', label: 'T5', band: 'b4' },
   ];
   const css = getComputedStyle(document.documentElement);
   const tierColor = (v) => css.getPropertyValue(v).trim();
@@ -72,6 +82,18 @@
     if (!card || !card.fallbackImage) return '';
     return safeImg(card.fallbackImage + '/' + quality); // base card is always a tcgdex base url
   };
+  // the smallest real scan each source offers (about 20 KB): what a wheel card shows
+  // the moment it comes into view, so scrubbing the dial or a long fling never
+  // passes blank cards (Faisal, 27 Oct). '' = the source has one size only (dotGG).
+  const thumbImg = (card) => {
+    if (!card || card.sealed) return '';
+    if (!card.fullImg) return card.imageOk === false ? '' : cardImg(card, 'low.webp');
+    const u = cardImg(card, 'high.webp');
+    if (u.indexOf('cards.scryfall.io/large/') !== -1) return u.replace('/large/', '/small/');
+    if (u.indexOf('cards.lorcast.io/') !== -1 && u.indexOf('/large/') !== -1) return u.replace('/large/', '/normal/');
+    if (/tcgplayer-cdn\.tcgplayer\.com\/product\/\d+_in_1000x1000\.jpg/.test(u)) return u.replace('_in_1000x1000.jpg', '_200w.jpg');
+    return '';
+  };
   // tcgdex set logos live at /en/<series>/<id>/logo; the series is the set id's
   // alpha prefix (sv05 -> sv, me03 -> me). Derive it instead of trusting
   // set.logo — sv05 (Temporal Forces) shipped with a wrong /en/me/ path, which
@@ -80,6 +102,12 @@
   // wordmark locally so the dropdown + selector never fall back to a glyph.
   const SET_LOGO_OVERRIDE = {
     'me05': 'assets/setlogos/me05.png',        // Pitch Black (not on tcgdex yet; Bulbagarden archive art)
+    '30th': 'assets/setlogos/30th.png',         // official 30th Celebration logo (local; tcgdex has png only, no webp)
+    '30th-c': 'assets/setlogos/30th.png',
+    // newest sets' official logos, dropped into assets/setlogos/ on 27 Oct
+    'mtg-fra': 'assets/setlogos/mtg-fra.png', 'mtg-hob': 'assets/setlogos/mtg-hob.png',
+    'lor-13': 'assets/setlogos/lor-13.webp', 'lor-14': 'assets/setlogos/lor-14.webp',
+    'op-OP16': 'assets/setlogos/op-OP16.png', 'op-OP17': 'assets/setlogos/op-OP17.png',
     sv05: 'assets/setlogos/sv05.png', // Temporal Forces (tcgdex gap)
     // Disney Lorcana set wordmarks — transparent logos from card-binder.com
     'lor-1': 'assets/setlogos/lor-1.webp', 'lor-2': 'assets/setlogos/lor-2.webp',
@@ -90,7 +118,7 @@
     'lor-11': 'assets/setlogos/lor-11.webp',
     // user-supplied (drop the file at the path → it lights up automatically):
     'lor-12': 'assets/setlogos/lor-12.webp',   // Wilds Unknown (webp)
-    'mtg-sos': 'assets/setlogos/mtg-sos.png',  // Secrets of Strixhaven
+    // 'mtg-sos': 'assets/setlogos/mtg-sos.png',  // Secrets of Strixhaven: re-enable once the file exists (it 404ed on every Magic view)
   };
   const setLogoPng = (set) => {
     const id = set && set.id ? String(set.id) : '';
@@ -152,10 +180,10 @@
 
   // --- Glow swap: new text seeps in through a soft glow (P's pick over the
   // scramble). Text is set synchronously, so a frozen tab never shows garbage.
-  function glowSwap(el, text) {
+  function glowSwap(el, text, quiet) {
     if (el.textContent === text) return;
     el.textContent = text;
-    if (REDUCED) return;
+    if (REDUCED || quiet) return;   // quiet = the wheel is flying past: no per-step blur repaint
     el.animate([
       { opacity: 0.08, filter: 'blur(7px)', textShadow: '0 0 26px currentColor' },
       { opacity: 1, filter: 'blur(0px)', textShadow: '0 0 0 rgba(0,0,0,0)' },
@@ -298,44 +326,74 @@
   const wheel = $('wheel'), track = $('track'), rail = $('rail'), ticksBox = $('ticks');
   const railArc = $('railArc'); // arced, segmented, tapered dial (drawn per set)
   let dial = null;              // { R, A, chord, n, _cur, _curEl }
-  // 3D dial: one bar per card on an arc that curves INTO the screen (z). Each bar
-  // is positioned with translate3d(x,0,z); the .rail's perspective makes the
-  // receding ends smaller — real depth, not a flat tilt. pt() returns [x, z].
-  const dialPt = (th, R) => [R * Math.sin(th), -R * (1 - Math.cos(th))];
-  function buildDial() {
-    const w = Math.round(rail.clientWidth) || 1000;
-    const chord = Math.min(w * 0.5, 780);                    // dial span
-    // P: a perfectly FLAT dial — straight baseline, upright ticks, instantly
-    // readable (the speedometer arc is retired)
-    const arcY = () => 0, arcRot = () => 0;
-    const n = Math.min(N, 240);
-    let s = `<div class="dial-stage" style="--dial-w:${chord.toFixed(0)}px">`
-      + `<svg class="dial-arc" width="${chord.toFixed(0)}" height="6" viewBox="0 0 ${chord.toFixed(0)} 6"`
-      + ` style="left:${(-chord / 2).toFixed(0)}px;bottom:-4px" aria-hidden="true">`
-      + `<path d="M0 3 L ${chord.toFixed(1)} 3"`
-      + ` fill="none" stroke="rgba(170,205,255,0.24)" stroke-width="1"/></svg>`;
-    for (let i = 0; i < n; i++) {
-      const f = n > 1 ? i / (n - 1) : 0.5, x = (f - 0.5) * chord, edge = 1 - Math.abs(f - 0.5) * 2;
-      const len = 4 + 6 * edge;                              // a touch taller toward the middle, tapering at the ends
-      s += `<i class="dtick" data-i="${i}" style="transform:translate3d(${x.toFixed(1)}px,0,0);height:${len.toFixed(1)}px;opacity:${(0.38 + 0.34 * edge).toFixed(2)}"></i>`;
+  // The dial (Faisal picked option A, 27 Oct): a slim scrub track. One segment per
+  // card from cheapest to priciest, the wheel's own order, in the card's price-band
+  // colour; the part past the current card is dimmed; a knob rides the track with
+  // the card's place and price over it. The same track drives the phone scrubber.
+  const BAND_COL = { b0: '#80838c', b1: '#4fd17a', b2: '#4ea3f0', b3: '#a879f2', nop: '#2a2c32' };
+  const CHROMA = 'linear-gradient(90deg, #ff6fae, #ffd24a 30%, #6ff2c6 55%, #6aa8ff 78%, #c58cff)';
+  function makeScrub(host) {
+    host.insertAdjacentHTML('afterbegin', '<div class="sd"><span class="sd-end lo">Cheapest</span><span class="sd-end hi">Priciest</span>'
+      + '<div class="sd-track"><i class="sd-rest"></i></div><i class="sd-knob"></i><span class="sd-read"></span></div>');
+    const q = (c) => host.querySelector(c);
+    return { sd: q('.sd'), track: q('.sd-track'), rest: q('.sd-rest'), knob: q('.sd-knob'), read: q('.sd-read'), lo: q('.sd-end.lo'), hi: q('.sd-end.hi'), cur: -1 };
+  }
+  // paint the track from the active set's cards in wheel order: the set is a few long
+  // runs of one band (it is in price order), drawn as hard colour stops, with a
+  // one-pixel gap between cards wherever a card is at least 3px wide
+  function paintScrub(sc) {
+    if (!sc || view.length !== N || !N) return;
+    const runs = [];
+    for (let s = 0; s < N; s++) {
+      const c = cardAt(s);
+      const b = c && typeof c.priceUsd === 'number' && c.priceUsd > 0 ? tierOf(c).band : 'nop';
+      const last = runs[runs.length - 1];
+      if (last && last.b === b) last.to = s + 1; else runs.push({ b, from: s, to: s + 1 });
     }
-    s += '<i class="dknob"></i></div>';
-    railArc.innerHTML = s;
-    dial = { chord, n, _cur: -1, _curEl: null, arcY, arcRot };
+    const pc = (s) => (s / N * 100).toFixed(4) + '%';
+    const stops = runs.map((r) => `${r.b === 'b4' ? '#ffd24a' : BAND_COL[r.b]} ${pc(r.from)} ${pc(r.to)}`).join(', ');
+    const chroma = runs.filter((r) => r.b === 'b4').map((r) => {
+      const w = (r.to - r.from) / N, f = r.from / N;
+      return `${CHROMA} ${w >= 1 ? 0 : (f / (1 - w) * 100).toFixed(4)}% 0 / ${(w * 100).toFixed(4)}% 100% no-repeat`;
+    });
+    sc.track.style.background = [...chroma, `linear-gradient(90deg, ${stops})`].join(', ');
+    const pitch = (sc.track.clientWidth || 1) / N;
+    const mask = pitch >= 3 ? `repeating-linear-gradient(90deg, #000 0 ${(pitch - 1).toFixed(3)}px, transparent ${(pitch - 1).toFixed(3)}px ${pitch.toFixed(3)}px)` : 'none';
+    sc.track.style.webkitMaskImage = sc.track.style.maskImage = mask;
+    sc.cur = -1;
+  }
+  // the knob and the dimmed rest follow the wheel's position every frame it moves
+  function scrubTo(sc, pos) {
+    if (!sc || !N) return;
+    const f = (Math.max(0, Math.min(N - 1, pos)) + 0.5) / N * 100;
+    sc.knob.style.left = f.toFixed(3) + '%';
+    sc.rest.style.left = f.toFixed(3) + '%';
+  }
+  // per card: the readout over the knob (kept inside the track) and the end labels
+  function scrubCard(sc, idx) {
+    if (!sc || idx === sc.cur || idx < 0) return;
+    sc.cur = idx;
+    const c = cardAt(idx);
+    sc.read.textContent = `${idx + 1} of ${N}` + (c && typeof c.priceUsd === 'number' ? ` · ${money(c.priceUsd)}` : '');
+    const w = sc.sd.clientWidth, rw = sc.read.offsetWidth, x = Math.max(rw / 2, Math.min(w - rw / 2, (idx + 0.5) / N * w));
+    sc.read.style.left = x.toFixed(1) + 'px';
+    sc.lo.style.opacity = x - rw / 2 < sc.lo.offsetWidth + 18 ? '0' : '';
+    sc.hi.style.opacity = x + rw / 2 > w - sc.hi.offsetWidth - 18 ? '0' : '';
+  }
+  let scrub = null, mScrub = null;
+  function buildDial() {
+    if (!scrub) { railArc.replaceChildren(); scrub = makeScrub(railArc); }
+    dial = scrub;
     recolorDial();
   }
-  // paint each dial bar in its card's price-tier colour (the dial doubles as a
-  // heat strip). view[] must be valid for the ACTIVE set — applySort re-calls this.
+  // view[] must be valid for the ACTIVE set — applySort re-calls this.
   function recolorDial() {
-    if (!dial || view.length !== N) return;
-    railArc.querySelectorAll('.dtick').forEach((t) => {
-      const slot = Math.round((+t.dataset.i) / (dial.n - 1 || 1) * (N - 1));
-      const card = cardAt(slot);
-      if (!card) return;
-      const c = tierColor(tierOf(card).var);
-      t.style.color = c;
-      t.style.background = `linear-gradient(to top, transparent, ${c})`;
-    });
+    for (const sc of [scrub, mScrub]) {
+      if (!sc) continue;
+      paintScrub(sc);
+      scrubTo(sc, current >= 0 ? current : position);
+      if (current >= 0) scrubCard(sc, current);
+    }
   }
   // Arc-dial geometry. Single source of truth = the --arc-depth/--arc-rot CSS
   // vars on .minimap (the media query shrinks them on small screens); read them
@@ -352,7 +410,6 @@
   const capName = $('capName'), capMeta = $('capMeta'), capPrice = $('capPrice'),
     capRarity = $('capRarity'), capNumber = $('capNumber'), counter = $('counter'), capTrend = $('capTrend');
   let focusedCard = null;   // the card centred in the wheel (for the share button)
-  const stageGlow = $('stageGlow');
   const zoom = $('zoom'), zoomImg = $('zoomImg'), zoomClose = $('zoomClose');
   const tiltZone = $('tiltZone'), tiltCard = $('tiltCard'), shine = $('shine'), cardFaces = $('cardFaces');
   // EN↔JA printing toggle (P): tcgdex hosts ja-locale art on the same path —
@@ -363,7 +420,10 @@
     zoomJa = ja;
     if (!langBtn) return;
     langBtn.setAttribute('aria-pressed', String(ja));
-    langBtn.querySelector('.lb').textContent = ja ? 'English' : '日本語';
+    langBtn.querySelector('.lb').textContent = ja ? 'English' : 'Japanese';
+    langBtn.querySelector('.ic').textContent = ja ? 'EN' : '日本語';
+    langBtn.querySelector('.ic').lang = ja ? 'en' : 'ja';
+    langBtn.setAttribute('aria-label', ja ? 'Show the English printing' : 'Show the Japanese printing');
     langBtn.classList.toggle('active', ja);
   }
   if (langBtn) langBtn.addEventListener('click', () => {
@@ -373,15 +433,25 @@
       if (!jaSrc) return;
       const g = ++imgGen;                       // cancel any pending EN sharpeners
       const probe = new Image();
-      probe.onload = () => { if (g === imgGen) { zoomImg.src = probe.src; setLangUI(true); } };
+      probe.onload = () => { if (g === imgGen) { swapArt(probe.src); setLangUI(true); } };
       probe.onerror = () => { if (g === imgGen) { langBtn.classList.add('na'); setTimeout(() => langBtn.classList.remove('na'), 900); } };
       probe.src = jaSrc;
     } else {
       ++imgGen;
-      zoomImg.src = cardImg(card, 'high.webp'); // EN high is already cached
+      swapArt(cardImg(card, 'high.webp')); // EN high is already cached
       setLangUI(false);
     }
   });
+  // the printing changes behind a quick quarter turn of the card, so the swap reads
+  // even where the two printings share their art and only the text differs
+  function swapArt(src) {
+    const faces = document.getElementById('cardFaces');
+    if (!faces || REDUCED || !faces.animate) { zoomImg.src = src; return; }
+    faces.animate([{ transform: 'rotateY(0deg)' }, { transform: 'rotateY(90deg)' }], { duration: 150, easing: 'ease-in' }).onfinish = () => {
+      zoomImg.src = src;
+      faces.animate([{ transform: 'rotateY(-90deg)' }, { transform: 'rotateY(0deg)' }], { duration: 220, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+    };
+  }
 
   // Sealed products ride the wheel as synthetic cards, appended after the
   // numbered singles (so real-card indices 0..N-1 are untouched). Their image
@@ -433,7 +503,9 @@
       img.alt = card.sealed ? `${card.name} — sealed product` : `${card.name} — card ${card.localId} of ${data.set.name}`;
       img.draggable = false;
       img.decoding = 'async';           // never block the wheel on image decode
-      if (!card.sealed) img.loading = 'lazy'; // browser skips offscreen fetches until near view
+      // no loading="lazy": wantImage() already decides when each card loads, and a
+      // lazy img stays under an IntersectionObserver that had to re-map every
+      // in-flight card through its 3D transform on every frame of a fling
       const slot = { el, img, loaded: card.sealed ? 'high' : null }; // declared early so the error handler can settle its load state
       const ph = document.createElement('div');
       ph.className = 'ph';
@@ -448,7 +520,10 @@
           // straight to the fallback. Either way, when the primary art is dead
           // we try the base printing's tcgdex art (stamped by mergeFullSet on
           // Master Ball / Poké Ball Pattern reprints) before the placeholder.
-          if (!card.fullImg && img.dataset.q === 'high') { // tcgdex high failed -> drop to low
+          if (img.dataset.q === 'thumb') {                  // the small scan is missing: show the full one
+            img.dataset.q = 'high'; slot.loaded = 'full';
+            img.src = cardImg(card, 'high.webp');
+          } else if (!card.fullImg && img.dataset.q === 'high') { // tcgdex high failed -> drop to low
             img.dataset.q = 'low';
             img.src = cardImg(card, 'low.webp');
           } else if (card.fallbackImage && img.dataset.q !== 'fallback') { // dead asset -> base printing's art
@@ -464,7 +539,17 @@
       tag.className = 'inspect-tag';
       tag.textContent = 'inspect';
       tag.setAttribute('aria-hidden', 'true'); // the card itself is the button
-      el.append(img, ph, tag);
+      // depth dim: its OWN composited layer, so changing its opacity every frame
+      // never repaints the card (the old ::after dim re-rastered every visible
+      // card + its 50px shadow on every frame of a fling: the main jank source)
+      const dim = document.createElement('i');
+      dim.className = 'card-dim';
+      dim.setAttribute('aria-hidden', 'true');
+      const rim = document.createElement('i');   // settled-focus rim (CSS .card.lit)
+      rim.className = 'card-rim';
+      rim.setAttribute('aria-hidden', 'true');
+      el.append(rim, img, ph, tag, dim);
+      slot.dim = dim; slot.dimV = -1; slot.z = null;
       return slot;
     });
     const ticks = list.map((card) => {
@@ -489,6 +574,10 @@
   const cardAt = (slot) => CARDS[view[slot]];
 
   // --- Image loading: distance-based low -> high upgrades ---------------------
+  // while the dial is being scrubbed the wheel passes dozens of cards a second:
+  // they show their small scans only, and the big ones wait for the release (a
+  // queue of 200 KB requests used to starve the small ones and leave blank cards)
+  let holdHigh = false;
   function wantImage(i, q) {
     const slot = els[i];
     if (slot.loaded === 'high' || slot.loaded === q) return;
@@ -501,41 +590,78 @@
     // dead asset would silently leave the card blank — this is what broke them.
     if (card.fullImg) {
       if (slot.loaded === 'full') return;
+      const thumb = thumbImg(card);
+      // first sight: the small scan at once (cached by the thumb warm-up below)
+      if (thumb && !slot.loaded) { slot.img.dataset.q = 'thumb'; slot.img.src = thumb; slot.loaded = 'low'; }
+      if (q !== 'high' && slot.loaded) return;
+      if (slot.loaded === 'low') {
+        // near the centre: the full scan replaces the small one once it has loaded,
+        // so the card is never blank between the two; a dead full scan is handed to
+        // the visible img so its error chain (base printing's art, then placeholder) runs
+        if (slot.hiPending) return;
+        slot.hiPending = true;
+        const pre = new Image();
+        pre.decoding = 'async';
+        pre.onload = pre.onerror = () => { if (slot.best === 'done') return; slot.img.dataset.q = 'high'; slot.img.src = pre.src; slot.loaded = 'full'; };
+        pre.src = cardImg(card, 'high.webp');
+        return;
+      }
       slot.img.dataset.q = 'high';
       slot.img.src = cardImg(card, 'high.webp');
       slot.loaded = 'full';
       return;
     }
     if (q === 'high' && card.imageOk === false) q = 'low';
+    // a card that comes into view near the centre (a dial scrub drops the wheel
+    // anywhere) shows its small scan at once instead of nothing until high.webp lands
+    if (!slot.loaded) { slot.img.dataset.q = 'low'; slot.img.src = cardImg(card, 'low.webp'); slot.loaded = 'low'; }
     if (q === 'high') {
+      if (slot.hiPending) return;   // one request per card, not one per frame
+      slot.hiPending = true;
       const pre = new Image();
       pre.decoding = 'async';
-      pre.onload = () => { slot.img.dataset.q = 'high'; slot.img.src = pre.src; slot.loaded = 'high'; };
+      pre.onload = () => { if (slot.best === 'done') return; slot.img.dataset.q = 'high'; slot.img.src = pre.src; slot.loaded = 'high'; };
       // tcgdex high.webp missing -> fall back to the base printing's art, else low
       pre.onerror = () => {
         const fb = cardImgFallback(card, 'high.webp');
         if (fb) { slot.img.dataset.q = 'fallback'; slot.img.src = fb; slot.loaded = 'high'; }
       };
       pre.src = cardImg(card, 'high.webp');
-    } else if (!slot.loaded) {
-      slot.img.dataset.q = 'low';
-      slot.img.src = cardImg(card, 'low.webp');
-      slot.loaded = 'low';
     }
   }
 
   // --- Layout ------------------------------------------------------------------
+  const PEAK = L.WHEEL_CARD_PEAK || 1.54;   // card elements are built at the focused size (layout-constants.js)
+  let elW = 0;                              // the card element's real width = cardW * PEAK
   function measure() {
     const h = wheel.clientHeight * L.WHEEL_CARD_HEIGHT_FACTOR; // pinned in layout-constants.js
     cardW = h * (734 / 1024);
+    elW = cardW * PEAK;
     spacing = cardW; // base unit; the focus-pocket curve shapes actual gaps
   }
   addEventListener('resize', () => { syncArc(); measure(); buildDial(); render(true); });
+  // the wheel lays out in the room UNDER the set header (style.css: main's top
+  // padding is the header's height), so on a short screen (1440x900, 1366x768)
+  // the focused card shrinks instead of riding up under the header's text; the
+  // wheel is re-measured whenever that room changes size
+  if (window.ResizeObserver) {
+    const sh = document.getElementById('setHead');
+    if (sh) new ResizeObserver(() => document.body.style.setProperty('--sh-h', sh.offsetHeight + 'px')).observe(sh);
+    let lastWheelH = 0;
+    new ResizeObserver(() => {
+      const h = wheel.clientHeight;
+      if (!h || h === lastWheelH) return;
+      lastWheelH = h;
+      if (wheelReady) { measure(); render(true); }
+    }).observe(wheel);
+  }
 
   // --- Render ------------------------------------------------------------------
   const WINDOW = 10; // paint ±10 around position (smaller cards pack more in view)
   let painted = new Set();
+  let wheelReady = false;   // false until the first loadSet (the set browser boots without a wheel)
   function render(force) {
+    if (!wheelReady || !els.length) return;
     const lo = Math.max(0, Math.floor(position) - WINDOW);
     const hi = Math.min(N - 1, Math.ceil(position) + WINDOW);
     const next = new Set();
@@ -557,29 +683,39 @@
       // base card is 15% smaller (LAYOUT 0.60) but the focus compensates to the
       // SAME absolute size (0.60*1.54 == 0.70*1.32) — the field shrinks, the
       // champion doesn't, and everything gains dead space (P)
-      const scale = 0.98 + 0.56 * Math.exp(-(d * d) / 1.0);
+      // the element is built at the PEAK size, so the curve is divided by it:
+      // the focused card sits at scale 1 (rastered 1:1, crisp), the rest shrink
+      const scale = (0.98 + 0.56 * Math.exp(-(d * d) / 1.0)) / PEAK;
       const bright = 0.66 + 0.34 * pocket;   // clearer side cards (P: more clarity)
       // the frame: side cards keep the centre's eye-line, dive back in Z, and
       // turn toward the focused card — one shared vanishing point (.track)
       const arcY = (1 - pocket) * spacing * 0.012;
       const zRec = -Math.pow(1 - pocket, 1.6) * 240;   // neighbours stay near, the wall dives
       const yaw = Math.max(-42, Math.min(42, -d * 38)) * (1 - pocket * 0.55);
-      const el = els[view[i]].el;
+      const slot = els[view[i]], el = slot.el;
+      if (!el.isConnected) track.appendChild(el);
       el.style.visibility = 'visible';
       // breathing fan (P: the focus needs AIR): the first neighbour sits a
       // full card out — clear gap around the focused card — then 0.40 slices
       const xu = d * 0.40 + Math.sign(d) * Math.min(ad, 1) * 0.62;
       el.style.transform =
-        `translate3d(${(xu * spacing - cardW / 2).toFixed(2)}px, -50%, 0)` +
+        `translate3d(${(xu * spacing - elW / 2).toFixed(2)}px, -50%, 0)` +
         ` translateY(${arcY.toFixed(2)}px) translateZ(${zRec.toFixed(1)}px)` +
         ` rotateY(${yaw.toFixed(2)}deg) scale(${scale.toFixed(4)})`;
-      // dim via composited overlay opacity (a per-frame filter:brightness forces repaints)
-      el.style.setProperty('--dim', (1 - bright).toFixed(3));
-      el.style.zIndex = String(100 - Math.round(ad * 10));
+      // dim = opacity of the card's own overlay layer (compositor-only, no repaint);
+      // written only when it moves visibly
+      const dimV = 1 - bright;
+      if (Math.abs(dimV - slot.dimV) > 0.004) { slot.dim.style.opacity = dimV.toFixed(3); slot.dimV = dimV; }
+      // stacking: nearer card in front. round(ad) keeps the same order as ad*10
+      // but only changes at half-card crossings, so the layer tree is rebuilt a
+      // few times per card instead of on every frame
+      const z = 100 - Math.round(ad);
+      if (slot.z !== z) { el.style.zIndex = String(z); slot.z = z; }
       // hold quality upgrades during fast travel; decode work causes hitching
-      wantImage(view[i], (ad < 3.5 && Math.abs(velocity) < 0.18) ? 'high' : 'low');
+      wantImage(view[i], (ad < 3.5 && Math.abs(velocity) < 0.18 && !holdHigh) ? 'high' : 'low');
     }
     painted = next;
+    scrubTo(scrub, position);   // the knob glides with the wheel
 
     const idx = Math.max(0, Math.min(N - 1, Math.round(position)));
     if (idx !== current || force) setCurrent(idx);
@@ -587,20 +723,28 @@
 
   // --- Current-card UI (caption, minimap, counter, glow, focus) ---------------
   const priceTween = { v: 0 }; // shared target for the count-up price
+  let centerEl = null;   // the element that holds .center now (not derived from `current`,
+                         // which callers reset to -1 to force a repaint: that left a stale .center behind)
   function setCurrent(idx) {
-    if (current >= 0 && current !== idx) {
-      tickEls[current].classList.remove('cur');
-      const prev = els[view[current]].el;
+    if (current >= 0 && current !== idx && tickEls[current]) tickEls[current].classList.remove('cur');
+    const nextEl = els[view[idx]] && els[view[idx]].el;
+    if (centerEl && centerEl !== nextEl) {
+      const prev = centerEl;
       prev.tabIndex = -1;
-      prev.classList.remove('center');
+      prev.classList.remove('center', 'lit');
       prev.setAttribute('aria-hidden', 'true');
       prev.removeAttribute('role');       // drop the button semantics it got while centered
       prev.removeAttribute('aria-label'); // (it's clickable for the mouse, but hidden from AT again)
     }
+    centerEl = nextEl;
     current = idx;
     const card = cardAt(idx);
     const tier = tierOf(card);
     const color = tierColor(tier.var);
+    // flying past at speed (fling / fast drag): text swaps without the glow and
+    // price count-up, so each card step costs a text write, not a repaint chain
+    const fast = ((mode === 'gliding' || mode === 'wheeling') && Math.abs(velocity) > 0.12)
+      || (mode === 'dragging' && Math.abs(dragVel) > 0.12);
 
     tickEls[idx].classList.add('cur');
     rail.setAttribute('aria-valuenow', String(idx + 1));
@@ -618,14 +762,14 @@
     cEl.setAttribute('aria-label', `Inspect ${card.name}`);
 
     const cn = splitName(card.name); // dash-free Lorcana names (Character / Title)
-    glowSwap(capName, cn.name); // ALL-CAPS via CSS; seeps in between cards
+    glowSwap(capName, cn.name, fast); // ALL-CAPS via CSS; seeps in between cards
     capRarity.className = 'cap-rarity-top' + (card.sealed ? '' : ' rar-' + raritySlug(card.rarity)); // special rarities get flair
     // rarity rides the TOP line, above the wheel, in its signature color
     if (card.sealed) capRarity.style.color = 'var(--ember-glint)';
     else capRarity.style.color = rarityColor(card.rarity);
     const rarityLine = card.sealed ? 'SEALED PRODUCT' : (card.rarity ? card.rarity.toUpperCase() : ' ');
     capRarity.hidden = !rarityLine.trim();   // no rarity → no empty pill (P: "the empty bar")
-    glowSwap(capRarity, rarityLine);
+    glowSwap(capRarity, rarityLine, fast);
     // the card number now rides the TOP, directly under the rarity (P)
     capNumber.textContent = card.sealed
       ? (card.sealedMeta.detail || 'sealed product')
@@ -642,19 +786,20 @@
     capPrice.classList.toggle('none', capUsd == null);
     if (capUsd != null) {
       priceTween.target = capUsd;
-      if (window.gsap && !REDUCED) {
+      if (window.gsap && !REDUCED && !fast) {
         gsap.killTweensOf(priceTween);
         gsap.to(priceTween, {
           v: capUsd, duration: 0.4, ease: 'power3.out',
-          onUpdate: () => { capPrice.textContent = `$${priceTween.v.toFixed(2)}`; },
+          onUpdate: () => { capPrice.textContent = money(priceTween.v); },
         });
         // insurance for frozen tickers (occluded tab): snap to the final value
         setTimeout(() => {
-          if (priceTween.target === capUsd) { priceTween.v = capUsd; capPrice.textContent = `$${capUsd.toFixed(2)}`; }
+          if (priceTween.target === capUsd) { priceTween.v = capUsd; capPrice.textContent = money(capUsd); }
         }, 520);
       } else {
+        if (window.gsap) gsap.killTweensOf(priceTween);
         priceTween.v = capUsd;
-        capPrice.textContent = `$${capUsd.toFixed(2)}`;
+        capPrice.textContent = money(capUsd);
       }
     } else {
       priceTween.target = null;
@@ -679,52 +824,61 @@
     span.textContent = `/${N}`;
     counter.appendChild(span);
 
-    // dial: ride the knob along the 3D arc + light the current segment
-    if (dial) {
-      const f = N > 1 ? idx / (N - 1) : 0.5;
-      const kx = (f - 0.5) * dial.chord;
-      const knob = railArc.querySelector('.dknob');
-      if (knob) knob.style.transform = `translate3d(${kx.toFixed(1)}px,${(dial.arcY ? dial.arcY(kx) : 0).toFixed(1)}px,0) rotate(${(dial.arcRot ? dial.arcRot(kx) : 0).toFixed(2)}deg)`; // knob rides the dial curve
-      const ti = Math.round(f * (dial.n - 1));
-      if (ti !== dial._cur) {
-        if (dial._curEl) dial._curEl.classList.remove('cur');
-        dial._curEl = railArc.querySelector(`.dtick[data-i="${ti}"]`);
-        if (dial._curEl) dial._curEl.classList.add('cur');
-        dial._cur = ti;
-      }
-    }
+    // dial: the readout names this card's place and price over the knob
+    scrubCard(scrub, idx);
+    if (MOBILE) { scrubTo(mScrub, idx); scrubCard(mScrub, idx); }
 
     // valuable cards (>= $20) get the hot title treatment
     const hot = typeof card.priceUsd === 'number' && card.priceUsd >= 20;
     capName.classList.toggle('hot', hot);
     if (hot) capName.style.setProperty('--hot-color', color);
 
-    // repainting the full-screen glow every index at glide speed is jank; settle first
-    if (Math.abs(velocity) < 0.2) {
-      stageGlow.style.setProperty('--glow-color',
-        tier.label ? color + '2e' : 'rgba(108,46,166,0.18)');
-      // warm the full-res PNG for the settled card so inspect opens at max
-      // quality with zero wait (the wheel itself only ever needs webp)
-      if (!card.sealed && card.imageOk !== false && !pngWarm.has(card.id)) {
-        pngWarm.add(card.id);
-        const pre = new Image();
-        pre.decoding = 'async';
-        pre.src = cardImg(card, 'high.png');
-      }
-      // the wheel settled on a new card — re-centre the idle prefetch so the cards
-      // the user is now near get warmed first (cheap: no-op if already scheduled)
-      if (typeof schedulePrefetch === 'function') schedulePrefetch();
-    }
+    if (mode === 'idle') settle();
   }
-  const pngWarm = new Set();
+  // Work that only makes sense once the wheel has STOPPED on a card (tick() calls
+  // this when a glide/snap/jump lands; setCurrent when an instant move lands):
+  // the full-screen glow recolour (a 2560px gradient repaint, so never mid-flight),
+  // the crisp full-resolution scan for the focused card, and the idle prefetch.
+  let settledOn = -1;
+  function settle() {
+    if (!wheelReady || current < 0 || settledOn === current) return;
+    settledOn = current;
+    els[view[current]].el.classList.add('lit');   // the rim fades in on the card we stopped on
+    sharpenFocused(current);
+    if (typeof schedulePrefetch === 'function') schedulePrefetch();
+  }
+  // the focused card wears the highest-resolution scan its source offers (tcgdex
+  // lossless PNG, Scryfall PNG, TCGplayer 1000px) once it has decoded off-thread;
+  // the same bytes then open the inspect instantly. Side cards stay on webp.
+  const bestImg = (card) => {
+    if (!card || card.sealed) return '';
+    if (!card.fullImg) return card.imageOk === false ? '' : cardImg(card, 'high.png');
+    const u = cardImg(card, 'high.webp');
+    if (u.indexOf('tcgplayer-cdn.tcgplayer.com/product/') !== -1) return u.replace(/_\d+w\.jpg$/, '_in_1000x1000.jpg');
+    if (u.indexOf('cards.scryfall.io/large/') !== -1) return u.replace('/large/', '/png/').replace(/\.jpg(\?|$)/, '.png$1');
+    return '';
+  };
+  function sharpenFocused(slotIdx) {
+    const ci = view[slotIdx], slot = els[ci], card = CARDS[ci];
+    if (!slot || slot.best || slot.img.dataset.q === 'fallback') return;
+    const url = bestImg(card);
+    if (!url) return;
+    slot.best = 'pending';
+    const pre = new Image();
+    pre.decoding = 'async';
+    pre.src = url;
+    (pre.decode ? pre.decode() : new Promise((ok, no) => { pre.onload = ok; pre.onerror = no; }))
+      .then(() => { slot.img.dataset.q = 'best'; slot.img.src = url; slot.loaded = 'high'; slot.best = 'done'; })
+      .catch(() => { slot.best = 'failed'; });
+  }
 
   // --- rAF loop -----------------------------------------------------------------
   function clampPos() {
     if (position < 0) { position = 0; velocity = 0; }
     if (position > N - 1) { position = N - 1; velocity = 0; }
   }
-  // Background drift lives in the physics loop — CSS animation timelines are
-  // frozen on this machine, but rAF demonstrably runs (the wheel moves).
+  // Background drift runs from rAF (ambientLoop below) — CSS animation timelines
+  // are frozen on this machine, but rAF demonstrably runs (the wheel moves).
   const TAU = Math.PI * 2;
   const bgGrain = $('bgGrain'), bgGlass = $('bgGlass'), bgLight = $('bgLight'), zoomBgArt = $('zoomBgArt');
 
@@ -739,9 +893,6 @@
     bgLight.style.transform =
       `translate3d(${(Math.sin(t * TAU / 45 + 1) * 4).toFixed(3)}%, ${(Math.cos(t * TAU / 38) * 0.7).toFixed(3)}%, 0)`;
     bgLight.style.opacity = (0.88 + 0.12 * Math.sin(t * TAU / 17)).toFixed(3);
-    const k = (1 + Math.sin(t * TAU / 9)) / 2;
-    stageGlow.style.opacity = (0.74 + 0.26 * k).toFixed(3);
-    stageGlow.style.transform = `scale(${(1 + 0.08 * k).toFixed(4)})`;
     // inspect backdrop: slow Ken Burns over the blurred card art, every card
     if (zoom.open) {
       zoomBgArt.style.transform =
@@ -750,17 +901,37 @@
     }
   }
 
+  // The stage keeps breathing while the wheel is still, so the drift, the floor and
+  // the inspect holo run in their own loop (HEAD ran them inside tick(), which now
+  // sleeps whenever the wheel stops). Off in the set browser and in hidden tabs.
   let driftFrame = 0;
-  function tick(ms) {
+  function ambientLoop(ms) {
+    requestAnimationFrame(ambientLoop);
+    if (document.hidden) return;
+    const home = document.body.classList.contains('home-open');
     // every 2nd frame: the drift is slow, 30fps is invisible, churn halves
-    if (!REDUCED && (driftFrame++ & 1)) driftBg(ms || performance.now());
-    if (zoom.open) holoRender(ms || performance.now()); // animated inspect backdrop
-    if (topo && document.body.dataset.game === 'pokemon') topo.render(ms || performance.now()); // Pokémon topo drift
-    if (zoom.open && document.body.dataset.game === 'pokemon') { if (!zoomTopo) buildZoomTopo(); if (zoomTopo) { zoomTopo.color.set(insColor); zoomTopo.render(ms || performance.now()); } } // Pokémon inspect topo, tinted to the card
-    if (floorFX && !zoom.open && !document.body.classList.contains('home-open')) floorFX.render(ms || performance.now()); // stage floor under the wheel
-    if (mode === 'gliding' || mode === 'wheeling') {
-      position += velocity;
-      velocity *= FRICTION;
+    if (!REDUCED && !home && (driftFrame++ & 1)) driftBg(ms);
+    if (zoom.open) holoRender(ms); // animated inspect backdrop
+    if (topo && !home && document.body.dataset.game === 'pokemon') topo.render(ms); // Pokémon topo drift
+    if (zoom.open && document.body.dataset.game === 'pokemon') { if (!zoomTopo) buildZoomTopo(); if (zoomTopo) { zoomTopo.color.set(insColor); zoomTopo.render(ms); } } // Pokémon inspect topo, tinted to the card
+    if (floorFX && !zoom.open && !home) floorFX.render(ms); // stage floor under the wheel
+  }
+
+  // Physics runs on elapsed TIME, normalised to 60 Hz frames (the units every
+  // constant above was tuned in). It used to step once per frame, so on a 279 Hz
+  // screen a fling or snap played ~4.6x faster than designed (a 500 ms settle
+  // became ~110 ms) and every dropped frame stalled the wheel. Now the glide and
+  // the snap take the same time on every screen and a late frame catches up.
+  let tickT = 0;
+  function tick(ms) {
+    const now = ms || performance.now();
+    const f = tickT ? Math.min(3, Math.max(0.05, (now - tickT) / (1000 / 60))) : 1;   // elapsed, in 60 Hz frames
+    tickT = now;
+    if (mode === 'dragging') {
+      if (dragDirty) { dragDirty = false; render(); }
+    } else if (mode === 'gliding' || mode === 'wheeling') {
+      position += velocity * f;
+      velocity *= Math.pow(FRICTION, f);
       clampPos();
       if (Math.abs(velocity) < SNAP_VELOCITY) {
         mode = 'snapping';
@@ -769,9 +940,10 @@
       render();
     } else if (mode === 'snapping' || mode === 'jumping') {
       const k = mode === 'jumping' ? SNAP_K * 1.3 : SNAP_K;
-      position += (target - position) * k;
+      position += (target - position) * (1 - Math.pow(1 - k, f));
       if (Math.abs(target - position) < 0.0008) { position = target; mode = 'idle'; }
       render();
+      if (mode === 'idle') settle();
     }
     requestAnimationFrame(tick);
   }
@@ -835,10 +1007,11 @@
     return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
   };
   function applyAmbience(cols) {
+    if (!cols || !cols[0]) return;
+    const bs = document.body.style;
     const [a, b, c] = [cols[0], cols[1] ?? cols[0], cols[2] ?? cols[1] ?? cols[0]];
     // feed the per-set signature colour to the themed backdrops:
     // Lorcana bottom glow (--set-glow), One Piece rain tint (--op-rain*), Pokémon topo hue
-    const bs = document.body.style;
     bs.setProperty('--set-glow', a);
     bs.setProperty('--op-rain', a);
     bs.setProperty('--op-rain2', c);
@@ -1083,8 +1256,7 @@
     } catch { floorFX = false; }
   }
   // RULE: the inspect backdrop takes the inspected CARD's own colour (style unchanged).
-  // Sample the card art → feed --ins-lit/--ins-deep (the .zoom-uni gradient, all universes)
-  // and insColor (the Pokémon #zoomTopo shader base, applied each frame in tick()).
+  // Sample the card art → feed --ins-lit/--ins-deep (the .zoom-uni gradient, all universes).
   const INS_ACCENT = { pokemon: '#3b62b8', magic: '#8a5a2e', lorcana: '#2f6f9e', onepiece: '#9e3a30' };
   let insColor = '#1a2746';
   function tintInspect(card) {
@@ -1103,8 +1275,14 @@
     apply((bn >> 16) & 255, (bn >> 8) & 255, bn & 255);
     const url = card.sealed ? card.image : (typeof cardImg === 'function' ? cardImg(card, 'low.webp') : null);
     if (!url) return;
-    // CORS blob → ImageBitmap → canvas is untainted, so pixels are readable (CDNs that block CORS keep the fallback)
-    fetch(url, { mode: 'cors' }).then((res) => res.ok ? res.blob() : Promise.reject()).then(createImageBitmap).then((bm) => {
+    // only hosts that answer CORS (verified 27 Oct: tcgdex, Scryfall, dotgg; TCGplayer
+    // and Lorcast don't) are sampled, and with no-store: the wheel's <img> already
+    // cached these bytes WITHOUT the CORS header, and reusing that copy threw a CORS
+    // error into the console on every inspect. Everything else keeps the type colour.
+    const corsOk = url.startsWith('assets/') || /^https:\/\/(assets\.tcgdex\.net|cards\.scryfall\.io|static\.dotgg\.gg)\//.test(url);
+    if (!corsOk) return;
+    // CORS blob → ImageBitmap → canvas is untainted, so pixels are readable
+    fetch(url, url.startsWith('assets/') ? {} : { mode: 'cors', cache: 'no-store' }).then((res) => res.ok ? res.blob() : Promise.reject()).then(createImageBitmap).then((bm) => {
       const cv = document.createElement('canvas'); cv.width = 18; cv.height = 25;
       const x = cv.getContext('2d'); x.drawImage(bm, 0, 0, 18, 25);
       const d = x.getImageData(0, 0, 18, 25).data;
@@ -1123,7 +1301,7 @@
     // before anything reads the card list. Idempotent + no-op for unmapped sets.
     if (typeof mergeFullSet === 'function') mergeFullSet(id);
     DATA = SETS[id];
-    // per-universe carousel backdrop (stars / rain), switched via body[data-game]
+    // body[data-game] keys the per-game inspect accents (INS_ACCENT)
     const universe = id.startsWith('lor-') ? 'lorcana' : id.startsWith('op-') ? 'onepiece' : id.startsWith('mtg-') ? 'magic' : 'pokemon';
     document.body.dataset.game = universe;
     if (universe === 'lorcana') buildStarfield();
@@ -1133,7 +1311,9 @@
     const dom = buildSetDom(id);
     els = dom.els;
     tickByCard = dom.ticks;
-    track.replaceChildren(...els.map(e => e.el));
+    // cards join the DOM as they first enter the painted window (render): inserting
+    // all of a 250-card set at once was a 50 ms style pass on every set switch
+    track.replaceChildren();
     ticksBox.replaceChildren(...tickByCard);
     rail.setAttribute('aria-valuemax', String(N));
     // search suggestions follow the set
@@ -1144,8 +1324,12 @@
       dl.appendChild(o);
     });
     // footer snapshot label + staleness follow the set
-    $('snapshotLabel').textContent =
-      `${DATA.set.name} · ${DATA.set.total} cards · market snapshot via ${DATA.source || 'TCGdex'} · refreshed ${new Date(DATA.snapshotAt).toLocaleString()}`;
+    // (the set's name, count and value live in the set header now: the footer
+    // only credits the data source, so nothing is said twice on screen)
+    const snapAt = new Date(DATA.snapshotAt);
+    $('snapshotLabel').textContent = isNaN(snapAt) ? '' :
+      `Market prices updated ${snapAt.getDate()} ${MONTHS[snapAt.getMonth()]} ${snapAt.getFullYear()}, ${snapAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+    $('snapshotLabel').title = `Source: ${DATA.source || 'TCGdex'}`;   // the full data credit stays one hover away
     $('staleNotice').hidden = DATA.set.external || Date.now() - Date.parse(DATA.snapshotAt) <= 7 * 864e5;
     // selector reflects the active set — fall back to the set name as text when
     // the logo asset is missing (Temporal Forces, all external-game sets)
@@ -1157,7 +1341,10 @@
     // set-specific art exists the name reads better than a generic wordmark
     const hdrCands = (DATA.set.external
       ? setMarkChain(universe, { id, name: DATA.set.name, code: DATA.set.code }).filter((u) => u.indexOf('assets/logos/') === -1)
-      : [SET_LOGO_OVERRIDE[id], setLogoPng(DATA.set)].filter(Boolean));
+      : [SET_LOGO_OVERRIDE[id], ...(NO_TCGDEX_LOGO.has(id) ? [] : DATA.set.logo
+        ? [safeImg(DATA.set.logo + '.webp'), safeImg(DATA.set.logo + '.png')]   // webp first: a fifth of the png, and the browser tile already cached it
+        : [setLogoPng(DATA.set)])].filter(Boolean));
+    btnLogo.classList.toggle('on-light', LIGHT_PLATE.has(id));
     if (hdrCands.length) {
       let hi = 0;
       btnLogo.hidden = false; btnName.hidden = true;
@@ -1173,20 +1360,155 @@
     });
     pfNext = 0; // restart idle prefetch for this set (re-centres on the new set's cards)
     if (typeof schedulePrefetch === 'function') schedulePrefetch();
-    current = -1;
+    current = -1; settledOn = -1;
     painted = new Set();
+    wheelReady = true;
     buildDial();          // redraw the arced dial for this set's card count
     applySort(sortMode); // rebuilds view/ticks order and lands per mode
     recolorDial();       // dial heat-strip colours need the NEW view order
     buildFloor();        // stage floor (all universes) — lazy singleton
-    // relight the stage in THIS set's signature colour, read from its local
-    // sealed render (Perfect Order → green, etc.); async, guards re-switch
+    // the ground's light pool takes THIS set's colour (async for sets whose colour
+    // is read off their sealed render; guards re-switch)
     setAmbience(id);
+    paintSetHead(id);
+    try { if (new URLSearchParams(location.search).get('set') !== id) history.replaceState({ set: id }, '', 'app.html?set=' + encodeURIComponent(id)); } catch { /* file:// */ }
+    if (gridOn) { gridView._set = null; buildGrid(); }
     kickWheelIntro();    // belt sweeps in from the right + caption/dial entrance
   }
 
+  // --- Set-to-set: the cards a set opens on are decoded BEFORE the swap, so a
+  // switch never shows empty card faces (Faisal: the set-to-set "segues" looked
+  // buggy). The old wheel stays, dimmed, for the few hundred ms this takes.
+  function landingCards(id, mode) {
+    if (!SETS[id]) return [];
+    try { mergeFullSet(id); } catch { /* bundled list is fine */ }
+    const cards = setCardList(id);
+    const order = cards.map((_, i) => i).sort((a, b) => { const va = sortValue(cards[a]), vb = sortValue(cards[b]); return va === vb ? a - b : va - vb; });
+    let land = order.length - 1;                       // deep links land on the priciest (applySort)
+    if (mode === 'first') {                            // the browser + menu land on card #1 (landOnFirstCard)
+      let best = -1, bn = Infinity;
+      cards.forEach((c, i) => { if (c.sealed) return; const n = typeof c.num === 'number' ? c.num : parseInt(c.localId, 10); if (n < bn) { bn = n; best = i; } });
+      if (best >= 0) land = order.indexOf(best);
+    }
+    const out = [];
+    // the whole painted window (±WINDOW), so the landing sweep never shows blank cards at its edges
+    for (let k = Math.max(0, land - WINDOW); k <= Math.min(order.length - 1, land + WINDOW); k++) out.push(cards[order[k]]);
+    return out;
+  }
+  function preloadLanding(id, mode, maxMs = 800) {
+    const list = landingCards(id, mode);
+    if (!list.length) return Promise.resolve();
+    document.body.classList.add('switching');
+    const jobs = list.map((c) => {
+      // the same first image the wheel shows (wantImage): the small scan where the source has one
+      const url = c.sealed ? c.image : (thumbImg(c) || cardImg(c, c.fullImg ? 'high.webp' : 'low.webp'));
+      if (!url) return Promise.resolve();
+      const im = new Image(); im.decoding = 'async'; im.src = url;
+      return im.decode ? im.decode().catch(() => {}) : Promise.resolve();
+    });
+    return Promise.race([Promise.allSettled(jobs), new Promise((r) => setTimeout(r, maxMs))])
+      .finally(() => document.body.classList.remove('switching'));
+  }
+
+  // --- Set header (Scryfall set page: logo, card count, release, total value;
+  // Pokedesk: the set's top card beside its value). Numbers come from setStats(),
+  // the same list the set browser tile shows, so the two always agree. ---
+  const shName = $('shName'), shMeta = $('shMeta'), shValue = $('shValue'), shPriced = $('shPriced'),
+    shTop = $('shTop'), shTopImg = $('shTopImg'), shTopName = $('shTopName'), shTopPrice = $('shTopPrice');
+  let shTopId = null;
+  function paintSetHead(id, quiet) {
+    const game = gameOf(id);
+    if (statCache[id] && statCache[id].cached && SETS[id]) { delete statCache[id]; storeStats(id, setStats(id)); }
+    $('shBackLbl').textContent = `All ${GAME_SHORT[game]} sets`;
+    $('shBack').href = 'app.html?game=' + game;
+    shName.textContent = DATA.set.name;
+    const st = setStats(id);
+    const rel = RELEASED[id] || (DATA.cards.find((c) => c.released) || {}).released || '';
+    const bits = [];
+    if (st) bits.push(`${st.count.toLocaleString('en-US')} cards`);
+    if (rel) bits.push(`Released ${fmtDay(rel)}`);
+    shMeta.textContent = bits.join(' · ');
+    $('shValueBox').hidden = !st || !st.priced;
+    if (st && st.priced) {
+      shValue.textContent = money(st.value);
+      shPriced.textContent = st.priced < st.count * 0.95 ? `${st.priced} of ${st.count} cards priced` : '';
+      shPriced.hidden = !shPriced.textContent;
+    }
+    const top = st && st.top[0];
+    shTop.hidden = !top;
+    if (top) {
+      shTopId = top.id;
+      shTopImg.src = cardThumb(top);
+      shTopName.textContent = ' · ' + cardName(top);
+      shTopPrice.textContent = money(top.priceUsd);
+      shTop.setAttribute('aria-label', `Go to the top card, ${cardName(top)}, ${money(top.priceUsd)}`);
+    }
+    if (!RELEASED[id] && game !== 'onepiece') loadReleased(game).then(() => { if (DATA && DATA.set.id === id && RELEASED[id]) paintSetHead(id, true); });
+    // a new set's numbers settle in with the wheel's sweep (expo-out, staggered)
+    if (!quiet && window.gsap && !REDUCED && !document.hidden) {
+      gsap.fromTo(['.sh-text', '.sh-stat', '.sh-top', '.sh-views'], { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.5, ease: 'expo.out', stagger: 0.05, delay: 0.12, clearProps: 'opacity,transform' });
+    }
+  }
+  shTop.addEventListener('click', () => {
+    const ci = CARDS.findIndex((c) => c.id === shTopId);
+    if (ci < 0) return;
+    if (gridOn) setView('wheel');
+    goTo(slotOf[ci]);
+  });
+  $('shBack').addEventListener('click', (e) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+    e.preventDefault();
+    const game = gameOf(DATA.set.id);
+    try { history.pushState({ game }, '', 'app.html?game=' + game); } catch { /* file:// */ }
+    showHome(game);
+  });
+
+  // --- Grid view: the whole set at once, in card-number order (Scryfall's
+  // browse). Click a card to inspect it; closing returns to the grid. ---
+  const gridView = $('gridView'), gridCards = $('gridCards');
+  let gridOn = false;
+  function setView(v) {
+    gridOn = v === 'grid';
+    document.body.classList.toggle('grid-on', gridOn);
+    $('viewWheel').setAttribute('aria-pressed', String(!gridOn));
+    $('viewGrid').setAttribute('aria-pressed', String(gridOn));
+    gridView.hidden = !gridOn;
+    if (gridOn) {
+      buildGrid();
+      if (window.gsap && !REDUCED) gsap.fromTo(gridView, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: 'expo.out', clearProps: 'opacity,transform' });
+    } else render(true);
+  }
+  function buildGrid() {
+    if (gridView._set === DATA.set.id) return;
+    gridView._set = DATA.set.id;
+    const order = CARDS.map((_, i) => i).sort((a, b) => {
+      const A = CARDS[a], B = CARDS[b];
+      if (!!A.sealed !== !!B.sealed) return A.sealed ? 1 : -1;
+      return (A.num - B.num) || String(A.localId).localeCompare(String(B.localId)) || a - b;
+    });
+    gridCards.innerHTML = order.map((ci) => {
+      const c = CARDS[ci];
+      const price = typeof c.priceUsd === 'number' ? money(c.priceUsd) : '';
+      return `<button type="button" class="gv-card${c.sealed ? ' sealed' : ''}" data-ci="${ci}" aria-label="Inspect ${esc(c.name)}">`
+        + `<span class="gv-img"><img src="${esc(cardThumb(c))}" alt="" loading="lazy" decoding="async"></span>`
+        + `<span class="gv-name">${esc(cardName(c))}</span>`
+        + `<span class="gv-meta"><span class="gv-num">${c.sealed ? 'Sealed' : '#' + esc(c.localId)}</span>${price ? `<b>${price}</b>` : '<span class="gv-np">No price</span>'}</span></button>`;
+    }).join('');
+    gridView.scrollTop = 0;
+  }
+  $('viewWheel').addEventListener('click', () => { if (gridOn) setView('wheel'); });
+  $('viewGrid').addEventListener('click', () => { if (!gridOn) setView('grid'); });
+  gridCards.addEventListener('click', (e) => {
+    const b = e.target.closest('.gv-card'); if (!b) return;
+    const ci = +b.dataset.ci;
+    if (slotOf[ci] == null) return;
+    openZoomFor(slotOf[ci], b.querySelector('img'));
+  });
+
   // Era-grouped dropdown, newest sets first. Only sets with data appear.
   const SET_GROUPS = [
+    { series: '30th Celebration', ids: ['30th', '30th-c'] },
     { series: 'First Partner Illustration', ids: ['fpic3', 'fpic2', 'fpic1'] },
     { series: 'Mega Evolution', ids: ['me05', 'me04', 'me03', 'me02.5', 'me02', 'me01'] },
     { series: 'Scarlet & Violet', ids: ['sv10.5w', 'sv10.5b', 'sv10', 'sv09', 'sv08.5', 'sv08', 'sv07', 'sv06.5', 'sv06', 'sv05', 'sv04.5', 'sv04', 'sv03.5', 'sv03', 'sv02', 'sv01'] },
@@ -1203,7 +1525,9 @@
   // --- Other games: Magic (Scryfall) & Lorcana (Lorcast), fetched on demand ----
   const GAME_SETS = [
     { game: 'magic', label: 'Magic: The Gathering', sets: [
-      // 25 most recent Magic sets (newest first), per Scryfall. + Strixhaven pinned.
+      // most recent Magic sets (newest first), per Scryfall. + Strixhaven pinned.
+      { id: 'mtg-fra', code: 'fra', name: 'Reality Fracture' },
+      { id: 'mtg-hob', code: 'hob', name: 'The Hobbit' },
       { id: 'mtg-msh', code: 'msh', name: 'Marvel Super Heroes' },
       { id: 'mtg-sos', code: 'sos', name: 'Secrets of Strixhaven' },
       { id: 'mtg-tmt', code: 'tmt', name: 'Teenage Mutant Ninja Turtles' },
@@ -1232,6 +1556,8 @@
       { id: 'mtg-stx', code: 'stx', name: 'Strixhaven: School of Mages' },
     ] },
     { game: 'lorcana', label: 'Disney Lorcana', sets: [
+      { id: 'lor-14', code: '14', name: 'Hyperia City' },
+      { id: 'lor-13', code: '13', name: 'Attack of the Vine!' },
       { id: 'lor-12', code: '12', name: 'Wilds Unknown' },
       { id: 'lor-11', code: '11', name: 'Winterspell' },
       { id: 'lor-10', code: '10', name: 'Whispers in the Well' },
@@ -1246,6 +1572,7 @@
       { id: 'lor-1', code: '1', name: 'The First Chapter' },
     ] },
     { game: 'onepiece', label: 'One Piece', sets: [
+      { id: 'op-OP17', code: 'OP17', name: "The World's Strongest Warriors" },
       { id: 'op-OP16', code: 'OP16', name: 'The Time of Battle' },
       { id: 'op-OP15', code: 'OP15', name: "Adventure on Kami's Island" },
       { id: 'op-OP14', code: 'OP14', name: "The Azure Sea's Seven" },
@@ -1331,13 +1658,27 @@
         const nm = document.createElement('span'); nm.className = 'sm-set-name'; nm.textContent = s.name;
         item.appendChild(nm);
         if (s.count != null) { const c = document.createElement('span'); c.className = 'sm-set-count'; c.textContent = String(s.count); item.appendChild(c); }
-        item.addEventListener('click', () => { toggleSetMenu(false); if (DATA.set.id === s.id) return; s.external ? loadExternalSet(s.id) : loadSet(s.id); });
+        item.addEventListener('click', async () => {
+          toggleSetMenu(false); if (DATA.set.id === s.id) return;
+          // every path fetches/builds the cards first, decodes the landing cards,
+          // and only then swaps the wheel (no blank faces, no half-built set)
+          let ok = true;
+          document.body.classList.add('switching');   // the old wheel dims while the new set loads
+          if (s.external) ok = await ensureExternalSet(s.id);
+          else if (!SETS[s.id]) { const built = buildSetFromIndex(s.id); if (built) SETS[s.id] = built; else ok = await ensureTcgdexSet(s.id); }
+          if (!ok) { document.body.classList.remove('switching'); return; }
+          await preloadLanding(s.id, 'first');
+          loadSet(s.id);
+          landOnFirstCard();
+        });
         listEl.appendChild(item);
       }
     }
     setMenu.querySelectorAll('.sm-tab').forEach((t) => t.addEventListener('click', () => { activeGame = t.dataset.game; renderTabs(); renderList(); searchEl.focus(); }));
     searchEl.addEventListener('input', () => { query = searchEl.value; renderList(); });
     setMenu._sync = () => { // on open: jump to the current set's game, clear the filter
+      // same Pokémon list as the set index, so newly discovered sets (30th Celebration) are reachable mid-carousel
+      NAV[0].sets = setsForGame('pokemon').map((s) => ({ ...s, external: false }));
       const cur = DATA && DATA.set && DATA.set.id;
       const found = NAV.find((n) => n.sets.some((s) => s.id === cur));
       activeGame = found ? found.game : 'pokemon'; query = ''; searchEl.value = '';
@@ -1363,11 +1704,29 @@
     const v = p.usd || p.usd_foil || p.usd_etched;
     return v ? parseFloat(v) : null;
   };
+  // Scryfall's hard limit for /cards/search is 2 a second, and a 429 locks the client
+  // out for 30 seconds (scryfall.com/docs/api/rate-limits, checked 27 Oct). Every
+  // search passes this gate; the set browser's background price loading goes slower
+  // still, and after a 429 nothing is sent until the lockout has passed.
+  let sfLast = 0, sfSlow = false, sfBlockedUntil = 0;   // sfSlow: the set browser is loading prices in the background
+  const sfGate = async () => {
+    const now = performance.now();
+    const wait = Math.max(sfLast + (sfSlow ? 800 : 550), sfBlockedUntil) - now;
+    sfLast = now + Math.max(0, wait);
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  };
+  async function sfJSON(url) {
+    await sfGate();
+    const r = await fetch(url);
+    if (r.status === 429) { sfBlockedUntil = performance.now() + 31000; throw new Error('429'); }
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  }
   async function fetchMagicSet(code) {
     // unique=prints = EVERY printing (showcase / borderless / extended / serialized
     // full-arts — the valuable variants), not collapsed to one per card
     let out = [], url = `https://api.scryfall.com/cards/search?q=set%3A${code}+game%3Apaper&unique=prints&order=set`;
-    for (let p = 0; url && p < 16 && out.length < 2600; p++) { const j = await fetchJSON(url); out.push(...(j.data || [])); url = j.has_more ? j.next_page : null; }
+    for (let p = 0; url && p < 16 && out.length < 2600; p++) { const j = await sfJSON(url); out.push(...(j.data || [])); url = j.has_more ? j.next_page : null; }
     return out.map((c, i) => {
       // double-faced cards keep their image under card_faces[0], not top-level
       const u = c.image_uris || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris) || {};
@@ -1379,7 +1738,7 @@
       // Scryfall doesn't price most serialized cards — backfill from the bundled
       // TCGplayer prices (window.MAGIC_PRICES, keyed by tcgplayer_id) when it's null.
       priceUsd: usdPrice(c.prices) ?? ((window.MAGIC_PRICES && window.MAGIC_PRICES[c.tcgplayer_id]) || null),
-      priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true, illustrator: c.artist || '',
+      priceVariant: 'normal', variants: {}, cardmarket: null, imageOk: true, illustrator: c.artist || '', released: c.released_at || null,
       meta: [
         ['Type', c.type_line], ['Mana', c.mana_cost], ['Set', c.set_name],
         ['Foil', c.prices && c.prices.usd_foil ? `$${(+c.prices.usd_foil).toFixed(2)}` : null],
@@ -1447,6 +1806,29 @@
       flavor: c.Effect || '',
     }));
   }
+  // fetch an external set's cards into SETS (no wheel change). Shared by the set
+  // browser's lazy price loading and by opening the set, so each set is fetched once.
+  const extJobs = {};
+  function ensureExternalSet(id) {
+    if (SETS[id]) return Promise.resolve(true);
+    if (extJobs[id]) return extJobs[id];
+    const meta = gameSetMeta(id);
+    if (!meta) return Promise.resolve(false);
+    return (extJobs[id] = (async () => {
+      try {
+        const cards = meta.game === 'magic' ? await fetchMagicSet(meta.code)
+          : meta.game === 'lorcana' ? await fetchLorcanaSet(meta.code)
+          : await fetchOnePieceSet(meta.code);
+        if (!cards.length) throw new Error('empty');
+        const SOURCE = { magic: 'Scryfall', lorcana: 'Lorcast', onepiece: 'dotgg' };
+        SETS[id] = {
+          set: { id, name: meta.name, total: cards.length, official: cards.length, logo: '', external: true },
+          cards, snapshotAt: new Date().toISOString(), source: SOURCE[meta.game] || 'market',
+        };
+        return true;
+      } catch { delete extJobs[id]; return false; }
+    })());
+  }
   let loadingGame = false;
   async function loadExternalSet(id) {
     if (SETS[id]) { loadSet(id); return; }
@@ -1454,20 +1836,10 @@
     if (!meta || loadingGame) return;
     loadingGame = true;
     const btnLogo = $('setBtnLogo'), btnName = $('setBtnName');
-    btnLogo.hidden = true; btnName.hidden = false; btnName.textContent = `Loading ${meta.name}…`;
+    btnLogo.hidden = true; btnName.hidden = false; btnName.textContent = `Loading ${meta.name}`;
     try {
-      const cards = meta.game === 'magic' ? await fetchMagicSet(meta.code)
-        : meta.game === 'lorcana' ? await fetchLorcanaSet(meta.code)
-        : await fetchOnePieceSet(meta.code);
-      if (!cards.length) throw new Error('empty');
-      const SOURCE = { magic: 'Scryfall', lorcana: 'Lorcast', onepiece: 'dotgg' };
-      SETS[id] = {
-        set: { id, name: meta.name, total: cards.length, official: cards.length, logo: '', external: true },
-        cards, snapshotAt: new Date().toISOString(), source: SOURCE[meta.game] || 'market',
-      };
-      loadSet(id);
-    } catch (e) {
-      btnName.textContent = `Couldn't load ${meta.name}`;
+      if (await ensureExternalSet(id)) loadSet(id);
+      else btnName.textContent = `Couldn't load ${meta.name}`;
     } finally { loadingGame = false; }
   }
 
@@ -1504,7 +1876,8 @@
   //      straight from tcgdex and show it unpriced — prices arrive when the
   //      catalogues catch up. Image urls are tcgdex bases, so the wheel's
   //      normal quality ladder applies untouched. ----
-  async function fetchTcgdexSet(id) {
+  async function ensureTcgdexSet(id) {
+    if (SETS[id]) return true;
     try {
       const r = await fetch(`https://api.tcgdex.net/v2/en/sets/${encodeURIComponent(id)}`);
       if (!r.ok) return false;
@@ -1518,11 +1891,15 @@
       if (!cards.length) return false;
       SETS[id] = {
         set: { id, name: d.name || id, total: cards.length, official: (d.cardCount && d.cardCount.official) || cards.length, logo: d.logo || '' },
-        cards, snapshotAt: new Date().toISOString(), source: 'TCGdex (unpriced — new release)',
+        cards, snapshotAt: new Date().toISOString(), source: 'TCGdex (unpriced, new release)',
       };
-      loadSet(id);
       return true;
     } catch { return false; }
+  }
+  async function fetchTcgdexSet(id) {
+    if (!(await ensureTcgdexSet(id))) return false;
+    loadSet(id);
+    return true;
   }
 
   // ---- Full-set merge (bundled ∪ index) for bundled Pokémon sets --------------
@@ -1546,6 +1923,7 @@
     'sv06.5': '23529', 'sv07': '23537', 'sv08': '23651', 'sv08.5': '23821',
     'sv09': '24073', 'sv10': '24269', 'sv10.5b': '24325', 'sv10.5w': '24326',
     'me01': '24380', 'me02': '24448', 'me02.5': '24541', 'me03': '24587', 'me04': '24655',
+    'me05': '24688', '30th': '24722',
   };
   // strip a baked-in "093 131" / "093/131" out of an index name, then lowercase —
   // so "Amarys 093 131" matches the bundled "Amarys" when picking the base printing
@@ -1696,7 +2074,7 @@
   }, { passive: false });
 
   // --- Input: drag ----------------------------------------------------------------
-  let dragX = 0, lastX = 0, lastT = 0, dragVel = 0, dragMoved = 0;
+  let dragX = 0, lastX = 0, lastT = 0, dragVel = 0, dragMoved = 0, dragDirty = false;
   wheel.addEventListener('pointerdown', (e) => {
     if (zoom.open) return;
     try { wheel.setPointerCapture(e.pointerId); } catch { /* inactive pointer */ }
@@ -1715,7 +2093,7 @@
     const dt = Math.max(1, now - lastT);
     dragVel = 0.7 * dragVel + 0.3 * (-(dx / spacing) * (1000 / 60) / dt);
     lastX = e.clientX; lastT = now;
-    render();
+    dragDirty = true;   // drawn once per frame by tick(); pointer events can fire several times a frame
   });
   function endDrag(e) {
     if (mode !== 'dragging') return;
@@ -1770,7 +2148,7 @@
 
   // --- Input: keyboard --------------------------------------------------------------
   addEventListener('keydown', (e) => {
-    if (zoom.open) return;
+    if (zoom.open || !wheelReady || document.body.classList.contains('home-open')) return;
     if (e.target === searchEl || e.target.closest?.('.set-dropdown')) return;
     if (e.key === 'Escape' && !setMenu.hidden) { toggleSetMenu(false); return; }
     if (e.target === rail && (e.key === 'PageDown' || e.key === 'PageUp')) {
@@ -1800,45 +2178,25 @@
   // --- Input: minimap scrub -----------------------------------------------------------
   let scrubbing = false;
   function railIndex(e) {
-    const r = railArc.getBoundingClientRect();
-    // pointer x relative to centre, over the arc's screen span (≈ chord)
-    const span = dial ? dial.chord : r.width;
-    const f = (e.clientX - (r.left + r.width / 2)) / span + 0.5;
-    return Math.round(Math.max(0, Math.min(1, f)) * (N - 1));
+    const r = (scrub ? scrub.track : railArc).getBoundingClientRect();
+    const f = (e.clientX - r.left) / (r.width || 1);
+    return Math.max(0, Math.min(N - 1, Math.floor(f * N)));
   }
   rail.addEventListener('pointerdown', (e) => {
     if (zoom.open) return;
-    scrubbing = true;
+    scrubbing = true; holdHigh = true;
     goTo(railIndex(e));
     try { rail.setPointerCapture(e.pointerId); } catch { /* inactive pointer */ }
   });
   rail.addEventListener('pointermove', (e) => { if (scrubbing) goTo(railIndex(e)); });
-  rail.addEventListener('pointerup', () => { scrubbing = false; });
-  rail.addEventListener('pointercancel', () => { scrubbing = false; });
+  const scrubEnd = () => { scrubbing = false; if (holdHigh) { holdHigh = false; render(true); } };   // landed: the near cards sharpen
+  rail.addEventListener('pointerup', scrubEnd);
+  rail.addEventListener('pointercancel', scrubEnd);
 
-  // hover tooltip: number + name of the card under the pointer (shown via CSS
-  // .rail:hover; built lazily so buildDial can rebuild railArc freely)
-  let dialTip = null;
-  const dialTipShow = (e) => {
-    if (zoom.open || MOBILE) return;
-    if (!dialTip || !dialTip.isConnected) {
-      dialTip = document.createElement('span');
-      dialTip.className = 'dial-tip';
-      rail.appendChild(dialTip);
-    }
-    const card = cardAt(railIndex(e));
-    if (!card) return;
-    const num = document.createElement('b');
-    num.textContent = card.sealed ? 'SEALED' : String(card.localId ?? '');
-    dialTip.replaceChildren(num, document.createTextNode(card.name));
-    const r = rail.getBoundingClientRect();
-    dialTip.style.left = `${Math.max(70, Math.min(r.width - 70, e.clientX - r.left)).toFixed(0)}px`;
-  };
-  rail.addEventListener('pointerenter', dialTipShow);
-  rail.addEventListener('pointermove', dialTipShow);
+  rail.addEventListener('pointerenter', () => schedulePrefetch());   // about to scrub: keep the small scans warming
 
   // --- Zoom view ------------------------------------------------------------------------
-  const fmt = (v, cur) => (typeof v === 'number' ? (cur === 'EUR' ? '€' : '$') + v.toFixed(2) : '—');
+  const fmt = (v, cur) => (typeof v === 'number' ? (cur === 'EUR' ? '€' : '$') + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—');
   const VARIANT_LABEL = { normal: 'Normal', holofoil: 'Holofoil', 'reverse-holofoil': 'Reverse holo' };
   let zoomReturnEl = null;
 
@@ -1864,19 +2222,26 @@
     cb.querySelector('.ic').textContent = c ? '◆' : '◇';
     cb.querySelector('.lb').textContent = c ? 'Collected' : 'Collection';
   }
-  $('shareBtn').addEventListener('click', (e) => {
-    e.preventDefault(); // the copy IS the share; the href stays a real link
-    const btn = e.currentTarget;
-    navigator.clipboard?.writeText(btn.href).then(() => {
-      btn.classList.add('copied');
-      btn.querySelector('.ic').textContent = '✓';
-      btn.querySelector('.lb').textContent = 'Copied';
-      setTimeout(() => {
-        btn.classList.remove('copied');
-        btn.querySelector('.ic').textContent = '⤴';
-        btn.querySelector('.lb').textContent = 'Share';
-      }, 1400);
-    }).catch(() => { /* clipboard denied — the anchor still right-click-copies */ });
+  // Share opens a small menu: copy the link, copy the name and price, post to X or
+  // Reddit, or the device's own share sheet where there is one (Faisal, 27 Oct)
+  const shareMenu = $('shareMenu');
+  const shareText = () => { const c = zoomLangCard; if (!c) return ''; const p = typeof c.priceUsd === 'number' ? ` · ${money(c.priceUsd)}` : ''; return `${cardName(c)} (${DATA.set.name})${p}`; };
+  const toggleShare = (open) => {
+    shareMenu.hidden = !open;
+    $('shareBtn').setAttribute('aria-expanded', String(open));
+    if (open) shareMenu.querySelector('[data-share="native"]').hidden = !navigator.share;
+  };
+  $('shareBtn').addEventListener('click', (e) => { e.preventDefault(); toggleShare(shareMenu.hidden); });
+  document.addEventListener('pointerdown', (e) => { if (!shareMenu.hidden && !e.target.closest('#shareMenu, #shareBtn')) toggleShare(false); });
+  shareMenu.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-share]'); if (!b) return;
+    const url = $('shareBtn').href, text = shareText(), kind = b.dataset.share;
+    const done = (label) => { const old = b.textContent; b.textContent = label; setTimeout(() => { b.textContent = old; toggleShare(false); }, 900); };
+    if (kind === 'link') navigator.clipboard?.writeText(url).then(() => done('Copied')).catch(() => {});
+    else if (kind === 'text') navigator.clipboard?.writeText(`${text}\n${url}`).then(() => done('Copied')).catch(() => {});
+    else if (kind === 'x') { window.open(`https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener'); toggleShare(false); }
+    else if (kind === 'reddit') { window.open(`https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`, '_blank', 'noopener'); toggleShare(false); }
+    else if (kind === 'native' && navigator.share) navigator.share({ title: text, text, url }).catch(() => {}).finally(() => toggleShare(false));
   });
   // share the FOCUSED (not inspected) card straight from the caption
   $('capShare').addEventListener('click', () => {
@@ -1893,13 +2258,31 @@
   $('moreCardsBtn').addEventListener('click', () => openGallery());
   $('galleryBack').addEventListener('click', () => closeGallery());
 
-  $('lightBtn').addEventListener('click', () => {   // whole-card light wash, sudden + soft
+  // Light: a lamp over the card. A specular highlight and a holo band follow the
+  // pointer as the card tilts toward it (strongest on foil rarities), instead of a
+  // flat wash over the whole card (Faisal, 27 Oct)
+  $('lightBtn').addEventListener('click', () => {
     const lit = cardFaces.classList.toggle('lit');
     $('lightBtn').setAttribute('aria-pressed', lit ? 'true' : 'false');
+    if (lit) { cardFaces.style.setProperty('--lx', '0.5'); cardFaces.style.setProperty('--ly', '0.28'); }
   });
+  // the collection page can't load every set's data, so a save also keeps what it
+  // needs to show the card: name, set, picture, number and the price that day
+  // (collection.html prefers today's price whenever the card's set is bundled)
+  const SAVED_KEY = 'crowns.saved';
+  function rememberCard(card) {
+    if (!card || !DATA) return;
+    let m = {};
+    try { m = JSON.parse(localStorage.getItem(SAVED_KEY) || '{}') || {}; } catch { /* fresh */ }
+    m[card.id] = { name: cardName(card), sub: splitName(card.name).sub || '', setId: DATA.set.id, setName: DATA.set.name,
+      game: gameOf(DATA.set.id), num: card.num, localId: card.localId || '', img: cardThumb(card), sealed: !!card.sealed,
+      price: typeof card.priceUsd === 'number' ? card.priceUsd : null, at: new Date().toISOString().slice(0, 10) };
+    try { localStorage.setItem(SAVED_KEY, JSON.stringify(m)); } catch { /* storage full */ }
+  }
   $('wishBtn').addEventListener('click', () => {
     const card = cardAt(current);
     wishlist.has(card.id) ? wishlist.delete(card.id) : wishlist.add(card.id);
+    if (wishlist.has(card.id)) rememberCard(card);
     saveList('pokex.wishlist', wishlist);
     updateListButtons(card);
     updateListCounts();
@@ -1908,6 +2291,7 @@
   $('collBtn').addEventListener('click', () => {
     const card = cardAt(current);
     collection.has(card.id) ? collection.delete(card.id) : collection.add(card.id);
+    if (collection.has(card.id)) rememberCard(card);
     saveList('pokex.collection', collection);
     updateListButtons(card);
     updateListCounts();
@@ -1976,7 +2360,8 @@
     zRarity.className = 'z-rarity-line' + (card.sealed ? '' : ' rar-' + raritySlug(card.rarity)); // special rarities get flair
     zRarity.style.setProperty('--rarity-color', card.sealed ? 'var(--ember-glint)' : rarityColor(card.rarity));
     // card number under the rarity — big, pitch white (e.g. 116/086)
-    zNumber.textContent = card.sealed ? '' : `${card.localId}/${String(DATA.set.official).padStart(3, '0')}`;
+    // one plain line under the name: the set (and the card's number in it)
+    zNumber.textContent = card.sealed ? DATA.set.name : `${DATA.set.name} · ${card.localId}/${String(DATA.set.official).padStart(3, '0')}`;
     if (window.gsap && !REDUCED) {
       sceneTweens.push(gsap.fromTo([zRarity, zNumber], { opacity: 0, y: 8 },
         { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.3 }));
@@ -2379,9 +2764,15 @@
 
   // a subtle wind-gust when a card is inspected (user-gesture triggered; the
   // browser blocks it on the non-gesture deep-link open, which we swallow)
-  const whoosh = new Audio('assets/sfx/swipe-whoosh.wav');
-  whoosh.volume = 0.056; // ≈ -25 dB (10^(-25/20)); very subtle. tune this knob for loudness
-  function playWhoosh() { try { whoosh.currentTime = 0; whoosh.play().catch(() => {}); } catch { /* no audio */ } }
+  // created on the first inspect, so the 577 KB file is never fetched by a page
+  // load (it used to start downloading on every set page before anyone clicked)
+  let whoosh = null;
+  function playWhoosh() {
+    try {
+      if (!whoosh) { whoosh = new Audio('assets/sfx/swipe-whoosh.wav'); whoosh.volume = 0.056; } // ≈ -25 dB; very subtle. tune this knob for loudness
+      whoosh.currentTime = 0; whoosh.play().catch(() => {});
+    } catch { /* no audio */ }
+  }
 
   function openZoomFor(i, srcEl) {
     const card = cardAt(i);
@@ -2395,7 +2786,7 @@
     // FLIP source = the card the user actually clicked, captured before any reposition
     const flipSrc = (srcEl ?? els[view[i]].el).getBoundingClientRect();
     if (i !== current) goTo(i, true); // reposition behind the modal; close returns here
-    zoomReturnEl = (MOBILE && srcEl) ? srcEl : els[view[i]].el;   // mobile: morph back to the carousel card, not the hidden wheel el
+    zoomReturnEl = ((MOBILE || gridOn) && srcEl) ? srcEl : els[view[i]].el;   // mobile / grid: morph back to the card that was clicked, not the hidden wheel el
     // pin the featured card's width so the action row + "more cards" button can
     // cap to it (computed from the CSS sizing formula — no layout needed yet)
     const _cardW = innerWidth < 1024
@@ -2478,31 +2869,21 @@
     const lbl = document.createElement('div'); lbl.className = 'lbl'; // the variant (e.g. Holofoil)
     const src = document.createElement('div'); src.className = 'src'; // where it's from (subtle)
     zPrice.append(amt, lbl, src);
-    const qrow = (k, v, sub) => {
-      const q = document.createElement('div'); q.className = 'q';
-      const kk = document.createElement('span'); kk.className = 'k'; kk.textContent = k;
-      const vv = document.createElement('span'); vv.className = 'v';
-      if (v instanceof Node) vv.append(v); else vv.textContent = v;
-      if (sub) { const s = document.createElement('span'); s.className = 'sub'; s.textContent = sub; vv.appendChild(s); }
-      q.append(kk, vv); zQuick.appendChild(q);
-    };
 
     if (card.sealed) {
       const m = card.sealedMeta;
-      amt.textContent = m.marketUsd != null ? `$${m.marketUsd.toFixed(2)}` : 'Tracking';
+      amt.textContent = m.marketUsd != null ? money(m.marketUsd) : 'Tracking';
       amt.classList.toggle('none', m.marketUsd == null);
       lbl.textContent = 'Sealed product';
       src.textContent = m.marketUsd != null ? `${m.source} · ${m.checked}` : 'price not yet sourced';
-      if (m.detail) qrow('Contents', m.detail);
       $('zCharts').replaceChildren();
       $('zTable').replaceChildren();
       $('moreCardsBtn').hidden = true; // sealed products have no "other cards"
-      buildPulls(card, pullLadderFor(DATA.set.id)); // what's inside: the set's odds
-      zCredit.textContent = m.note || (m.marketUsd != null ? `verified ${m.source} · ${m.checked}` : 'price tracking pending');
+      buildPulls(card, null);
     } else {
       const usd = typeof card.priceUsd === 'number' ? card.priceUsd
         : (card.cardmarket?.trend != null ? eurToUsd(card.cardmarket.trend) : null);
-      amt.textContent = usd != null ? `$${usd.toFixed(2)}` : '—';
+      amt.textContent = usd != null ? money(usd) : '—';
       amt.classList.toggle('none', usd == null);
       // clear variant label (Holofoil / Normal / Reverse holo) + subtle source —
       // spaced away from the price by CSS so it never reads as stuffed
@@ -2518,39 +2899,32 @@
         : (card.cardmarket?.trend != null ? 'converted from EUR' : '');
       if (card.fullImg) {
         // external games (Magic/Lorcana): show their OWN data; skip Pokemon-only bits
-        if (Array.isArray(card.meta)) for (const [k, v] of card.meta) { if (v) qrow(k, v); }
         $('zCharts').replaceChildren();
         $('zTable').replaceChildren();
         $('moreCardsBtn').hidden = true;
         buildPulls(card, null); // no Pokemon pull ladder for external games — hide it
       } else {
-        if (card.cardmarket) {
-          const cm = card.cardmarket;
-          const v = document.createElement('span');
-          v.append(`$${eurToUsd(cm.trend ?? cm.avg1).toFixed(2)}`);
-          if (typeof cm.avg30 === 'number' && typeof cm.avg1 === 'number' && cm.avg30 > 0) {
-            const d = (cm.avg1 - cm.avg30) / cm.avg30 * 100;
-            const dl = document.createElement('span');
-            dl.className = 'delta ' + (d >= 0 ? 'up' : 'down');
-            dl.textContent = `${d >= 0 ? '▲' : '▼'}${Math.abs(d).toFixed(1)}%`;
-            v.appendChild(dl);
-          }
-          qrow('30-day trend', v);
+        // the one trend line: how the card moved over the last 30 days (Cardmarket averages)
+        const cm = card.cardmarket;
+        if (cm && typeof cm.avg30 === 'number' && typeof cm.avg1 === 'number' && cm.avg30 > 0) {
+          const d = (cm.avg1 - cm.avg30) / cm.avg30 * 100;
+          const t = document.createElement('p'); t.className = 'z-trend';
+          const b = document.createElement('b'); b.className = d >= 0 ? 'up' : 'down';
+          b.textContent = `${d >= 0 ? 'Up' : 'Down'} ${Math.abs(d).toFixed(1)}%`;
+          t.append(b, ' over the last 30 days');
+          zQuick.appendChild(t);
         }
-        buildCharts(card);
-        buildVariantTable(card);
-        buildPulls(card, pullLadderFor(DATA.set.id)); // full odds, collapsed behind a disclosure
+        $('zCharts').replaceChildren();
+        $('zTable').replaceChildren();
+        buildPulls(card, null);
         buildFamily(card);
       }
-      const bits = [];
-      if (card.illustrator) bits.push(`illus. ${card.illustrator}`);
-      bits.push(`№ ${card.localId}/${String(DATA.set.official).padStart(3, '0')}`);
-      bits.push(`refreshed ${new Date(DATA.snapshotAt).toLocaleDateString()}`);
-      zCredit.textContent = bits.join('   ·   ');
+
     }
 
     // Holo intensity by rarity
     const r = (card.rarity || '').toLowerCase();
+    $('cardFaces').dataset.foil = (/holo|foil|rare|illustration|secret|hyper|ultra|enchanted|legendary|mythic|iconic|epic|super|special|treasure/.test(r) || /holo/.test(card.priceVariant || '')) ? '1' : '0';
     const k = REDUCED ? 0 :
       /hyper|special illustration/.test(r) ? 1 :
       /illustration|ultra|mega/.test(r) ? 0.75 :
@@ -2566,6 +2940,10 @@
     // animation's first painted frame is already the wheel slot — no rAF gap to
     // flash through and no occluded-tab throttle to stall on.
     if (!wasOpen) { zoom.showModal(); zoomClose.focus(); }
+    // once the inspect backdrop has fully faded in, the page under it stops
+    // drawing (body.zoom-open): nothing composites behind an opaque inspect
+    clearTimeout(zoomCoverT);
+    zoomCoverT = setTimeout(() => { if (zoom.open && !zoomClosing) document.body.classList.add('zoom-open'); }, REDUCED ? 0 : L.BACKDROP_FADE_DURATION + 80);
     if (!REDUCED) {
       const gen = ++openGen;
       const dst = tiltCard.getBoundingClientRect(); // forces layout — valid now
@@ -2626,8 +3004,10 @@
     }
   }
 
-  let zoomClosing = false;
+  let zoomClosing = false, zoomCoverT = 0;
+  const uncoverPage = () => { clearTimeout(zoomCoverT); document.body.classList.remove('zoom-open'); };
   function closeZoom() {
+    uncoverPage();   // the wheel shows again under the fading backdrop as the card flies home
     cardFaces.classList.remove('lit'); $('lightBtn').setAttribute('aria-pressed', 'false'); // light off on close
     if (zoomReturnEl) zoomReturnEl.style.visibility = ''; // any close path re-shows the wheel card
     // no card to fly back to (closed before any open) → just close, don't deref null
@@ -2669,6 +3049,7 @@
   }
 
   zoom.addEventListener('close', () => {
+    uncoverPage();
     zoomClosing = false;
     tiltCard.style.transform = '';
     tiltCard.style.visibility = '';                       // never leave the featured card hidden
@@ -2680,6 +3061,10 @@
     vid.pause();
     vid.removeAttribute('src');
     vid.load();
+    // the close paths clear the source card's inline visibility, which falls back
+    // to the stylesheet's hidden .card: re-render so the focused card is back
+    // (it used to stay invisible after every inspect)
+    render(true);
     zoomReturnEl?.focus();
   });
   // (the high-res quality ladder lives in openZoomFor's preloader; the visible
@@ -2776,8 +3161,11 @@
     const [fx, fy] = f;
     if (magOn) { magTransform(fx, fy); return; }
     if (REDUCED) return;
-    const rx = (0.5 - fy) * 14, ry = (fx - 0.5) * 14;
+    const tiltK = cardFaces.classList.contains('lit') ? 20 : 14;   // under the lamp the card turns further toward it
+    const rx = (0.5 - fy) * tiltK, ry = (fx - 0.5) * tiltK;
     tiltCard.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
+    cardFaces.style.setProperty('--lx', fx.toFixed(3));
+    cardFaces.style.setProperty('--ly', fy.toFixed(3));
     shine.style.setProperty('--mx', `${(fx * 100).toFixed(1)}%`);
     shine.style.setProperty('--my', `${(fy * 100).toFixed(1)}%`);
   });
@@ -2794,32 +3182,41 @@
   const ric = window.requestIdleCallback || ((fn) => setTimeout(() => fn({ timeRemaining: () => 8 }), 200));
   const PF_RADIUS = 60;        // warm up to ±60 cards out from where the user is sitting
   let pfScheduled = false;
-  const pfDone = new Set();    // card indices whose high.webp request has been issued (cache warm)
+  // urls already requested (cache warm), so a set opened again, or another set that
+  // shares an index, never blocks or repeats the warm-up
+  const pfDone = new Set();
   // pfDone tracks PREFETCH progress only; els[].loaded stays the visible-img state.
-  // pick the nearest not-yet-warmed card within the radius of the current centre
+  // first the whole set's small scans, nearest first (a dial scrub can drop the wheel
+  // anywhere, and those cards must land on art), then high.webp within the radius
   function pfPick() {
     const c = Math.max(0, Math.min(N - 1, Math.round(position)));
-    const want = (i) => i >= 0 && i < N && els[i] && !pfDone.has(i)
-      && els[i].loaded !== 'high' && els[i].loaded !== 'full' && els[i].loaded !== 'fallback'
-      && CARDS[i].imageOk !== false;
-    for (let d = 0; d <= PF_RADIUS; d++) {
-      if (want(c + d)) return c + d;
-      if (d && want(c - d)) return c - d;
+    const thumb = (i) => { if (i < 0 || i >= N || !els[i] || els[i].loaded) return ''; const u = thumbImg(CARDS[i]); return u && !pfDone.has(u) ? u : ''; };
+    for (let d = 0; d < N; d++) {
+      const u = thumb(c + d) || (d ? thumb(c - d) : '');
+      if (u) return u;
     }
-    return -1;
+    const high = (i) => {
+      if (i < 0 || i >= N || !els[i] || CARDS[i].imageOk === false) return '';
+      const l = els[i].loaded; if (l === 'high' || l === 'full' || l === 'fallback') return '';
+      const u = cardImg(CARDS[i], 'high.webp'); return u && !pfDone.has(u) ? u : '';
+    };
+    for (let d = 0; d <= PF_RADIUS; d++) {
+      const u = high(c + d) || (d ? high(c - d) : '');
+      if (u) return u;
+    }
+    return '';
   }
   function pfStep(deadline) {
     pfScheduled = false;
     let budget = 3; // a few per idle slice, then yield
     while (budget-- > 0 && (!deadline || deadline.timeRemaining() > 2)) {
-      const i = pfPick();
-      if (i < 0) return;          // nothing left near the user — wait for them to move
-      pfDone.add(i);              // mark issued so we never re-pick (cache, not visible state)
+      const url = pfPick();
+      if (!url) return;           // nothing left near the user — wait for them to move
+      pfDone.add(url);            // mark issued so we never re-pick (cache, not visible state)
       const im = new Image();
       im.decoding = 'async';
       im.onload = im.onerror = () => schedulePrefetch(); // chain the next on completion
-      // for full-url cards there's no quality ladder; warming the same url primes the cache
-      im.src = cardImg(CARDS[i], 'high.webp');
+      im.src = url;
     }
     schedulePrefetch();
   }
@@ -2833,32 +3230,37 @@
   let pfNext = 0; // legacy flag loadSet() pokes; we re-arm prefetch on it
   setTimeout(schedulePrefetch, 1200);
 
-  // --- HOME: hero → "Get started" → pick a GAME (bare logos floating in 3D) →
-  // pick a SET → drop into that set on its first card. GSAP for every transition.
+  // ======================================================================
+  // SET BROWSER: the way into every set (replaces THE INDEX, 27 Oct 2026).
+  // Follows the references named in docs/design/direction.md ("Set page"):
+  // Scryfall's set listing + slim set header (logo, card count, release date,
+  // total value), Pokedesk's set row (the real set logo beside its total value)
+  // and the Wizards Hobbit gallery (grouped browse under heavy headings). The game
+  // switch is the four real game logos, each optically sized (G13). Every number
+  // is computed from the same card data the wheel shows; what we don't have is
+  // left out, never estimated (G7).
+  // ======================================================================
   const homeEl = $('home'), homeScroll = $('homeScroll');
+  // h = the logo's display height at 2560, set per logo by eye so the four read
+  // at the same visual weight (Pokémon is dense, One Piece is a wide two-liner)
   const HOME_GAMES = [
-    { game: 'pokemon', name: 'Pokémon', accent: '#ffcb05', card: 'assets/hallway/pokemon.webp' },
-    { game: 'magic', name: 'Magic: The Gathering', accent: '#e8943b', card: 'assets/hallway/magic.jpg' },
-    { game: 'lorcana', name: 'Disney Lorcana', accent: '#7fd4f4', card: 'assets/hallway/lorcana.avif' },
-    { game: 'onepiece', name: 'One Piece', accent: '#ff5b4d', card: 'assets/hallway/onepiece.webp' },
+    { game: 'pokemon', name: 'Pokémon', short: 'Pokémon', logo: 'assets/logos/pokemon.png', h: 58 },
+    { game: 'magic', name: 'Magic: The Gathering', short: 'Magic', logo: 'assets/logos/magic.png', h: 70 },
+    { game: 'lorcana', name: 'Disney Lorcana', short: 'Lorcana', logo: 'assets/logos/lorcana.png', h: 66 },
+    { game: 'onepiece', name: 'One Piece', short: 'One Piece', logo: 'assets/logos/onepiece.png', h: 46 },
   ];
-  // per-universe world language for the picker gates: a giant engraved sigil
-  // (stroke-only, rotates imperceptibly), a flavor line, and the particle MODE
-  // the uniFX shader speaks in that column (0 sparks · 1 starlight · 2 sea
-  // mist · 3 embers — each a different motion/shape/twinkle signature)
-  const UNI_LORE = {
-    pokemon: { tag: 'The original chase', fx: 0, sigil: '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="50" cy="50" r="41"/><path d="M9 50h26M65 50h26"/><circle cx="50" cy="50" r="15"/><circle cx="50" cy="50" r="6.5"/></svg>' },
-    lorcana: { tag: 'Ink & starlight', fx: 1, sigil: '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M50 8l7.8 30.5L88 46l-30.2 7.5L50 84l-7.8-30.5L12 46l30.2-7.5z"/><circle cx="50" cy="46" r="34"/></svg>' },
-    onepiece: { tag: 'Chart the Grand Line', fx: 2, sigil: '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="9"/><path d="M50 6v18M50 76v18M6 50h18M76 50h18M19 19l13 13M68 68l13 13M81 19L68 32M32 68L19 81"/><circle cx="50" cy="6" r="3.4"/><circle cx="50" cy="94" r="3.4"/><circle cx="6" cy="50" r="3.4"/><circle cx="94" cy="50" r="3.4"/></svg>' },
-    magic: { tag: 'Spellcraft & steel', fx: 3, sigil: '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M50 12L86 38 72 82H28L14 38z"/><circle cx="50" cy="12" r="5"/><circle cx="86" cy="38" r="5"/><circle cx="72" cy="82" r="5"/><circle cx="28" cy="82" r="5"/><circle cx="14" cy="38" r="5"/><circle cx="50" cy="52" r="12"/></svg>' },
-  };
+  const gameOf = (id) => (id.startsWith('lor-') ? 'lorcana' : id.startsWith('op-') ? 'onepiece' : id.startsWith('mtg-') ? 'magic' : 'pokemon');
+  const GAME_SHORT = Object.fromEntries(HOME_GAMES.map((g) => [g.game, g.short]));
+  // where each game's prices come from (shown once, in the browser's subtitle)
+  const GAME_SOURCE = { pokemon: 'TCGplayer', magic: 'Scryfall', lorcana: 'Lorcast', onepiece: 'dotgg' };
+
   function setsForGame(game) {
     if (game === 'pokemon') {
       const bundled = SET_GROUPS.flatMap((grp) => grp.ids.filter((id) => SETS[id]).map((id) => ({ id, name: SETS[id].set.name, count: SETS[id].set.total })));
       const known = new Set(bundled.map((s) => s.id));
-      // auto-discovered sets (tcgdex) lead the grid — the next set drops in by itself
+      // auto-discovered sets (tcgdex) join automatically — the next set drops in by itself
       const fresh = NEW_SETS.filter((s) => !known.has(s.id) && !SETS[s.id])
-        .map((s) => ({ id: s.id, name: s.name, count: s.count, fresh: true }));
+        .map((s) => ({ id: s.id, name: s.name, count: s.count, logo: s.logo || '', fresh: true }));
       return [...fresh, ...bundled];
     }
     const g = GAME_SETS.find((x) => x.game === game);
@@ -2866,19 +3268,15 @@
   }
 
   // --- Auto set discovery: when tcgdex publishes a new Pokémon set (the next
-  // "Pitch Black"), it appears in the grid automatically — no data work, no
+  // "Pitch Black"), it appears in the browser automatically — no data work, no
   // redeploy. We scan the two NEWEST series (new mainline sets always land
   // there), diff against what we bundle, and cache the result for 12h.
   let NEW_SETS = [];
   async function discoverSets() {
-    const KEY = 'pokex.freshSets3';   // v3: also excludes energy/intro filler (P: weird tiles, no real cards)
+    const KEY = 'pokex.freshSets4';   // v4: keeps each set's tcgdex logo path for the set browser tile
     // filler sets that clutter the shelf: no logos on tcgdex, few/no card
     // images, not what anyone opens the tracker for
     const FILLER = /energy|first battle|trainer kit|deck/i;
-    const refreshGrid = () => {       // if the user is already ON the grid, drop the new tiles in
-      const hv = $('hvSets');
-      if (NEW_SETS.length && hv && !hv.hidden && pickGame === 'pokemon') buildSetGrid('pokemon');
-    };
     try {
       const c = JSON.parse(localStorage.getItem(KEY) || 'null');
       if (c && Date.now() - c.at < 12 * 3600e3) { NEW_SETS = c.sets; return; }
@@ -2894,285 +3292,375 @@
         const d = await r.json();
         (d.sets || []).forEach((s) => {
           const count = (s.cardCount && (s.cardCount.official || s.cardCount.total)) || 0;
-          if (count > 0 && !FILLER.test(s.name)) found.push({ id: s.id, name: s.name, count });
+          if (count > 0 && !FILLER.test(s.name)) found.push({ id: s.id, name: s.name, count, logo: s.logo || '' });
         });
       }
       NEW_SETS = found.reverse();   // newest first
       try { localStorage.setItem(KEY, JSON.stringify({ at: Date.now(), sets: NEW_SETS })); } catch { /* storage full */ }
-      refreshGrid();
-    } catch { /* offline — the grid shows the bundled sets only */ }
+      if (!homeEl.hidden && sbGame === 'pokemon') renderBrowser('pokemon', true);   // drop the new tiles in
+    } catch { /* offline — the browser shows the bundled sets only */ }
   }
-  let homeBuilt = false, pickGame = 'pokemon';
+
+  // ---- formatting ----
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const money = (v) => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const fmtMonth = (iso) => { const m = /^(\d{4})-(\d{2})/.exec(iso || ''); return m ? `${MONTHS[+m[2] - 1]} ${m[1]}` : ''; };
+  const fmtDay = (iso) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? `${+m[3]} ${MONTHS[+m[2] - 1]} ${m[1]}` : ''; };
+  const yearOf = (iso) => { const m = /^(\d{4})/.exec(iso || ''); return m ? +m[1] : null; };
+  const cardName = (c) => splitName(c.name).name;
+
+  // ---- release dates: one request per game to that game's own catalogue
+  // (tcgdex / Scryfall / Lorcast), cached for a day. One Piece has no dated feed,
+  // so its sets show no date rather than a guessed one. ----
+  const RELEASED = {};      // set id → 'YYYY-MM-DD'
+  const CAT_COUNT = {};     // set id → printed card count from the catalogue (Magic, before its cards load)
+  const relJobs = {};
+  const cacheGet = (k, age) => { try { const c = JSON.parse(localStorage.getItem(k) || 'null'); return c && Date.now() - c.at < age ? c.v : null; } catch { return null; } };
+  const cachePut = (k, v) => { try { localStorage.setItem(k, JSON.stringify({ at: Date.now(), v })); } catch { /* full */ } };
+  function loadReleased(game) {
+    if (relJobs[game]) return relJobs[game];
+    return (relJobs[game] = (async () => {
+      const KEY = 'crowns.catalog.' + game;
+      let map = cacheGet(KEY, 864e5);
+      if (!map) {
+        map = {};
+        try {
+          if (game === 'pokemon') {
+            const r = await fetch('https://api.tcgdex.net/v2/graphql', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query: '{ sets(filters:{}) { id releaseDate } }' }) });
+            const j = await r.json();
+            for (const s of (j.data && j.data.sets) || []) if (s.releaseDate) map[s.id] = { d: s.releaseDate };
+          } else if (game === 'magic') {
+            const j = await (await fetch('https://api.scryfall.com/sets')).json();
+            const want = new Set(GAME_SETS.find((g) => g.game === 'magic').sets.map((s) => s.code));
+            for (const s of j.data || []) if (want.has(s.code)) map['mtg-' + s.code] = { d: s.released_at, n: s.card_count };
+          } else if (game === 'lorcana') {
+            const j = await (await fetch('https://api.lorcast.com/v0/sets')).json();
+            for (const s of j.results || []) map['lor-' + s.code] = { d: s.released_at };
+          }
+          if (Object.keys(map).length) cachePut(KEY, map);
+        } catch { /* offline: no dates, nothing invented */ }
+      }
+      for (const [id, v] of Object.entries(map)) { if (v.d) RELEASED[id] = v.d; if (v.n) CAT_COUNT[id] = v.n; }
+      return map;
+    })());
+  }
+
+  // ---- per-set numbers, from the same card list the wheel shows ----
+  // ORIG_CARDS holds each bundled set's own numbered cards, captured at boot
+  // before mergeFullSet folds in TCGplayer's pattern reprints, so the tile, the
+  // set header and the count never shift while you browse.
+  const statCache = {};
+  // live-API sets (Magic, Lorcana, One Piece) keep their tile numbers for 12 h, so a
+  // return visit paints instantly and doesn't re-download every set from the APIs
+  const STAT_TTL = 12 * 3600e3;
+  const statKey = (id) => 'crowns.stats.' + id;
+  function storeStats(id, st) {
+    if (!st || !st.count) return;
+    cachePut(statKey(id), { count: st.count, priced: st.priced, value: st.value,
+      top: st.top.map((c) => ({ id: c.id, name: c.name, num: c.num, localId: c.localId, priceUsd: c.priceUsd, image: c.image, fullImg: c.fullImg })) });
+  }
+  function setStats(id) {
+    if (statCache[id]) return statCache[id];
+    const src = ORIG_CARDS[id] || (SETS[id] && SETS[id].cards);
+    if (!src || !src.length) {
+      const c = gameOf(id) !== 'pokemon' ? cacheGet(statKey(id), STAT_TTL) : null;
+      return c && c.count && Array.isArray(c.top) ? (statCache[id] = { ...c, cached: true }) : null;
+    }
+    let value = 0, priced = 0, count = 0;
+    const ranked = [];
+    for (const c of src) {
+      if (c.sealed) continue;
+      count++;
+      if (typeof c.priceUsd === 'number' && c.priceUsd > 0) { value += c.priceUsd; priced++; ranked.push(c); }
+    }
+    ranked.sort((a, b) => b.priceUsd - a.priceUsd);
+    return (statCache[id] = { count, priced, value, top: ranked.slice(0, 3) });
+  }
+  // a small, fast image of a card for tiles and the grid (never the 1 MB scan)
+  const cardThumb = (card) => {
+    if (!card) return '';
+    if (card.sealed) return card.image;
+    if (!card.fullImg) return cardImg(card, 'low.webp');
+    const u = cardImg(card, 'high.webp');
+    if (u.indexOf('cards.scryfall.io/large/') !== -1) return u.replace('/large/', '/normal/');
+    if (u.indexOf('cards.lorcast.io/') !== -1) return u.replace('/large/', '/normal/');
+    return u;
+  };
+  // the set's own mark for a tile: local official logo → tcgdex logo (webp, a
+  // fifth of the png) → Scryfall set symbol. Never the game logo: a tile with no
+  // set mark shows its real top cards instead.
+  function tileMarks(game, s) {
+    const out = [];
+    if (SET_LOGO_OVERRIDE[s.id] && SET_LOGO_OVERRIDE[s.id].indexOf('tcgplayer-cdn') === -1) out.push(SET_LOGO_OVERRIDE[s.id]);
+    if (game === 'pokemon') {
+      // the set's own tcgdex logo path (series/id, from the data: deriving it from
+      // the id breaks for promos), webp first; promos tcgdex has no logo for stay
+      // unrequested, so no 404s land in the console
+      const base = (SETS[s.id] && SETS[s.id].set.logo) || s.logo || '';
+      if (base && !NO_TCGDEX_LOGO.has(s.id) && safeImg(base + '.png')) { out.push(base + '.webp'); out.push(base + '.png'); }
+    } else if (game === 'magic' && s.code) out.push(safeImg(`https://svgs.scryfall.io/sets/${s.code}.svg`));
+    return [...new Set(out.filter(Boolean))];
+  }
+  const NO_TCGDEX_LOGO = new Set(['30th', '30th-c', 'sv05', 'svp', 'basep']);   // verified 404 on tcgdex (27 Oct)
+  // official marks drawn for light packaging (dark red / grey type): they sit on a
+  // pale label plate, like a slab label, instead of vanishing into the navy
+  const LIGHT_PLATE = new Set(['op-OP16', 'op-OP17']);
+  // per-set colour for the tile's art wash: the set logo's own colours (G12)
+  const setWash = (id, game) => ((AMBIENCE_OVERRIDE[id] || (window.SET_COLORS || {})[id] || UNIVERSE_AMB[game] || ['#3b62b8'])[0]);
+
+  // ---- external games' numbers load lazily (their cards come from live APIs),
+  // one set at a time, visible tiles first; the cards are kept, so opening that
+  // set afterwards is instant ----
+  const statQueue = [], statPending = new Set();
+  let statBusy = false;
+  function wantStats(id) {
+    if (statCache[id] || statPending.has(id) || SETS[id] && setStats(id)) return;
+    statPending.add(id); statQueue.push(id); pumpStats();
+  }
+  async function pumpStats() {
+    if (statBusy) return;
+    statBusy = true;
+    while (statQueue.length) {
+      const id = statQueue.shift();
+      if (gameOf(id) !== sbGame && !homeEl.hidden) { statPending.delete(id); continue; }   // the user switched games
+      sfSlow = true;
+      const ok = await ensureExternalSet(id);
+      sfSlow = false;
+      statPending.delete(id);
+      if (!ok) { const t = homeScroll.querySelector(`[data-set="${CSS.escape(id)}"]`); if (t) t.classList.add('no-data'); continue; }
+      delete statCache[id];
+      storeStats(id, setStats(id));
+      fillTile(id);
+    }
+    statBusy = false;
+  }
+
+  // ---- markup ----
+  const imgChain = (cls, marks, alt) => marks.length
+    ? `<img class="${cls}" src="${esc(marks[0])}" data-chain="${esc(JSON.stringify(marks.slice(1)))}" alt="${esc(alt)}" decoding="async">` : '';
+  // a tile says one short thing under its mark: when the set came out and what it
+  // is worth (Faisal, 27 Oct: no cards and stacked subtext when picking a set).
+  // The full figures live on the set page.
+  const money0 = (v) => '$' + Math.round(v).toLocaleString('en-US');
+  // a set that borrows its parent's wordmark (30th Classic Collection) names itself in its line
+  const borrowsMark = (id) => !!SET_LOGO_OVERRIDE[id] && Object.keys(SET_LOGO_OVERRIDE).some((k) => k !== id && SET_LOGO_OVERRIDE[k] === SET_LOGO_OVERRIDE[id]) && !/^30th$/.test(id);
+  function tileLine(id, fresh) {
+    const parts = [];
+    if (borrowsMark(id) && SETS[id]) parts.push(SETS[id].set.name);
+    else if (RELEASED[id]) parts.push(fmtMonth(RELEASED[id]));
+    const st = fresh ? null : setStats(id);
+    if (st && st.priced) parts.push(money0(st.value));
+    return parts.join(' · ') || ' ';
+  }
+  function tileHTML(game, s) {
+    const marks = tileMarks(game, s);
+    // a wordmark carries the name; a bare set symbol (Scryfall) does not, so the name is set under it
+    const sym = marks.length && marks[0].indexOf('svgs.scryfall') !== -1;
+    const mark = !marks.length ? `<span class="sbt-mark sbt-name">${esc(s.name)}</span>`
+      : imgChain('sbt-logo' + (sym ? ' sym' : '') + (LIGHT_PLATE.has(s.id) ? ' on-light' : ''), marks, s.name)
+        + (sym ? `<span class="sbt-mark sbt-name with-sym">${esc(s.name)}</span>` : `<span class="sbt-name sr-only">${esc(s.name)}</span>`);
+    return `<a class="sbt${marks.length ? '' : ' nologo'}" href="app.html?set=${encodeURIComponent(s.id)}" data-set="${esc(s.id)}" data-game="${game}" style="--wash:${setWash(s.id, game)}">`
+      + `<span class="sbt-art">${mark}</span><span class="sbt-line">${esc(tileLine(s.id, s.fresh))}</span></a>`;
+  }
+  // repaint a tile's line once its prices or release date arrive
+  function fillTile(id) {
+    const el = homeScroll.querySelector(`.sbt[data-set="${CSS.escape(id)}"]`);
+    if (!el) return;
+    if (!setStats(id) && gameOf(id) === 'pokemon') return;   // a just-discovered set keeps its date line
+    el.querySelector('.sbt-line').textContent = tileLine(id);
+  }
+
+  // ---- grouping: Pokémon by era (its series), the others by release year ----
+  function groupsFor(game) {
+    const sets = setsForGame(game);
+    if (game === 'pokemon') {
+      const FEATURED = new Set(['30th', '30th-c', 'fpic1', 'fpic2', 'fpic3']);
+      const promo = (s) => /promo|partner pack/i.test(s.name) && !/illustration/i.test(s.name);
+      const groups = [];
+      const anniversary = ['30th', '30th-c', 'fpic3', 'fpic2', 'fpic1'].filter((id) => SETS[id]).map((id) => sets.find((s) => s.id === id)).filter(Boolean);
+      if (anniversary.length) groups.push({ title: '30th anniversary', sets: anniversary });
+      const fresh = sets.filter((s) => s.fresh && !promo(s));
+      if (fresh.length) groups.push({ title: 'Just released', sets: fresh });
+      for (const g of SET_GROUPS) {
+        if (g.series === 'Promos') continue;
+        const list = g.ids.filter((id) => SETS[id] && !FEATURED.has(id)).map((id) => sets.find((s) => s.id === id)).filter(Boolean);
+        if (list.length) groups.push({ title: g.series, sets: list });
+      }
+      const promos = [...sets.filter((s) => s.fresh && promo(s)), ...(SET_GROUPS.find((g) => g.series === 'Promos') || { ids: [] }).ids.filter((id) => SETS[id]).map((id) => sets.find((s) => s.id === id)).filter(Boolean)];
+      if (promos.length) groups.push({ title: 'Black Star Promos', sets: promos });
+      return groups;
+    }
+    const years = new Map(), undated = [];
+    for (const s of sets) { const y = yearOf(RELEASED[s.id]); if (y) { if (!years.has(y)) years.set(y, []); years.get(y).push(s); } else undated.push(s); }
+    if (!years.size) return [{ title: game === 'onepiece' ? 'Booster sets' : 'Sets', sets }];
+    const out = [...years.entries()].sort((a, b) => b[0] - a[0]).map(([y, list]) => ({ title: String(y), sets: list.sort((a, b) => (RELEASED[b.id] || '').localeCompare(RELEASED[a.id] || '')), year: true }));
+    if (undated.length) out.push({ title: 'More sets', sets: undated });
+    return out;
+  }
+  function groupMeta(gr) {
+    const ys = gr.sets.map((s) => yearOf(RELEASED[s.id])).filter(Boolean);
+    const span = !gr.year && ys.length ? (Math.min(...ys) === Math.max(...ys) ? String(ys[0]) : `${Math.min(...ys)}–${Math.max(...ys)}`) : '';
+    return [span, `${gr.sets.length} ${gr.sets.length === 1 ? 'set' : 'sets'}`].filter(Boolean).join(' · ');
+  }
+
+  // ---- build + switch ----
+  let homeBuilt = false, sbGame = 'pokemon', sbObserver = null;
   function buildHome() {
     if (homeBuilt) return; homeBuilt = true;
-    const UNI_ORDER = ['pokemon', 'lorcana', 'onepiece', 'magic'].map((id) => HOME_GAMES.find((g) => g.game === id)).filter(Boolean);
-    homeScroll.innerHTML = `<div class="home-stage" id="homeStageEl">
-        <div class="hv hv-hero" id="hvHero">
-          <div class="hero-glow" aria-hidden="true"></div>
-          <p class="hero-kicker">P&reg; Cards</p>
-          <h1 class="hero-title"><span class="ht1">Every card.</span><span class="ht2">One wheel.</span></h1>
-          <p class="hero-sub">Five universes &middot; every set &middot; one place</p>
-          <button type="button" class="get-started" id="getStarted">Get started <span aria-hidden="true">&rarr;</span></button>
-        </div>
-        <div class="hv hv-pick" id="hvPick" hidden>
-          <div class="ix">
-            <nav class="ix-list" id="uniList" aria-label="Choose your universe">
-              <div class="ix-eyebrow">Crowns &middot; the index</div>
-              ${UNI_ORDER.map((g, i) => `<button type="button" class="ix-row" data-game="${g.game}" style="--accent:${g.accent}">
-                <span class="ix-num">0${i + 1}</span>
-                <span class="ix-name">${g.name}</span>
-                <span class="ix-meta">${setsForGame(g.game).length} sets &middot; live</span>
-                <span class="ix-arrow" aria-hidden="true">&rarr;</span>
-              </button>`).join('')}
-              <div class="ix-foot">Every card &middot; every set &middot; one feed</div>
-            </nav>
-            <aside class="ix-view" id="uniView" aria-hidden="true"></aside>
-          </div>
-        </div>
-        <div class="hv hv-sets" id="hvSets" hidden>
-          <div class="ix">
-            <nav class="ix-list" id="setGrid" aria-label="Choose a set"></nav>
-            <aside class="ix-view" id="setView" aria-hidden="true"></aside>
-          </div>
-          <button type="button" class="pick-back" id="setsBack"><span class="pb-arrow" aria-hidden="true">&larr;</span> All universes</button>
-        </div>
+    homeScroll.innerHTML = `<div class="sb" id="sb">
+        <nav class="sb-games" id="sbGames" role="tablist" aria-label="Choose a game">
+          ${HOME_GAMES.map((g) => `<button type="button" role="tab" class="sb-game" data-game="${g.game}" aria-selected="false" style="--lh:${g.h}px"><img src="${g.logo}" alt="${esc(g.name)}" draggable="false"></button>`).join('')}
+        </nav>
+        <header class="sb-head">
+          <div class="sb-titles"><h1 class="sb-title" id="sbTitle"></h1><p class="sb-sub" id="sbSub"></p></div>
+          <label class="sb-find"><span class="sr-only">Find a set</span><input id="sbFind" type="search" placeholder="Find a set" autocomplete="off"></label>
+        </header>
+        <div class="sb-body" id="sbBody"></div>
       </div>`;
-    // ---- THE INDEX: one interaction system for both select levels — big
-    // typographic rows on the left, a live preview pane answering hover on the
-    // right. No scene, no tiles: a menu that reads like a table of contents.
-    const uniList = $('uniList'), uniView = $('uniView');
-    function paintUniView(g, num) {
-      if (!g || uniView.dataset.g === g.game) return;
-      uniView.dataset.g = g.game;
-      // the whole room answers: the screen's accent follows the hovered universe
-      $('hvPick').style.setProperty('--accent', g.accent);
-      uniView.innerHTML =
-        `<div class="ixv-in" style="--accent:${g.accent}">
-          <span class="ixv-ghost" aria-hidden="true">${num || ''}</span>
-          <div class="ixv-meta">${g.name} &middot; ${setsForGame(g.game).length} sets &middot; live</div>
-        </div>`;
-      if (window.gsap && !REDUCED) {
-        gsap.fromTo(uniView.querySelector('.ixv-ghost'), { opacity: 0, x: 44 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out' });
-        gsap.fromTo(uniView.querySelector('.ixv-meta'), { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, delay: 0.1, ease: 'power3.out' });
+    $('sbGames').addEventListener('click', (e) => {
+      const b = e.target.closest('.sb-game'); if (!b || b.dataset.game === sbGame) return;
+      renderBrowser(b.dataset.game);
+      try { history.replaceState(history.state, '', 'app.html?game=' + b.dataset.game); } catch { /* file:// */ }
+    });
+    $('sbFind').addEventListener('input', applyFind);
+    // tiles and featured cards are real links; a plain click opens the set in place
+    homeScroll.addEventListener('click', (e) => {
+      const a = e.target.closest('a[data-set]');
+      if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+      e.preventDefault();
+      enterSet(gameOf(a.dataset.set), a.dataset.set, { from: a, cardId: a.dataset.card || null });
+    });
+    // per-logo optical sizing (G13): CSS gives every set mark the same visual
+    // area from its real aspect ratio, so wide wordmarks and tall badges match
+    homeScroll.addEventListener('load', (e) => {
+      const img = e.target;
+      if (!(img instanceof HTMLImageElement) || !img.classList.contains('sbt-logo') || !img.naturalHeight) return;
+      img.style.setProperty('--ar', (img.naturalWidth / img.naturalHeight).toFixed(3));
+    }, true);
+    // logo fallbacks walk their chain; a tile whose chain runs out shows its cards
+    homeScroll.addEventListener('error', (e) => {
+      const img = e.target;
+      // loads cut off because a set was opened are not dead logos (the browser is
+      // repainted fresh when it is shown again): don't walk the chain for them
+      if (homeEl.hidden || !(img instanceof HTMLImageElement) || !img.dataset.chain) return;
+      let rest = []; try { rest = JSON.parse(img.dataset.chain); } catch { /* none */ }
+      if (rest.length) { img.dataset.chain = JSON.stringify(rest.slice(1)); img.classList.toggle('sym', rest[0].indexOf('svgs.scryfall') !== -1); img.src = rest[0]; return; }
+      const tile = img.closest('.sbt');
+      const name = tile && tile.querySelector('.sbt-name.sr-only');
+      if (name) { name.className = 'sbt-mark sbt-name'; tile.classList.add('nologo'); }
+      img.remove();
+    }, true);
+    // warm a set while the pointer rests on its tile (merge its full printing list
+    // and build its wheel cards on idle), so the click that opens it is cheap
+    const warmed = new Set();
+    homeScroll.addEventListener('pointerover', (e) => {
+      const a = e.target.closest && e.target.closest('a[data-set]');
+      const id = a && a.dataset.set;
+      if (!id || warmed.has(id) || !SETS[id]) return;
+      warmed.add(id);
+      ric(() => { try { mergeFullSet(id); buildSetDom(id); } catch { /* warmed on click instead */ } });
+    });
+    if ('IntersectionObserver' in window) {
+      sbObserver = new IntersectionObserver((entries) => {
+        for (const en of entries) if (en.isIntersecting) { const id = en.target.dataset.set; if (gameOf(id) !== 'pokemon') wantStats(id); sbObserver.unobserve(en.target); }
+      }, { root: homeScroll, rootMargin: '300px 0px' });
+    }
+  }
+  function applyFind() {
+    const q = ($('sbFind').value || '').trim().toLowerCase();
+    homeScroll.classList.toggle('finding', !!q);
+    homeScroll.querySelectorAll('.sbt').forEach((t) => { t.hidden = !!q && !t.querySelector('.sbt-name').textContent.toLowerCase().includes(q); });
+    homeScroll.querySelectorAll('.sb-group').forEach((g) => { g.hidden = !g.querySelector('.sbt:not([hidden])'); });
+    const empty = $('sbEmpty');
+    if (empty) empty.hidden = !q || !!homeScroll.querySelector('.sbt:not([hidden])');
+  }
+  function renderBrowser(game, quiet) {
+    buildHome();
+    sbGame = game;
+    homeScroll.querySelectorAll('.sb-game').forEach((b) => { const on = b.dataset.game === game; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
+    const meta = HOME_GAMES.find((g) => g.game === game);
+    const sets = setsForGame(game);
+    $('sbTitle').textContent = `${meta.short} sets`;
+    $('sbSub').textContent = `${sets.length} sets · newest first · prices from ${GAME_SOURCE[game]}`;
+    $('sbFind').value = '';
+    homeScroll.classList.remove('finding');
+    const body = $('sbBody');
+    const paint = () => {
+      const groups = groupsFor(game);
+      body.innerHTML = groups.map((gr) => `<section class="sb-group"><h2 class="sb-era"><span class="sb-era-t">${esc(gr.title)}</span><span class="sb-era-m">${esc(groupMeta(gr))}</span></h2>`
+          + `<div class="sb-grid">${gr.sets.map((s) => tileHTML(game, s)).join('')}</div></section>`).join('')
+        + '<p class="sb-empty" id="sbEmpty" hidden>No set matches that name.</p>';
+      // Pokémon numbers are local: paint every tile now. Others load as they scroll in.
+      if (game === 'pokemon') body.querySelectorAll('.sbt').forEach((t) => fillTile(t.dataset.set));
+      else {
+        let missing = false;
+        body.querySelectorAll('.sbt').forEach((t) => {
+          const id = t.dataset.set;
+          if (SETS[id] || setStats(id)) fillTile(id);
+          else { missing = true; if (sbObserver) sbObserver.observe(t); else wantStats(id); }
+        });
+        if (game === 'onepiece' && missing) ensureOnePiece().catch(() => {});   // one bundle feeds every One Piece tile
+      }
+      if (!quiet && window.gsap && !REDUCED) {
+        // arrivals: the visible tiles rise in order, expo-out (direction.md motion)
+        const vis = [...body.querySelectorAll('.sb-era, .sbt')].filter((el) => el.getBoundingClientRect().top < innerHeight).slice(0, 26);
+        gsap.fromTo(vis, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', stagger: 0.028, clearProps: 'opacity,transform' });
+      }
+    };
+    homeScroll.scrollTop = 0;
+    paint();
+    // dates arrive from the catalogue: regroup by year (Magic, Lorcana) or just re-label
+    loadReleased(game).then(() => {
+      if (sbGame !== game || homeEl.hidden) return;
+      if (game === 'magic' || game === 'lorcana') { paint(); return; }
+      body.querySelectorAll('.sbt').forEach((t) => { const s = sets.find((x) => x.id === t.dataset.set); t.querySelector('.sbt-line').textContent = tileLine(t.dataset.set, s && s.fresh); });
+      body.querySelectorAll('.sb-group').forEach((g, i) => { const gr = groupsFor(game)[i]; if (gr) g.querySelector('.sb-era-m').textContent = groupMeta(gr); });
+    });
+  }
+
+  // ---- open a set from the browser: wait for its cards (external sets fetch),
+  // then the browser fades while the wheel sweeps in and the tile's logo flies
+  // into the set header (shared-element move, expo-out) ----
+  let entering = false;
+  async function enterSet(game, setId, opts = {}) {
+    if (entering) return;
+    entering = true;
+    const tile = opts.from || null;
+    if (tile) tile.classList.add('opening');
+    let ok = true;
+    if (game === 'pokemon') {
+      if (!SETS[setId]) { const built = buildSetFromIndex(setId); if (built) SETS[setId] = built; else ok = await ensureTcgdexSet(setId); }
+    } else ok = await ensureExternalSet(setId);
+    if (ok) await preloadLanding(setId, opts.cardId ? 'card' : 'first');
+    if (tile) tile.classList.remove('opening');
+    if (!ok) { if (tile) tile.classList.add('no-data'); entering = false; return; }
+    const fromLogo = tile && tile.querySelector('.sbt-logo');
+    const fromRect = fromLogo ? fromLogo.getBoundingClientRect() : null;
+    try { history.pushState({ set: setId }, '', 'app.html?set=' + encodeURIComponent(setId)); } catch { /* file:// */ }
+    hideHome();
+    loadSet(setId);
+    if (opts.cardId) {
+      const ci = CARDS.findIndex((c) => c.id === opts.cardId);
+      if (ci >= 0 && slotOf[ci] != null) { position = target = slotOf[ci]; velocity = 0; mode = 'idle'; current = -1; render(true); if (MOBILE && mcar) mScrollTo(slotOf[ci], false); }
+      else landOnFirstCard();
+    } else landOnFirstCard();
+    if (window.gsap && !REDUCED) {
+      gsap.fromTo('#setHead', { opacity: 0 }, { opacity: 1, duration: 0.5, ease: 'power2.out', clearProps: 'opacity' });
+      const dst = $('setBtnLogo');
+      if (fromRect && dst && !dst.hidden) {
+        const fly = () => {
+          const r = dst.getBoundingClientRect();
+          if (!r.width) return;
+          const s = fromRect.width / r.width;
+          gsap.fromTo(dst, { x: fromRect.left - r.left + (fromRect.width - r.width) / 2, y: fromRect.top - r.top + (fromRect.height - r.height) / 2, scale: s, transformOrigin: '50% 50%' },
+            { x: 0, y: 0, scale: 1, duration: 0.62, ease: 'expo.out', clearProps: 'transform' });
+        };
+        if (dst.complete && dst.naturalWidth) fly(); else dst.addEventListener('load', fly, { once: true });
       }
     }
-    const uniRowHover = (e) => {
-      const r = e.target.closest('.ix-row'); if (!r) return;
-      const g = HOME_GAMES.find((x) => x.game === r.dataset.game);
-      paintUniView(g, r.querySelector('.ix-num')?.textContent);
-      if (g) ixCursorSet(g.card);   // the chasing preview wears this universe's card
-    };
-    uniList.addEventListener('pointerover', uniRowHover);
-    uniList.addEventListener('focusin', uniRowHover);
-    uniList.addEventListener('click', (e) => {
-      const r = e.target.closest('.ix-row'); if (!r) return;
-      revealSetsInPlace(r.dataset.game);
-    });
-    // dpad: vertical walk, preview follows focus
-    const ixWalk = (list) => (e) => {
-      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-      const rows = [...list.querySelectorAll('.ix-row')];
-      const cur = rows.indexOf(document.activeElement);
-      const next = Math.min(rows.length - 1, Math.max(0, cur < 0 ? 0 : cur + (e.key === 'ArrowDown' ? 1 : -1)));
-      rows[next].focus(); e.preventDefault();
-    };
-    uniList.addEventListener('keydown', ixWalk(uniList));
-    paintUniView(UNI_ORDER[0], '01');   // rest state previews the first universe
-    $('getStarted').addEventListener('click', goPick);
-    $('setsBack').addEventListener('click', () => switchView('hvSets', 'hvPick'));
-    const setListEl = $('setGrid');
-    setListEl.addEventListener('click', (e) => { const b = e.target.closest('[data-set]'); if (b) enterSet(pickGame, b.dataset.set); });
-    const setRowHover = (e) => {
-      const b = e.target.closest('[data-set]'); if (!b) return;
-      paintSetView(b.dataset.set, b.querySelector('.ix-num')?.textContent);
-      ixCursorSet(setPreviewSrc(b.dataset.set));
-    };
-    setListEl.addEventListener('pointerover', setRowHover);
-    setListEl.addEventListener('focusin', setRowHover);
-    setListEl.addEventListener('keydown', ixWalk(setListEl));
-    // —— the chasing preview (the reference move): ONE image trails the cursor
-    // over either list with lag and a velocity lean; the row hover feeds it
-    const ixCur = document.createElement('img');
-    ixCur.className = 'ix-cursor'; ixCur.alt = ''; ixCur.draggable = false;
-    homeEl.appendChild(ixCur);
-    const ixc = { x: innerWidth / 2, y: innerHeight / 2, tx: innerWidth / 2, ty: innerHeight / 2, on: false, o: 0 };
-    ixCursorSet = (src) => { if (src && !ixCur.src.endsWith(src)) ixCur.src = src; };
-    [uniList, setListEl].forEach((L) => {
-      L.addEventListener('pointermove', (e) => { ixc.tx = e.clientX; ixc.ty = e.clientY; ixc.on = true; });
-      L.addEventListener('pointerleave', () => { ixc.on = false; });
-    });
-    if (window.gsap && !REDUCED) (function ixTick() {
-      const dx = ixc.tx - ixc.x;
-      ixc.x += dx * 0.13; ixc.y += (ixc.ty - ixc.y) * 0.13;
-      const want = (ixc.on && !homeEl.hidden && ixCur.src) ? 1 : 0;
-      ixc.o += (want - ixc.o) * 0.15;
-      const rot = Math.max(-11, Math.min(11, dx * 0.09));
-      // gentle levitation loop (0 → -8px → 0, sine, 6.8s), riding on the chase
-      const bob = 4 * Math.cos(performance.now() * (Math.PI / 3400)) - 4;
-      ixCur.style.transform = `translate(${(ixc.x + 34).toFixed(1)}px, ${(ixc.y - 130 + bob).toFixed(1)}px) rotate(${rot.toFixed(2)}deg)`;
-      ixCur.style.opacity = ixc.o.toFixed(3);
-      requestAnimationFrame(ixTick);
-    })();
-    HOME_GAMES.forEach((g) => { const im = new Image(); im.src = g.card; }); // preload previews
-  }
-  let ixCursorSet = () => {};   // bound in buildHome; hover handlers call through
-
-  // generic crossfade/scale between two home views
-  // clean opacity crossfade — NO container scale/blur (that made the whole grid
-  // appear to "reframe"); the directional motion belongs to the grid items only.
-  function switchView(fromId, toId, build) {
-    const from = $(fromId), to = $(toId);
-    const reveal = () => { from.hidden = true; if (build) build(); to.hidden = false;
-      if (window.gsap && !REDUCED) gsap.fromTo(to, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'power2.out' }); };
-    if (!window.gsap || REDUCED) { reveal(); return; }
-    gsap.to(from, { opacity: 0, duration: 0.24, ease: 'power2.in', onComplete: () => { gsap.set(from, { clearProps: 'opacity' }); reveal(); } });
-  }
-  // "wall-less hallway": the hero line rushes past the camera, then a card from
-  // each game flies AT you out of the corridor (Pokémon first), spreading from
-  // centre to its spot, and cross-dissolves into that game's logo. The logos it
-  // becomes ARE the picker — so the cinematic intro resolves straight into it.
-  function goPick() {
-    const hero = $('hvHero'), pick = $('hvPick');
-    if (!window.gsap || REDUCED) { hero.hidden = true; pick.hidden = false; return; }
-    pick.hidden = false;
-    const logos = [...pick.querySelectorAll('.pick-logo')];
-    const logoImgs = logos.map((b) => b.querySelector('img'));
-    const prompt = pick.querySelector('.pick-prompt');
-    gsap.set(prompt, { opacity: 0 });
-    gsap.set(logoImgs, { opacity: 0 }); // hidden until each game's card resolves into it
-    const cx = innerWidth / 2;
-    const cards = logos.map((btn, i) => {
-      const card = document.createElement('img');
-      card.className = 'hall-card'; card.alt = ''; card.src = HOME_GAMES[i].card;
-      btn.appendChild(card);
-      return card;
-    });
-    gsap.set(cards, { xPercent: -50, yPercent: -50, transformOrigin: '50% 50%' }); // centre on the logo
-    const tl = gsap.timeline({ onComplete: () => {
-      cards.forEach((c) => c.remove());
-      gsap.set(logoImgs, { clearProps: 'opacity' });
-    } });
-    // hero rushes toward + past the camera (sells moving down the hall)
-    tl.to(hero, { opacity: 0, scale: 1.5, filter: 'blur(22px)', duration: 0.62, ease: 'power2.in' }, 0);
-    tl.add(() => { hero.hidden = true; gsap.set(hero, { clearProps: 'all' }); }, 0.52);
-    cards.forEach((card, i) => {
-      const t = 0.42 + i * 0.34;                                  // Pokémon first, then in order
-      const r = logos[i].getBoundingClientRect();
-      const startX = (cx - (r.left + r.width / 2)) * 0.55;        // emerge from the corridor mouth
-      tl.fromTo(card,
-        { z: -2600, x: startX, rotateX: 13, opacity: 0, filter: 'blur(16px)' },
-        { z: 70, x: 0, rotateX: 0, opacity: 1, filter: 'blur(0px)', duration: 0.74, ease: 'power2.out' }, t);
-      tl.to(card, { z: 26, opacity: 0, scale: 1.08, duration: 0.36, ease: 'power2.inOut' }, t + 0.64); // → becomes the logo
-      tl.to(logoImgs[i], { opacity: 1, duration: 0.42, ease: 'power2.out' }, t + 0.68);
-    });
-    tl.to(prompt, { opacity: 1, duration: 0.5, ease: 'power2.out' }, '>-0.2');
-  }
-  // preview pane for the set index: logo, count, era, the sealed box when we
-  // have one — answers whatever row the cursor is on
-  let ixSets = [];
-  // ONE preview visual per set (P: pick one): box art when we have it, else
-  // the set logo — this feeds the cursor-chasing image
-  function setPreviewSrc(id) {
-    const s = ixSets.find((x) => x.id === id); if (!s) return null;
-    // box art straight from the sealed manifest — localSetImage() is the colour
-    // sampler's pick and prefers a local LOGO, which hid the box for sv05 + all Lorcana
-    const prod = ((window.SEALED_PRODUCTS || {})[s.id] || []).find((p) => p.img && p.img.startsWith('assets/'));
-    if (prod) return prod.img;
-    const cands = s.fresh
-      ? [`https://assets.tcgdex.net/en/${(s.id.match(/^[a-z]+/i) || ['xx'])[0]}/${s.id}/logo.png`]
-      : setMarkChain(pickGame, s);
-    const box = typeof localSetImage === 'function' ? localSetImage(s.id) : null;
-    return box || cands[0] || null;
-  }
-  function paintSetView(id, num) {
-    const view = $('setView'); if (!view || view.dataset.s === id) return;
-    const s = ixSets.find((x) => x.id === id); if (!s) return;
-    view.dataset.s = id;
-    view.innerHTML =
-      `<div class="ixv-in">
-        <span class="ixv-ghost" aria-hidden="true">${num || ''}</span>
-        <div class="ixv-meta">${s.name || ''}${s.count ? ` &middot; ${s.count} cards` : ''} &middot; live</div>
-      </div>`;
-    if (window.gsap && !REDUCED) {
-      gsap.fromTo(view.querySelector('.ixv-ghost'), { opacity: 0, x: 44 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out' });
-      gsap.fromTo(view.querySelector('.ixv-meta'), { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.45, delay: 0.1, ease: 'power3.out' });
-    }
-  }
-  function buildSetGrid(game) {
-    pickGame = game;
-    const sets = setsForGame(game);
-    const g = HOME_GAMES.find((x) => x.game === game);
-    $('hvSets').style.setProperty('--accent', g?.accent || '#7fd4f4');
-    const list = $('setGrid');
-    const isPromo = (s) => game === 'pokemon' && /promo|partner/i.test(s.name) && !/illustration/i.test(s.name);
-    const regular = sets.filter((s) => !isPromo(s)), promos = sets.filter(isPromo);
-    const promoRow = promos.length ? [{ id: promos[0].id, name: 'Promos', count: null, meta: `${promos.length} sets`, promo: true }] : [];
-    ixSets = [...regular, ...promos];
-    const row = (s, n) =>
-      `<button type="button" class="ix-row" data-set="${s.id}">
-        <span class="ix-num">${String(n).padStart(2, '0')}</span>
-        <span class="ix-name">${s.name}</span>
-        <span class="ix-meta">${s.meta || (s.count ? `${s.count} cards` : 'live')}${s.fresh ? ' &middot; new' : ''}</span>
-        <span class="ix-arrow" aria-hidden="true">&rarr;</span>
-      </button>`;
-    const brk = (t) => `<div class="ix-break"><span>${t}</span></div>`;
-    const eyebrow = `<div class="ix-eyebrow"><img src="assets/logos/${game}.png?v=79" alt="${g?.name || ''}" class="ix-unilogo"><span>${sets.length} sets &middot; live prices</span></div>`;
-    let html = eyebrow, n = 0;
-    if (game === 'pokemon') {
-      // era breaks: grouped headings beat one endless wall (category-page research)
-      const ERA = (s) => s.id.startsWith('fpic') ? 'First Partner Illustration'
-        : s.id.startsWith('me') ? 'Mega Evolution'
-        : s.id.startsWith('sv') ? 'Scarlet & Violet' : 'Just discovered';
-      const order = ['Just discovered', 'First Partner Illustration', 'Mega Evolution', 'Scarlet & Violet'];
-      const bins = new Map();
-      regular.forEach((s) => { const e = ERA(s); if (!bins.has(e)) bins.set(e, []); bins.get(e).push(s); });
-      order.forEach((era) => { const b = bins.get(era); if (b && b.length) { html += brk(era); html += b.map((s) => row(s, ++n)).join(''); } });
-      if (promoRow.length) { html += brk('Promos'); html += promoRow.map((s) => row(s, ++n)).join(''); }
-    } else {
-      html += regular.map((s) => row(s, ++n)).join('');
-      if (promoRow.length) html += promoRow.map((s) => row(s, ++n)).join('');
-    }
-    list.innerHTML = html;
-    const first = ixSets[0];
-    const view = $('setView'); if (view) view.dataset.s = '';
-    if (first) paintSetView(first.id, '01');   // rest state previews the first set
-  }
-  // the chosen column has already expanded to fill the screen — reveal its set list
-  // right there in the same frame (sets stagger up; the picker is hidden underneath).
-  function revealSetsInPlace(game) {
-    buildSetGrid(game);
-    $('hvPick').hidden = true;
-    $('hvSets').hidden = false;
-    if (window.gsap) gsap.set('#hvSets', { clearProps: 'opacity' });
-    if (window.gsap && !REDUCED) {
-      // calm editorial entrance: rows cascade up, the preview settles after
-      gsap.fromTo('#setGrid > *', { opacity: 0, y: 14 },
-        { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', stagger: 0.022, clearProps: 'transform' });
-      gsap.fromTo('#setView', { opacity: 0 }, { opacity: 1, duration: 0.5, delay: 0.18, clearProps: 'opacity' });
-      gsap.from('#setsBack', { opacity: 0, x: -10, duration: 0.45, delay: 0.1, clearProps: 'opacity,transform' });
-    }
-  }
-  // deep-link path (no column to expand): plain crossfade into the set list
-  function goSets(game) {
-    switchView('hvPick', 'hvSets', () => {
-      buildSetGrid(game);
-      if (window.gsap && !REDUCED) gsap.fromTo('#setGrid > *', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out', stagger: 0.02, delay: 0.05, clearProps: 'transform' });
-    });
-  }
-  function goHero() { switchView('hvPick', 'hvHero'); }
-  async function enterSet(game, setId) {
-    hideHome();
-    if (game === 'pokemon') {
-      // bundled → instant; in the price index → build from it; brand-new on
-      // tcgdex (auto-discovered) → live fetch, unpriced until the data lands
-      if (SETS[setId]) loadSet(setId);
-      else if (!(await loadPokemonSet(setId)) && !(await fetchTcgdexSet(setId))) loadSet(HOME_SET);
-      landOnFirstCard();
-    }
-    else { await loadExternalSet(setId); landOnFirstCard(); }
-    // a clean flourish that leads into the set's carousel
-    if (window.gsap && !REDUCED) gsap.fromTo('main', { opacity: 0.35, scale: 0.985 },
-      { opacity: 1, scale: 1, duration: 0.55, ease: 'power3.out', transformOrigin: '50% 50%', clearProps: 'transform' });
+    entering = false;
   }
   // drop the wheel on the set's FIRST card (lowest collector number), not the priciest
   function landOnFirstCard() {
@@ -3186,19 +3674,39 @@
     position = target = slotOf[bestCi]; velocity = 0; mode = 'idle'; current = -1; render(true);
     if (MOBILE && mcar) mScrollTo(slotOf[bestCi], false);   // mobile carousel lands on the first card too
   }
-  function showHome() {
+  function showHome(game) {
+    buildHome();
+    const first = homeEl.hidden;
     homeEl.hidden = false;
     document.body.classList.add('home-open');
-    buildHome();
-    // straight to the index — the cinematic splash era is over (P)
-    $('hvHero').hidden = true; $('hvPick').hidden = false; $('hvSets').hidden = true;
-    if (!window.gsap || REDUCED) return;
-    gsap.fromTo('#uniList > *', { opacity: 0, y: 18 },
-      { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.06, clearProps: 'transform' });
-    gsap.fromTo('#uniView', { opacity: 0 }, { opacity: 1, duration: 0.6, delay: 0.25, clearProps: 'opacity' });
+    if (setMenu && !setMenu.hidden) toggleSetMenu(false);
+    if (zoom.open) zoom.close();
+    // the browser's light pool is neutral: no single set owns the room
+    document.body.style.removeProperty('--app-accent');
+    const g = game || (wheelReady && DATA ? gameOf(DATA.set.id) : null) || sbGame || 'pokemon';
+    renderBrowser(g, !first);
+    if (first && window.gsap && !REDUCED) {
+      gsap.fromTo('.sb-game', { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.55, ease: 'expo.out', stagger: 0.06, clearProps: 'opacity,transform' });
+      gsap.fromTo('.sb-titles, .sb-find', { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', delay: 0.12, clearProps: 'opacity,transform' });
+    }
   }
-  function hideHome() { homeEl.hidden = true; document.body.classList.remove('home-open'); }
-  document.querySelector('.lockup').addEventListener('click', () => { location.href = 'index.html'; }); // brand mark → real homepage
+  function hideHome() {
+    homeEl.hidden = true;
+    document.body.classList.remove('home-open');
+    if (wheelReady && DATA) setAmbience(DATA.set.id);   // the stage returns to the set's colours
+  }
+  // back / forward between the browser and a set, without reloading
+  addEventListener('popstate', () => {
+    const q = new URLSearchParams(location.search);
+    const id = q.get('set'), g = q.get('game');
+    if (id && (SETS[id] || gameSetMeta(id))) {
+      if (!homeEl.hidden) hideHome();
+      if (!DATA || DATA.set.id !== id || !wheelReady) {
+        if (SETS[id]) preloadLanding(id, 'first').then(() => { loadSet(id); landOnFirstCard(); });
+        else enterSet(gameOf(id), id);
+      }
+    } else showHome(HOME_GAMES.some((x) => x.game === g) ? g : null);
+  });
 
   // ========================================================================
   // MOBILE — purpose-built phone view (PWA). The 3D wheel doesn't translate to
@@ -3224,6 +3732,9 @@
       return;
     }
     if (q === 'high') {                       // preload hi-res, swap in when ready (no flash)
+      // nothing on screen yet: show the small scan at once, so the centred card is
+      // never an empty slot while the big one downloads
+      if (!img.getAttribute('src')) { img.dataset.q = 'low'; img.src = cardImg(card, 'low.webp'); }
       const pre = new Image(); pre.decoding = 'async';
       pre.onload = () => { img.dataset.q = 'high'; img.src = pre.src; };
       pre.onerror = () => { const fb = cardImgFallback(card, 'high.webp'); if (fb) { img.dataset.q = 'high'; img.src = fb; } };
@@ -3248,11 +3759,7 @@
     setCurrent(slot);                          // reuses the full caption / counter / dial logic
     const kids = mcar ? mcar.children : [];
     for (let s = 0; s < kids.length; s++) kids[s].classList.toggle('on', s === slot);
-    if (mscrub) {
-      const f = N > 1 ? slot / (N - 1) : 0.5;
-      mscrub.querySelector('.m-scrub-fill').style.width = (f * 100) + '%';
-      mscrub.querySelector('.m-scrub-thumb').style.left = (f * 100) + '%';
-    }
+    scrubTo(mScrub, slot); scrubCard(mScrub, slot);
   }
   function mScrollTo(slot, smooth) {           // programmatic move (goTo / scrubber / search / land)
     if (!mcar || !mcar.children.length) return;
@@ -3284,25 +3791,22 @@
       b.appendChild(img);
       return b;
     }));
-    const s = current >= 0 ? current : 0;
-    requestAnimationFrame(() => mScrollTo(s, false));
+    // read the slot when the frame runs: a set opened from the browser lands on its
+    // first card right after this, and the old captured value dragged it back to the end
+    requestAnimationFrame(() => mScrollTo(current >= 0 ? current : 0, false));
   }
   function bindScrub() {                        // drag the scrubber to fly through the set
-    const track = mscrub.querySelector('.m-scrub-track');
-    const bubble = mscrub.querySelector('.m-scrub-bubble');
+    const track = mScrub.sd;
     let dragging = false;
-    const fracAt = (e) => { const r = track.getBoundingClientRect(); return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); };
     const move = (e) => {
-      const f = fracAt(e), slot = Math.round(f * (N - 1));
-      const card = CARDS[view[slot]];
-      bubble.hidden = false;
-      bubble.style.left = (f * 100) + '%';
-      bubble.textContent = card.sealed ? 'Sealed' : ('#' + card.localId);
+      const r = mScrub.track.getBoundingClientRect();
+      const slot = Math.max(0, Math.min(N - 1, Math.floor((e.clientX - r.left) / (r.width || 1) * N)));
+      scrubTo(mScrub, slot); scrubCard(mScrub, slot);
       mScrollTo(slot, false);
     };
     track.addEventListener('pointerdown', (e) => { dragging = true; try { track.setPointerCapture(e.pointerId); } catch (err) { /* inactive pointer */ } move(e); });
     track.addEventListener('pointermove', (e) => { if (dragging) move(e); });
-    const end = () => { dragging = false; setTimeout(() => { bubble.hidden = true; }, 450); };
+    const end = () => { dragging = false; };
     track.addEventListener('pointerup', end);
     track.addEventListener('pointercancel', end);
   }
@@ -3338,8 +3842,10 @@
     // scrubber — drag to fly through the whole set
     mscrub = document.createElement('div');
     mscrub.className = 'm-scrub';
-    mscrub.innerHTML = '<div class="m-scrub-track"><div class="m-scrub-fill"></div><div class="m-scrub-thumb"></div></div><div class="m-scrub-bubble" hidden></div>';
     document.querySelector('main').after(mscrub);
+    mScrub = makeScrub(mscrub);
+    const legend = document.querySelector('.minimap .dial-legend');
+    if (legend) { const l = legend.cloneNode(true); l.classList.add('m-legend'); mscrub.appendChild(l); }
     bindScrub();
     mobileBuild();
   }
@@ -3353,6 +3859,7 @@
   measure();
   initHolo();
   initParallax();
+  requestAnimationFrame(ambientLoop);
   updateListCounts();
   const qs = new URLSearchParams(location.search);
   const reqSet = qs.get('set');
@@ -3369,22 +3876,18 @@
       setTimeout(() => openZoomFor(slotOf[ci]), 450);
     }
   };
-  // a set we don't carry (or no set) → drop into that universe's set picker
-  const toUniverse = () => {
-    homeEl.hidden = false; document.body.classList.add('home-open'); buildHome();
-    $('hvHero').hidden = true; $('hvPick').hidden = true; goSets(reqGame);
-  };
   requestAnimationFrame(tick);
   mobileInit();   // on phones: build the snap-carousel before the first set loads
-  discoverSets(); // fire-and-forget: new tcgdex sets appear in the grid automatically
+  discoverSets(); // fire-and-forget: new tcgdex sets appear in the browser automatically
+  // no set asked for → the set browser (no wheel is built until a set is chosen,
+  // so the browser paints fast); a set → straight onto its wheel
   if (isExternalReq) {
-    Promise.resolve(loadExternalSet(reqSet)).then(() => { if (deepCard >= 1) openDeep(); });
+    Promise.resolve(loadExternalSet(reqSet)).then(() => { if (SETS[reqSet]) { if (deepCard >= 1) openDeep(); } else showHome(gameOf(reqSet)); });
   } else if (reqSet && SETS[reqSet]) {
     loadSet(reqSet); openDeep();
   } else if (reqSet) {                                   // unrecognized id → lazy-fetch the tcgdex Pokémon set into the wheel
-    loadPokemonSet(reqSet).then((ok) => { if (ok) { if (deepCard >= 1) openDeep(); } else { loadSet(HOME_SET); if (validGame) toUniverse(); else showHome(); } });
+    loadPokemonSet(reqSet).then((ok) => { if (ok) { if (deepCard >= 1) openDeep(); } else showHome(validGame ? reqGame : null); });
   } else {
-    loadSet(HOME_SET);
-    if (validGame) toUniverse(); else showHome();
+    showHome(validGame ? reqGame : null);
   }
 })();

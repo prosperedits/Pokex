@@ -1,62 +1,63 @@
 // Sealed: authentic Pokémon renders where they exist, cutouts otherwise;
 // single booster-pack images dropped (no clean render source). 
+// Prices refreshed by gen-sealed-tcgcsv.mjs (TCGCSV) on 2026-10-27.
 window.SEALED_PRODUCTS = {
   "sv01": [
     {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/sv01-display.png",
-      "marketUsd": 302.8,
+      "marketUsd": 294.39,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/sv01-pc-etb.png",
-      "marketUsd": 310.04,
+      "marketUsd": 315.04,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/sv01-etb.png",
-      "marketUsd": 135.29,
+      "marketUsd": 131.76,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/sv01-bundle.png",
-      "marketUsd": 97.5,
+      "marketUsd": 103.69,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/478275.webp?v=61",
-      "marketUsd": 80.6,
+      "marketUsd": 84.85,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Stadium",
       "detail": "8 packs + 2 decks",
       "img": "assets/sealed/sv01-bnb.png",
-      "marketUsd": 85.76,
+      "marketUsd": 90.15,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Box",
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/sv01-bnb.png",
-      "marketUsd": 42.87,
+      "marketUsd": 41.2,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv02": [
@@ -64,49 +65,49 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/493975.webp?v=61",
-      "marketUsd": 502.43,
+      "marketUsd": 451.36,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/tcg/493973.webp?v=61",
-      "marketUsd": 586.54,
+      "marketUsd": 596.83,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/tcg/493974.webp?v=61",
-      "marketUsd": 209.57,
+      "marketUsd": 210.18,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/tcg/496914.webp?v=61",
-      "marketUsd": 118,
+      "marketUsd": 126.27,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Stadium",
       "detail": "8 packs + 2 decks",
       "img": "assets/sealed/tcg/496935.webp?v=61",
-      "marketUsd": 133.23,
+      "marketUsd": 204.3,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Box",
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/tcg/496929.webp?v=61",
-      "marketUsd": 60.74,
+      "marketUsd": 64.99,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv03": [
@@ -114,49 +115,49 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/501257.webp?v=61",
-      "marketUsd": 387.18,
+      "marketUsd": 377.13,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/tcg/501266.webp?v=61",
-      "marketUsd": 706.33,
+      "marketUsd": 620.51,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/tcg/501264.webp?v=61",
-      "marketUsd": 299.84,
+      "marketUsd": 269.62,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/tcg/501263.webp?v=61",
-      "marketUsd": 110.62,
+      "marketUsd": 122.57,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Stadium",
       "detail": "8 packs + 2 decks",
       "img": "assets/sealed/tcg/501267.webp?v=61",
-      "marketUsd": 150.25,
+      "marketUsd": 186,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Box",
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/tcg/501268.webp?v=61",
-      "marketUsd": 53.25,
+      "marketUsd": 57.8,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv03.5": [
@@ -164,33 +165,33 @@ window.SEALED_PRODUCTS = {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/tcg/501999.webp?v=61",
-      "marketUsd": 1370.79,
+      "marketUsd": 1173.14,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/tcg/503313.webp?v=61",
-      "marketUsd": 590.55,
+      "marketUsd": 491.57,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/662302.webp?v=61",
-      "marketUsd": 227.65,
+      "marketUsd": 215.7,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/tcg/502000.webp?v=61",
-      "marketUsd": 195.35,
+      "marketUsd": 166.76,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv04": [
@@ -198,49 +199,49 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/sv04-display.png",
-      "marketUsd": 290.26,
+      "marketUsd": 284.96,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/sv04-pc-etb.png",
-      "marketUsd": 179.1,
+      "marketUsd": 190.47,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/sv04-etb.png",
-      "marketUsd": 138.85,
+      "marketUsd": 135.4,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/sv04-bundle.png",
-      "marketUsd": 79.35,
+      "marketUsd": 92.05,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Stadium",
       "detail": "8 packs + 2 decks",
       "img": "assets/sealed/sv04-bnb.png",
-      "marketUsd": 87.59,
+      "marketUsd": 97.81,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Box",
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/sv04-bnb.png",
-      "marketUsd": 39.94,
+      "marketUsd": 43.06,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv04.5": [
@@ -248,25 +249,25 @@ window.SEALED_PRODUCTS = {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/sv04_5-pc-etb.png",
-      "marketUsd": 624.44,
+      "marketUsd": 542.11,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/sv04_5-etb.png",
-      "marketUsd": 481.87,
+      "marketUsd": 438.35,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/sv04_5-bundle.png",
-      "marketUsd": 162.62,
+      "marketUsd": 168.39,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv05": [
@@ -274,49 +275,49 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/sv05-display.png",
-      "marketUsd": 331.52,
+      "marketUsd": 317.07,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/sv05-pc-etb.png",
-      "marketUsd": 193.54,
+      "marketUsd": 196.68,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/sv05-etb.png",
-      "marketUsd": 135.3,
+      "marketUsd": 145.34,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/sv05-bundle.png",
-      "marketUsd": 83.31,
+      "marketUsd": 87.43,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/538807.webp?v=61",
-      "marketUsd": 75.9,
+      "marketUsd": 85.9,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Box",
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/sv05-bnb.png",
-      "marketUsd": 364.92,
+      "marketUsd": 362.9,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv06": [
@@ -324,41 +325,41 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/sv06-display.png",
-      "marketUsd": 365.04,
+      "marketUsd": 333.67,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/sv06-pc-etb.png",
-      "marketUsd": 185.56,
+      "marketUsd": 185.27,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/sv06-etb.png",
-      "marketUsd": 105.5,
+      "marketUsd": 101.73,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/sv06-bundle.png",
-      "marketUsd": 73.86,
+      "marketUsd": 76.53,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Box",
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/sv06-bnb.png",
-      "marketUsd": 58.41,
+      "marketUsd": 62.34,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv06.5": [
@@ -366,25 +367,25 @@ window.SEALED_PRODUCTS = {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/sv06_5-pc-etb.png",
-      "marketUsd": 170.55,
+      "marketUsd": 163.93,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/sv06_5-etb.png",
-      "marketUsd": 130.77,
+      "marketUsd": 112.71,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/sv06_5-bundle.png",
-      "marketUsd": 59.39,
+      "marketUsd": 54.55,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv07": [
@@ -392,41 +393,41 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/sv07-display.png",
-      "marketUsd": 352.79,
+      "marketUsd": 301.32,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/sv07-pc-etb.png",
-      "marketUsd": 176.18,
+      "marketUsd": 181.09,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/sv07-etb.png",
-      "marketUsd": 156.58,
+      "marketUsd": 161.28,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/sv07-bundle.png",
-      "marketUsd": 69.68,
+      "marketUsd": 69.76,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Box",
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/sv07-bnb.png",
-      "marketUsd": 44.07,
+      "marketUsd": 49.98,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv08": [
@@ -434,49 +435,49 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/sv08-display.png",
-      "marketUsd": 283.75,
+      "marketUsd": 298.63,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/sv08-pc-etb.png",
-      "marketUsd": 284.72,
+      "marketUsd": 247.43,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/sv08-etb.png",
-      "marketUsd": 133.55,
+      "marketUsd": 121.99,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/tcg/679564.webp?v=62",
-      "marketUsd": 62.34,
+      "marketUsd": 53.68,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/565603.webp?v=61",
-      "marketUsd": 39.89,
+      "marketUsd": 43.71,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Box",
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/sv08-bnb.png",
-      "marketUsd": 58.48,
+      "marketUsd": 62.48,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv08.5": [
@@ -484,41 +485,41 @@ window.SEALED_PRODUCTS = {
       "name": "Super-Premium Collection",
       "detail": "15 packs + Eevee figure + extras",
       "img": "assets/sealed/tcg/622770.webp?v=62",
-      "marketUsd": 327.75,
+      "marketUsd": 246.04,
       "source": "TCGplayer",
-      "checked": "2026-06-27"
+      "checked": "2026-10-27"
     },
     {
       "name": "Premium Figure Collection",
       "detail": "Espeon & Umbreon figures + 6 packs",
       "img": "assets/sealed/tcg/650799.webp?v=62",
-      "marketUsd": 239.17,
+      "marketUsd": 211.36,
       "source": "TCGplayer",
-      "checked": "2026-06-27"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/sv08_5-pc-etb.png",
-      "marketUsd": 512.67,
+      "marketUsd": 392.59,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/sv08_5-etb.png",
-      "marketUsd": 166.44,
+      "marketUsd": 124.6,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/sv08_5-bundle.png",
-      "marketUsd": 104.16,
+      "marketUsd": 82.09,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv09": [
@@ -526,41 +527,41 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/sv09-display.png",
-      "marketUsd": 291.62,
+      "marketUsd": 207.03,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/sv09-pc-etb.png",
-      "marketUsd": 208.86,
+      "marketUsd": 193.85,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/sv09-etb.png",
-      "marketUsd": 129.2,
+      "marketUsd": 135.45,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/sv09-bundle.png",
-      "marketUsd": 47.25,
+      "marketUsd": 43.46,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Box",
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/sv09-bnb.png",
-      "marketUsd": 39.85,
+      "marketUsd": 36.34,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv10": [
@@ -568,41 +569,41 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/624679.webp?v=61",
-      "marketUsd": 596.06,
+      "marketUsd": 385.9,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/sv10-pc-etb.png",
-      "marketUsd": 558.12,
+      "marketUsd": 410.36,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/sv10-etb.png",
-      "marketUsd": 207.63,
+      "marketUsd": 106.66,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/sv10-bundle.png",
-      "marketUsd": 81.05,
+      "marketUsd": 57.99,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Box",
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/sv10-bnb.png",
-      "marketUsd": 63.03,
+      "marketUsd": 69.26,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv10.5b": [
@@ -610,25 +611,25 @@ window.SEALED_PRODUCTS = {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/tcg/630687.webp?v=61",
-      "marketUsd": 292.93,
+      "marketUsd": 261.85,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/tcg/630686.webp?v=62",
-      "marketUsd": 160.69,
+      "marketUsd": 160.03,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/tcg/630431.webp?v=62",
-      "marketUsd": 88.02,
+      "marketUsd": 95.4,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "sv10.5w": [
@@ -636,25 +637,25 @@ window.SEALED_PRODUCTS = {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/tcg/630688.webp?v=62",
-      "marketUsd": 249.61,
+      "marketUsd": 238,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/tcg/630689.webp?v=62",
-      "marketUsd": 140.53,
+      "marketUsd": 142.45,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/tcg/630696.webp?v=62",
-      "marketUsd": 77.84,
+      "marketUsd": 87.95,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "me01": [
@@ -662,41 +663,41 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/me01-display.png",
-      "marketUsd": 299.24,
+      "marketUsd": 302.17,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/tcg/644282.webp?v=61",
-      "marketUsd": 338.53,
+      "marketUsd": 200.94,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/tcg/644279.webp?v=62",
-      "marketUsd": 107.95,
+      "marketUsd": 119.6,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/me01-bundle.png",
-      "marketUsd": 60.75,
+      "marketUsd": 65.9,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Box",
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/me01-bnb.png",
-      "marketUsd": 56.99,
+      "marketUsd": 61.6,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "me02": [
@@ -704,41 +705,41 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/me02-display.png",
-      "marketUsd": 409.96,
+      "marketUsd": 391.14,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/me02-pc-etb.png",
-      "marketUsd": 345.29,
+      "marketUsd": 280.01,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/me02-etb.png",
-      "marketUsd": 148.18,
+      "marketUsd": 149.78,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/me02-bundle.png",
-      "marketUsd": 76.86,
+      "marketUsd": 77.3,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Box",
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/me02-bnb.png",
-      "marketUsd": 435.18,
+      "marketUsd": 495.02,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "me02.5": [
@@ -746,33 +747,33 @@ window.SEALED_PRODUCTS = {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/me02_5-pc-etb.png",
-      "marketUsd": 493.8,
+      "marketUsd": 328.78,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/me02_5-etb.png",
-      "marketUsd": 174.26,
+      "marketUsd": 125.23,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/692541.webp?v=61",
-      "marketUsd": 194.48,
+      "marketUsd": 189.32,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/tcg/668541.webp?v=62",
-      "marketUsd": 104.14,
+      "marketUsd": 74.62,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "me03": [
@@ -780,41 +781,41 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/me03-display.png",
-      "marketUsd": 215.08,
+      "marketUsd": 173.27,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/me03-pc-etb.png",
-      "marketUsd": 138.75,
+      "marketUsd": 121.96,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/me03-etb.png",
-      "marketUsd": 72.81,
+      "marketUsd": 70.19,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/me03-bundle.png",
-      "marketUsd": 40.76,
+      "marketUsd": 38.02,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Box",
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/me03-bnb.png",
-      "marketUsd": 39.81,
+      "marketUsd": 36.95,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "me04": [
@@ -822,41 +823,41 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/me04-display.png",
-      "marketUsd": 239.69,
+      "marketUsd": 182.19,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Pokémon Center ETB",
       "detail": "exclusive · 11 packs",
       "img": "assets/sealed/me04-pc-etb.png",
-      "marketUsd": 180.94,
+      "marketUsd": 123.74,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Elite Trainer Box",
       "detail": "9 packs + accessories",
       "img": "assets/sealed/me04-etb.png",
-      "marketUsd": 78.27,
+      "marketUsd": 71.7,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Booster Bundle",
       "detail": "6 packs",
       "img": "assets/sealed/me04-bundle.png",
-      "marketUsd": 45.83,
+      "marketUsd": 38.08,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Build & Battle Box",
       "detail": "4 packs + 40-card deck",
       "img": "assets/sealed/me04-bnb.png",
-      "marketUsd": 40.78,
+      "marketUsd": 39.54,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "mtg-tdm": [
@@ -864,17 +865,17 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/619645.webp?v=61",
-      "marketUsd": 131.81,
+      "marketUsd": 164.44,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/619653.webp?v=61",
-      "marketUsd": 86.79,
+      "marketUsd": 94.93,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "mtg-fin": [
@@ -882,17 +883,17 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/618890.webp?v=61",
-      "marketUsd": 206.58,
+      "marketUsd": 257.19,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/618897.webp?v=61",
-      "marketUsd": 108.4,
+      "marketUsd": 119.45,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "mtg-eoe": [
@@ -900,17 +901,17 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/619672.webp?v=61",
-      "marketUsd": 589.95,
+      "marketUsd": 727.85,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/619673.webp?v=61",
-      "marketUsd": 87.39,
+      "marketUsd": 106.18,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "mtg-tla": [
@@ -918,17 +919,17 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/648643.webp?v=61",
-      "marketUsd": 129.95,
+      "marketUsd": 119.55,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/648684.webp?v=61",
-      "marketUsd": 48.84,
+      "marketUsd": 58.79,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "mtg-spm": [
@@ -936,17 +937,17 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/621107.webp?v=61",
-      "marketUsd": 110.9,
+      "marketUsd": 117.6,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/621115.webp?v=61",
-      "marketUsd": 47.59,
+      "marketUsd": 66.25,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "mtg-dsk": [
@@ -954,17 +955,17 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/557241.webp?v=61",
-      "marketUsd": 142.8,
+      "marketUsd": 206.15,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/557249.webp?v=61",
-      "marketUsd": 80.94,
+      "marketUsd": 109.17,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "mtg-blb": [
@@ -972,17 +973,17 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/541235.webp?v=61",
-      "marketUsd": 152.89,
+      "marketUsd": 210.95,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/541241.webp?v=61",
-      "marketUsd": 168.72,
+      "marketUsd": 172.58,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "mtg-mh3": [
@@ -990,17 +991,17 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/541164.webp?v=61",
-      "marketUsd": 249.52,
+      "marketUsd": 314.75,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/541185.webp?v=61",
-      "marketUsd": 129.35,
+      "marketUsd": 129.72,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "mtg-otj": [
@@ -1008,17 +1009,17 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/541084.webp?v=61",
-      "marketUsd": 154.95,
+      "marketUsd": 189.23,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/541094.webp?v=61",
-      "marketUsd": 90.39,
+      "marketUsd": 120.28,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "mtg-mkm": [
@@ -1026,17 +1027,17 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/529964.webp?v=61",
-      "marketUsd": 123.95,
+      "marketUsd": 127.7,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/529971.webp?v=61",
-      "marketUsd": 49.16,
+      "marketUsd": 57.3,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "lor-12": [
@@ -1044,17 +1045,17 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/678165.webp?v=61",
-      "marketUsd": 256.71,
+      "marketUsd": 230.34,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Illumineer's Trove",
       "detail": "box + 8 packs",
       "img": "assets/sealed/tcg/678168.webp?v=61",
-      "marketUsd": 89.97,
+      "marketUsd": 101.72,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "lor-11": [
@@ -1062,17 +1063,17 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/664819.webp?v=61",
-      "marketUsd": 169.91,
+      "marketUsd": 250.32,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Illumineer's Trove",
       "detail": "box + 8 packs",
       "img": "assets/sealed/tcg/664826.webp?v=61",
-      "marketUsd": 57.84,
+      "marketUsd": 98.37,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "lor-10": [
@@ -1080,25 +1081,25 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/652703.webp?v=61",
-      "marketUsd": 166.74,
+      "marketUsd": 216.25,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Illumineer's Trove",
       "detail": "box + 8 packs",
       "img": "assets/sealed/tcg/652709.webp?v=61",
-      "marketUsd": 57.3,
+      "marketUsd": 111.01,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Starter Deck",
       "detail": "ready-to-play deck",
       "img": "assets/sealed/tcg/652706.webp?v=61",
-      "marketUsd": 12.02,
+      "marketUsd": 15.1,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "lor-9": [
@@ -1106,33 +1107,33 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/645298.webp?v=61",
-      "marketUsd": 765.7,
+      "marketUsd": 826.77,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Illumineer's Trove",
       "detail": "box + 8 packs",
       "img": "assets/sealed/tcg/645299.webp?v=61",
-      "marketUsd": 316.16,
+      "marketUsd": 306.42,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Starter Deck",
       "detail": "ready-to-play deck",
       "img": "assets/sealed/tcg/645305.webp?v=61",
-      "marketUsd": 27.74,
+      "marketUsd": 52.75,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Gift Set",
       "detail": "collector gift set",
       "img": "assets/sealed/tcg/645308.webp?v=61",
-      "marketUsd": 23.32,
+      "marketUsd": 37.93,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "lor-8": [
@@ -1140,25 +1141,25 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/623064.webp?v=61",
-      "marketUsd": 133.05,
+      "marketUsd": 155.1,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Illumineer's Trove",
       "detail": "box + 8 packs",
       "img": "assets/sealed/tcg/623061.webp?v=61",
-      "marketUsd": 39.28,
+      "marketUsd": 47.83,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Starter Deck",
       "detail": "ready-to-play deck",
       "img": "assets/sealed/tcg/623058.webp?v=61",
-      "marketUsd": 8.94,
+      "marketUsd": 8.77,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "lor-7": [
@@ -1166,25 +1167,25 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/607758.webp?v=61",
-      "marketUsd": 99.27,
+      "marketUsd": 148.3,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Illumineer's Trove",
       "detail": "box + 8 packs",
       "img": "assets/sealed/tcg/607761.webp?v=61",
-      "marketUsd": 37.39,
+      "marketUsd": 47.72,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Starter Deck",
       "detail": "ready-to-play deck",
       "img": "assets/sealed/tcg/607802.webp?v=61",
-      "marketUsd": 8.42,
+      "marketUsd": 11.22,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "lor-6": [
@@ -1192,33 +1193,33 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/578093.webp?v=61",
-      "marketUsd": 94.42,
+      "marketUsd": 121.22,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Illumineer's Trove",
       "detail": "box + 8 packs",
       "img": "assets/sealed/tcg/578121.webp?v=61",
-      "marketUsd": 40.07,
+      "marketUsd": 59.37,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Gift Set",
       "detail": "collector gift set",
       "img": "assets/sealed/tcg/578122.webp?v=61",
-      "marketUsd": 23.69,
+      "marketUsd": 31.72,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Starter Deck",
       "detail": "ready-to-play deck",
       "img": "assets/sealed/tcg/578123.webp?v=61",
-      "marketUsd": 9.19,
+      "marketUsd": 13.2,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "lor-5": [
@@ -1226,25 +1227,25 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/555130.webp?v=61",
-      "marketUsd": 114.83,
+      "marketUsd": 146.25,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Illumineer's Trove",
       "detail": "box + 8 packs",
       "img": "assets/sealed/tcg/555148.webp?v=61",
-      "marketUsd": 41.87,
+      "marketUsd": 63.79,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Starter Deck",
       "detail": "ready-to-play deck",
       "img": "assets/sealed/tcg/555144.webp?v=61",
-      "marketUsd": 13.02,
+      "marketUsd": 16.32,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "lor-4": [
@@ -1252,25 +1253,25 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/543859.webp?v=61",
-      "marketUsd": 96.8,
+      "marketUsd": 127.29,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Illumineer's Trove",
       "detail": "box + 8 packs",
       "img": "assets/sealed/tcg/543861.webp?v=61",
-      "marketUsd": 43.76,
+      "marketUsd": 61.7,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Starter Deck",
       "detail": "ready-to-play deck",
       "img": "assets/sealed/tcg/543863.webp?v=61",
-      "marketUsd": 8.04,
+      "marketUsd": 9.22,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "lor-3": [
@@ -1278,41 +1279,41 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/531521.webp?v=61",
-      "marketUsd": 86.78,
+      "marketUsd": 123.81,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Illumineer's Trove",
       "detail": "box + 8 packs",
       "img": "assets/sealed/tcg/531524.webp?v=61",
-      "marketUsd": 51.51,
+      "marketUsd": 61.6,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/614148.webp?v=61",
-      "marketUsd": 36.03,
+      "marketUsd": 45.56,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Gift Set",
       "detail": "collector gift set",
       "img": "assets/sealed/tcg/531528.webp?v=61",
-      "marketUsd": 26.92,
+      "marketUsd": 27.95,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Starter Deck",
       "detail": "ready-to-play deck",
       "img": "assets/sealed/tcg/531525.webp?v=61",
-      "marketUsd": 25.77,
+      "marketUsd": 33.55,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "lor-2": [
@@ -1320,25 +1321,25 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/516276.webp?v=61",
-      "marketUsd": 144.52,
+      "marketUsd": 169.63,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Illumineer's Trove",
       "detail": "box + 8 packs",
       "img": "assets/sealed/tcg/516277.webp?v=61",
-      "marketUsd": 78.34,
+      "marketUsd": 84.37,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Starter Deck",
       "detail": "ready-to-play deck",
       "img": "assets/sealed/tcg/516290.webp?v=61",
-      "marketUsd": 6.14,
+      "marketUsd": 7.04,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "lor-1": [
@@ -1346,41 +1347,41 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/485256.webp?v=61",
-      "marketUsd": 437.72,
+      "marketUsd": 459.6,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Illumineer's Trove",
       "detail": "box + 8 packs",
       "img": "assets/sealed/tcg/482411.webp?v=61",
-      "marketUsd": 279.16,
+      "marketUsd": 362.42,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Bundle",
       "detail": "9 packs + extras",
       "img": "assets/sealed/tcg/662116.webp?v=61",
-      "marketUsd": 73.92,
+      "marketUsd": 105.4,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Gift Set",
       "detail": "collector gift set",
       "img": "assets/sealed/tcg/482407.webp?v=61",
-      "marketUsd": 73.23,
+      "marketUsd": 84.42,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     },
     {
       "name": "Starter Deck",
       "detail": "ready-to-play deck",
       "img": "assets/sealed/tcg/482417.webp?v=61",
-      "marketUsd": 16.88,
+      "marketUsd": 25.55,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "op-OP16": [
@@ -1388,9 +1389,9 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/689336.webp?v=61",
-      "marketUsd": 222.29,
+      "marketUsd": 204.9,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "op-OP15": [
@@ -1398,9 +1399,9 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/682057.webp?v=61",
-      "marketUsd": 222.64,
+      "marketUsd": 253.96,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "op-OP14": [
@@ -1408,9 +1409,9 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/665598.webp?v=61",
-      "marketUsd": 248.58,
+      "marketUsd": 258.76,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "op-OP13": [
@@ -1418,9 +1419,9 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/628352.webp?v=61",
-      "marketUsd": 458.84,
+      "marketUsd": 436.56,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "op-OP12": [
@@ -1428,9 +1429,9 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/628346.webp?v=61",
-      "marketUsd": 265.09,
+      "marketUsd": 292.59,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "op-OP11": [
@@ -1438,9 +1439,9 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/620180.webp?v=61",
-      "marketUsd": 493.77,
+      "marketUsd": 548.57,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "op-OP10": [
@@ -1448,9 +1449,9 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/586671.webp?v=61",
-      "marketUsd": 244.49,
+      "marketUsd": 247.82,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "op-OP09": [
@@ -1458,9 +1459,9 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/563834.webp?v=61",
-      "marketUsd": 662.03,
+      "marketUsd": 638.31,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "op-OP08": [
@@ -1468,9 +1469,9 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/542504.webp?v=61",
-      "marketUsd": 229.01,
+      "marketUsd": 243,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "op-OP07": [
@@ -1478,9 +1479,9 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/532106.webp?v=61",
-      "marketUsd": 339.96,
+      "marketUsd": 323.04,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "op-OP06": [
@@ -1488,9 +1489,9 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/515080.webp?v=61",
-      "marketUsd": 382.07,
+      "marketUsd": 404.62,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "op-OP05": [
@@ -1498,9 +1499,9 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/498734.webp?v=61",
-      "marketUsd": 1053.74,
+      "marketUsd": 982.04,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ],
   "op-OP01": [
@@ -1508,9 +1509,9 @@ window.SEALED_PRODUCTS = {
       "name": "Booster Box",
       "detail": "36 packs",
       "img": "assets/sealed/tcg/450086.webp?v=61",
-      "marketUsd": 5831.75,
+      "marketUsd": 4298.93,
       "source": "TCGplayer",
-      "checked": "2026-06-16"
+      "checked": "2026-10-27"
     }
   ]
 };

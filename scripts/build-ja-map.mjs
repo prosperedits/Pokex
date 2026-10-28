@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const EN_SETS = ['sv01', 'sv02', 'sv03', 'sv03.5', 'sv04', 'sv04.5', 'sv05', 'sv06', 'sv06.5',
   'sv07', 'sv08', 'sv08.5', 'sv09', 'sv10', 'sv10.5b', 'sv10.5w',
-  'me01', 'me02', 'me02.5', 'me03', 'me04'];
+  'me01', 'me02', 'me02.5', 'me03', 'me04', 'me05', '30th'];
 
 const jfetch = async (u) => {
   const r = await fetch(u, { headers: { 'User-Agent': 'Crowns-Card-Tracker/1.0' } });

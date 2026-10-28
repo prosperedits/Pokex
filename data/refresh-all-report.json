@@ -1,0 +1,241 @@
+{
+  "startedAt": "2026-10-27T20:30:48.181Z",
+  "steps": [
+    {
+      "step": "card index (all four games, TCGCSV)",
+      "ok": true,
+      "secs": 4,
+      "tail": " | ALL DONE — 155803 cards across all four universes."
+    },
+    {
+      "step": "set sv01",
+      "ok": true,
+      "secs": 10,
+      "tail": "wrote data/cards-sv01.js (258 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv02",
+      "ok": true,
+      "secs": 11,
+      "tail": "wrote data/cards-sv02.js (279 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv03",
+      "ok": true,
+      "secs": 9,
+      "tail": "wrote data/cards-sv03.js (230 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv03.5",
+      "ok": true,
+      "secs": 8,
+      "tail": "wrote data/cards-sv03.5.js (207 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv04",
+      "ok": true,
+      "secs": 11,
+      "tail": "wrote data/cards-sv04.js (266 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv04.5",
+      "ok": true,
+      "secs": 10,
+      "tail": "wrote data/cards-sv04.5.js (245 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv05",
+      "ok": true,
+      "secs": 9,
+      "tail": "wrote data/cards-sv05.js (218 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv06",
+      "ok": true,
+      "secs": 9,
+      "tail": "wrote data/cards-sv06.js (226 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv06.5",
+      "ok": true,
+      "secs": 4,
+      "tail": "wrote data/cards-sv06.5.js (99 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv07",
+      "ok": true,
+      "secs": 7,
+      "tail": "wrote data/cards-sv07.js (175 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv08",
+      "ok": true,
+      "secs": 10,
+      "tail": "wrote data/cards-sv08.js (252 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv08.5",
+      "ok": true,
+      "secs": 7,
+      "tail": "wrote data/cards-sv08.5.js (180 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv09",
+      "ok": true,
+      "secs": 8,
+      "tail": "wrote data/cards-sv09.js (190 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv10",
+      "ok": true,
+      "secs": 10,
+      "tail": "wrote data/cards-sv10.js (244 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv10.5b",
+      "ok": true,
+      "secs": 16,
+      "tail": "wrote data/cards-sv10.5b.js (172 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set sv10.5w",
+      "ok": true,
+      "secs": 7,
+      "tail": "wrote data/cards-sv10.5w.js (173 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set me01",
+      "ok": true,
+      "secs": 8,
+      "tail": "wrote data/cards-me01.js (188 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set me02",
+      "ok": true,
+      "secs": 6,
+      "tail": "wrote data/cards-me02.js (130 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set me02.5",
+      "ok": true,
+      "secs": 12,
+      "tail": "wrote data/cards-me02.5.js (295 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set me03",
+      "ok": true,
+      "secs": 6,
+      "tail": "wrote data/cards-me03.js (124 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set me04",
+      "ok": true,
+      "secs": 6,
+      "tail": "wrote data/cards-me04.js (122 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set me05",
+      "ok": true,
+      "secs": 11,
+      "tail": "wrote data/cards-me05.js (120 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set basep",
+      "ok": true,
+      "secs": 3,
+      "tail": "wrote data/cards-basep.js (53 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set dpp",
+      "ok": true,
+      "secs": 12,
+      "tail": "wrote data/cards-dpp.js (56 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "set np",
+      "ok": true,
+      "secs": 3,
+      "tail": "wrote data/cards-np.js (40 cards) | wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    },
+    {
+      "step": "promos svp",
+      "ok": true,
+      "secs": 13,
+      "tail": "  TCGCSV group 22872 \"group 22872\": 215 numbers priced | wrote data/cards-svp.js — 192 cards (34 skipped, 181 priced)"
+    },
+    {
+      "step": "promos swshp",
+      "ok": true,
+      "secs": 13,
+      "tail": "  TCGCSV group 2545 \"group 2545\": 308 numbers priced | wrote data/cards-swshp.js — 285 cards (22 skipped, 285 priced)"
+    },
+    {
+      "step": "promos smp",
+      "ok": true,
+      "secs": 8,
+      "tail": "  TCGCSV group 1861 \"group 1861\": 253 numbers priced | wrote data/cards-smp.js — 181 cards (67 skipped, 181 priced)"
+    },
+    {
+      "step": "promos xyp",
+      "ok": true,
+      "secs": 9,
+      "tail": "  TCGCSV group 1451 \"group 1451\": 215 numbers priced | wrote data/cards-xyp.js — 213 cards (3 skipped, 206 priced)"
+    },
+    {
+      "step": "promos bwp",
+      "ok": true,
+      "secs": 5,
+      "tail": "  TCGCSV group 1407 \"group 1407\": 99 numbers priced | wrote data/cards-bwp.js — 98 cards (3 skipped, 92 priced)"
+    },
+    {
+      "step": "promos hgssp",
+      "ok": true,
+      "secs": 1,
+      "tail": "  TCGCSV group 1453 \"group 1453\": 28 numbers priced | wrote data/cards-hgssp.js — 16 cards (9 skipped, 16 priced)"
+    },
+    {
+      "step": "First Partner Pack (fpp)",
+      "ok": true,
+      "secs": 0,
+      "tail": "wrote data/cards-fpp.js — 24 First Partner cards (24 priced)"
+    },
+    {
+      "step": "30th Celebration",
+      "ok": true,
+      "secs": 7,
+      "tail": "wrote data/cards-30th.js — 161 cards (128 official), 161 priced, 158 with TCGdex art | top 5: Mew R $4278.49 · Mew B $4092.11 · Mew G $3550.78 · Mew ex 152 $81.97 · Gengar ex 154 $66.26"
+    },
+    {
+      "step": "First Partner Illustration fpic1-3",
+      "ok": true,
+      "secs": 1,
+      "tail": "wrote data/cards-fpic2.js — 9 cards, 9 priced, 9 local art | wrote data/cards-fpic3.js — 9 cards, 9 priced, 9 local art"
+    },
+    {
+      "step": "One Piece bundle (dotgg)",
+      "ok": true,
+      "secs": 0,
+      "tail": "wrote data/onepiece.js — 5603 cards across 71 set codes, 5436 priced"
+    },
+    {
+      "step": "Magic serialized prices",
+      "ok": true,
+      "secs": 3,
+      "tail": " | wrote data/magic-prices.js with 9 prices"
+    },
+    {
+      "step": "sealed prices",
+      "ok": true,
+      "secs": 2,
+      "tail": " | Wrote 56/62 sets → C:\\Users\\P\\Downloads\\Clauder\\phantasmal\\data\\sealed.js"
+    },
+    {
+      "step": "homepage trending",
+      "ok": true,
+      "secs": 0,
+      "tail": "wrote data/home-trending.js (18 movers; #1 Mew ex 291.5%)"
+    }
+  ],
+  "finishedAt": "2026-10-27T20:35:26.785Z",
+  "failed": []
+}

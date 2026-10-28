@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Crown tuning</title>
+<style>html,body{margin:0;background:#0b1430}canvas{display:block}</style>
+</head><body>
+<canvas id="c"></canvas>
+<script src="../../../vendor/three.min.js"></script>
+<script src="../../../vendor/GLTFLoader.js"></script>
+<script src="../../../vendor/RoomEnvironment.js"></script>
+<script src="../../../data/home-trending.js"></script>
+<script src="../../../crown3d.js?v=31"></script>
+<script>
+  // tune.html?m=arcade-35-web.glb&slots=arcade-35-slots.json&cards=1&exp=1.05&w=1200&h=760
+  // a still of the crown for lighting/fit work; window.__pose(rad) turns it, window.__ready says it's loaded
+  const q = new URLSearchParams(location.search), num = (k, d) => (q.has(k) ? +q.get(k) : d);
+  const cv = document.getElementById('c');
+  cv.style.width = num('w', 1200) + 'px'; cv.style.height = num('h', 760) + 'px';
+  const cards = q.get('cards') === '1' ? (HOME_TRENDING.chase || []).filter((c) => c.local).map((c) => ({ src: '../../../' + c.local })) : null;
+  const go = (slots) => {
+    const crown = CrownMark.mount(cv, {
+      pixelRatio: 1, capture: true, exposure: num('exp', 1.05), model: q.get('m') || 'arcade-35-web.glb', cards, slots,
+      light: q.get('light') || 'arcade', envI: num('env', 0.9), sky: num('sky', 0.85), keyI: num('key', 1.2), rimI: num('rim', 1.0),
+      camera: [[0, num('cy', 0.95), num('cz', 3.95)], [0, num('ty', 0.5), 0]], slotAdjust: { dy: num('dy', 0), ws: num('ws', 1), wMax: num('wmax', 9) }, cardAlpha: num('ca', 0), orbit: q.get('orbit') ? { count: num('on', 12), r: num('or', 1.25), y: num('oy', 0.34), h: num('oh', 0.42), tilt: num('ot', 0.2), roll: num('orl', 0), spacing: num('osp', 0) || undefined } : null, gems: q.get('gems') === '1', gemStyle: q.get('gs') || 'a', cardBack: q.get('back') ? '../../../assets/card-back.webp?v=4' : null, backInset: num('bi', 0.034), lift: num('lift', 0.014),
+      onload: () => setTimeout(() => { window.__ready = true; }, 1600),
+    });
+    let at = 0;
+    window.__pose = (rad) => { crown.nudge(rad - at); at = rad; crown.render(1000, 0, 0); return true; };
+    // ?measure=1: find the card windows on the rendered geometry itself. Rays come in from outside at
+    // every half degree; a hit whose base colour is pale and unsaturated is window (holo), anything else frame.
+    window.__measure = () => {
+      const T = THREE, model = crown.crown.children[0]; crown.crown.rotation.set(0, 0, 0); crown.crown.updateMatrixWorld(true);
+      let tex = null; model.traverse((o) => { if (!tex && o.isMesh && o.material && o.material.map) tex = o.material.map; });
+      const img = tex.image, S = 1024, cx = document.createElement('canvas'); cx.width = cx.height = S;
+      const g = cx.getContext('2d'); g.drawImage(img, 0, 0, S, S); const px = g.getImageData(0, 0, S, S).data;
+      const box = new T.Box3().setFromObject(model), H = box.max.y;
+      const ray = new T.Raycaster(), meshes = []; model.traverse((o) => { if (o.isMesh) meshes.push(o); });
+      const holo = (a, y) => {
+        ray.set(new T.Vector3(Math.sin(a) * 3, y, Math.cos(a) * 3), new T.Vector3(-Math.sin(a), 0, -Math.cos(a)));
+        const h = ray.intersectObjects(meshes, false)[0]; if (!h || !h.uv) return null;
+        const i = ((Math.min(S - 1, (h.uv.y * S) | 0)) * S + Math.min(S - 1, (h.uv.x * S) | 0)) * 4;
+        const r = px[i] / 255, gg = px[i + 1] / 255, b = px[i + 2] / 255, mx = Math.max(r, gg, b), mn = Math.min(r, gg, b);
+        const sat = (mx - mn) / (mx || 1); let hue = 0; if (mx > mn) { hue = mx === r ? ((gg - b) / (mx - mn)) % 6 : mx === gg ? (b - r) / (mx - mn) + 2 : (r - gg) / (mx - mn) + 4; hue = (hue * 60 + 360) % 360; }
+        const gold = hue > 18 && hue < 62 && sat > 0.4;   // the frame; everything pale or pastel-rainbow is the holo window
+        return { w: mx > 0.5 && !gold && sat < 0.66, d: Math.hypot(h.point.x, h.point.z), hue: Math.round(hue), sat: +sat.toFixed(2), v: +mx.toFixed(2) };
+      };
+      const STEP = Math.PI / 720, ys = [0.52, 0.58, 0.64].map((f) => f * H);
+      const on = []; for (let k = 0; k < 1440; k++) { const a = k * STEP; on.push(ys.filter((y) => { const r = holo(a, y); return r && r.w; }).length >= 2); }
+      // runs of window around the circle
+      const runs = []; let s0 = -1;
+      const start = on.findIndex((v) => !v);
+      for (let j = 0; j <= 1440; j++) { const k = (start + j) % 1440, v = j < 1440 && on[k]; if (v && s0 < 0) s0 = start + j; if (!v && s0 >= 0) { runs.push([s0, start + j - 1]); s0 = -1; } }
+      const slots = runs.filter(([a, b]) => (b - a) * STEP > 0.12).map(([a0, a1]) => {
+        const a = ((a0 + a1) / 2) * STEP;
+        // vertical extent at the window's centre line
+        let lo = null, hi = null, dsum = 0, dn = 0;
+        for (let y = 0; y <= H; y += H / 400) { const r = holo(a, y); if (r && r.w) { if (lo == null) lo = y; hi = y; dsum += r.d; dn++; } }
+        const r = dsum / dn, w = (a1 - a0) * STEP * r;
+        return { a: +(Math.atan2(Math.sin(a), Math.cos(a))).toFixed(4), y: +((lo + hi) / 2).toFixed(4), h: +(hi - lo).toFixed(4), w: +w.toFixed(4), r: +r.toFixed(4), area: 1 };
+      });
+      return { height: +H.toFixed(4), slots, debug: { on: on.filter(Boolean).length, runs: runs.length, sample: [0, 0.3, 0.6, 1.2].map((a) => holo(a, ys[1])) } };
+    };
+    // __refine(slots, dy): re-centre each known window from its own neighbourhood. Around each slot's angle, at the
+    // card's height, walk out both ways while the surface stays holo (gaps up to 1.5 degrees bridge the emblem lines),
+    // then do the same vertically at the new centre.
+    window.__refine = (slots, dy) => {
+      window.__measure();   // builds nothing we keep; just resets the pose
+      const T = THREE, model = crown.crown.children[0]; crown.crown.rotation.set(0, 0, 0); crown.crown.updateMatrixWorld(true);
+      let tex = null; model.traverse((o) => { if (!tex && o.isMesh && o.material && o.material.map) tex = o.material.map; });
+      const S = 1024, cx = document.createElement('canvas'); cx.width = cx.height = S;
+      const g = cx.getContext('2d'); g.drawImage(tex.image, 0, 0, S, S); const px = g.getImageData(0, 0, S, S).data;
+      const ray = new T.Raycaster(), meshes = []; model.traverse((o) => { if (o.isMesh) meshes.push(o); });
+      const isHolo = (a, y) => {
+        ray.set(new T.Vector3(Math.sin(a) * 3, y, Math.cos(a) * 3), new T.Vector3(-Math.sin(a), 0, -Math.cos(a)));
+        const h = ray.intersectObjects(meshes, false)[0]; if (!h || !h.uv) return false;
+        const i = ((Math.min(S - 1, (h.uv.y * S) | 0)) * S + Math.min(S - 1, (h.uv.x * S) | 0)) * 4;
+        const r = px[i] / 255, gg = px[i + 1] / 255, b = px[i + 2] / 255, mx = Math.max(r, gg, b), mn = Math.min(r, gg, b);
+        const sat = (mx - mn) / (mx || 1); let hue = 0; if (mx > mn) { hue = mx === r ? ((gg - b) / (mx - mn)) % 6 : mx === gg ? (b - r) / (mx - mn) + 2 : (r - gg) / (mx - mn) + 4; hue = (hue * 60 + 360) % 360; }
+        return mx > 0.5 && !(hue > 18 && hue < 62 && sat > 0.4) && sat < 0.66;
+      };
+      const walk = (test, from, step, maxN, gap) => { let last = from, miss = 0; for (let k = 1; k <= maxN; k++) { const v = from + step * k; if (test(v)) { last = v; miss = 0; } else if (++miss > gap) break; } return last; };
+      const D = Math.PI / 720;   // a quarter degree
+      return slots.map((s) => {
+        const yc = s.y + dy, hs = [yc - 0.07, yc, yc + 0.07];
+        const at = (a) => hs.filter((y) => isHolo(a, y)).length >= 2;
+        let a0 = s.a; if (!at(a0)) { for (let k = 1; k < 40; k++) { if (at(s.a + k * D)) { a0 = s.a + k * D; break; } if (at(s.a - k * D)) { a0 = s.a - k * D; break; } } }
+        const lo = walk(at, a0, -D, 120, 6), hi = walk(at, a0, D, 120, 6), a = (lo + hi) / 2;
+        const up = (y) => isHolo(a, y), ylo = walk(up, yc, -0.004, 120, 4), yhi = walk(up, yc, 0.004, 120, 4);
+        return { a: +a.toFixed(4), y: +((ylo + yhi) / 2).toFixed(4), h: +(yhi - ylo).toFixed(4), w: +((hi - lo) * s.r).toFixed(4), r: s.r, area: 1,
+          was: { a: s.a, w: s.w }, deg: +((a - s.a) * 180 / Math.PI).toFixed(2) };
+      });
+    };
+  };
+  if (q.get('slots')) fetch(q.get('slots')).then((r) => r.json()).then((j) => { window.__slots = j.slots.filter((s) => !('area' in s) || s.area > 0.02); go(window.__slots); }); else go(null);
+</script>
+</body></html>

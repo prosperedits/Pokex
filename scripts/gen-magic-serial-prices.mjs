@@ -11,6 +11,8 @@ import { writeFileSync } from 'node:fs';
 
 // Mirror the Magic codes/names in app.js GAME_SETS.
 const SETS = [
+  { code: 'msh', name: 'Marvel Super Heroes' }, { code: 'sos', name: 'Secrets of Strixhaven' },
+  { code: 'tmt', name: 'Teenage Mutant Ninja Turtles' }, { code: 'ecl', name: 'Lorwyn Eclipsed' },
   { code: 'tdm', name: 'Tarkir: Dragonstorm' }, { code: 'fin', name: 'Final Fantasy' },
   { code: 'eoe', name: 'Edge of Eternities' }, { code: 'tla', name: 'Avatar: The Last Airbender' },
   { code: 'spm', name: "Marvel's Spider-Man" }, { code: 'dsk', name: 'Duskmourn: House of Horror' },

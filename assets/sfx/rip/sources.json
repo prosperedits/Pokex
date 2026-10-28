@@ -1,0 +1,13 @@
+{
+  "note": "Recorded sound effects for the Rip Lab hero (rip3d.js). Only sounds listed under \"sounds\" are loaded and played; while it is empty the page stays silent and hides the Sound toggle. Source: Faisal's Envato Elements plan, each item licensed to the Envato project below. Downloads are WAV; the web copies here are small MP3s.",
+  "project": "Crowns Rip Lab",
+  "status": "waiting: Envato Elements was signed out in the connected Chrome on 27 Oct 2026, so nothing has been downloaded yet",
+  "wanted": {
+    "tear": "foil booster pack or chip bag tearing open, under 1 s",
+    "slide": "a small stack of cards sliding out of a sleeve",
+    "flip": "a single trading card flipped over, short and dry",
+    "reveal": "a soft, warm reveal for the best card (no coins, no jackpot chime)"
+  },
+  "entryFormat": { "file": "tear.mp3", "volume": 0.9, "title": "item title on Envato", "author": "author", "url": "item page URL", "licence": "Envato Elements licence, registered to project Crowns Rip Lab", "original": "WAV" },
+  "sounds": {}
+}

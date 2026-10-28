@@ -1,0 +1,65 @@
+/* ============================================================================
+   Crowns app ground: shared by the app pages (app.html: set browser, set view,
+   grid, inspect) and the store demo page, so they read as one product and step
+   away from the homepage's navy contour field (Faisal, 27 Oct: "the background
+   should be completely different in this page than what it is on the homepage").
+
+   A near-black satin ground, ONE soft light pool behind the focal content, and a
+   fine static film grain. No contour lines, no navy, nothing redrawn per frame:
+   two gradients and one tiled image, painted once.
+
+   Use: link this file and make this the first child of <body>:
+     <div class="app-ground" aria-hidden="true"></div>
+   Then steer it with the custom properties below (on :root, body or a state class):
+     --app-pool-x / --app-pool-y   where the light sits (over the focal content)
+     --app-pool-w / --app-pool-h   its size
+     --app-accent                  the set's own colour; it tints the pool only, subtly
+   ============================================================================ */
+:root {
+  --app-ground-top: #08090c;
+  --app-ground-bottom: #101216;
+  --app-pool-base: #f1ece4;          /* neutral warm light */
+  --app-accent: var(--app-pool-base);
+  --app-pool-mix: 34%;               /* share of the accent inside the pool */
+  --app-pool-strength: 10%;          /* the pool's opacity at its centre */
+  --app-pool-x: 50%;
+  --app-pool-y: 44%;
+  --app-pool-w: 60vmax;
+  --app-pool-h: 42vmax;
+  --app-grain: 0.04;
+}
+
+/* registered so a change of set eases the pool from one colour to the next
+   instead of snapping (set-to-set changes never jump the ground) */
+@property --app-accent { syntax: '<color>'; inherits: true; initial-value: #f1ece4; }
+body { transition: --app-accent 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+
+.app-ground {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--app-ground-top) 0%, var(--app-ground-bottom) 100%);
+}
+/* the light pool: one wide, soft ellipse; its colour is mostly neutral light with a
+   measure of the set's accent mixed in */
+.app-ground::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(var(--app-pool-w) var(--app-pool-h) at var(--app-pool-x) var(--app-pool-y),
+    color-mix(in srgb, color-mix(in srgb, var(--app-accent) var(--app-pool-mix), var(--app-pool-base)) var(--app-pool-strength), transparent) 0%,
+    color-mix(in srgb, color-mix(in srgb, var(--app-accent) var(--app-pool-mix), var(--app-pool-base)) calc(var(--app-pool-strength) * 0.45), transparent) 38%,
+    transparent 72%);
+}
+/* film grain: a lossless 600px noise tile drawn at half size (finer) and 4% opacity;
+   it also dithers the gradients so the dark ramp never bands */
+.app-ground::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('assets/grain.png') repeat;
+  background-size: 300px 300px;
+  opacity: var(--app-grain);
+}

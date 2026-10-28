@@ -1,3 +1,7 @@
+// SUPERSEDED 2026-10-27: TCGdex now catalogues me05 (120 cards, art + prices), so
+// data/cards-me05.js is built by `node scripts/refresh-data.mjs me05 "Pitch Black"`
+// (see refresh-all.mjs). Running this script would swap it back to TCGplayer-only data.
+//
 // fetch-me05-tcgcsv.mjs — build data/cards-me05.js (ME05: Pitch Black) from
 // TCGCSV/TCGplayer group 24688. Pitch Black is not on TCGdex yet, so card
 // images come from the TCGplayer product CDN (fullImg, like the fpic sets)

@@ -1,0 +1,128 @@
+{
+ "me01": {
+  "product": "Mega Evolution Booster Pack",
+  "tcgplayerProductId": 644352,
+  "group": "ME01: Mega Evolution",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/644352_in_1000x1000.jpg"
+ },
+ "me02": {
+  "product": "Phantasmal Flames Booster Pack",
+  "tcgplayerProductId": 654144,
+  "group": "ME02: Phantasmal Flames",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/654144_in_1000x1000.jpg"
+ },
+ "me02.5": {
+  "product": "Ascended Heroes Booster Pack",
+  "tcgplayerProductId": 672434,
+  "group": "ME: Ascended Heroes",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/672434_in_1000x1000.jpg"
+ },
+ "me03": {
+  "product": "Perfect Order Booster Pack",
+  "tcgplayerProductId": 672398,
+  "group": "ME03: Perfect Order",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/672398_in_1000x1000.jpg"
+ },
+ "me04": {
+  "product": "Chaos Rising Booster Pack",
+  "tcgplayerProductId": 684446,
+  "group": "ME04: Chaos Rising",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/684446_in_1000x1000.jpg"
+ },
+ "sv01": {
+  "product": "Scarlet & Violet Booster Pack",
+  "tcgplayerProductId": 476451,
+  "group": "SV01: Scarlet & Violet Base Set",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/476451_in_1000x1000.jpg"
+ },
+ "sv02": {
+  "product": "Paldea Evolved Booster Pack",
+  "tcgplayerProductId": 493976,
+  "group": "SV02: Paldea Evolved",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/493976_in_1000x1000.jpg"
+ },
+ "sv03": {
+  "product": "Obsidian Flames Booster Pack",
+  "tcgplayerProductId": 501256,
+  "group": "SV03: Obsidian Flames",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/501256_in_1000x1000.jpg"
+ },
+ "sv03.5": {
+  "product": "151 Booster Pack",
+  "tcgplayerProductId": 504467,
+  "group": "SV: Scarlet & Violet 151",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/504467_in_1000x1000.jpg"
+ },
+ "sv04": {
+  "product": "Paradox Rift Booster Pack",
+  "tcgplayerProductId": 512822,
+  "group": "SV04: Paradox Rift",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/512822_in_1000x1000.jpg"
+ },
+ "sv04.5": {
+  "product": "Paldean Fates Booster Pack",
+  "tcgplayerProductId": 528038,
+  "group": "SV: Paldean Fates",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/528038_in_1000x1000.jpg"
+ },
+ "sv05": {
+  "product": "Temporal Forces Booster Pack",
+  "tcgplayerProductId": 532841,
+  "group": "SV05: Temporal Forces",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/532841_in_1000x1000.jpg"
+ },
+ "sv06": {
+  "product": "Twilight Masquerade Booster Pack",
+  "tcgplayerProductId": 543843,
+  "group": "SV06: Twilight Masquerade",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/543843_in_1000x1000.jpg"
+ },
+ "sv06.5": {
+  "product": "Shrouded Fable Booster Pack",
+  "tcgplayerProductId": 552997,
+  "group": "SV: Shrouded Fable",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/552997_in_1000x1000.jpg"
+ },
+ "sv07": {
+  "product": "Stellar Crown Booster Pack",
+  "tcgplayerProductId": 557331,
+  "group": "SV07: Stellar Crown",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/557331_in_1000x1000.jpg"
+ },
+ "sv08": {
+  "product": "Surging Sparks Booster Pack",
+  "tcgplayerProductId": 565604,
+  "group": "SV08: Surging Sparks",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/565604_in_1000x1000.jpg"
+ },
+ "sv08.5": {
+  "product": "Prismatic Evolutions Booster Pack",
+  "tcgplayerProductId": 593294,
+  "group": "SV: Prismatic Evolutions",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/593294_in_1000x1000.jpg"
+ },
+ "sv09": {
+  "product": "Journey Together Booster Pack",
+  "tcgplayerProductId": 610935,
+  "group": "SV09: Journey Together",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/610935_in_1000x1000.jpg"
+ },
+ "sv10": {
+  "product": "Destined Rivals Booster Pack",
+  "tcgplayerProductId": 624683,
+  "group": "SV10: Destined Rivals",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/624683_in_1000x1000.jpg"
+ },
+ "sv10.5b": {
+  "product": "Black Bolt Booster Pack",
+  "tcgplayerProductId": 630434,
+  "group": "SV: Black Bolt",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/630434_in_1000x1000.jpg"
+ },
+ "sv10.5w": {
+  "product": "White Flare Booster Pack",
+  "tcgplayerProductId": 630699,
+  "group": "SV: White Flare",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/630699_in_1000x1000.jpg"
+ }
+}

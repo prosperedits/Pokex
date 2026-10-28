@@ -6,7 +6,18 @@
 // group's products + prices, keep the non-card (sealed) ones, classify them
 // into a clean product type, and attach the live market price + a TCGplayer
 // product photo. Prints a match report so wrong/missing maps are obvious.
-import { writeFileSync } from 'node:fs';
+//
+// MERGE-SAFE (2026-10-27): data/sealed.js is post-processed after this script
+// (merge-sealed-images.py swaps in local renders/cutouts; hand-added products;
+// single booster packs removed). A plain re-run used to wipe all of that, so now
+// it REFRESHES the existing file: every existing entry keeps its name/detail/img
+// and only gets a new marketUsd + checked date (matched by the TCGplayer product
+// id in its img, else by product type). Sets/products not in the file yet are
+// only added with --add-new (they arrive with TCGplayer photos until cut out by
+// cutout-sealed.py / merge-sealed-images.py). Single booster packs are never added.
+//   node scripts/gen-sealed-tcgcsv.mjs            # refresh prices in place
+//   node scripts/gen-sealed-tcgcsv.mjs --add-new  # also add new sets/products
+import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -41,7 +52,13 @@ const APP_SETS = [
   { id: 'me02.5', game: 'pokemon', name: 'Ascended Heroes' },
   { id: 'me03', game: 'pokemon', name: 'Perfect Order' },
   { id: 'me04', game: 'pokemon', name: 'Chaos Rising' },
+  { id: 'me05', game: 'pokemon', name: 'Pitch Black' },
+  { id: '30th', game: 'pokemon', name: '30th Celebration' },
   // —— Magic (exact name avoids the Commander/Art/Promo sibling groups) ——
+  { id: 'mtg-msh', game: 'magic', name: 'Marvel Super Heroes' },
+  { id: 'mtg-sos', game: 'magic', name: 'Secrets of Strixhaven' },
+  { id: 'mtg-tmt', game: 'magic', name: 'Teenage Mutant Ninja Turtles' },
+  { id: 'mtg-ecl', game: 'magic', name: 'Lorwyn Eclipsed' },
   { id: 'mtg-tdm', game: 'magic', name: 'Tarkir: Dragonstorm' },
   { id: 'mtg-fin', game: 'magic', name: 'Final Fantasy' },
   { id: 'mtg-eoe', game: 'magic', name: 'Edge of Eternities' },
@@ -121,7 +138,17 @@ function bestPrice(rows) {
   return typeof v === 'number' ? v : null;
 }
 
+const ADD_NEW = process.argv.includes('--add-new');
+function loadPrev() {
+  if (!existsSync(OUT)) return { data: {}, banner: '' };
+  const src = readFileSync(OUT, 'utf8');
+  const m = src.match(/window\.SEALED_PRODUCTS = ([\s\S]*);\s*$/);
+  if (!m) throw new Error('could not parse existing data/sealed.js — refusing to overwrite it');
+  return { data: JSON.parse(m[1]), banner: src.slice(0, m.index) };
+}
+
 async function run() {
+  const prev = loadPrev();
   const groupsByCat = {};
   for (const [game, cat] of Object.entries(CATEGORY)) {
     groupsByCat[game] = (await getJSON(`https://tcgcsv.com/tcgplayer/${cat}/groups`)).results || [];
@@ -175,18 +202,42 @@ async function run() {
         marketUsd: Math.round(price * 100) / 100, source: 'TCGplayer', checked: TODAY, prio: cls.prio });
     }
     items.sort((a, b) => b.prio - a.prio || b.marketUsd - a.marketUsd);
-    const top = items.slice(0, 8).map(({ prio, ...rest }) => rest);
-    if (top.length) {
-      out[set.id] = top;
-      report.push(`  ✓ ${set.id.padEnd(9)} → [${group.groupId}] ${group.name.padEnd(34)} ${top.length} sealed  (eg ${top[0].name} $${top[0].marketUsd})`);
+    const fresh = items.filter((x) => x.name !== 'Booster Pack');   // single packs were removed on purpose
+    const old = prev.data[set.id] || [];
+    let merged, updated = 0, added = 0;
+    if (old.length) {
+      // refresh existing entries in place: price by product id in the img, else by type
+      merged = old.map((e) => {
+        const pid = (String(e.img || '').match(/(\d{5,})/) || [])[1];
+        const byPid = pid ? bestPrice(priceByPid[pid] || []) : null;
+        const byType = fresh.find((x) => x.name === e.name);
+        const v = byPid ?? (byType ? byType.marketUsd : null);
+        if (v == null) return e;                                   // no fresh price: keep as-is
+        updated++;
+        return { ...e, marketUsd: Math.round(v * 100) / 100, checked: TODAY };
+      });
+      if (ADD_NEW) for (const x of fresh) {
+        if (merged.length >= 8 || merged.some((e) => e.name === x.name)) continue;
+        const { prio, ...rest } = x; merged.push(rest); added++;
+      }
+    } else if (ADD_NEW) {
+      merged = fresh.slice(0, 8).map(({ prio, ...rest }) => rest); added = merged.length;
+    } else merged = [];
+    if (merged.length) {
+      out[set.id] = merged;
+      report.push(`  ✓ ${set.id.padEnd(9)} → [${group.groupId}] ${group.name.padEnd(34)} ${merged.length} sealed, ${updated} repriced, ${added} added  (eg ${merged[0].name} $${merged[0].marketUsd})`);
     } else {
-      report.push(`  · ${set.id.padEnd(9)} → [${group.groupId}] ${group.name} — 0 priced sealed`);
+      report.push(`  · ${set.id.padEnd(9)} → [${group.groupId}] ${group.name} — ${fresh.length} priced sealed available (not in file; use --add-new)`);
     }
   }
+  // never drop a set that is already in the file (e.g. its group failed to fetch this run)
+  for (const [id, arr] of Object.entries(prev.data)) if (!out[id]) { out[id] = arr; report.push(`  = ${id.padEnd(9)} kept unchanged`); }
 
-  const banner = `// Sealed-product prices — GENERATED by scripts/gen-sealed-tcgcsv.mjs\n`
-    + `// Source: TCGCSV (free TCGplayer mirror). Market price + product photo per\n`
-    + `// item. Re-run any time to refresh. Last generated: ${TODAY}.\n`;
+  // keep the existing banner (it documents the image merge); stamp the refresh date
+  const banner = (prev.banner.replace(/\/\/ Prices refreshed by gen-sealed-tcgcsv\.mjs.*\n/g, '')
+    || `// Sealed-product prices — GENERATED by scripts/gen-sealed-tcgcsv.mjs\n`
+    + `// Source: TCGCSV (free TCGplayer mirror). Market price + product photo per item.\n`)
+    + `// Prices refreshed by gen-sealed-tcgcsv.mjs (TCGCSV) on ${TODAY}.\n`;
   writeFileSync(OUT, `${banner}window.SEALED_PRODUCTS = ${JSON.stringify(out, null, 2)};\n`);
   console.log(report.join('\n'));
   console.log(`\nWrote ${Object.keys(out).length}/${APP_SETS.length} sets → ${OUT}`);

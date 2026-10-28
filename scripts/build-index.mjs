@@ -8,7 +8,7 @@
 //   data/card-index-op.js     (One Piece)
 // Card shape: { i:productId, n, s:groupId, sn:setName, num, rar, img, p:priceUSD, g:game }
 // tcgcsv blocks blank User-Agents — send a descriptive one. Node >= 18, no deps.
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -32,13 +32,14 @@ async function buildGame(G) {
   const groups = arr(await j(`${base}/groups`));
   if (!groups.length) { console.error(`${G.g}: no groups`); return; }
   console.log(`${G.g}: ${groups.length} groups`);
-  const idx = []; let done = 0;
+  const idx = []; let done = 0; const failed = [];
   const queue = [...groups];
   async function worker() {
     while (queue.length) {
       const grp = queue.pop();
       const [prods, prices] = await Promise.all([j(`${base}/${grp.groupId}/products`), j(`${base}/${grp.groupId}/prices`)]);
       done++;
+      if (!prods) { failed.push(String(grp.groupId)); continue; }   // fetch failed: keep last run's rows (below)
       const pmap = {};
       for (const pr of arr(prices)) { if (pr.marketPrice && (!pmap[pr.productId] || pr.marketPrice > pmap[pr.productId])) pmap[pr.productId] = pr.marketPrice; }
       for (const p of arr(prods)) {
@@ -52,6 +53,13 @@ async function buildGame(G) {
     }
   }
   await Promise.all(Array.from({ length: CONC }, worker));
+  // a group whose fetch failed keeps its rows from the previous file instead of vanishing
+  if (failed.length && existsSync(join(DATA, G.file))) {
+    const w = {}; new Function('window', readFileSync(join(DATA, G.file), 'utf8'))(w);
+    const keep = new Set(failed); const old = (w.CARD_INDEX || []).filter((c) => keep.has(c.s));
+    idx.push(...old);
+    console.log(`  ${G.g}: ${failed.length} group fetches failed — kept ${old.length} rows from the previous file`);
+  }
   idx.sort((a, b) => a.n.localeCompare(b.n) || a.sn.localeCompare(b.sn));
   writeFileSync(join(DATA, G.file), 'window.CARD_INDEX = (window.CARD_INDEX || []).concat(' + JSON.stringify(idx) + ');\n');
   const priced = idx.filter((c) => c.p != null).length;

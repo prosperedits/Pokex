@@ -58,7 +58,12 @@ window.LAYOUT = Object.freeze({
   // --- wheel (browse) -----------------------------------------------------
   WHEEL_CARD_HEIGHT_FACTOR: 0.60, // wheel card height = wheel.clientHeight * this  (JS render geometry)
   WHEEL_CARD_HEIGHT_CSS: '60%',   // matching CSS .card height
-  WHEEL_FOCUS_SCALE: 1.18,        // peak scale of the centered card
+  WHEEL_FOCUS_SCALE: 1.18,        // (legacy doc value; the live curve peaks at WHEEL_CARD_PEAK)
+  // The wheel's scale curve peaks at 0.98 + 0.56 = 1.54 on the focused card. The
+  // card ELEMENT is built at that peak size and only ever scaled DOWN, so the
+  // compositor rasterises the focused card 1:1 (crisp) instead of upscaling a
+  // smaller raster (the old blur), and scale changes never force a re-raster.
+  WHEEL_CARD_PEAK: 1.54,
 
   // --- inspect featured card ----------------------------------------------
   TILT_CARD_HEIGHT: 'min(58vh, 60vw)',
@@ -92,6 +97,7 @@ window.LAYOUT = Object.freeze({
   R.setProperty('--card-aspect', L.CARD_ASPECT);
   R.setProperty('--card-radius', L.CARD_RADIUS);
   R.setProperty('--wheel-card-h', L.WHEEL_CARD_HEIGHT_CSS);
+  R.setProperty('--wheel-card-peak', String(L.WHEEL_CARD_PEAK));
   R.setProperty('--tilt-card-h', L.TILT_CARD_HEIGHT);
   R.setProperty('--tilt-card-w-narrow', L.TILT_CARD_NARROW_WIDTH);
   R.setProperty('--panel-basis', L.PANEL_BASIS);

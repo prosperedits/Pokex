@@ -1,20 +1,23 @@
-// Spinning crown logo — driven by rAF, not a CSS animation.
-// CSS animation timelines are unreliable on the target machine (see the note in
-// app.html: they can freeze while the rAF physics loop never does), so the header
-// crown steps through its 36-frame sprite strip here instead. Works on every page
-// that has a `.crown-spin` (homepage) or `.lockup-crown` (app) element.
+// The crown logo: the regal crown Faisal picked, turning on its own (no cards), as an animated WebP the browser plays
+// itself: 360 frames, 30 fps, one 12 s turn. It replaced a 72-frame sprite stepped by rAF that ran at about
+// 5 frames a second and read as laggy (Faisal, 27 Oct). Works on every element with `.crown-spin`
+// (homepage, data page) or `.lockup-crown` (app): the script sizes each one to the crown's aspect from
+// its CSS height, so pages only set a height.
+// Re-render: docs/design/crown/logo.html (frames) + scripts/make-crown-logo.py.
 (function () {
-  var els = document.querySelectorAll('.crown-spin, .lockup-crown');
-  if (!els.length) return;
-  var FRAMES = 90, DUR = 5800, lastF = -1;              // 90 frames; slower turntable
-  function tick(now) {
-    var f = (FRAMES - 1) - ((now / DUR % 1 * FRAMES) | 0); // reversed frame order = clockwise spin
-    if (f !== lastF) {
-      lastF = f;
-      // each sprite frame is square, drawn at `auto 100%`, so its display width == the element's height
-      for (var i = 0; i < els.length; i++) { var h = els[i].offsetHeight || 48; els[i].style.backgroundPositionX = -(f * h) + 'px'; }
+  var SRC = 'assets/crown/crown-turn.webp?v=5';
+  var ASPECT = 1.3393;                               // 150 x 112, the crop that holds every frame of the turn
+  function fit() {
+    var els = document.querySelectorAll('.crown-spin, .lockup-crown');
+    for (var i = 0; i < els.length; i++) {
+      var h = els[i].offsetHeight || 48;
+      els[i].style.width = h * ASPECT + 'px';
+      els[i].style.backgroundImage = 'url(' + SRC + ')';
+      els[i].style.backgroundRepeat = 'no-repeat';
+      els[i].style.backgroundSize = 'contain';
+      els[i].style.backgroundPosition = 'center';
     }
-    requestAnimationFrame(tick);
   }
-  requestAnimationFrame(tick);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fit); else fit();
+  addEventListener('resize', fit);
 })();
