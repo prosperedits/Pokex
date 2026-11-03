@@ -25,10 +25,12 @@ N_SPIRES = 12
 # P (29 Oct): the cards on the band should be bigger and easier to see, so the band is 0.08 taller than the concept's
 # (half-height 0.142 + DZ); everything above it moves up by DZ, everything below it down by DZ
 DZ = 0.04
+# P (2 Nov): the crown wider, to the card ring's radius. DR widens every radius, so rims and wall keep their thickness
+DR = 0.19
 Z_WALL0, Z_VALLEY, Z_TIP = 0.25 + DZ, 0.62 + DZ, 1.05 + DZ
 R_WALL0, R_TIP, TH = 1.035, 1.0, 0.045
 SPIRE_P = 2.4   # the edge is (1 - u)^2.4 across each slot: slender spires, concave flanks, wide round valleys (the concept)
-GEM_Z, GEM_H, GEM_W = 0.577 + DZ, 0.33, 0.155   # a touch bigger than measured: the concept's stones fill the spire base
+GEM_Z, GEM_H, GEM_W = 0.577 + DZ, 0.35, 0.172   # a touch bigger than measured: the concept's stones fill the spire base
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
@@ -83,7 +85,7 @@ def lathe(name, profile, mat, seg=256):
     for i in range(seg):
         a = 2 * math.pi * i / seg
         ca, sa = math.cos(a), math.sin(a)
-        rings.append([bm.verts.new((r * ca, r * sa, z)) for r, z in profile])
+        rings.append([bm.verts.new(((r + DR) * ca, (r + DR) * sa, z)) for r, z in profile])
     n = len(profile)
     for i in range(seg):
         A, B_ = rings[i], rings[(i + 1) % seg]
@@ -110,12 +112,12 @@ def torus_profile(rc, zc, rr, rz, k=24):
 
 # ---- band, rims ----
 # the concept's rims are rolled tubes (a fat roll and a thinner one), not flat steps
-lathe("band", rounded_rect(0.968, 1.0, -0.15 - DZ, 0.15 + DZ, 0.008, 3), BAND)
+# P (2 Nov): the thin rolls next to the cards go ("the bevels above the card and below... should be completely removed. And it
+# should just give more room for the cards to expand"), so the band runs from fat roll to fat roll, a hair proud of the backs
+lathe("band", rounded_rect(0.968, 1.002, -0.175 - DZ, 0.205 + DZ, 0.008, 3), BAND)
 lathe("rim_bottom_back", rounded_rect(0.955, 1.0, -0.254 - DZ, -0.14 - DZ, 0.02), GOLD)
 lathe("rim_bottom", torus_profile(1.02, -0.212 - DZ, 0.037, 0.042, 32), GOLD)
-lathe("rim_bottom_bead", torus_profile(1.018, -0.158 - DZ, 0.022, 0.017, 24), GOLD)
 lathe("rim_upper_back", rounded_rect(0.955, 1.0, 0.14 + DZ, 0.29 + DZ, 0.02), GOLD)
-lathe("rim_upper_bead", torus_profile(1.018, 0.168 + DZ, 0.028, 0.027, 24), GOLD)
 lathe("rim_upper", torus_profile(1.026, 0.242 + DZ, 0.032, 0.042, 32), GOLD)
 
 
@@ -129,7 +131,7 @@ def top_z(theta):
 
 def wall_r(z, theta):
     t = max(0.0, min(1.0, (z - Z_WALL0) / (Z_TIP - Z_WALL0)))
-    r = R_WALL0 - (R_WALL0 - R_TIP) * t ** 1.5
+    r = R_WALL0 + DR - (R_WALL0 - R_TIP) * t ** 1.5
     # a raised ridge down each spire's centre, above its gem
     slot = 2 * math.pi / N_SPIRES
     u = abs(((theta / slot + 0.5) % 1.0) - 0.5) * 2
@@ -155,7 +157,7 @@ for i in range(M):
     th = 2 * math.pi * i / M
     ca, sa = math.cos(th), math.sin(th)
     zt = top_z(th)
-    slope = (top_z(th + dth) - top_z(th - dth)) / (2 * dth * R_TIP)   # dz/ds of the edge, for distance-to-edge
+    slope = (top_z(th + dth) - top_z(th - dth)) / (2 * dth * (R_TIP + DR))   # dz/ds of the edge, for distance-to-edge
     col_out, col_in, col_cap = [], [], []
     for j in range(ROWS + 1):
         t = j / ROWS
@@ -182,41 +184,7 @@ for i in range(M):
         bm.faces.new((A[k], B_[k], B_[k + 1], A[k + 1]))
     bm.faces.new((A[L - 1], B_[L - 1], B_[0], A[0]))   # the wall's foot (hidden in the upper rim)
 bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-wall = link("wall", bm, GOLD, 60)
-
-# ---- pierced openwork: a quatrefoil cut clean through the wall under every valley ----
-# P (29 Oct): "instead of making it opaque, there should be some sort of hollow points in the crown... like engraving or
-# something. It should be all gold crown." Four round lobes round a small centre, the classic crown and tracery piercing,
-# sized to sit between two gem collars. Cut with an exact boolean, so the holes get real side walls.
-PIERCE_Z, LOBE_R, LOBE_D = 0.5 + DZ, 0.03, 0.034
-cbm = bmesh.new()
-for k in range(N_SPIRES):
-    th = 2 * math.pi * (k + 0.5) / N_SPIRES             # halfway between two spires: under a valley
-    nrm = Vector((math.cos(th), math.sin(th), 0)); tan = Vector((-math.sin(th), math.cos(th), 0)); up = Vector((0, 0, 1))
-    for dx, dy, rr in ((LOBE_D, 0, LOBE_R), (-LOBE_D, 0, LOBE_R), (0, LOBE_D, LOBE_R), (0, -LOBE_D, LOBE_R), (0, 0, LOBE_R * 0.9)):
-        c = nrm * 1.0 + tan * dx + up * (PIERCE_Z + dy)
-        ret = bmesh.ops.create_cone(cbm, cap_ends=True, segments=40, radius1=rr, radius2=rr, depth=0.4,
-                                    matrix=Matrix.Translation(c) @ Matrix.Rotation(math.atan2(nrm.y, nrm.x), 4, 'Z') @ Matrix.Rotation(math.pi / 2, 4, 'Y'))
-cme = bpy.data.meshes.new("pierce"); cbm.to_mesh(cme); cbm.free()
-cutter = bpy.data.objects.new("pierce", cme); scene.collection.objects.link(cutter)
-bpy.context.view_layer.objects.active = wall
-for o in scene.objects:
-    o.select_set(o is wall)
-before = len(wall.data.polygons)
-for solver in ("EXACT", "FAST"):   # the exact solver can empty a ring this shape; fall back to the fast one if it does
-    keep = wall.data.copy()
-    mod = wall.modifiers.new("pierce", "BOOLEAN"); mod.operation = "DIFFERENCE"; mod.object = cutter; mod.solver = solver
-    if solver == "EXACT":
-        mod.use_hole_tolerant = True
-        mod.use_self = True   # each quatrefoil is five overlapping cylinders: the exact solver must resolve them as one volume
-    bpy.ops.object.modifier_apply(modifier="pierce")
-    if len(wall.data.polygons) > before * 0.8:
-        print("CROWNBUILD pierced with", solver)
-        break
-    wall.data = keep
-bpy.data.objects.remove(cutter)
-bpy.ops.object.shade_smooth_by_angle(angle=math.radians(40))
-print("CROWNBUILD pierced wall tris", sum(len(p.vertices) - 2 for p in wall.data.polygons))
+link("wall", bm, GOLD, 60)
 
 
 # ---- marquise sapphires in gold bezels ----

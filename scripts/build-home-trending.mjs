@@ -488,7 +488,10 @@ try {
     const ext = /\.png($|\?)/.test(c.img) ? 'png' : /\.webp($|\?)/.test(c.img) ? 'webp' : 'jpg';
     const file = `${String(i).padStart(2, '0')}-${c.set.replace(/[^a-z0-9.-]/gi, '')}-${String(c.num).replace(/[^a-z0-9-]/gi, '')}.${ext}`;
     try {
-      const r = await fetch(c.img, { headers: { 'user-agent': 'Mozilla/5.0 Crowns refresh' } });
+      // the ring needs more than TCGplayer's 400px scans to stay sharp at 2560 (Faisal, 2 Nov): ask for the 1000px one first
+      const ua = { headers: { 'user-agent': 'Mozilla/5.0 Crowns refresh' } };
+      let r = await fetch(c.img.replace('_400w', '_in_1000x1000'), ua);
+      if (!r.ok) r = await fetch(c.img, ua);
       if (!r.ok) throw new Error(r.status);
       wf(join(CHASE_DIR, file), Buffer.from(await r.arrayBuffer()));
       c.local = `assets/chase/${file}`;

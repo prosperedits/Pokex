@@ -5,8 +5,8 @@
 // its CSS height, so pages only set a height.
 // Re-render: docs/design/crown/logo-spires.html (frames; the hero's built crown 3) + scripts/make-crown-logo.py.
 (function () {
-  var SRC = 'assets/crown/crown-turn.webp?v=9';
-  var ASPECT = 1.1607;                               // 130 x 112, the crop that holds every frame of the turn
+  var SRC = 'assets/crown/crown-turn.webp?v=11';
+  var ASPECT = 1.2946;                               // 145 x 112, the crop that holds every frame of the turn
   function fit() {
     var els = document.querySelectorAll('.crown-spin, .lockup-crown');
     for (var i = 0; i < els.length; i++) {

@@ -127,7 +127,7 @@
       rim.intensity = opts.rimI != null ? opts.rimI : 1.0;
     }
 
-    const uniforms = { uTime: { value: 0 }, uHolo: { value: opts.holo != null ? opts.holo : 1 } };
+    const uniforms = { uTime: { value: 0 }, uHolo: { value: opts.holo != null ? opts.holo : 1 }, uTurn: { value: 0 } };
     const etch = etchTexture(1024);
     const foil = foilMaterial(etch, uniforms);
     const edge = new T.MeshPhysicalMaterial({ color: 0xf3dc9a, metalness: 1, roughness: 0.16, clearcoat: 1 });
@@ -307,42 +307,71 @@
         scene.environment = pm.fromScene(room, 0.02).texture;
       }
       const gold = new T.MeshPhysicalMaterial({ color: new T.Color().setRGB(1.0, 0.56, 0.13), metalness: 1, roughness: 0.2, envMapIntensity: opts.envI != null ? opts.envI : 1.3 });
-      // The band is black again, as jewellery enamel (Faisal, 2 Nov: "readd the black part of the crown, but make the texture
-      // better fitting than before"; the old flat satin read grey and plastic beside polished gold). Deep black under a
-      // smooth clear coat, with a fine engraved diamond guilloche in the layer beneath: the coat keeps the glassy shine, the
-      // pattern ripples under it as the crown turns, and true black lets the cards pop.
-      const band = new T.MeshPhysicalMaterial({ color: new T.Color().setRGB(0.006, 0.0055, 0.007), metalness: 0, roughness: 0.34, specularIntensity: 0.5,
-        clearcoat: 0.7, clearcoatRoughness: 0.08, envMapIntensity: 0.55 });   // not metallic: a metal base went silver at the pattern's slopes
-      band.onBeforeCompile = (sh) => {
-        sh.vertexShader = 'varying vec3 vLocal;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vLocal = position;');
-        sh.fragmentShader = 'varying vec3 vLocal;\n' + sh.fragmentShader.replace('#include <normal_fragment_maps>',
-          '#include <normal_fragment_maps>\n' +
-          '  { float a = atan(vLocal.z, vLocal.x);\n' +
-          // crossed at 45 degrees on the band (its local height runs -1 to 1 over 0.38 band radii)
-          '    float h = sin(a * 110.0 + vLocal.y * 21.0) + sin(a * 110.0 - vLocal.y * 21.0);\n' +
-          '    vec2 dH = vec2(dFdx(h), dFdy(h)) * 0.007;\n' +
-          '    vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx);\n' +
-          '    float det = dot(sx, r1);\n' +
-          '    normal = normalize(abs(det) * normal - sign(det) * (dH.x * r1 + dH.y * r2)); }');
+      // Faisal (2 Nov): the gold "can be improved upon just a touch, and even like the shadowing of the overall model". A slow
+      // wander in the roughness reads as hand polish, not a CG mirror. Mirror metal takes no real shadows from the studio, so
+      // the contact shadows are painted in: the crown's inside falls darker, and the wall deepens where it meets the rim.
+      // The four game logos are raised out of the gold between the gems (Faisal, 2 Nov: "instead of the clover engravings, we
+      // have embossed logos... Around the crown"). A height map (scripts/make-emboss-logos.py) bends the surface normal, so the
+      // relief catches the light as real struck metal as the crown turns. The cells sit on the valleys, Pokemon, Magic, Lorcana,
+      // One Piece in turn, sized by the wall's radius; uTurn undoes the crown's spin so the logos ride with it.
+      const logos = G.emboss ? new T.TextureLoader().load(G.emboss) : null;
+      if (logos) logos.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      gold.onBeforeCompile = (sh) => {
+        sh.uniforms.uLogos = { value: logos }; sh.uniforms.uTurn = uniforms.uTurn;
+        sh.vertexShader = 'varying vec3 vW;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vW = (modelMatrix * vec4(position, 1.0)).xyz;');
+        sh.fragmentShader = 'varying vec3 vW;\nuniform sampler2D uLogos;\nuniform float uTurn;\n' + sh.fragmentShader
+          // the slope comes from four samples of the map, not screen derivatives: those work in 2x2 pixel blocks, which on mirror
+          // gold read as jagged edges (Faisal, 2 Nov). The raised areas go a little satin, so their reflections stay smooth too
+          .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n' + (logos ?
+            '  { vec3 nOut = normalize(vec3(vW.x, 0.0, vW.z));\n' +
+            '    if (dot(inverseTransformDirection(normal, viewMatrix), nOut) > 0.2) {\n' +
+            '      vec3 tW = vec3(nOut.z, 0.0, -nOut.x);\n' +                                     // along the wall, left to right from outside
+            '      normal = normalize(normal - lSlope.x * (viewMatrix * vec4(tW, 0.0)).xyz - lSlope.y * (viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);\n' +
+            '    } }' : ''))
+          .replace('#include <roughnessmap_fragment>', (logos ?
+            'float lSlot = (atan(-vW.z, vW.x) - uTurn) / 0.5235988, lK = floor(lSlot);\n' +
+            'vec2 lq = vec2((lSlot - lK - 0.5) * 0.5235988 * 1.22 / 0.38 + 0.5, (vW.y - 0.48) / 0.19 + 0.5);\n' +
+            'float lIn = step(0.0, lq.x) * step(lq.x, 1.0) * step(0.0, lq.y) * step(lq.y, 1.0);\n' +
+            'vec2 lc = vec2((mod(lK, 4.0) + clamp(lq.x, 0.0, 1.0)) / 4.0, clamp(lq.y, 0.0, 1.0));\n' +
+            'vec2 lSlope = lIn * 3.0 * vec2(texture2D(uLogos, lc + vec2(0.0005, 0.0)).r - texture2D(uLogos, lc - vec2(0.0005, 0.0)).r,\n' +
+            '  texture2D(uLogos, lc + vec2(0.0, 0.004)).r - texture2D(uLogos, lc - vec2(0.0, 0.004)).r);\n' : '') +
+            '#include <roughnessmap_fragment>\n' +
+            (logos ? 'roughnessFactor += 0.14 * lIn * smoothstep(0.02, 0.5, texture2D(uLogos, lc).r);\n' : '') +
+            '  { vec3 q = vW * 9.0;\n' +
+            '    float wander = sin(q.x * 1.3 + sin(q.y * 1.7)) * sin(q.y * 1.1 + sin(q.z * 1.9)) * sin(q.z * 1.4 + sin(q.x * 1.2));\n' +
+            '    roughnessFactor = clamp(roughnessFactor + wander * 0.05, 0.08, 1.0); }')
+          .replace('#include <output_fragment>',
+            '  { vec3 wn = inverseTransformDirection(normal, viewMatrix);\n' +
+            '    float out_ = dot(wn, normalize(vec3(vW.x, 0.0, vW.z)));\n' +
+            '    float ao = mix(0.5, 1.0, smoothstep(-0.45, 0.1, out_));\n' +                      // inside the crown
+            '    if (vW.y > 0.33) ao *= mix(0.7, 1.0, smoothstep(0.33, 0.52, vW.y));\n' +          // the wall where it meets the rim
+            '    outgoingLight *= ao; }\n' +
+            '#include <output_fragment>');
       };
+      // The band is black again, as jewellery enamel (Faisal, 2 Nov: "readd the black part of the crown, but make the texture
+      // better fitting than before"; the old flat satin read grey and plastic beside polished gold). Plain polished black under
+      // a clear coat, like piano lacquer: no pattern at all (2 Nov: the engraved guilloche "has like a repeated pattern, which I
+      // really don't like"). The only texture is the studio's soft reflections moving over it, and true black lets the cards pop.
+      const band = new T.MeshPhysicalMaterial({ color: new T.Color().setRGB(0.006, 0.0055, 0.007), metalness: 0, roughness: 0.3, specularIntensity: 0.5,
+        clearcoat: 0.8, clearcoatRoughness: 0.1, envMapIntensity: 0.6 });
       // Every facet carries its own shade (vertex colours from the build), so the stones read as cut, not enamel. Faisal
       // (29 Oct): "a few different colors... the lighting in them a little bit more dynamic". Sapphire on every other spire,
       // ruby and emerald in turn between (deep jewel tones: he called bright mixed gems "candy" on 28 Oct). Each stone glows
       // a little in its own colour, and its facets twinkle in turn as well as flashing on the studio's pin-point lamps.
       // Each stone runs from a bright top to a deep foot (Faisal, 29 Oct: "if it's blue, it just goes to darker blue or purple...
       // a gradient sort of feeling"): sapphire to violet, ruby to wine, emerald to deep teal. [top, foot], linear RGB.
-      const HUE = { sapphire: [[0.08, 0.32, 1.0], [0.22, 0.02, 0.55]], ruby: [[1.0, 0.1, 0.16], [0.38, 0.0, 0.2]], emerald: [[0.12, 0.92, 0.5], [0.0, 0.26, 0.32]],
-        citrine: [[1.0, 0.82, 0.14], [0.62, 0.22, 0.0]] };   // Faisal (29 Oct): "a little bit of... yellow gems": citrine, canary to amber
+      const HUE = { sapphire: [[0.02, 0.28, 1.0], [0.14, 0.02, 0.8]], ruby: [[1.0, 0.02, 0.06], [0.62, 0.0, 0.1]], emerald: [[0.04, 0.95, 0.36], [0.0, 0.42, 0.26]],
+        citrine: [[1.0, 0.72, 0.02], [1.0, 0.3, 0.0]] };   // Faisal (29 Oct): "a little bit of... yellow gems"; all four pushed to full saturation on 2 Nov ("more vibrant")
       const STONES = ['ruby', 'emerald', 'citrine'];   // sapphire on every other spire, these three in turn between
-      const GEM_Y = 0.617, GEM_HALF = 0.165;   // the stones' centre height and half height, band radii (scripts/crown-build.py)
+      const GEM_Y = 0.617, GEM_HALF = 0.175;   // the stones' centre height and half height, band radii (scripts/crown-build.py)
       // Faisal (29 Oct): "the gem should really show this really, really beautiful sort of lighting". A cut stone's look is
       // light that enters it, bounces off its pavilion and comes back out through another facet, coloured by the stone
       // (brilliance), flashing on and off as it turns (scintillation), with a fleck of rainbow (fire). WebGL has no real
       // internal bounces, so each facet looks the studio up along a refracted-then-reflected ray and glows with what it
       // finds, in its own colour: dark facets beside bright ones, a pattern that moves as the crown turns. The surface
       // keeps a thin coloured reflection (some metalness tints it) instead of the white sheen that read as pastel.
-      const gem = new T.MeshPhysicalMaterial({ vertexColors: true, metalness: 0.35, roughness: 0.04, clearcoat: 0.45, clearcoatRoughness: 0.02, specularIntensity: 0.5,
-        envMapIntensity: 0.7, flatShading: true });
+      const gem = new T.MeshPhysicalMaterial({ vertexColors: true, metalness: 0.35, roughness: 0.04, clearcoat: 0.2, clearcoatRoughness: 0.02, specularIntensity: 0.35,
+        envMapIntensity: 0.3, flatShading: true });
       gem.onBeforeCompile = (sh) => {
         sh.uniforms.uTime = uniforms.uTime;
         sh.fragmentShader = 'uniform float uTime;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>',
@@ -355,7 +384,7 @@
           // a whole facet twinkles at a time (a high frequency here read as pixel noise on 29 Oct)
           '  float tw = pow(max(0.0, sin(dot(normal, vec3(1.7, 3.1, 2.3)) * 2.2 + uTime * 2.6)), 18.0);\n' +
           '  vec3 fire = 0.5 + 0.5 * cos(6.2832 * (dot(normal, vec3(0.9, 1.3, 0.7)) + vec3(0.0, 0.33, 0.67)));\n' +
-          '  totalEmissiveRadiance = vColor.rgb * (0.16 + 2.2 * inner + 1.5 * tw) + fire * tw * 0.12;');
+          '  totalEmissiveRadiance = vColor.rgb * (0.12 + 0.7 * inner + 1.0 * tw) + fire * tw * 0.08;');
       };
       // Ray-traced stones (Faisal, 29 Oct: the crystals "don't look like they have depth to them, like internally"). Light
       // refracts into each stone, bounces off its inner facets up to three times (three-mesh-bvh traces the stones' own
@@ -389,7 +418,7 @@
         const mat = new T.ShaderMaterial({
           vertexColors: true,
           uniforms: { envMap: { value: null }, bvh: { value: bvhU }, bounces: { value: 3 }, ior: { value: 1.77 },
-            aberration: { value: 0.02 }, fresnel: { value: 0.75 }, gain: { value: 0.75 } },   // gain under 1: the studio's softboxes are bright, and more washed the stones to pastel
+            aberration: { value: 0.02 }, fresnel: { value: 0.75 }, gain: { value: 1.5 } },
           vertexShader:
             'varying vec3 vWorldPosition; varying vec3 vNormal; varying mat4 vModelMatrixInverse;\n' +
             '#include <color_pars_vertex>\n' +
@@ -439,11 +468,17 @@
             '  vec3 inner = vec3(textureCubeUV(envMap, dR, 0.0).r, textureCubeUV(envMap, dG, 0.0).g, textureCubeUV(envMap, dB, 0.0).b);\n' +
             '  vec3 refl = textureCubeUV(envMap, reflect(rd, n), 0.0).rgb;\n' +
             '  float f = pow(1.0 - max(dot(-rd, n), 0.0), 4.0) * fresnel;\n' +
-            '  col = inner * vColor * gain;\n' +
-            '  col = mix(col, refl, f) + refl * 0.035;\n' +                    // a thin glassy reflection on top, stronger at grazing angles
+            // Faisal (2 Nov): the red and blue "more vibrant, like more lit... more occlusion in the jewels... even the yellow".
+            // A contrast curve keeps the dark facets dark (the occlusion) while the bright ones climb; a small lift keeps the
+            // stone lit from inside. Brightness then rolls off by the peak channel, so the hue holds: rolling each channel off
+            // alone, or ACES tone mapping, sends a bright ruby to pink and a bright sapphire to pale blue
+            '  vec3 lit = inner * inner / (inner + 0.35);\n' +
+            '  col = (lit * gain + 0.04) * vColor;\n' +
+            '  float pk = max(col.r, max(col.g, col.b));\n' +
+            '  col *= (1.0 - exp(-pk * 1.2)) / max(pk, 0.0001);\n' +
+            '  col = mix(col, min(refl, vec3(1.0)), f * 0.45) + min(refl, vec3(4.0)) * 0.012;\n' +   // a thin glassy reflection on top, stronger at grazing angles
             '  #endif\n' +
             '  gl_FragColor = vec4(col, 1.0);\n' +
-            '  #include <tonemapping_fragment>\n' +
             '  #include <encodings_fragment>\n' +
             '}',
         });
@@ -466,7 +501,7 @@
               const k = ((Math.round(Math.atan2(-v.z, v.x) / (Math.PI / 6)) % 12) + 12) % 12;
               const [top, foot] = HUE[k % 2 === 0 ? 'sapphire' : STONES[((k - 1) / 2) % 3]];
               const t = Math.min(1, Math.max(0, (GEM_Y + GEM_HALF - v.y) / (2 * GEM_HALF)));   // 0 at the stone's top, 1 at its foot
-              const b = src.getZ(i) * 0.55, hi = src.getY(i) * 0.04;
+              const b = 0.45 + src.getZ(i) * 0.55, hi = 0;   // no white in the colour: the highlights come from the light
               for (let c = 0; c < 3; c++) out[i * 3 + c] = (top[c] + (foot[c] - top[c]) * t) * b + hi;
             }
             o.geometry.setAttribute('color', new T.BufferAttribute(out, 3));
@@ -569,14 +604,24 @@
     // faster than the crown; the crown hides the far side of the ring. opts.orbit: { count, r, y, h, tilt, crownTurn }
     const ringTilt = new T.Group(), ring = new T.Group();
     ringTilt.add(ring); scene.add(ringTilt);
-    const orbit = Object.assign({ count: 12, r: 1.25, y: 0.34, h: 0.42, tilt: 0.2, roll: 0, crownTurn: 0.35 }, opts.orbit || {});
+    const orbit = Object.assign({ count: 12, r: 1.25, y: 0.34, h: 0.42, tilt: 0.2, roll: 0, crownTurn: 0.35, rest: 0.2 }, opts.orbit || {});
     const glowTex = (() => {
       const g = document.createElement('canvas'); g.width = 128; g.height = 160; const x = g.getContext('2d');
       x.filter = 'blur(10px)'; x.fillStyle = '#fff'; x.beginPath(); x.roundRect ? x.roundRect(18, 18, 92, 124, 10) : x.rect(18, 18, 92, 124); x.fill();
       return new T.CanvasTexture(g);
     })();
     function setOrbit(list, height) {
-      const ch = orbit.h, cw = ch * 0.716, geo = new T.PlaneGeometry(cw, ch);
+      const ch = orbit.h, cw = ch * 0.716, geo = new T.PlaneGeometry(cw, ch, orbit.curve ? 24 : 1, 1);
+      // orbit.curve: each card bends to the ring's cylinder, so its top and bottom edges follow the crown's rims at every angle
+      // of the turn (Faisal, 2 Nov: "I don't believe the card angle is matching the crown angle at all")
+      if (orbit.curve) {
+        const p = geo.attributes.position, nr = geo.attributes.normal;
+        for (let i = 0; i < p.count; i++) {
+          const t = p.getX(i) / orbit.r;
+          p.setX(i, Math.sin(t) * orbit.r); p.setZ(i, (Math.cos(t) - 1) * orbit.r); nr.setXYZ(i, Math.sin(t), 0, Math.cos(t));
+        }
+      }
+      const crisp = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', T.ShaderChunk.map_fragment.replace('texture2D( map, vUv )', 'texture2D( map, vUv, -0.75 )')); };   // a sharper mip, so card text stays crisp as it turns
       // spacing: neighbours sit this many card-widths apart round the ring (P: tight, the way the first carousel was)
       const count = orbit.spacing ? Math.max(8, Math.round((2 * Math.PI * orbit.r) / (cw * orbit.spacing))) : orbit.count;
       ringTilt.position.y = height * orbit.y;
@@ -584,12 +629,13 @@
       for (let i = 0; i < count; i++) {
         const card = list[i % list.length], a = (i / count) * Math.PI * 2;
         const tex = loader.load(card.src);
-        tex.encoding = T.sRGBEncoding; tex.anisotropy = 8;
-        const face = new T.Mesh(geo, new T.MeshBasicMaterial({ map: tex, toneMapped: false }));
+        tex.encoding = T.sRGBEncoding; tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        const faceMat = new T.MeshBasicMaterial({ map: tex, toneMapped: false }); faceMat.onBeforeCompile = crisp;
+        const face = new T.Mesh(geo, faceMat);
         face.userData.index = i % list.length;
         const glint = new T.Mesh(geo, new T.MeshBasicMaterial({ map: glintTex, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false }));
         glint.position.z = 0.001; face.add(glint); face.userData.glint = glint;
-        const halo = new T.Mesh(geo, new T.MeshBasicMaterial({ map: glowTex, color: 0xfff1cf, transparent: true, opacity: 0.2, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false }));
+        const halo = new T.Mesh(geo, new T.MeshBasicMaterial({ map: glowTex, color: 0xfff1cf, transparent: true, opacity: orbit.rest, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false }));
         halo.scale.set(1.36, 1.3, 1); halo.position.z = -0.004; face.userData.halo = halo;
         const g = new T.Group(); g.add(halo); g.add(face);
         if (backMat) { const back = new T.Mesh(geo, backMat); back.rotation.y = Math.PI; back.position.z = -0.006; g.add(back); }
@@ -697,7 +743,7 @@
         // the least move that gets (nearly) the biggest crown
         const sizes = tries.map(grow), most = Math.max(...sizes), pick = sizes.findIndex((s) => s >= most * 0.985), m = tries[pick];
         // a lens shift (an off-centre frustum) places it, so the perspective (and the band/ring match) never changes
-        const f = Math.max(sizes[pick], 1e-3), ox = m - f * cx, py = place(m, f), oy = py != null ? py : (top + bot) / 2 + f * (vfit.y0 + vfit.y1) / 2;
+        const f = Math.max(sizes[pick] * (fr.scale || 1), 1e-3), ox = m - f * cx, py = place(m, f), oy = py != null ? py : (top + bot) / 2 + f * (vfit.y0 + vfit.y1) / 2;
         const n = camera.near;
         camera.aspect = w / h;
         camera.projectionMatrix.makePerspective(-ox / f * n, (w - ox) / f * n, oy / f * n, (oy - h) / f * n, n, camera.far);
@@ -730,13 +776,14 @@
         for (const f of faces) {   // the hovered card's glow warms up; nothing turns, nothing stops
           const h = f.userData.halo; if (!h) continue;
           const on = f.userData.index === hoverIndex;
-          h.material.opacity += ((on ? 0.62 : 0.2) - h.material.opacity) * Math.min(1, dt * 10);
+          h.material.opacity += ((on ? 0.62 : orbit.rest) - h.material.opacity) * Math.min(1, dt * 10);
           h.material.color.lerp(on ? GOLDGLOW : WARMGLOW, Math.min(1, dt * 10));
         }
       } else {
         crown.rotation.y = (spinVel || opts.cards ? spinAngle : poseAt(now)) + mx * 0.35;
         crown.rotation.x = -my * 0.06;
       }
+      uniforms.uTurn.value = crown.rotation.y;
       if (faces.length) { scene.updateMatrixWorld(); shadeCards(); }
       renderer.render(scene, camera);
     }

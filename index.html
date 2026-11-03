@@ -6,7 +6,7 @@
 <title>Crowns — Home</title>
 <link rel="icon" type="image/png" href="assets/favicon-64.png?v=2">
 <meta name="description" content="Crowns — the ultimate card tracker.">
-<script src="crown-spin.js?v=17" defer></script>
+<script src="crown-spin.js?v=19" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -122,13 +122,15 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100
 .crown-cap b{font-family:var(--font-display);font-weight:400;font-size:22px;letter-spacing:.02em;text-transform:uppercase}
 .crown-cap i{font-style:normal;color:var(--gold);font-variant-numeric:tabular-nums}
 .crown-cap em{font-style:normal;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
-@media (max-width:760px){ .crown-gl{height:70%} .crown-cap{bottom:auto;top:calc(70% - 10px);font-size:14px} .crown-cap b{font-size:17px} }
+@media (max-width:760px){ .crown-gl{height:100%;background:none} .crown-cap{bottom:auto;top:calc(70% - 10px);font-size:14px} .crown-cap b{font-size:17px} }
 /* the front card of the ring wears the old carousel's brackets and "Inspect" (positioned from crown3d.front() each frame) */
 .crown-front{position:absolute;left:0;top:0;z-index:3;pointer-events:none;opacity:0;transition:opacity .3s}
 .crown-front.on{opacity:1}
 .crown-front .tbr{opacity:1;transform:none;inset:-5px}   /* hugs the card (Faisal, 29 Oct) */
 .crown-front .tbr i{width:clamp(14px,18%,24px);height:clamp(14px,18%,24px);border-width:2.5px}
-.crown-front .tinspect{opacity:1;transform:translateX(-50%)}
+/* a dark tag with gold letters: white text over the gold rim couldn't be read (Faisal, 2 Nov) */
+.crown-front .tinspect{opacity:1;transform:translateX(-50%);bottom:-22px;padding:6px 13px 6px;border-radius:6px;background:#070b18;color:var(--gold);
+  font-size:13px;letter-spacing:.24em;text-indent:.24em;text-shadow:none;box-shadow:0 0 0 1px rgba(246,207,87,.55),0 4px 12px rgba(0,0,0,.55)}
 /* a clean thin edge on every card; a golden rim appears on hover */
 .tcard::after{content:'';position:absolute;inset:0;border-radius:16px;pointer-events:none;transition:opacity .3s, box-shadow .3s;opacity:.45;backface-visibility:hidden;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
@@ -214,20 +216,12 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100
              linear-gradient(176deg,#ffeebf 3%,#f6cf57 38%,#e3a92f 72%,#c98a1c 100%) 0 0 / 100% 100%;
   -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
   filter:drop-shadow(0 1px 1px rgba(120,75,10,.45)) drop-shadow(0 0 5px rgba(238,184,66,.25))}   /* restored: Faisal preferred the original gold face and its light sweep (28 Oct) */
-/* wide screens: the crown stands centred and the headline wraps round it in two layers (Faisal, 29 Oct: "it looks better in the
-   center, and you have to somehow incorporate the text around it... even adding a little bit of layering"). "The Ultimate"
-   sits up left BEHIND the crown, so its spires pass in front of the letters as it turns; "Card Tracker" and Explore sit
-   down right IN FRONT of it. Phones and tablets keep the stacked layout below. */
-@media (min-width:1200px){
-  .tape-wrap{transform:translateY(-4vh)}
-  .intro-copy{display:contents}
-  .headline{font-size:clamp(64px,5.6vw,150px)}
-  .headline br{display:none}
-  .headline .hl-a,.headline .hl-b{position:absolute;white-space:nowrap;pointer-events:none}
-  .headline .hl-a{left:clamp(24px,3.4vw,90px);top:14vh;z-index:-1}   /* high enough that the spires only cut its foot: it still reads */
-  .headline .hl-b{right:clamp(24px,3.4vw,90px);top:73vh;z-index:25;text-align:right}   /* over the bottom rim, never over the cards */
-  .intro-copy .explore-btn{position:absolute;right:clamp(28px,3.6vw,96px);top:calc(73vh + clamp(64px,5.6vw,150px) * .96 + 18px);z-index:25}
-}
+/* The headline is off for now (Faisal, 2 Nov: "let's take out the text for a time being and just put explore at the bottom
+   right"). It stays in the page for screen readers and search, drawn nowhere; the crown stands centred at every width. */
+.tape-wrap{transform:translateY(-4vh)}
+.intro-copy{display:contents}
+.headline{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.intro-copy .explore-btn{position:absolute;right:clamp(24px,3.4vw,90px);bottom:clamp(64px,8vh,110px);z-index:25;font-size:clamp(22px,1.9vw,38px)}
 .scrolldown{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);z-index:25;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:7px;
   font-family:var(--font);font-weight:600;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:rgba(174,197,238,.75)}
 .scrolldown .arw{font-size:15px;line-height:1}
@@ -557,12 +551,12 @@ h2.ih2 .lk2{color:var(--blue-bright)}
   .pricing{background:var(--tc-ground)}
 }
 /* laptop widths: the ring steps right so its near-left card clears the bottom-left headline */
-@media (min-width:761px) and (max-width:1700px){ .tape-wrap{--cw:clamp(140px,11vw,196px);transform:translate(6vw,-6vh)} }
+@media (min-width:761px) and (max-width:1700px){ .tape-wrap{--cw:clamp(140px,11vw,196px)} }
 /* phone inspect: the Light toggle sits on the card's corner instead of over the card name */
 @media (max-width:760px){ .ins-light-toggle{left:auto;right:0;bottom:-54px;transform:none;padding:6px 12px;font-size:12px} }
 /* phone hero: a smaller ring in the upper two thirds, the headline below it, nothing overlapping */
 @media (max-width:760px){
-  .tape-wrap{--cw:clamp(104px,29vw,150px);height:66vh;transform:translateY(-10vh)}
+  .tape-wrap{--cw:clamp(104px,29vw,150px);height:92vh;transform:none}   /* the headline is off: the crown centres in the hero */
   .intro-copy{bottom:clamp(64px,10vh,96px);max-width:calc(100vw - 40px)}
   .hero-kick{letter-spacing:.18em;font-size:11px}
   .scrolldown{display:none}
@@ -835,7 +829,7 @@ h2.ih2 .lk2{color:var(--blue-bright)}
   <script src="vendor/RGBELoader.js"></script>        <!-- three r147 examples/js: loads the gems' HDR studio -->
   <script src="vendor/three-mesh-bvh.umd.js"></script>  <!-- three-mesh-bvh 0.5.23 (MIT): traces light inside the cut stones -->
   <script src="vendor/RoomEnvironment.js"></script>
-  <script src="crown3d.js?v=63"></script>
+  <script src="crown3d.js?v=72"></script>
   <script src="vendor/gsap.min.js"></script>
   <script src="vendor/ScrollTrigger.min.js"></script>
   <script>
@@ -1136,7 +1130,7 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       // the crown Faisal picked (27 Oct): the regal ten-point crown with brilliant-cut sapphires (Meshy from
       // docs/design/crown/shape-b2.png), made symmetric from its best point and cleaned (scripts/crown-symmetrize.py,
       // crown-clean.py), its black band grown for the cards (crown-band.py). The chase cards ride a belt round that band.
-      pixelRatio: Math.min(1.75, devicePixelRatio || 1), spin: 0.07,
+      pixelRatio: innerWidth < 760 ? Math.min(1.75, devicePixelRatio || 1) : Math.min(2, Math.max(1.5, devicePixelRatio || 1)), spin: 0.07,   // supersampled on desktop, for crisp card text
       // the crown is a Higgsfield turntable video (green keyed out live in crown3d.js), turning on its own;
       // the real 3D chase cards ride a belt round its black band, in front of it and hidden behind it
       // band/eye are measured from the video (its band's centre and radius in the frame, and the camera that filmed it),
@@ -1144,15 +1138,13 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       // Faisal, 28 Oct night: no video, a real 3D crown at the video's size. Crown 3 (Spires) of docs/design/crown/turnarounds/,
       // built exactly in Blender (scripts/crown-build.py; Meshy's mesh of it came back with thin, wavy spires), filmed by the
       // video's camera so it lands at the same size
-      glb: { src: 'assets/crown/crown-spires.glb?v=8', roll: 0.15, eye: { dist: 5.2, elev: 0.1354 }, gemEnv: 'assets/env/studio_small_09_1k.hdr' },   // further back than the video's 3.66: the tall spires bent at that range; framing keeps the on-screen size
-      cards: CROWN_CARDS.map((c) => ({ src: c.local })), cardBack: 'assets/card-back.webp?v=6',
-      // the cards ride the black band between its gold rims (Faisal: the rims must show), in band radii: 1.06 out (clear of the
-      // rims' rolls at 1.056), 0.30 tall on the 0.364 band (grown 29 Oct, Faisal: the cards bigger and more visible) so a
-      // little black shows above and below; the crown turns a little slower than the ring
-      orbit: { r: 1.06, y: 0, h: 0.30, spacing: 1.03, crownTurn: 0.55 },
-      frame: innerWidth >= 1200
-        ? { under: '.topbar', floor: '.ticker', pad: 24, shift: 0 }   // wide: centred, the headline layers round it (Faisal, 29 Oct)
-        : { under: '.topbar', over: ['.headline', '.explore-btn'], floor: '.ticker', pad: 24, gap: 40, shift: 0.2 },   // narrow: beside (never over) the stacked headline   // as big as the hero allows: under the header, beside (never over) the headline, above the ticker
+      glb: { src: 'assets/crown/crown-spires.glb?v=10', roll: 0.15, eye: { dist: 5.2, elev: 0.1354 }, gemEnv: 'assets/env/studio_small_09_1k.hdr', emboss: 'assets/crown/emboss-logos.png?v=2' },   // further back than the video's 3.66: the tall spires bent at that range; framing keeps the on-screen size
+      cards: CROWN_CARDS.map((c) => ({ src: c.local })),   // no card backs: on the wider ring they read as a dark ledge at both ends
+      // the cards ride the black band between its gold rolls (Faisal: the rims must show), in band radii. The crown was widened to
+      // meet the ring (2 Nov, DR in scripts/crown-build.py), so the band sits just behind the cards: 1.205 out, each card bent to
+      // that curve and 0.42 tall on the 0.45 opening, edge to edge, centred on the black. No resting glow: it greyed the band.
+      orbit: { r: 1.205, y: 0.013, h: 0.42, spacing: 1.0, crownTurn: 0.55, curve: true, rest: 0 },
+      frame: { under: '.topbar', floor: '.ticker', pad: 24, shift: 0, scale: 0.93 },   // centred under the header and above the ticker, a touch under the biggest that fits (Faisal, 2 Nov: "a little bit smaller, just a bit")
       light: 'arcade', envI: 1.3, exposure: 1.05,
     }) : null;
     // drag turns the crown; a click (no drag) on a front card opens it; hover names the card
@@ -1166,7 +1158,7 @@ h2.ih2 .lk2{color:var(--blue-bright)}
         const i = crown3d.pick(e.clientX, e.clientY);
         if (i !== cHover) {
           cHover = i; crown3d.hover(i);   // a glow, nothing stops or pops (P)
-          if (i >= 0) { cap.innerHTML = capFor(CROWN_CARDS[i]); cap.classList.add('on'); } else cap.classList.remove('on');
+          // no name on hover (Faisal, 2 Nov): the card's glow is the only response
         }
       });
       const end = (e) => {
