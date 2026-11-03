@@ -48,6 +48,42 @@
     addEventListener('resize', () => { clearTimeout(t); t = setTimeout(paint, 160); });
   })();
 
+  // ------------------------------------------------------------------ the title: slam in, rip open, settle
+  const ptEl = $('pageTitle');
+  function playTitle() {
+    if (!ptEl || !gsap || REDUCED) return;
+    const box = ptEl.querySelector('.pt-in'), a = ptEl.querySelector('.pt-a'), b = ptEl.querySelector('.pt-b');
+    gsap.killTweensOf([box, a, b]);
+    const tl = gsap.timeline();
+    tl.fromTo(box, { scale: 1.55, autoAlpha: 0, y: -14, rotate: -3 }, { scale: 1, autoAlpha: 1, y: 0, rotate: 0, duration: 0.42, ease: 'back.out(2.2)' })
+      .to(box, { keyframes: [{ x: -5, duration: 0.05 }, { x: 4, duration: 0.05 }, { x: -2, duration: 0.05 }, { x: 0, duration: 0.06 }] }, '>-0.04')
+      // the rip opens along the line through the letters
+      .to(a, { x: -9, y: -10, rotate: -2.6, duration: 0.24, ease: 'power3.out' }, '<')
+      .to(b, { x: 9, y: 9, rotate: 2.2, duration: 0.24, ease: 'power3.out' }, '<')
+      .add(() => shards(box), '<0.04')
+      .to([a, b], { x: 0, y: 0, rotate: 0, duration: 0.7, ease: 'expo.out' }, '>0.22');
+  }
+  function shards(box) {
+    const w = box.clientWidth, h = box.clientHeight;
+    for (let i = 0; i < 9; i++) {
+      const sh = document.createElement('span'); sh.className = 'pt-shard';
+      const fx = 0.18 + Math.random() * 0.64, x0 = w * fx, y0 = h * (0.52 - fx * 0.13);   // on the tear line
+      const ang = (Math.random() < 0.5 ? -1 : 1) * (0.35 + Math.random() * 0.9), dist = h * (0.35 + Math.random() * 0.45);
+      sh.style.left = x0 + 'px'; sh.style.top = y0 + 'px';
+      box.appendChild(sh);
+      gsap.fromTo(sh, { x: 0, y: 0, rotate: Math.random() * 90, scale: 0.4 + Math.random() * 0.6, autoAlpha: 1 },
+        { x: Math.sin(ang) * dist * (Math.random() < 0.5 ? -1 : 1), y: -Math.cos(ang) * dist * (Math.random() < 0.5 ? -0.6 : 0.9),
+          rotate: '+=' + (180 + Math.random() * 200), autoAlpha: 0, duration: 0.75 + Math.random() * 0.35, ease: 'power2.out', onComplete: () => sh.remove() });
+    }
+  }
+  // the entrance waits for the title's image and for the 3D set-up below (a busy main thread would stutter it)
+  if (ptEl && gsap && !REDUCED) gsap.set(ptEl.querySelector('.pt-in'), { autoAlpha: 0 });
+  const titleIn = () => {
+    const imgs = ptEl ? [...ptEl.querySelectorAll('img')] : [];
+    Promise.all(imgs.map((i) => (i.decode ? i.decode().catch(() => {}) : null)))
+      .then(() => requestAnimationFrame(() => requestAnimationFrame(playTitle)));
+  };
+
   const canvas = $('ripCanvas'), wrap = $('ripStageWrap');
   if (!LAB || !canvas) return;
   const btn = $('ripBtn'), allBtn = $('ripAll'), hint = $('ripHint'), receipt = $('receipt'), liveEl = $('ripLive');
@@ -121,6 +157,7 @@
   }
 
   if (!renderer) {
+    titleIn();
     $('ripFallback').hidden = false; canvas.hidden = true; btn.hidden = true; allBtn.hidden = true;
     hint.textContent = 'The 3D pack needs WebGL, which this browser has turned off. The odds and prices below still work.';
     return;
@@ -326,6 +363,13 @@
       let x, y;
       if (wrap.clientWidth - sR.x > bw + 28) { x = sR.x + 16; y = sR.y - bh / 2; }
       else { x = (sL.x + sR.x) / 2 - bw / 2; y = Math.max(4, sTop.y - bh - 12); }
+      // never on top of the set's mark in the stage's top-right corner: drop just below it
+      const ss = wrap.querySelector('.stage-set');
+      if (ss) {
+        const wr = wrap.getBoundingClientRect(), r = ss.getBoundingClientRect(), l = r.left - wr.left, t = r.top - wr.top, btm = r.bottom - wr.top;
+        // slide left of the mark when there is room (a phone's centred button), else drop below it
+        if (r.width && x < l + r.width && x + bw > l && y < btm && y + bh > t) { if (l - bw - 8 >= 4) x = l - bw - 8; else y = btm + 8; }
+      }
       tearBtn.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
     }
     if (!pillBtn.hidden && S.waiting != null) {
@@ -340,7 +384,7 @@
   }
 
   // ================================================================== layout (world units visible at z = 0)
-  const L = { visW: 1, visH: 1, slots: [], big: new THREE.Vector3(), bigScale: 1, trayScale: 0.3 };
+  const L = { visW: 1, visH: 1, slots: [], big: new THREE.Vector3(), bigScale: 1, trayScale: 0.3, n: 10 };
   function layout() {
     const w = wrap.clientWidth, h = wrap.clientHeight; if (!w || !h) return;
     renderer.setSize(w, h, false);
@@ -349,20 +393,34 @@
     const dist = Math.max(PH / (0.74 * 2 * tanH), PW / (0.6 * 2 * tanH * camera.aspect));
     camera.position.set(0, 0, dist); camera.lookAt(0, 0, 0); camera.updateProjectionMatrix();
     L.visH = 2 * dist * tanH; L.visW = L.visH * camera.aspect;
-    const portrait = camera.aspect < 1.1;           // narrow stages file the cards in two rows of 5 + 4
-    L.cols = portrait ? 5 : 10; L.rows = portrait ? 2 : 1;
+    // a 10-card pack files its cards in one row (two rows of 5 on a narrow stage); a bigger pack (Magic 14,
+    // Lorcana and One Piece 12) files them in two even rows
+    const portrait = camera.aspect < 1.1, n = L.n, two = portrait || n > 10;
+    L.cols = two ? Math.ceil(n / 2) : n; L.rows = two ? 2 : 1;
     const gx = L.visW * (portrait ? 0.022 : 0.012), gy = gx * 1.3;
     let tw = (L.visW * 0.96 - gx * (L.cols - 1)) / L.cols, th = tw / 0.717;
-    const maxTh = L.visH * (portrait ? 0.15 : 0.2);
+    const maxTh = L.visH * (two ? 0.15 : 0.2);
     if (th > maxTh) { th = maxTh; tw = th * 0.717; }
     L.trayScale = tw / CW;
     const bottom = -L.visH / 2 + L.visH * 0.025, block = L.rows * th + (L.rows - 1) * gy;
     L.slots = [];
-    for (let i = 0; i < 10; i++) {
-      const r = Math.floor(i / L.cols), c = i % L.cols, inRow = Math.min(L.cols, 10 - r * L.cols), rowW = inRow * tw + (inRow - 1) * gx;
+    for (let i = 0; i < n; i++) {
+      const r = Math.floor(i / L.cols), c = i % L.cols, inRow = Math.min(L.cols, n - r * L.cols), rowW = inRow * tw + (inRow - 1) * gx;
       L.slots.push(new THREE.Vector3(-rowW / 2 + tw / 2 + c * (tw + gx), bottom + block - th / 2 - r * (th + gy), 0));
     }
-    const top = L.visH / 2 - L.visH * 0.045, floor = bottom + block + L.visH * 0.035;
+    // the big card stays clear of the page title, which hangs below the top bar over the stage (at the top of the page)
+    // (measured at its full, unscrolled height, so a page that loads scrolled lays out the same)
+    const pt = document.getElementById('pageTitle'), wr = wrap.getBoundingClientRect();
+    let under = 0;
+    if (pt) {
+      const probe = document.createElement('div'); probe.style.cssText = 'position:absolute;visibility:hidden;height:calc(var(--head-h) * var(--pt-k, 1.3))';
+      document.body.appendChild(probe); const fullH = probe.offsetHeight; probe.remove();
+      under = Math.max(0, pt.offsetTop + fullH - (wr.top + scrollY) + 12);
+    }
+    // a shown card rests nearer the camera than the tray (the stack's depth plus its lift), so it reads larger by kz:
+    // its bounds are set for the nearest resting card
+    const kz = dist / (dist - (0.2 + (n - 1) * 0.014 + 0.32));
+    const top = (L.visH / 2 - Math.max(L.visH * 0.045, under / h * L.visH)) / kz, floor = (bottom + block + L.visH * 0.035) / kz;
     let bh = Math.min(top - floor, L.visH * 0.64);
     if (bh * 0.717 > L.visW * 0.84) bh = L.visW * 0.84 / 0.717;
     L.bigScale = bh / CH; L.big.set(0, (top + floor) / 2, 0.2);
@@ -384,7 +442,7 @@
     if (!e) { nowEl.hidden = true; hint.hidden = false; return; }
     const hit = e.slot === 'hit', foil = foilOf(e), i = S.pull ? S.pull.entries.indexOf(e) : -1;
     nowEl.className = 'now' + (hit ? ' hit' : '');
-    nowEl.innerHTML = `<span class="now-l"><span class="now-r"><i style="background:${rarityCol(e)}"></i>${foil && e.slot !== 'reverse' ? foilWord(foil) + ' · ' : ''}${esc(slotWord(e))}</span>${browsing ? '' : `<b>${esc(e.card.name)}</b>`}</span><span class="now-p num">${priceTxt(e)}</span>`;
+    nowEl.innerHTML = `<span class="now-l"><span class="now-r"><i style="background:${rarityCol(e)}"></i>${foil && e.slot !== 'reverse' ? foilWord(foil, e) + ' · ' : ''}${esc(slotWord(e))}</span>${browsing ? '' : `<b>${esc(e.card.name)}</b>`}</span><span class="now-p num">${priceTxt(e)}</span>`;
     void i;
     nowEl.hidden = false; hint.hidden = true;
     if (hit && e.priced && !REDUCED && !S.fast && !browsing) {
@@ -453,7 +511,29 @@
     if (e.slot === 'common') return 0; if (e.slot === 'uncommon') return 1; if (e.slot === 'reverse') return 2;
     const i = LAB.LADDER_ORDER.indexOf(e.card.rarity); return i < 0 ? 3 : 3 + (LAB.LADDER_ORDER.length - i);
   }
+  // tiers for the order cards come out in: plain cards first, the rarest last
+  const tierOf = (R, k) => R.ladder.includes(k) ? 3 + R.ladder.length - R.ladder.indexOf(k)
+    : /^(C|Common|L|C-land)$/.test(k) ? 0 : /^(U|UC|Uncommon|C-sc|L-fa)$/.test(k) ? 1 : 2;
+  function simulateRecipe(A) {
+    const R = A.recipe, used = new Set(), out = [];
+    const take = (arr) => {
+      if (!arr || !arr.length) return null;
+      for (let k = 0; k < 24; k++) { const c = arr[(Math.random() * arr.length) | 0]; if (!used.has(c.id)) { used.add(c.id); return c; } }
+      return arr[(Math.random() * arr.length) | 0];
+    };
+    for (const sl of A.slots) for (let i = 0; i < sl.n; i++) {
+      let x = Math.random(), acc = 0, k = sl.base;
+      for (const [kk, pp] of sl.ups) { acc += pp; if (x < acc) { k = kk; break; } }
+      const card = take(A.byR[k]) || take(A.byR[sl.base]); if (!card) continue;
+      const price = LAB.priceOf(card, sl.foil), hit = R.hit.includes(k), t = tierOf(R, k);
+      out.push({ card, pool: k, foil: !!sl.foil, slot: hit ? 'hit' : sl.foil ? 'foil' : t >= 3 ? 'rare' : t === 0 ? 'common' : 'uncommon',
+        label: A.labelOf(k), price, priced: price > 0, rank: t + (sl.foil && !hit ? 0.5 : 0) });
+    }
+    out.sort((a, b) => a.rank - b.rank || a.price - b.price);              // rarest last
+    return out;
+  }
   function simulatePull(A) {
+    if (A.recipe) return simulateRecipe(A);
     const C = A.byR['Common'] || [], Un = A.byR['Uncommon'] || [], R = A.byR['Rare'] || [];
     const revPool = [...C, ...Un, ...R];
     const used = new Set(), usedRev = new Set();
@@ -488,7 +568,8 @@
   function preload(entries) {
     for (const e of entries) {
       const first = goodVariant[e.card.id];
-      const urls = (first ? [first, ...VARIANTS.filter((v) => v !== first)] : VARIANTS).map((x) => e.card.image + x);
+      const urls = e.card.imageLow ? [e.card.image, e.card.imageLow].filter((u, i, a) => a.indexOf(u) === i)
+        : (first ? [first, ...VARIANTS.filter((v) => v !== first)] : VARIANTS).map((x) => e.card.image + x);
       e.ready = new Promise((res) => {
         let retried = false;
         const all = urls.slice();
@@ -499,7 +580,7 @@
           if (!url) { e.tex = fallbackFace(e); if (e.mat) { e.mat.map = e.tex; e.mat.color.set(0xffffff); e.mat.needsUpdate = true; kick(); } res(e.tex); return; }
           loader.load(url, (t) => {
             if (e.dead) { t.dispose(); res(null); return; }
-            goodVariant[e.card.id] = url.slice(e.card.image.length);
+            if (!e.card.imageLow) goodVariant[e.card.id] = url.slice(e.card.image.length);
             t.encoding = THREE.sRGBEncoding; t.anisotropy = ANISO; e.tex = t;
             if (e.mat) { e.mat.map = t; e.mat.color.set(0xffffff); e.mat.needsUpdate = true; kick(); }
             res(t);
@@ -520,8 +601,9 @@
   function newPull(entries) {
     disposePull(S.pull);
     S.pull = { entries: entries || simulatePull(S.A), A: S.A };
+    if (L.n !== S.pull.entries.length) { L.n = S.pull.entries.length; layout(); }
     preload(S.pull.entries);
-    for (const e of S.pull.entries) { e.thumb = new Image(); e.thumb.src = e.card.image + '/low.webp'; }   // panel thumbnails, warmed while you tear
+    for (const e of S.pull.entries) { e.thumb = new Image(); e.thumb.src = LAB.imgOf(e.card, 'low'); }   // panel thumbnails, warmed while you tear
   }
   // card textures go back to the GPU pool when their cards leave the stage (clearCards), or here if the pack
   // was never opened; disposing a texture that is still drawn would just re-upload it and leak
@@ -552,11 +634,13 @@
   // The light band's position comes from how the card is turned, so the foil moves only when the card moves.
   const FOIL = { none: 0, art: 1, reverse: 2, full: 3, gold: 4 };
   const FULL_FOIL = ['Double rare', 'Ultra Rare', 'Illustration rare', 'Special illustration rare', 'Shiny rare', 'Shiny Ultra Rare', 'Black White Rare'];
-  const foilOf = (e) => e.slot === 'reverse' ? FOIL.reverse
+  const OTHER_FOIL = ['Enchanted', 'SR', 'SEC', 'P', 'P-L', 'P-SEC', 'TR', 'SP'];
+  const foilOf = (e) => e.pool ? ((e.foil || OTHER_FOIL.includes(e.pool)) ? FOIL.full : FOIL.none)
+    : e.slot === 'reverse' ? FOIL.reverse
     : (e.card.rarity === 'Hyper rare' || e.card.rarity === 'Mega Hyper Rare') ? FOIL.gold
     : FULL_FOIL.includes(e.card.rarity) ? FOIL.full
     : (e.card.rarity === 'Rare' || e.card.rarity === 'ACE SPEC Rare') ? FOIL.art : FOIL.none;
-  const foilWord = (m) => ['', 'Holo', 'Reverse holo', 'Textured foil', 'Gold foil'][m];
+  const foilWord = (m, e) => (e && e.pool ? ['', '', '', 'Foil', 'Foil'] : ['', 'Holo', 'Reverse holo', 'Textured foil', 'Gold foil'])[m];
   // art window in uv (x0, x1, v0, v1), measured on tcgdex scans: Pokémon vs Trainer / Energy frames
   const artRect = (e) => e.card.category === 'Pokemon' ? new THREE.Vector4(0.073, 0.927, 0.52, 0.905) : new THREE.Vector4(0.073, 0.927, 0.47, 0.865);
   const FOIL_GLSL = `
@@ -645,26 +729,18 @@
   // Grammar: Collectr's value summary (docs/design/hunt/trending-strip/collectr-site.jpg): a small label, one big
   // value, a delta chip with its arrow and unit, then the items behind the number as real thumbnails.
   // Order here: the hit first, then the pulled total as the verdict against the pack price, then the rest of the pack.
-  const rarityCol = (e) => LAB.RARITY_COLOR[e.card.rarity] || '#9a96a8';
+  const rarityCol = (e) => (e.pool ? LAB.XCOLOR[e.pool] : LAB.RARITY_COLOR[e.card.rarity]) || '#9a96a8';
   const slotWord = (e) => (e.slot === 'reverse' ? 'Reverse Holo · ' + LAB.titleRarity(e.card.rarity) : e.label);
   const priceTxt = (e) => (e.priced ? fmt(e.price) : 'no sales yet');
   function renderSlots() {
     const A = S.A; if (!A) return;
-    const pHit = 1 - (1 - Math.min(1, A.sumRare || 0)) * (1 - Math.min(1, A.sumRev || 0));
-    // a "big hit" leaves out the everyday hits (regular ex Double Rares, ACE SPECs, baby shinies)
-    const bigRare = A.rates['Ultra Rare'] || 0;
-    const bigRev = A.revHits.filter((r) => r !== 'ACE SPEC Rare' && r !== 'Shiny rare').reduce((t, r) => t + (A.rates[r] || 0), 0);
-    const pBig = 1 - (1 - bigRare) * (1 - bigRev);
-    const groups = [[4, 'Commons', ''], [3, 'Uncommons', ''], [1, 'Reverse holo', ''],
-      [1, 'Reverse-holo slot', A.revHits.length ? `upgrades ${LAB.oneIn(A.sumRev)} packs` : ''],
-      [1, 'Rare slot', A.rareHits.length ? `Double Rare or better ${LAB.oneIn(A.sumRare)} packs` : '']];
     receipt.innerHTML = `
       <div class="rc-top"><h2>In this pack</h2></div>
       <div class="rc-big">
-        <span class="odds2"><span><span class="rc-k">Chance of a hit</span><b class="num">${LAB.pct(pHit)}</b></span><span><span class="rc-k">A big hit</span><b class="num big2">${LAB.pct(pBig)}</b></span></span>
-        <span class="rc-sub">A hit is any Double Rare or better (regular ex count). A big hit is an Ultra Rare, Illustration Rare or better. Both are per pack, from the published pull rates below.</span></div>
-      <ol class="anatomy">${groups.map(([n, label, odds], g) => `
-        <li class="${g >= 3 ? 'hit' : ''}"><span class="backs" aria-hidden="true">${'<i></i>'.repeat(n)}</span>
+        <span class="odds2"><span><span class="rc-k">Chance of a hit</span><b class="num">${LAB.pct(A.pHit)}</b></span><span><span class="rc-k">A big hit</span><b class="num big2">${LAB.pct(A.pBig)}</b></span></span>
+        <span class="rc-sub">${esc(A.hitDef)}</span></div>
+      <ol class="anatomy">${A.anatomy.map(({ n, label, odds, hit }) => `
+        <li class="${hit ? 'hit' : ''}"><span class="backs" aria-hidden="true">${'<i></i>'.repeat(n)}</span>
           <span class="an-n">${n}</span><span class="an-l"><b>${label}</b>${odds ? `<small>${odds}</small>` : ''}</span></li>`).join('')}</ol>
       <p class="rc-note">Prices are TCGplayer market. Odds per pack from: ${LAB.oddsLinks(A)}</p>`;
   }
@@ -683,13 +759,13 @@
         <span class="meter-l" id="rcMeterL"><span>$0</span><span>pack ${fmt(cost)}</span></span>
       </div>
       <div class="rest">
-        <ol class="mini" id="rcGrid">${S.pull.entries.map((e, i) => `<li class="wait" data-i="${i}"><button class="mc" type="button" disabled><img alt="" hidden></button><span class="mp num"></span><span class="ms"></span></li>`).join('')}</ol>
+        <ol class="mini" id="rcGrid" style="--mc:${n > 10 ? Math.ceil(n / 2) : 5}">${S.pull.entries.map((e, i) => `<li class="wait" data-i="${i}"><button class="mc" type="button" disabled><img alt="" hidden></button><span class="mp num"></span><span class="ms"></span></li>`).join('')}</ol>
       </div>
       <p class="rc-foot" id="rcFoot" hidden></p>`;
     S.total = 0; S.meterMax = cost * 1.6; S.best = -1;
     placeMeter();
     receipt.querySelectorAll('#rcGrid .mc').forEach((b) => b.addEventListener('click', () => setView(+b.closest('li').dataset.i)));
-    $('rcHitBtn').addEventListener('click', () => { if (S.best >= 0) setView(S.best); });
+    $('rcHitBtn').addEventListener('click', () => { if (S.best < 0) return; if (S.phase === 'done') inspectCard(S.pull.entries[S.best]); else setView(S.best); });
   }
   function placeMeter() {
     const cost = LAB.packPrice(S.pull.A).perPack, max = Math.max(S.meterMax, S.total * 1.08, cost * 1.15);
@@ -714,7 +790,7 @@
   }
   // a thumbnail arrives face up: it fades in once its image has decoded (no card back, no broken frame)
   function showThumb(img, e, holder) {
-    const src = e.card.image + '/low.webp', pre = new Image(); pre.src = src;
+    const src = LAB.imgOf(e.card, 'low'), pre = new Image(); pre.src = src;
     const show = () => {
       img.src = src; img.alt = e.card.name; img.hidden = false; setFoil(holder, e);
       if (!REDUCED) gsap.fromTo(holder, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.32, ease: EXPO });
@@ -731,7 +807,7 @@
     b.disabled = false; b.setAttribute('aria-label', `${e.card.name}, ${slotWord(e)}, ${priceTxt(e)}`); b.title = `${e.card.name} · ${slotWord(e)} · ${priceTxt(e)}`;
     showThumb(b.querySelector('img'), e, b);
     li.querySelector('.mp').innerHTML = `<i style="background:${rarityCol(e)}"></i>${!e.priced ? 'n/a' : e.price >= 100 ? '$' + Math.round(e.price).toLocaleString('en-US') : fmt(e.price)}`;
-    li.querySelector('.ms').textContent = foilWord(foilOf(e));
+    li.querySelector('.ms').textContent = foilWord(foilOf(e), e);
   }
   function putInHit(i) {
     const e = S.pull.entries[i], img = $('rcHitImg'); if (!img) return;
@@ -740,7 +816,7 @@
     $('rcHitBtn').disabled = false;
     $('rcHitName').textContent = e.card.name;
     const fw = foilOf(e);
-    $('rcHitR').innerHTML = `<i style="background:${rarityCol(e)}"></i>${esc(slotWord(e))}${fw && e.slot !== 'reverse' ? ' · ' + foilWord(fw) : ''}`;
+    $('rcHitR').innerHTML = `<i style="background:${rarityCol(e)}"></i>${esc(slotWord(e))}${fw && e.slot !== 'reverse' ? ' · ' + foilWord(fw, e) : ''}`;
     $('rcHitP').textContent = priceTxt(e);
     receipt.querySelectorAll('#rcGrid li').forEach((li) => li.classList.toggle('best', +li.dataset.i === i));
   }
@@ -960,6 +1036,7 @@
     to(S, { tear: 0.7, duration: 0.75, ease: INOUT, onUpdate: () => setTear(S.tear), onComplete: completeTear });
   }
   function completeTear() {
+    playTitle();
     setPhase('opening'); S.tearSnd = null; S.fast = false;
     S.session.packs++; S.session.cost += LAB.packPrice(S.pull.A).perPack;
     const finish = () => { flingStrip(); openPack(); };
@@ -1190,6 +1267,52 @@
     if (!REDUCED && foilOf(c.e)) to(c.tiltRoot.rotation, { keyframes: [{ y: -0.12, duration: 0.25, ease: INOUT }, { y: 0, duration: 0.45, ease: INOUT }] });
   }
   function setView(j) { if (S.phase === 'done') carTo(j); }
+
+  // the same inspect as the set carousel: app.html deep-linked to this card (?set=&card=), shown over the page.
+  // It appears once its inspect dialog is open, and leaves when that dialog closes (close button, Esc, backdrop).
+  let insFrame = null, insWatch = null;
+  function inspectCard(e) {
+    if (!e || !S.pull) return;
+    const id = S.pull.A.id, num = e.card.num || parseInt(e.card.localId, 10);
+    if (!num) return;
+    closeInspect(true);
+    const shell = document.createElement('div'); shell.className = 'ins-shell';
+    shell.innerHTML = `<p class="ins-wait">Opening ${esc(e.card.name)}&hellip;</p>`;
+    const f = document.createElement('iframe');
+    f.title = `${e.card.name}, card details`;
+    const shared = S.pull.A.S.cards.some((c) => c !== e.card && c.num === num);
+    f.src = `app.html?set=${encodeURIComponent(id)}` + (shared ? '' : `&card=${num}`);
+    shell.appendChild(f); document.body.appendChild(shell);
+    insFrame = shell;
+    requestAnimationFrame(() => shell.classList.add('on'));
+    const esc2 = (ev) => { if (ev.key === 'Escape') closeInspect(); };
+    addEventListener('keydown', esc2); shell._esc = esc2;
+    let seenOpen = false, picked = !shared, t0 = performance.now();
+    insWatch = setInterval(() => {
+      let dlg = null, doc = null;
+      try { doc = f.contentDocument; dlg = doc && doc.getElementById('zoom'); } catch (err) { /* not ready */ }
+      if (!picked && dlg && !dlg.open) {
+        const im = doc.querySelector(`article.card img[alt*="card ${e.card.localId} of"]`), gridBtn = doc.getElementById('viewGrid');
+        if (im && gridBtn) {
+          if (gridBtn.getAttribute('aria-pressed') !== 'true') gridBtn.click();
+          const tile = doc.querySelector(`.gv-card[data-ci="${im.closest('article').dataset.i}"]`);
+          if (tile) { picked = true; tile.click(); }
+        }
+      }
+      if (dlg && dlg.open && !seenOpen) { seenOpen = true; shell.classList.add('ready'); try { f.contentWindow.focus(); } catch (err) { /* ok */ } }
+      if (seenOpen && dlg && !dlg.open) closeInspect();
+      if (!seenOpen && performance.now() - t0 > 12000) { shell.querySelector('.ins-wait').textContent = 'The card page did not open. Close and try again.'; shell.classList.add('ready'); }
+    }, 120);
+    liveEl.textContent = `Opening ${e.card.name}.`;
+  }
+  function closeInspect(instant) {
+    clearInterval(insWatch); insWatch = null;
+    const shell = insFrame; insFrame = null; if (!shell) return;
+    removeEventListener('keydown', shell._esc);
+    if (instant || REDUCED) { shell.remove(); return; }
+    shell.classList.remove('on', 'ready'); setTimeout(() => shell.remove(), 320);
+    canvas.focus({ preventScroll: true });
+  }
   const step = (d) => setView(S.view + d);
   prevBtn.addEventListener('click', () => step(-1));
   nextBtn.addEventListener('click', () => step(1));
@@ -1224,7 +1347,7 @@
     if (S.phase !== 'done') return;
     if (Math.abs(dx) < 6 && Math.abs(dy) < 6) {                 // a tap: bring that card forward (the front card: the next one)
       const i = cardAt(ev);
-      if (i === S.view) step(1); else if (i >= 0) setView(i);
+      if (i === S.view) inspectCard(S.cards[i].e); else if (i >= 0) setView(i);
       return;
     }
     // a flick carries on a little, then the arc settles on the nearest card
@@ -1272,6 +1395,7 @@
 
   layout();
   requestAnimationFrame(loop);
+  setTimeout(titleIn, 60);
   LAB.ready.then(() => {
     LAB.onSelect((A, why) => {
       if (why === 'rates') { S.A = A; if (S.phase === 'idle') { newPull(); renderSlots(); } return; }
@@ -1298,19 +1422,17 @@
     },
     simStats: (n = 10000) => {
       const A = S.A, count = {}; let hits = 0, bigs = 0;
-      const everyday = ['Double rare', 'ACE SPEC Rare', 'Shiny rare'];
+      const everyday = ['Double rare', 'ACE SPEC Rare', 'Shiny rare'], bigOf = (e) => A.recipe ? A.recipe.big.includes(e.pool) : !everyday.includes(e.card.rarity);
       for (let i = 0; i < n; i++) {
         const pk = simulatePull(A); let hit = false, big = false;
-        for (const e of pk) { if (e.slot === 'hit') { count[e.card.rarity] = (count[e.card.rarity] || 0) + 1; hit = true; if (!everyday.includes(e.card.rarity)) big = true; } }
+        for (const e of pk) { if (e.slot === 'hit') { const rk = e.pool || e.card.rarity; count[rk] = (count[rk] || 0) + 1; hit = true; if (bigOf(e)) big = true; } }
         if (hit) hits++; if (big) bigs++;
       }
-      const pHit = 1 - (1 - Math.min(1, A.sumRare || 0)) * (1 - Math.min(1, A.sumRev || 0));
-      const bigRev = A.revHits.filter((r) => r !== 'ACE SPEC Rare' && r !== 'Shiny rare').reduce((t, r) => t + (A.rates[r] || 0), 0);
-      const pBig = 1 - (1 - (A.rates['Ultra Rare'] || 0)) * (1 - bigRev);
+      const pHit = A.pHit, pBig = A.pBig;
       return { id: A.id, n, rates: A.rates, simulated: Object.fromEntries(Object.entries(count).map(([k, v]) => [k, v / n])), hitShare: hits / n, bigShare: bigs / n, shown: pHit, shownBig: pBig, src: A.src, links: (A.links || []).map((l) => l.label + (l.url ? ' <' + l.url + '>' : '')) };
     },
     snd: () => ({ on: SND.on, unlocked: !!SND.ctx, available: Object.keys(SND.raw), decoded: Object.keys(SND.buf), plays: { ...SND.plays } }),
-    view: (j) => setView(j), viewing: () => S.view, step,
+    view: (j) => setView(j), viewing: () => S.view, step, inspect: () => S.view >= 0 && inspectCard(S.cards[S.view].e),
     // which card's face is nearest the camera at the stage centre (test hook)
     frontCard: () => {
       if (!S.cards.length) return null;

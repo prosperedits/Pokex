@@ -211,12 +211,19 @@
     }
 
     // A video crown (Faisal, 28 Oct: "have Higgsfield make a video... transparent... the cards over the video... actual 3D").
-    // opts.video = { src, width, y }: a green-screen turntable played on a plane at the ring's centre. The shader keys the
-    // green out and writes depth where the crown is solid, so cards passing behind it are hidden by the crown itself.
+    // opts.video = { src, roll, band: { u, v, r }, eye: { dist, elev } }: a green-screen turntable on a plane at the ring's
+    // centre. The turntable was measured: its band's centre on the crown's axis sits at (u, v) of the frame, the band's radius
+    // is r of the frame's width, and it was filmed from dist band-radii away, elev radians above the band. The scene repeats
+    // that camera exactly (band radius = 1, band centre at the origin), so a level ring of cards round the origin lands on the
+    // band's ellipse all the way round, in the video's own perspective. The camera rolls by `roll` (not the ring, not the
+    // plane), so the crown and the ring always lean by the same angle (P: left side down, right side up).
+    // The shader keys the green out with a soft edge; the crown hides the cards behind it, the front cards cover the band.
+    let vplane = null, vfit = null;
     if (opts.video) {
       crown.clear();
+      const V = opts.video, band = V.band || { u: 0.5, v: 0.66, r: 0.41 }, eye = V.eye || { dist: 3.66, elev: 0.135 };
       const vid = document.createElement('video');
-      Object.assign(vid, { src: opts.video.src, muted: true, loop: true, playsInline: true, autoplay: true, crossOrigin: 'anonymous', preload: 'auto' });
+      Object.assign(vid, { src: V.src, muted: true, loop: true, playsInline: true, autoplay: true, crossOrigin: 'anonymous', preload: 'auto' });
       vid.setAttribute('playsinline', ''); vid.setAttribute('muted', '');
       const vtex = new T.VideoTexture(vid);   // sampled as-is: the video is already display colour
       const keyMat = new T.ShaderMaterial({
@@ -226,30 +233,277 @@
         fragmentShader:
           'uniform sampler2D map; varying vec2 vUv;\n' +
           'void main(){ vec4 c = texture2D(map, vUv);\n' +
-          '  float d = c.g - max(c.r, c.b);\n' +                       // how green this pixel is
-          '  float a = 1.0 - smoothstep(0.06, 0.2, d);\n' +
-          '  if (a < 0.5) discard;\n' +                                 // keyed out: no colour, no depth
-          '  c.g = min(c.g, max(c.r, c.b) + 0.02);\n' +                 // spill: no green fringe on the gold
-          '  gl_FragColor = vec4(c.rgb, 1.0);\n' +
+          '  float d = c.g - max(c.r, c.b);\n' +                       // how green: ~0.84 on the screen, under 0.03 on the crown
+          '  float a = clamp((0.70 - d) / 0.62, 0.0, 1.0);\n' +         // a linear key, a hair tight: soft edges without the screen's fringe
+          '  if (a < 0.02) discard;\n' +                                // keyed out: no colour, no depth
+          '  vec3 f = clamp((c.rgb - (1.0 - a) * vec3(0.03, 0.918, 0.078)) / max(a, 0.05), 0.0, 1.0);\n' +   // un-mix the screen from edge pixels
+          '  f.g = min(f.g, max(f.r, 0.5 * f.b) + 0.02);\n' +           // spill: no green fringe on the gold, no teal on the sapphires' edges
+          '  gl_FragColor = vec4(f, a);\n' +
           '}',
       });
       const go = () => {
-        const w = opts.video.width || 2.2, h = w * (vid.videoHeight / vid.videoWidth || 9 / 16);
+        const w = 1 / band.r, h = w * (vid.videoHeight / vid.videoWidth || 474 / 812);
+        camera.position.set(0, Math.sin(eye.elev) * eye.dist, Math.cos(eye.elev) * eye.dist);
+        camera.lookAt(0, 0, 0);
         const plane = new T.Mesh(new T.PlaneGeometry(w, h), keyMat);
-        plane.position.y = opts.video.y != null ? opts.video.y : h / 2;
-        if (opts.camera) { camera.position.fromArray(opts.camera[0]); camera.lookAt(new T.Vector3().fromArray(opts.camera[1])); }
-        plane.lookAt(camera.position);                   // faces the camera: the video is never squashed
-        plane.rotateZ(opts.video.roll || 0);             // and leans with the card ring (P: same angle as the cards)
-        scene.add(plane); vplane = plane;
-        camBase = { pos: camera.position.clone(), at: opts.camera ? new T.Vector3().fromArray(opts.camera[1]) : new T.Vector3(0, 0.5, 0) };
+        plane.lookAt(camera.position);                   // square to the view, as the video's own image plane was
+        plane.translateX((0.5 - band.u) * w); plane.translateY((band.v - 0.5) * h);   // the band's centre on the origin
+        scene.add(plane); vplane = plane; plane.updateMatrixWorld();
+        camera.rotateZ(-(V.roll || 0));                  // the lean: crown and ring together
+        camera.updateMatrixWorld();
+        orbit.tilt = 0; orbit.roll = 0;                  // the ring stays level: the camera does the leaning
+        if (opts.cards && opts.cards.length && opts.orbit) setOrbit(opts.cards, 1);   // orbit.y: the ring's height off the band's centre, in band radii
+        // the whole picture (the crown's outline in the frame, V.hull as [u, v] fractions, else the frame's corners, plus
+        // every place a card can be) in camera space, for framing in resize()
+        const pts = (V.hull || [[0, 0], [1, 0], [0, 1], [1, 1]]).map(([u, v]) => plane.localToWorld(new T.Vector3((u - 0.5) * w, (0.5 - v) * h, 0)));
+        const ch = orbit.h * 1.04, cw = ch * 0.716, cy = ringTilt.position.y;
+        for (let k = 0; k < 96; k++) {
+          const a = k / 96 * Math.PI * 2, c = new T.Vector3(Math.sin(a) * orbit.r, 0, Math.cos(a) * orbit.r), t = new T.Vector3(Math.cos(a), 0, -Math.sin(a));
+          for (const sx of [-1, 1]) for (const sy of [-1, 1]) pts.push(c.clone().addScaledVector(t, sx * cw / 2).setY(cy + sy * ch / 2));
+        }
+        vfit = { x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity, pts: [] };
+        for (const p of pts) {
+          p.applyMatrix4(camera.matrixWorldInverse);
+          const x = p.x / -p.z, y = p.y / -p.z;
+          vfit.pts.push([x, y]);
+          vfit.x0 = Math.min(vfit.x0, x); vfit.x1 = Math.max(vfit.x1, x); vfit.y0 = Math.min(vfit.y0, y); vfit.y1 = Math.max(vfit.y1, y);
+        }
         resize();
-        if (opts.cards && opts.cards.length && opts.orbit) setOrbit(opts.cards, 1);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => resize());   // the headline's height settles with its font
         vid.play().catch(() => {});
         if (opts.onload) opts.onload();
       };
       if (vid.readyState >= 1) go(); else vid.addEventListener('loadedmetadata', go, { once: true });
     }
-    let vplane = null;
+
+    // A built crown (Faisal, 28 Oct night: "it has to be a 3D graphic from now on. The size is perfect though"): crown 3
+    // of docs/design/crown/turnarounds/, built exactly in Blender (scripts/crown-build.py) at the hero's units, band radius
+    // 1 with the band's centre at the origin. opts.glb = { src, roll, eye } repeats the video's camera, so the size and
+    // framing Faisal approved carry over, and frames the crown's whole turn plus every card the same way.
+    if (opts.glb && T.GLTFLoader) {
+      crown.clear();
+      const G = opts.glb, eye = G.eye || { dist: 3.657, elev: 0.1354 };
+      // polished gold is a mirror: it reads yellow only in a bright room, so this crown gets the concept's studio
+      // (a bright sky, a warm bright horizon, a dark floor and a dark line under the horizon) instead of the dark softbox box
+      {
+        const room = new T.Scene();
+        room.add(new T.Mesh(new T.SphereGeometry(20, 64, 32), new T.ShaderMaterial({ side: T.BackSide,
+          vertexShader: 'varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+          // a dark jeweller's studio with big soft lights: mirror gold needs both, bright areas to read yellow and dark
+          // ones for contrast (an all-bright room turned it to beige clay, the old small softboxes to olive)
+          fragmentShader: 'varying vec3 vP; void main(){ vec3 d = normalize(vP);\n' +
+            '  vec3 c = vec3(0.05, 0.042, 0.034);\n' +   // a dim warm room, not black: the gold's shadows stay soft and even (Faisal, 29 Oct)
+            '  float front = smoothstep(0.3, 0.9, dot(d, normalize(vec3(0.0, 0.15, 1.0))));\n' +   // behind the camera: the walls facing us; a wide, soft-edged panel, no hard bands
+            '  c += vec3(1.0, 0.9, 0.74) * 1.15 * front * smoothstep(-0.25, -0.05, d.y);\n' +
+            '  c += vec3(1.0, 0.98, 0.94) * 1.6 * smoothstep(0.72, 0.9, d.y);\n' +                    // the overhead softbox
+            '  c += vec3(0.85, 0.92, 1.0) * 0.9 * smoothstep(0.86, 0.95, abs(d.x)) * smoothstep(0.45, 0.2, abs(d.y));\n' +   // side strips
+            '  c += vec3(0.9, 0.75, 0.5) * 0.35 * smoothstep(0.07, 0.0, abs(d.y - 0.02));\n' +       // a warm horizon line
+            // pin-point lamps: the cut stones' facets catch them and flash as the crown turns (Faisal, 29 Oct: livelier gems)
+            '  vec3 L[7]; L[0] = vec3(0.5, 0.8, 0.6); L[1] = vec3(-0.6, 0.7, 0.5); L[2] = vec3(0.9, 0.3, 0.3); L[3] = vec3(-0.9, 0.35, 0.1);\n' +
+            '  L[4] = vec3(0.2, 0.6, -0.9); L[5] = vec3(-0.3, 0.9, -0.4); L[6] = vec3(0.15, 0.25, 1.0);\n' +
+            '  for (int i = 0; i < 7; i++) c += vec3(14.0) * pow(max(dot(d, normalize(L[i])), 0.0), 2400.0);\n' +
+            '  gl_FragColor = vec4(c, 1.0); }' })));
+        const pm = new T.PMREMGenerator(renderer);
+        scene.environment = pm.fromScene(room, 0.02).texture;
+      }
+      const gold = new T.MeshPhysicalMaterial({ color: new T.Color().setRGB(1.0, 0.56, 0.13), metalness: 1, roughness: 0.2, envMapIntensity: opts.envI != null ? opts.envI : 1.3 });
+      // The band is black again, as jewellery enamel (Faisal, 2 Nov: "readd the black part of the crown, but make the texture
+      // better fitting than before"; the old flat satin read grey and plastic beside polished gold). Deep black under a
+      // smooth clear coat, with a fine engraved diamond guilloche in the layer beneath: the coat keeps the glassy shine, the
+      // pattern ripples under it as the crown turns, and true black lets the cards pop.
+      const band = new T.MeshPhysicalMaterial({ color: new T.Color().setRGB(0.006, 0.0055, 0.007), metalness: 0, roughness: 0.34, specularIntensity: 0.5,
+        clearcoat: 0.7, clearcoatRoughness: 0.08, envMapIntensity: 0.55 });   // not metallic: a metal base went silver at the pattern's slopes
+      band.onBeforeCompile = (sh) => {
+        sh.vertexShader = 'varying vec3 vLocal;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vLocal = position;');
+        sh.fragmentShader = 'varying vec3 vLocal;\n' + sh.fragmentShader.replace('#include <normal_fragment_maps>',
+          '#include <normal_fragment_maps>\n' +
+          '  { float a = atan(vLocal.z, vLocal.x);\n' +
+          // crossed at 45 degrees on the band (its local height runs -1 to 1 over 0.38 band radii)
+          '    float h = sin(a * 110.0 + vLocal.y * 21.0) + sin(a * 110.0 - vLocal.y * 21.0);\n' +
+          '    vec2 dH = vec2(dFdx(h), dFdy(h)) * 0.007;\n' +
+          '    vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx);\n' +
+          '    float det = dot(sx, r1);\n' +
+          '    normal = normalize(abs(det) * normal - sign(det) * (dH.x * r1 + dH.y * r2)); }');
+      };
+      // Every facet carries its own shade (vertex colours from the build), so the stones read as cut, not enamel. Faisal
+      // (29 Oct): "a few different colors... the lighting in them a little bit more dynamic". Sapphire on every other spire,
+      // ruby and emerald in turn between (deep jewel tones: he called bright mixed gems "candy" on 28 Oct). Each stone glows
+      // a little in its own colour, and its facets twinkle in turn as well as flashing on the studio's pin-point lamps.
+      // Each stone runs from a bright top to a deep foot (Faisal, 29 Oct: "if it's blue, it just goes to darker blue or purple...
+      // a gradient sort of feeling"): sapphire to violet, ruby to wine, emerald to deep teal. [top, foot], linear RGB.
+      const HUE = { sapphire: [[0.08, 0.32, 1.0], [0.22, 0.02, 0.55]], ruby: [[1.0, 0.1, 0.16], [0.38, 0.0, 0.2]], emerald: [[0.12, 0.92, 0.5], [0.0, 0.26, 0.32]],
+        citrine: [[1.0, 0.82, 0.14], [0.62, 0.22, 0.0]] };   // Faisal (29 Oct): "a little bit of... yellow gems": citrine, canary to amber
+      const STONES = ['ruby', 'emerald', 'citrine'];   // sapphire on every other spire, these three in turn between
+      const GEM_Y = 0.617, GEM_HALF = 0.165;   // the stones' centre height and half height, band radii (scripts/crown-build.py)
+      // Faisal (29 Oct): "the gem should really show this really, really beautiful sort of lighting". A cut stone's look is
+      // light that enters it, bounces off its pavilion and comes back out through another facet, coloured by the stone
+      // (brilliance), flashing on and off as it turns (scintillation), with a fleck of rainbow (fire). WebGL has no real
+      // internal bounces, so each facet looks the studio up along a refracted-then-reflected ray and glows with what it
+      // finds, in its own colour: dark facets beside bright ones, a pattern that moves as the crown turns. The surface
+      // keeps a thin coloured reflection (some metalness tints it) instead of the white sheen that read as pastel.
+      const gem = new T.MeshPhysicalMaterial({ vertexColors: true, metalness: 0.35, roughness: 0.04, clearcoat: 0.45, clearcoatRoughness: 0.02, specularIntensity: 0.5,
+        envMapIntensity: 0.7, flatShading: true });
+      gem.onBeforeCompile = (sh) => {
+        sh.uniforms.uTime = uniforms.uTime;
+        sh.fragmentShader = 'uniform float uTime;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>',
+          '#include <emissivemap_fragment>\n' +
+          '  vec3 gV = normalize(vViewPosition);\n' +                                         // towards the camera, view space
+          '  vec3 gR = inverseTransformDirection(refract(-gV, normal, 0.565), viewMatrix);\n' +   // into the stone (sapphire's IOR 1.77)
+          '  vec3 gB = reflect(gR, normalize(vec3(gR.z, -gR.x, gR.y) + 0.3));\n' +            // off a pavilion facet
+          '  vec3 inner = vec3(0.3);\n' +
+          '  #ifdef ENVMAP_TYPE_CUBE_UV\n  inner = textureCubeUV(envMap, gB, 0.03).rgb;\n  #endif\n' +
+          // a whole facet twinkles at a time (a high frequency here read as pixel noise on 29 Oct)
+          '  float tw = pow(max(0.0, sin(dot(normal, vec3(1.7, 3.1, 2.3)) * 2.2 + uTime * 2.6)), 18.0);\n' +
+          '  vec3 fire = 0.5 + 0.5 * cos(6.2832 * (dot(normal, vec3(0.9, 1.3, 0.7)) + vec3(0.0, 0.33, 0.67)));\n' +
+          '  totalEmissiveRadiance = vColor.rgb * (0.16 + 2.2 * inner + 1.5 * tw) + fire * tw * 0.12;');
+      };
+      // Ray-traced stones (Faisal, 29 Oct: the crystals "don't look like they have depth to them, like internally"). Light
+      // refracts into each stone, bounces off its inner facets up to three times (three-mesh-bvh traces the stones' own
+      // triangles) and leaves through another facet, split a little into colour (fire), tinted by the stone's gradient. A CC0
+      // Poly Haven studio (studio_small_09, assets/env/) gives the bounces real softboxes to find. Ported from drei's
+      // MeshRefractionMaterial (MIT). Phones, WebGL1 and a missing library keep the facet shader above.
+      const BVH = window.MeshBVHLib;
+      const traceOK = !!(BVH && T.RGBELoader && renderer.capabilities.isWebGL2 && window.innerWidth >= 760 && G.gemEnv);
+      let gemEnv = null; const traced = [];
+      if (traceOK) new T.RGBELoader().load(G.gemEnv, (hdr) => {
+        hdr.mapping = T.EquirectangularReflectionMapping;
+        gemEnv = new T.PMREMGenerator(renderer).fromEquirectangular(hdr).texture;
+        traced.forEach(swapIn);
+      });
+      // the stones keep the facet shader until the studio has loaded (an empty envMap would draw them black)
+      const swapIn = (t) => { t.mat.envMap = gemEnv; t.mat.uniforms.envMap.value = gemEnv; t.mesh.geometry = t.geo; t.mesh.material = t.mat; };
+      function traceGems(mesh) {
+        const src = mesh.geometry, pos = src.attributes.position, nrm = src.attributes.normal, n = pos.count;
+        const P = new Float32Array(n * 3), N = new Float32Array(n * 3);
+        for (let i = 0; i < n; i++) {
+          P[i * 3] = pos.getX(i); P[i * 3 + 1] = pos.getY(i); P[i * 3 + 2] = pos.getZ(i);
+          N[i * 3] = nrm.getX(i); N[i * 3 + 1] = nrm.getY(i); N[i * 3 + 2] = nrm.getZ(i);
+        }
+        const geo = new T.BufferGeometry();   // plain floats: the BVH reads raw positions, and the quantised ones are normalised ints
+        geo.setAttribute('position', new T.BufferAttribute(P, 3));
+        geo.setAttribute('normal', new T.BufferAttribute(N, 3));
+        geo.setAttribute('color', src.attributes.color);
+        if (src.index) geo.setIndex(new T.BufferAttribute(new Uint32Array(src.index.array), 1));
+        const bvh = new BVH.MeshBVH(geo, { strategy: BVH.SAH, maxLeafTris: 1 });
+        const bvhU = new BVH.MeshBVHUniformStruct(); bvhU.updateFrom(bvh);
+        const mat = new T.ShaderMaterial({
+          vertexColors: true,
+          uniforms: { envMap: { value: null }, bvh: { value: bvhU }, bounces: { value: 3 }, ior: { value: 1.77 },
+            aberration: { value: 0.02 }, fresnel: { value: 0.75 }, gain: { value: 0.75 } },   // gain under 1: the studio's softboxes are bright, and more washed the stones to pastel
+          vertexShader:
+            'varying vec3 vWorldPosition; varying vec3 vNormal; varying mat4 vModelMatrixInverse;\n' +
+            '#include <color_pars_vertex>\n' +
+            'void main() {\n' +
+            '  #include <color_vertex>\n' +
+            '  vModelMatrixInverse = inverse(modelMatrix);\n' +
+            '  vNormal = normalize(transpose(mat3(vModelMatrixInverse)) * normal);\n' +
+            '  vec4 wp = modelMatrix * vec4(position, 1.0); vWorldPosition = wp.xyz;\n' +
+            '  gl_Position = projectionMatrix * viewMatrix * wp;\n' +
+            '}',
+          fragmentShader:
+            'precision highp isampler2D; precision highp usampler2D;\n' +
+            'varying vec3 vWorldPosition; varying vec3 vNormal; varying mat4 vModelMatrixInverse;\n' +
+            '#include <color_pars_fragment>\n' +
+            'uniform mat4 modelMatrix;\n' +   // three sets it on every draw; the fragment stage has to declare it itself
+            'uniform sampler2D envMap; uniform float bounces; uniform float ior; uniform float aberration; uniform float fresnel; uniform float gain;\n' +
+            BVH.shaderStructs + '\n' + BVH.shaderIntersectFunction + '\n' +
+            'uniform BVH bvh;\n' +
+            '#include <common>\n' +
+            '#include <cube_uv_reflection_fragment>\n' +
+            // in through the facet, round the inside of the cut, out through another facet (world direction)
+            'vec3 traceInside(vec3 rd, vec3 n, float eta) {\n' +
+            '  vec3 dir = refract(rd, n, 1.0 / eta);\n' +
+            '  vec3 ro = (vModelMatrixInverse * vec4(vWorldPosition + dir * 0.0005, 1.0)).xyz;\n' +
+            '  dir = normalize((vModelMatrixInverse * vec4(dir, 0.0)).xyz);\n' +
+            '  for (int i = 0; i < 4; i++) {\n' +
+            '    if (float(i) >= bounces) break;\n' +
+            '    uvec4 fi = uvec4(0u); vec3 fn = vec3(0.0, 0.0, 1.0); vec3 bc = vec3(0.0); float side = 1.0; float dist = 0.0;\n' +
+            '    bvhIntersectFirstHit(bvh, ro, dir, fi, fn, bc, side, dist);\n' +
+            '    vec3 hit = ro + dir * max(dist - 0.0005, 0.0);\n' +
+            '    vec3 fo = dot(fn, dir) > 0.0 ? -fn : fn;\n' +              // the facet's normal facing the ray
+            '    vec3 out_ = refract(dir, fo, eta);\n' +
+            '    if (dot(out_, out_) > 0.0) { dir = out_; break; }\n' +       // it leaves the stone
+            '    dir = reflect(dir, fo);\n' +                                 // total internal reflection: round again
+            '    ro = hit + dir * 0.002;\n' +
+            '  }\n' +
+            '  return normalize((modelMatrix * vec4(dir, 0.0)).xyz);\n' +
+            '}\n' +
+            'void main() {\n' +
+            '  vec3 n = normalize(vNormal);\n' +
+            '  vec3 rd = normalize(vWorldPosition - cameraPosition);\n' +
+            '  if (dot(n, rd) > 0.0) n = -n;\n' +
+            '  vec3 col = vec3(0.0);\n' +
+            '  #ifdef ENVMAP_TYPE_CUBE_UV\n' +
+            '  vec3 dG = traceInside(rd, n, ior);\n' +
+            '  vec3 dR = normalize(dG + vec3(aberration)), dB = normalize(dG - vec3(aberration));\n' +   // a little fire
+            '  vec3 inner = vec3(textureCubeUV(envMap, dR, 0.0).r, textureCubeUV(envMap, dG, 0.0).g, textureCubeUV(envMap, dB, 0.0).b);\n' +
+            '  vec3 refl = textureCubeUV(envMap, reflect(rd, n), 0.0).rgb;\n' +
+            '  float f = pow(1.0 - max(dot(-rd, n), 0.0), 4.0) * fresnel;\n' +
+            '  col = inner * vColor * gain;\n' +
+            '  col = mix(col, refl, f) + refl * 0.035;\n' +                    // a thin glassy reflection on top, stronger at grazing angles
+            '  #endif\n' +
+            '  gl_FragColor = vec4(col, 1.0);\n' +
+            '  #include <tonemapping_fragment>\n' +
+            '  #include <encodings_fragment>\n' +
+            '}',
+        });
+        // envMap on the material makes three define ENVMAP_TYPE_CUBE_UV and its sizes for this shader
+        const t = { mesh, mat, geo }; traced.push(t); if (gemEnv) swapIn(t);
+      }
+      new T.GLTFLoader().load(G.src, (g) => {
+        g.scene.traverse((o) => {
+          if (!o.isMesh) return;
+          const n = (o.material && o.material.name) || '';
+          o.material = n === 'sapphire' ? gem : n === 'band' ? band : gold;
+          // Blender writes the facet colours as COLOR_1 (COLOR_0 is a blank white layer): its blue channel is each facet's
+          // brightness, its green the highlight. Each stone (one per spire, every 30 degrees) gets its jewel's hue from them.
+          if (n === 'sapphire') {
+            const src = o.geometry.attributes.color_1 || o.geometry.attributes.color, pos = o.geometry.attributes.position;
+            const out = new Float32Array(pos.count * 3), v = new T.Vector3();
+            o.updateMatrix();
+            for (let i = 0; i < pos.count; i++) {
+              v.fromBufferAttribute(pos, i).applyMatrix4(o.matrix);
+              const k = ((Math.round(Math.atan2(-v.z, v.x) / (Math.PI / 6)) % 12) + 12) % 12;
+              const [top, foot] = HUE[k % 2 === 0 ? 'sapphire' : STONES[((k - 1) / 2) % 3]];
+              const t = Math.min(1, Math.max(0, (GEM_Y + GEM_HALF - v.y) / (2 * GEM_HALF)));   // 0 at the stone's top, 1 at its foot
+              const b = src.getZ(i) * 0.55, hi = src.getY(i) * 0.04;
+              for (let c = 0; c < 3; c++) out[i * 3 + c] = (top[c] + (foot[c] - top[c]) * t) * b + hi;
+            }
+            o.geometry.setAttribute('color', new T.BufferAttribute(out, 3));
+            if (traceOK) traceGems(o);
+          }
+        });
+        crown.add(g.scene);
+        camera.position.set(0, Math.sin(eye.elev) * eye.dist, Math.cos(eye.elev) * eye.dist);
+        camera.lookAt(0, 0, 0);
+        camera.rotateZ(-(G.roll || 0));                  // the lean: crown and ring together (P: left side down, right side up)
+        camera.updateMatrixWorld();
+        orbit.tilt = 0; orbit.roll = 0;
+        if (opts.cards && opts.cards.length && opts.orbit) setOrbit(opts.cards, 1);
+        // the picture over a whole turn: the crown's outline (round, so rings at its foot, rims and tips) plus every card corner
+        const box = new T.Box3().setFromObject(g.scene), R = Math.max(box.max.x, box.max.z);
+        const pts = [];
+        for (let k = 0; k < 96; k++) {
+          const a = k / 96 * Math.PI * 2, s = Math.sin(a), c = Math.cos(a);
+          for (const [r, y] of [[R, box.min.y], [R, 0.3], [R * 0.96, box.max.y]]) pts.push(new T.Vector3(s * r, y, c * r));
+        }
+        const ch = orbit.h * 1.04, cw = ch * 0.716, cy = ringTilt.position.y;
+        for (let k = 0; k < 96; k++) {
+          const a = k / 96 * Math.PI * 2, c = new T.Vector3(Math.sin(a) * orbit.r, 0, Math.cos(a) * orbit.r), t = new T.Vector3(Math.cos(a), 0, -Math.sin(a));
+          for (const sx of [-1, 1]) for (const sy of [-1, 1]) pts.push(c.clone().addScaledVector(t, sx * cw / 2).setY(cy + sy * ch / 2));
+        }
+        vfit = { x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity, pts: [] };
+        for (const p of pts) {
+          p.applyMatrix4(camera.matrixWorldInverse);
+          const x = p.x / -p.z, y = p.y / -p.z;
+          vfit.pts.push([x, y]);
+          vfit.x0 = Math.min(vfit.x0, x); vfit.x1 = Math.max(vfit.x1, x); vfit.y0 = Math.min(vfit.y0, y); vfit.y1 = Math.max(vfit.y1, y);
+        }
+        resize();
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => resize());
+        if (opts.onload) opts.onload();
+      });
+    }
 
     // The carousel IS the crown (Faisal, 27 Oct): real cards set into the band, all the
     // way around, framed in gold, turning with the crown. Band geometry is a fraction of the
@@ -350,7 +604,7 @@
         f.getWorldPosition(shade); view.copy(camera.position).sub(shade).normalize();
         const n = new T.Vector3(0, 0, 1).applyQuaternion(f.getWorldQuaternion(new T.Quaternion()));
         const d = Math.max(0, n.dot(view));
-        f.material.color.setScalar(0.55 + 0.45 * Math.pow(d, 0.8));
+        f.material.color.setScalar(0.72 + 0.28 * Math.pow(d, 0.8));   // side cards stay bright enough to read (Faisal, 29 Oct: more visible)
         if (f.userData.glint) {   // mirror the view about the card's normal; the closer that lands on the key light, the brighter the glint
           toKey.copy(key.position).normalize(); refl.copy(view).reflect(n).negate();
           f.userData.glint.material.opacity = 0.04 + 0.42 * Math.pow(Math.max(0, refl.dot(toKey)), 6) * d;
@@ -404,6 +658,52 @@
     function resize() {
       const w = canvas.clientWidth || canvas.width || 300, h = canvas.clientHeight || canvas.height || 300;
       renderer.setSize(w, h, false);
+      if (vfit) {   // the video crown: frame the whole picture in the free part of the canvas, without moving the camera
+        // opts.frame = { under, over, floor, pad, gap, shift }: CSS selectors the picture keeps clear of: under the header, out of
+        // the boxes of `over` (a selector or a list: the headline's letters, the Explore link; it may pass beside them, never
+        // over them), above the floor (the ticker)
+        const fr = opts.frame || {}, pad = fr.pad != null ? fr.pad : 20, gap = fr.gap != null ? fr.gap : pad, rc = canvas.getBoundingClientRect();
+        const box = (sel) => {   // relative to the canvas as it sits with the page at the top (fixed bars don't scroll)
+          const e = sel && document.querySelector(sel); if (!e) return null;
+          const b = e.getBoundingClientRect(), dy = getComputedStyle(e).position === 'fixed' ? window.scrollY : 0;
+          return { l: b.left - rc.left, t: b.top - rc.top - dy, r: b.right - rc.left, b: b.bottom - rc.top - dy };
+        };
+        const head = box(fr.under), floor = box(fr.floor);
+        const keep = [].concat(fr.over || []).map(box).filter((b) => b && b.t > h * 0.35);   // obstacles in the lower part only
+        const top = Math.max(0, head ? head.b : 0) + pad, bot = Math.min(h, floor ? floor.t : h) - pad;
+        // inside the visible part of the canvas (it can sit off-centre), centred on the window, or moved sideways by up to
+        // frame.shift of the window's width when that lets it grow (the headline sits to one side)
+        const side = Math.min(pad, window.innerWidth * 0.03), vis0 = Math.max(0, -rc.left) + side, vis1 = Math.min(w, window.innerWidth - rc.left) - side;
+        const centre = window.innerWidth / 2 - rc.left, cx = (vfit.x0 + vfit.x1) / 2, span = vfit.x1 - vfit.x0;
+        // m: where the picture's middle sits (canvas px); f: pixels per unit of view-space tangent. Returns its vertical offset, or null
+        const place = (m, f) => {
+          if (m - f * span / 2 < vis0 || m + f * span / 2 > vis1) return null;
+          const ox = m - f * cx;
+          let lo = top + f * vfit.y1, hi = bot + f * vfit.y0;
+          for (const o of keep) for (const [x, y] of vfit.pts) {
+            const sx = ox + f * x;
+            if (sx > o.l - gap && sx < o.r + gap) hi = Math.min(hi, o.t - gap + f * y);
+          }
+          return lo <= hi ? (lo + hi) / 2 : null;
+        };
+        const grow = (m) => {   // the largest f that fits at m
+          let fa = 0, fb = 2 * Math.max(0, Math.min(m - vis0, vis1 - m)) / span;
+          if (place(m, fb) != null) return fb;
+          for (let k = 0; k < 30; k++) { const fm = (fa + fb) / 2; if (place(m, fm) != null) fa = fm; else fb = fm; }
+          return fa;
+        };
+        const tries = [centre];
+        for (let k = 1; k <= 12; k++) for (const s of [1, -1]) tries.push(centre + s * (fr.shift || 0) * window.innerWidth * k / 12);
+        // the least move that gets (nearly) the biggest crown
+        const sizes = tries.map(grow), most = Math.max(...sizes), pick = sizes.findIndex((s) => s >= most * 0.985), m = tries[pick];
+        // a lens shift (an off-centre frustum) places it, so the perspective (and the band/ring match) never changes
+        const f = Math.max(sizes[pick], 1e-3), ox = m - f * cx, py = place(m, f), oy = py != null ? py : (top + bot) / 2 + f * (vfit.y0 + vfit.y1) / 2;
+        const n = camera.near;
+        camera.aspect = w / h;
+        camera.projectionMatrix.makePerspective(-ox / f * n, (w - ox) / f * n, oy / f * n, (oy - h) / f * n, n, camera.far);
+        camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+        return;
+      }
       camera.aspect = w / h; camera.updateProjectionMatrix();
       // narrow canvases (phones) back the camera off so the whole crown stays in frame
       if (camBase) {

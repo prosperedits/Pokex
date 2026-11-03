@@ -1,4 +1,10 @@
 {
+ "lor-8": {
+  "product": "Disney Lorcana: Reign of Jafar Booster Pack",
+  "tcgplayerProductId": 623063,
+  "group": "Reign of Jafar",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/623063_in_1000x1000.jpg"
+ },
  "me01": {
   "product": "Mega Evolution Booster Pack",
   "tcgplayerProductId": 644352,
@@ -28,6 +34,18 @@
   "tcgplayerProductId": 684446,
   "group": "ME04: Chaos Rising",
   "source": "https://tcgplayer-cdn.tcgplayer.com/product/684446_in_1000x1000.jpg"
+ },
+ "mtg-tdm": {
+  "product": "Tarkir: Dragonstorm - Play Booster Pack",
+  "tcgplayerProductId": 619644,
+  "group": "Tarkir: Dragonstorm",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/619644_in_1000x1000.jpg"
+ },
+ "op-OP16": {
+  "product": "The Time of Battle Booster Pack",
+  "tcgplayerProductId": 689341,
+  "group": "The Time of Battle",
+  "source": "https://tcgplayer-cdn.tcgplayer.com/product/689341_in_1000x1000.jpg"
  },
  "sv01": {
   "product": "Scarlet & Violet Booster Pack",

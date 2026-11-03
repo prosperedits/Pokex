@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rip Lab · Crowns</title>
-<meta name="description" content="Rip a real Pokémon booster pack in 3D: a simulated pull on documented pull rates and live market prices, plus the expected value of every sealed product.">
+<meta name="description" content="Rip a real Pokémon, Magic, Lorcana or One Piece booster pack in 3D: a simulated pull on documented pull rates and live market prices, plus the expected value of every sealed product.">
 <link rel="icon" type="image/png" href="assets/favicon-64.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="rip.css?v=28">
-<script src="crown-spin.js?v=13" defer></script>
+<link rel="stylesheet" href="rip.css?v=38">
+<script src="crown-spin.js?v=17" defer></script>
 </head>
 <body>
 <canvas id="topo" aria-hidden="true"></canvas>
@@ -19,7 +19,7 @@
   <a class="brand" href="index.html" aria-label="Crowns home">
     <span class="crown-spin brand-crown" aria-hidden="true"></span>
   </a>
-  <h1 class="page-title"><img src="assets/rip/rip-title.webp?v=1" srcset="assets/rip/rip-title.webp?v=1 1x, assets/rip/rip-title@2x.webp?v=1 2x" alt="Rip a pack" width="243" height="150"></h1>
+  <h1 class="page-title" id="pageTitle"><span class="pt-in"><img class="pt-a" src="assets/rip/rip-title.webp?v=2" srcset="assets/rip/rip-title.webp?v=2 1x, assets/rip/rip-title@2x.webp?v=2 2x" width="340" height="210" alt="Rip a pack"><img class="pt-b" src="assets/rip/rip-title.webp?v=2" srcset="assets/rip/rip-title.webp?v=2 1x, assets/rip/rip-title@2x.webp?v=2 2x" width="340" height="210" alt="" aria-hidden="true"></span></h1>
   <div class="topbar-right">
     <nav class="nav" aria-label="Main">
       <a href="app.html">Sets</a>
@@ -39,11 +39,11 @@
   </div>
 
   <div class="stage" id="ripStage">
-    <div class="stage-set">
-      <img id="stageLogo" class="stage-logo" alt="" hidden>
-      <p class="set-name" id="stageName" hidden></p>
-    </div>
     <div class="stage-canvas" id="ripStageWrap">
+      <div class="stage-set">
+        <img id="stageLogo" class="stage-logo" alt="" hidden>
+        <p class="set-name" id="stageName" hidden></p>
+      </div>
       <canvas id="ripCanvas" tabindex="0" role="img" aria-label="Sealed booster pack. Press Enter to tear it open."></canvas>
       <button class="tear-btn" id="tearBtn" type="button" hidden><svg class="scissors" viewBox="0 0 32 32" aria-hidden="true"><path fill-rule="evenodd" d="M8 3.6a5.2 5.2 0 1 0 0 10.4a5.2 5.2 0 1 0 0-10.4zm0 2.6a2.6 2.6 0 1 1 0 5.2a2.6 2.6 0 1 1 0-5.2zM8 18a5.2 5.2 0 1 0 0 10.4a5.2 5.2 0 1 0 0-10.4zm0 2.6a2.6 2.6 0 1 1 0 5.2a2.6 2.6 0 1 1 0-5.2zM11.9 11.5 30 21.6 28.4 23.6 10.7 13.6z M11.9 20.5 30 10.4 28.4 8.4 10.7 18.4z"/></svg>Tear here</button>
       <button class="next-pill" id="nextBtn" type="button" hidden>Next <span aria-hidden="true">&rarr;</span></button>
@@ -86,7 +86,7 @@
 
   <section class="sec" id="sec-pack">
     <div class="sec-head"><h2>One pack, up close</h2><p>Where the money is.</p></div>
-    <p class="note">A Scarlet &amp; Violet era pack has <b>two</b> hit slots: a rare slot (Rare, Double Rare, Ultra Rare) and a reverse-holo slot that upgrades to Illustration, Special Illustration and Hyper Rares. Most packs are bulk; a few carry the set. Change any rate on the right and everything on this page recomputes, the pack above included.</p>
+    <p class="note" id="packNote">A Scarlet &amp; Violet era pack has <b>two</b> hit slots: a rare slot (Rare, Double Rare, Ultra Rare) and a reverse-holo slot that upgrades to Illustration, Special Illustration and Hyper Rares. Most packs are bulk; a few carry the set. Change any rate on the right and everything on this page recomputes, the pack above included.</p>
     <div class="panel">
       <div class="box">
         <h3>Net resale of a single pack <span id="ppCost"></span></h3>
@@ -137,7 +137,12 @@ window.RIPLAB = (() => {
   const SET_IDS = ['me04','me03','me02.5','me02','me01','sv10.5w','sv10.5b','sv10','sv09','sv08.5','sv08','sv07','sv06.5','sv06','sv05','sv04.5','sv04','sv03.5','sv03','sv02','sv01'];
   // tcgdex logo for each set (series = the id's letters); sv05's tcgdex path is wrong, so it uses the local wordmark
   const LOGO_OVERRIDE = { sv05: 'assets/setlogos/sv05.png' };
-  const logoOf = (id) => LOGO_OVERRIDE[id] || `https://assets.tcgdex.net/en/${id.replace(/[^a-z].*$/, '')}/${id}/logo.webp`;
+  const logoOf = (id) => {
+    const S = (window.CARD_SETS || {})[id];
+    // a set with no wordmark of its own (Tarkir: Dragonstorm) is shown by its game's mark in lists, and by its name on the stage
+    if (S && S.set.game && S.set.game !== 'pokemon') return S.set.logo || `assets/logos/${S.set.game}.png?v=79`;
+    return LOGO_OVERRIDE[id] || `https://assets.tcgdex.net/en/${id.replace(/[^a-z].*$/, '')}/${id}/logo.webp`;
+  };
 
   // which slot each hit rarity rolls in (everything else in a slot = its floor)
   const RARE_SLOT = ['Double rare','Ultra Rare'];                       // floor = 'Rare'
@@ -208,6 +213,110 @@ window.RIPLAB = (() => {
   const BULK = 2, KEEP = 0.80;
   const net = (p) => (p||0) >= BULK ? p*KEEP : 0;
 
+  // ===== the other games. Each booster is written as slots: n cards from a base pool, each upgraded to pool k with
+  // chance p. Magic follows Wizards' own published Play Booster collation; Lorcana and One Piece publish nothing, so
+  // their odds are the best community samples we could find, and every such figure is labelled an estimate.
+  const XS = {
+    wotcTdm: { label: 'Wizards of the Coast, Collecting Tarkir: Dragonstorm (official Play Booster odds)', url: 'https://magic.wizards.com/en/news/feature/collecting-tarkir-dragonstorm' },
+    lorPoll: { label: 'Community tracker, 479+ Reign of Jafar openings (u/Narzghal, via The Gamers Lodge)', url: 'https://thegamerslodge.com/blogs/lorcana/lorcana-pull-rates-a-clear-guide' },
+    lorCg:   { label: 'estimate: CardGamer pack tallies (The First Chapter)', url: 'https://cardgamer.com/games/lorcana/disney-lorcana-first-chapter-pull-rates/' },
+    opBox:   { label: 'estimate: community box and case averages (Card Cosmos)', url: 'https://cardcosmos.de/en/blogs/news/one-piece-card-game-pull-rates-hitrates-der-japanischen-edition' },
+    opSim:   { label: 'estimate: One Piece Pack Sim pull-rate guide', url: 'https://one-piece-pack-sim.web.app/one-piece-tcg-pull-rates-explained/' },
+    est:     SOURCES.est,
+  };
+  const GAME_NAME = { pokemon: 'Pokémon', magic: 'Magic: The Gathering', lorcana: 'Disney Lorcana', onepiece: 'One Piece' };
+  const RECIPES = {
+    'mtg-tdm': {
+      game: 'magic', boxPacks: { 'Booster Box': [30, 'wotcTdm'] }, products: ['Booster Box', 'Bundle'],
+      labels: { C: 'Common', U: 'Uncommon', R: 'Rare', M: 'Mythic Rare', L: 'Basic land', 'L-fa': 'Full-art basic land', 'C-land': 'Common dual land', 'C-sc': 'Showcase common', 'U-sc': 'Showcase uncommon',
+        'R-sc': 'Showcase rare', 'M-sc': 'Showcase mythic', 'R-clan': 'Borderless rare', 'M-clan': 'Borderless mythic', 'R-bl': 'Borderless Saga or land',
+        'M-bl': 'Borderless mythic planeswalker', 'R-rev': 'Reversible dragon (rare)', 'M-rev': 'Reversible mythic' },
+      ladder: ['M-bl', 'M-rev', 'M-clan', 'M-sc', 'M', 'R-rev', 'R-bl', 'R-clan', 'R-sc', 'R'],
+      hit: ['M', 'M-sc', 'M-clan', 'M-bl', 'M-rev', 'R-sc', 'R-clan', 'R-bl', 'R-rev'], big: ['M-sc', 'M-clan', 'M-bl', 'M-rev'],
+      hitDef: 'A hit is a mythic rare, or a borderless or showcase rare or better (every pack has a rare). A big hit is a borderless or showcase mythic.',
+      note: 'A Tarkir: Dragonstorm Play Booster has 14 cards: 7 commons, 3 uncommons, a land, a <b>wildcard</b> of any rarity, a <b>rare or mythic</b>, and one <b>traditional foil</b> of any rarity. Wizards publishes the odds for every slot, so these rates are official. Collector Booster cards (ghostfire foils, dragon’s eye basics) never appear. (1.5% of packs swap a common for a Special Guests card, which isn’t counted here.)',
+      slots: [
+        { n: 7, label: 'Commons', base: 'C', ups: [] },
+        { n: 3, label: 'Uncommons', base: 'U', ups: [] },
+        // land slot (Wizards): a common two-color land 87.4%, a default-frame basic 8.7%, a full-art dragon's presence basic 4.4%
+        // (foil and non-foil together; the foil share of this slot is valued as non-foil)
+        { n: 1, label: 'Land', base: 'C-land', src: 'wotcTdm', ups: [['L', 0.087], ['L-fa', 0.044]] },
+        { n: 1, label: 'Wildcard', base: 'C', src: 'wotcTdm', ups: [['U', 0.583], ['R', 0.156], ['M', 0.026], ['C-sc', 0.046], ['U-sc', 0.038], ['R-sc', 0.002], ['M-sc', 0.001],
+          ['R-clan', 0.013], ['M-clan', 0.002], ['R-bl', 0.006], ['M-bl', 0.0005], ['R-rev', 0.002], ['M-rev', 0.0005]] },
+        { n: 1, label: 'Rare slot', base: 'R', src: 'wotcTdm', ups: [['M', 0.125], ['R-sc', 0.008], ['M-sc', 0.006], ['R-clan', 0.064], ['M-clan', 0.012], ['R-bl', 0.027],
+          ['M-bl', 0.001], ['R-rev', 0.008], ['M-rev', 0.009]] },
+        { n: 1, label: 'Foil', base: 'C', foil: true, src: 'wotcTdm', ups: [['U', 0.32], ['R', 0.064], ['M', 0.011], ['C-sc', 0.016], ['U-sc', 0.014], ['R-clan', 0.005],
+          ['M-clan', 0.001], ['R-bl', 0.002], ['R-rev', 0.001]] },
+      ],
+    },
+    'lor-8': {
+      game: 'lorcana', boxPacks: { 'Booster Box': [24, 'lorPoll'] }, products: ['Booster Box', "Illumineer's Trove"],
+      labels: { Common: 'Common', Uncommon: 'Uncommon', Rare: 'Rare', 'Super Rare': 'Super Rare', Legendary: 'Legendary', Enchanted: 'Enchanted' },
+      ladder: ['Enchanted', 'Legendary', 'Super Rare', 'Rare'],
+      hit: ['Legendary', 'Enchanted'], big: ['Enchanted'],
+      hitDef: 'A hit is a Legendary or better, in any slot. A big hit is an Enchanted. Ravensburger publishes no odds: Legendary and Enchanted come from a 479-pack community tracker for this set, the rest from pack tallies of an earlier set.',
+      note: 'A Lorcana booster has 12 cards: 6 commons, 3 uncommons, <b>two Rare-or-better</b> slots, and one <b>foil</b> of any rarity, where Enchanted cards live. Ravensburger publishes no odds, so every rate here is a community estimate.',
+      slots: [
+        { n: 6, label: 'Commons', base: 'Common', ups: [] },
+        { n: 3, label: 'Uncommons', base: 'Uncommon', ups: [] },
+        // per pack: Super Rare 50% (CardGamer), Legendary 18.19% (Reign of Jafar tracker), spread over the two slots
+        { n: 2, label: 'Rare or better', base: 'Rare', ups: [['Super Rare', 0.2929, 'lorCg'], ['Legendary', 0.0955, 'lorPoll']] },
+        { n: 1, label: 'Foil', base: 'Common', foil: true, ups: [['Uncommon', 0.268, 'est'], ['Rare', 0.12, 'lorCg'], ['Super Rare', 0.04, 'lorCg'], ['Legendary', 0.0239, 'lorPoll'], ['Enchanted', 0.0122, 'lorPoll']] },
+      ],
+    },
+    'op-OP16': {
+      game: 'onepiece', boxPacks: { 'Booster Box': [24, 'opBox'] }, products: ['Booster Box'],
+      labels: { C: 'Common', UC: 'Uncommon', R: 'Rare', SR: 'Super Rare', SEC: 'Secret Rare', L: 'Leader', P: 'Parallel art', 'P-L': 'Leader parallel',
+        'P-SEC': 'Secret Rare parallel', TR: 'Treasure Rare', SP: 'Special card' },
+      ladder: ['P-SEC', 'SP', 'TR', 'SEC', 'P-L', 'P', 'SR', 'L', 'R'],
+      hit: ['SR', 'SEC', 'P', 'P-L', 'P-SEC', 'TR', 'SP'], big: ['SEC', 'P', 'P-L', 'P-SEC', 'TR', 'SP'],
+      hitDef: 'A hit is a Super Rare or better, parallels included. A big hit is a Secret Rare, a parallel art, a Treasure Rare or an SP card. Bandai publishes no odds; these are community box and case averages.',
+      note: 'A One Piece booster has 12 cards: commons (one can be a <b>Leader</b>), uncommons, and one <b>Rare-or-better</b> slot where Super Rares, Secret Rares and the parallel arts appear. Bandai publishes no odds, so every rate here is a community estimate.',
+      slots: [
+        { n: 6, label: 'Commons', base: 'C', ups: [] },
+        { n: 1, label: 'Common or Leader', base: 'C', ups: [['L', 0.271, 'opSim']] },
+        { n: 4, label: 'Uncommons', base: 'UC', ups: [] },
+        // per box of 24: Super Rare 4 to 7, Secret Rare 4 to 6 a case, parallels 14 to 20 a case (4 leader parallels), SP 2 a case
+        { n: 1, label: 'Rare or better', base: 'R', ups: [['SR', 0.229, 'opBox'], ['SEC', 0.0174, 'opBox'], ['P', 0.045, 'opBox'], ['P-L', 0.0139, 'opSim'],
+          ['SP', 0.0069, 'opSim'], ['TR', 0.0035, 'est'], ['P-SEC', 0.0007, 'opSim']] },
+      ],
+    },
+  };
+  const EXT_IDS = Object.keys(RECIPES);
+  const XCOLOR = { M: '#ff8f6b', 'M-sc': '#ffb36b', 'M-clan': '#ffd166', 'M-bl': '#ffd166', 'M-rev': '#ffd166', 'R-sc': '#7fe9ff', 'R-clan': '#c084fc', 'R-bl': '#c084fc', 'R-rev': '#c084fc', R: '#e6c35c',
+    Legendary: '#ffd166', Enchanted: '#c084fc', 'Super Rare': '#7fe9ff', Rare: '#e6c35c', SR: '#7fe9ff', SEC: '#ffd166', P: '#c084fc', 'P-L': '#f0a6ff', 'P-SEC': '#ffd166', TR: '#ffd166', SP: '#ff8f6b', L: '#5fa8ff' };
+  const priceOf = (c, foil) => foil ? (c.foilUsd || c.priceUsd || 0) : (c.priceUsd || c.foilUsd || 0);
+  // a card image at a size: tcgdex cards are a base URL, the other games carry full URLs
+  const imgOf = (c, size) => c.imageLow ? (size === 'low' ? c.imageLow : c.image) : `${c.image}/${size === 'low' ? 'low' : 'high'}.webp`;
+
+  function analyseRecipe(id, over) {
+    const S = window.CARD_SETS[id], R = RECIPES[id]; if (!S) return null;
+    const byR = {}; for (const c of S.cards) (byR[c.pool] = byR[c.pool] || []).push(c);
+    const avgNet = (pool, foil) => mean((byR[pool] || []).map((c) => net(priceOf(c, foil))));
+    const slots = R.slots.map((s, si) => ({ ...s, ups: s.ups.filter(([k]) => byR[k]).map(([k, p, src]) => [k, over && over[si + ':' + k] != null ? over[si + ':' + k] : p, src || s.src || 'est']) }));
+    let packEV = 0;
+    for (const s of slots) {
+      const up = s.ups.reduce((t, [, p]) => t + p, 0), floor = Math.max(0, 1 - up);
+      packEV += s.n * (floor * avgNet(s.base, s.foil) + s.ups.reduce((t, [k, p]) => t + p * avgNet(k, s.foil), 0));
+    }
+    // chance of at least one card of the given pools in a pack
+    const chanceOf = (pools) => 1 - slots.reduce((q, s) => q * Math.pow(1 - s.ups.filter(([k]) => pools.includes(k)).reduce((t, [, p]) => t + p, 0) - (pools.includes(s.base) ? Math.max(0, 1 - s.ups.reduce((t, [, p]) => t + p, 0)) : 0), s.n), 1);
+    const usedSrc = [...new Set(slots.flatMap((s) => s.ups.map((u) => u[2])).concat(Object.values(R.boxPacks).map((b) => b[1])))];
+    const links = usedSrc.map((k) => XS[k]).filter(Boolean);
+    const products = ((window.SEALED_PRODUCTS || {})[id] || []).filter((p) => p.marketUsd > 0 && R.products.includes(p.name)).map((p) => {
+      const packs = R.boxPacks[p.name] ? R.boxPacks[p.name][0] : packsOf(p), ev = packs * packEV;
+      return { ...p, detail: R.boxPacks[p.name] ? `${packs} packs` : p.detail, packs, perPack: p.marketUsd / packs, ev, roi: ev / p.marketUsd };
+    }).sort((a, b) => b.roi - a.roi);
+    const pHit = chanceOf(R.hit), pBig = chanceOf(R.big);
+    const anatomy = slots.map((s) => {
+      const hitP = s.ups.filter(([k]) => R.hit.includes(k)).reduce((t, [, p]) => t + p, 0);
+      return { n: s.n, label: s.label + (s.foil ? '' : ''), odds: hitP > 0 ? `a hit ${oneIn(hitP)} packs` : '', hit: hitP > 0 };
+    });
+    const rates = {}; slots.forEach((s, si) => s.ups.forEach(([k, p]) => { rates[si + ':' + k] = p; }));
+    return { id, S, game: R.game, recipe: R, slots, byR, present: Object.keys(byR), rates, packEV, products, pHit, pBig, anatomy, hitDef: R.hitDef,
+             src: (links.find((l) => l.url) || links[0] || XS.est).label, links, chanceOf, labelOf: (k) => R.labels[k] || k };
+  }
+
   // ---- effective per-pack rates for a set (only rarities the set actually has) ----
   function ratesFor(id, present) {
     const table = RATES[id] || {}; const r = {}, used = [];
@@ -224,6 +333,7 @@ window.RIPLAB = (() => {
 
   // ---- analytic per-pack EV + structure for a set ----
   function analyse(id, overrideRates) {
+    if (RECIPES[id]) return analyseRecipe(id, overrideRates);
     const S = window.CARD_SETS[id]; if (!S) return null;
     const byR = {}; for (const c of S.cards) (byR[c.rarity] = byR[c.rarity] || []).push(c);
     const present = Object.keys(byR);
@@ -250,8 +360,17 @@ window.RIPLAB = (() => {
       return { ...p, packs, perPack: p.marketUsd/packs, ev, roi: ev/p.marketUsd };
     }).sort((a,b)=>b.roi-a.roi);
 
-    return { id, S, byR, present, avg, rates, rareHits, revHits, rareFloor, revFloor, sumRare, sumRev,
-             reverseAvg, packEV, products, src: base.src, links: base.links, baseRates: base.r };
+    // the hit summary the pack panel shows (a hit: Double Rare or better; a big hit: Ultra Rare, Illustration Rare or better)
+    const pHit = 1 - (1 - Math.min(1, sumRare)) * (1 - Math.min(1, sumRev));
+    const bigRev = revHits.filter((r) => r !== 'ACE SPEC Rare' && r !== 'Shiny rare').reduce((t, r) => t + (rates[r] || 0), 0);
+    const pBig = 1 - (1 - (rates['Ultra Rare'] || 0)) * (1 - bigRev);
+    const anatomy = [{ n: 4, label: 'Commons' }, { n: 3, label: 'Uncommons' }, { n: 1, label: 'Reverse holo' },
+      { n: 1, label: 'Reverse-holo slot', odds: revHits.length ? `upgrades ${oneIn(sumRev)} packs` : '', hit: true },
+      { n: 1, label: 'Rare slot', odds: rareHits.length ? `Double Rare or better ${oneIn(sumRare)} packs` : '', hit: true }];
+    return { id, S, game: 'pokemon', byR, present, avg, rates, rareHits, revHits, rareFloor, revFloor, sumRare, sumRev,
+             reverseAvg, packEV, products, src: base.src, links: base.links, baseRates: base.r, pHit, pBig, anatomy,
+             hitDef: 'A hit is any Double Rare or better (regular ex count). A big hit is an Ultra Rare, Illustration Rare or better. Both are per pack, from the published pull rates below.',
+             labelOf: (k) => titleRarity(k) };
   }
   // the cheapest way to buy one pack of the set = the "box rate" every rip is measured against
   const packPrice = (A) => A.products.reduce((b, p) => (!b || p.perPack < b.perPack) ? p : b, null);
@@ -288,6 +407,7 @@ window.RIPLAB = (() => {
   let pool = new Float64Array(0);
   function pick(a){ return a[(Math.random()*a.length)|0]; }
   function samplePack(A) {
+    if (A.recipe) return sampleRecipe(A);
     let v = 0;                                                          // all slots valued at resale (net), not market
     const C=A.byR['Common']||[], U=A.byR['Uncommon']||[];
     for (let i=0;i<4;i++) v += net(pick(C)?.priceUsd);
@@ -302,6 +422,15 @@ window.RIPLAB = (() => {
     x = Math.random(); acc = 0; hit = 'Rare';
     for (const r of A.rareHits){ acc += A.rates[r]||0; if (x<acc){ hit=r; break; } }
     v += net(pick(A.byR[hit]||A.byR['Rare']||[])?.priceUsd);
+    return v;
+  }
+  function sampleRecipe(A) {
+    let v = 0;
+    for (const sl of A.slots) for (let i = 0; i < sl.n; i++) {
+      let x = Math.random(), acc = 0, k = sl.base;
+      for (const [kk, pp] of sl.ups) { acc += pp; if (x < acc) { k = kk; break; } }
+      const c = pick(A.byR[k] || A.byR[sl.base] || []); if (c) v += net(priceOf(c, sl.foil));
+    }
     return v;
   }
   function buildPool(A){ pool = new Float64Array(POOL_N); for (let i=0;i<POOL_N;i++) pool[i]=samplePack(A); }
@@ -325,7 +454,9 @@ window.RIPLAB = (() => {
     logo.onerror = () => { logo.hidden = true; $('stageName').hidden = false; };
     logo.onload = () => { logo.hidden = false; $('stageName').hidden = true; };
     $('stageName').textContent = S.set.name;
-    logo.alt = S.set.name; logo.src = logoOf(A.id);
+    logo.alt = S.set.name;
+    if (S.set.game && S.set.game !== 'pokemon' && !S.set.logo) { logo.hidden = true; logo.removeAttribute('src'); $('stageName').hidden = false; }
+    else logo.src = logoOf(A.id);
     // the pack price leads the right column (Faisal, 27 Oct)
     $('heroPrice').innerHTML = `<span class="ph-k">Pack price</span><b class="num">${fmt(pp.perPack)}</b><span class="ph-s">${esc(pp.name)} ${fmt0(pp.marketUsd)} ÷ ${pp.packs} packs</span>`;
     $('packPick').querySelectorAll('.pk').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === A.id ? 'true' : 'false'));
@@ -333,18 +464,35 @@ window.RIPLAB = (() => {
     if (glow && glow[0]) document.documentElement.style.setProperty('--set-glow', glow[0]);
   }
 
-  // ===== the pack picker: every pack at once, in as few columns as still fit the column's height (Faisal, 27 Oct)
+  // ===== the pack picker: every pack at once, grouped by game under the game's mark, in as few columns as still
+  // fit the column's height (Faisal, 27 Oct). A game with fewer packs than a row shares its line with the next game.
   function fitPacks() {
-    const grid = $('packPick'), n = grid.children.length; if (!n) return;
-    if (matchMedia('(max-width: 980px)').matches) { grid.style.removeProperty('--cols'); grid.classList.remove('scroll'); return; }
-    const cs = getComputedStyle(grid), W = grid.clientWidth - 8, H = grid.clientHeight - 8, gap = parseFloat(cs.columnGap) || 10;
-    let cols = 3, fits = false;
-    for (; cols <= 8; cols++) {
-      const w = (W - gap * (cols - 1)) / cols, rows = Math.ceil(n / cols);
-      if (rows * (w / 0.56) + (rows - 1) * gap <= H) { fits = true; break; }
-    }
-    grid.style.setProperty('--cols', String(Math.min(cols, 8)));   // a short last row sits centred under the others
-    grid.classList.toggle('scroll', !fits);
+    const grid = $('packPick'), groups = [...grid.querySelectorAll('.pk-game')]; if (!groups.length) return;
+    const phone = matchMedia('(max-width: 980px)').matches;
+    const cs = getComputedStyle(grid), W = grid.clientWidth - 8, H = grid.clientHeight - 8;
+    const pg = parseFloat(getComputedStyle(groups[0].querySelector('.pk-row')).columnGap) || 8;
+    const cg = parseFloat(cs.columnGap) || pg * 3, rg = parseFloat(cs.rowGap) || 16;
+    const mk = groups[0].querySelector('.pk-mark').offsetHeight, ig = parseFloat(getComputedStyle(groups[0]).rowGap) || 8;
+    const counts = groups.map((g) => g.querySelectorAll('.pk').length);
+    const layout = (cols) => {
+      const w = Math.floor((W - pg * (cols - 1)) / cols * 100) / 100 - 0.01, h = w / 0.56;
+      const widths = counts.map((n) => Math.min(n, cols) * w + (Math.min(n, cols) - 1) * pg);
+      let total = 0, lines = 0, open = -1;
+      const close = () => { if (open >= 0) { lines++; total += mk + ig + h; open = -1; } };
+      counts.forEach((n, k) => {
+        if (n >= cols) { close(); const rows = Math.ceil(n / cols); total += mk + ig + rows * h + (rows - 1) * pg; lines++; }
+        else if (open >= 0 && open + cg + widths[k] <= W - 1) open += cg + widths[k];
+        else { close(); open = widths[k]; }
+      });
+      close();
+      return { cols, w, widths, total: total + (lines - 1) * rg };
+    };
+    let L = null;
+    if (phone) L = layout(7);
+    else for (let cols = 3; cols <= 8; cols++) { L = layout(cols); if (L.total <= H) break; }
+    grid.style.setProperty('--pkw', L.w + 'px');
+    groups.forEach((g, k) => { const full = counts[k] >= L.cols; g.classList.toggle('full', full); g.style.width = full ? '' : L.widths[k] + 'px'; });
+    grid.classList.toggle('scroll', !phone && L.total > H);
   }
 
   // ===== render the selected set's analysis =====
@@ -364,7 +512,7 @@ window.RIPLAB = (() => {
       <div class="sb-logo"><img src="${logoOf(A.id)}" alt="${esc(S.set.name)}"><span>${S.set.total} cards · ${A.products.length} sealed products</span></div>
       <div><div class="k">Average pack resells for</div><div class="v">${fmt(packEV)}</div><div class="sub">after fees, against ${fmt(bestPackCost)} at the ${esc(pp.name)} rate</div></div>
       <div><div class="k">Packs that beat their cost</div><div class="v gold">${pct(ppBreakeven)}</div><div class="sub">of single packs earn the box-rate price back</div></div>
-      <div><div class="k">Set chase</div><div class="chase"><img src="${chase.image}/low.webp" alt="" loading="lazy"><div><b>${esc(chase.name)}</b><div class="sub" style="margin-top:2px">${esc(titleRarity(chase.rarity))}</div><div class="v">${fmt(chase.priceUsd)}</div></div></div></div>`;
+      <div><div class="k">Set chase</div><div class="chase"><img src="${imgOf(chase, 'low')}" alt="" loading="lazy"><div><b>${esc(chase.name)}</b><div class="sub" style="margin-top:2px">${esc(titleRarity(chase.rarity))}</div><div class="v">${fmt(chase.priceUsd)}</div></div></div></div>`;
 
     const maxRoi = Math.max(1.15, ...A.products.map(p=>p.roi));
     $('prod').innerHTML = A.products.map((p,i) => {
@@ -405,17 +553,37 @@ window.RIPLAB = (() => {
     ].map(([l,v])=>`<div class="lbl">${l}</div><div class="val">${v}</div>`).join('');
 
     renderLadder(A);
+    if (!renderSet.pkNote) renderSet.pkNote = $('packNote').innerHTML;
+    $('packNote').innerHTML = A.recipe ? A.recipe.note + ' Change any rate on the right and everything on this page recomputes, the pack above included.' : renderSet.pkNote;
+    if (A.recipe) {
+      $('method').innerHTML = `<b>Method.</b> Card prices are TCGplayer market values (snapshot ${new Date(S.snapshotAt).toLocaleDateString()}, ${esc(S.source)}). ${A.recipe.note} The pack you rip above is one draw from exactly this model. Expected value is the probability-weighted <b>resale</b> value of every slot: market less about 20% for fees and shipping, with cards under $2 counted as $0; foil slots use the foil price. ${POOL_N.toLocaleString()} packs are simulated for the distribution and each product by 20,000 rips for its profit odds. Within a group every card is equally likely. ${esc(A.hitDef)} Odds for ${esc(S.set.name)} come from: ${oddsLinks(A)}`;
+      return;
+    }
     $('method').innerHTML = `<b>Method.</b> Card prices are live TCGplayer market values from our data (snapshot ${new Date(S.snapshotAt).toLocaleDateString()}). Each Scarlet &amp; Violet era pack is modelled as 4 commons, 3 uncommons, 1 reverse holo, a <b>reverse-holo slot</b> that can upgrade to Illustration, Special Illustration, Hyper or ACE SPEC, and a <b>rare slot</b> (Rare, Double Rare, Ultra Rare). The pack you rip above is one draw from exactly this model. Expected value is the probability-weighted <b>resale</b> value of every slot: live market less about 20% (TCGplayer and eBay fees plus shipping), with bulk under $2 counted as $0. ${POOL_N.toLocaleString()} packs are simulated for the distribution and each product by 20,000 rips for its profit odds. Reverse slots use the reverse-holofoil price; within a rarity every card is equally likely. Pull rates are pack-opening samples, not official odds (none are published). Where a set has no sample of its own for a rarity, the era rate for that rarity is used and named as such. Pack art: the official wrapper renders from the TCGplayer catalogue. Prices move daily; treat every return as a live estimate, not a promise. Odds for ${esc(S.set.name)} come from: ${oddsLinks(A)}`;
   }
 
   function renderLadder(A){
+    if (A.recipe) {
+      $('ladder').innerHTML = A.recipe.ladder.filter((k) => A.byR[k]).map((k) => {
+        const cards = [...A.byR[k]].sort((a, b) => priceOf(b) - priceOf(a));
+        const v = cards.map((c) => priceOf(c)), rate = A.chanceOf([k]);
+        const top = cards.slice(0, 8).map((c) => `<a class="chip" href="app.html?set=${encodeURIComponent(A.id)}" title="${esc(c.name)}">
+           <img loading="lazy" src="${imgOf(c, 'low')}" alt=""><div class="cp">${fmt(priceOf(c))}</div><div class="cn">${esc(c.name)}</div></a>`).join('');
+        return `<div class="rung"><div>
+          <div class="rname"><i style="background:${XCOLOR[k] || '#9a96a8'}"></i>${esc(A.labelOf(k))}</div>
+          <div class="rrate">${oneIn(rate)} packs · ${pct(rate)}</div>
+          <div class="rstats">${cards.length} cards · average ${fmt(mean(v))} · top ${fmt(Math.max(...v))}</div>
+        </div><div class="chips">${top}</div></div>`;
+      }).join('');
+      return;
+    }
     $('ladder').innerHTML = LADDER_ORDER.filter(r=>A.byR[r]).map(rar=>{
       const cards = [...A.byR[rar]].sort((a,b)=>(b.priceUsd||0)-(a.priceUsd||0));
       const v = cards.map(c=>c.priceUsd||0), avg = mean(v), max = Math.max(...v);
       const rate = rar==='Rare' ? A.rareFloor : (A.rates[rar]||0);
       const col = RARITY_COLOR[rar]||'#9a96a8';
       const top = cards.slice(0,8).map(c=>`<a class="chip" href="index.html?set=${A.id}" title="${esc(c.name)}">
-           <img loading="lazy" src="${c.image}/low.webp" alt=""><div class="cp">${fmt(c.priceUsd||0)}</div><div class="cn">${esc(c.name)}</div></a>`).join('');
+           <img loading="lazy" src="${imgOf(c, 'low')}" alt=""><div class="cp">${fmt(c.priceUsd||0)}</div><div class="cn">${esc(c.name)}</div></a>`).join('');
       return `<div class="rung"><div>
           <div class="rname"><i style="background:${col}"></i>${esc(titleRarity(rar))}</div>
           <div class="rrate">${oneIn(rate)} packs · ${pct(rate)}</div>
@@ -427,6 +595,17 @@ window.RIPLAB = (() => {
   // ===== editable pull-rate panel =====
   function buildEditor(){
     const A = CUR;
+    if (A.recipe) {
+      $('mnote').innerHTML = `Per-pack odds for ${esc(A.S.set.name)}, slot by slot. Each slot\u2019s base card is the remainder. Sources: ${oddsLinks(A)}`;
+      $('modelRows').innerHTML = A.slots.map((sl, si) => sl.ups.length ? `<div class="mslotlbl">${esc(sl.label)}${sl.n > 1 ? ` (${sl.n} cards, each)` : ''}</div>` + sl.ups.map(([k, p]) => `
+        <div class="mrow">
+          <label for="rate-${si}-${k.replace(/\W+/g,'-')}"><i style="background:${XCOLOR[k] || '#9a96a8'}"></i>${esc(A.labelOf(k))}</label>
+          <input id="rate-${si}-${k.replace(/\W+/g,'-')}" type="number" data-rar="${si}:${k}" min="0" max="100" step="0.01" value="${(p * 100).toFixed(2)}" aria-label="${esc(A.labelOf(k))} percent">
+          <span class="oneIn">${oneIn(p)}</span>
+        </div>`).join('') : '').join('');
+      $('modelRows').querySelectorAll('input').forEach((inp) => inp.addEventListener('input', () => { curRates[inp.dataset.rar] = Math.max(0, (+inp.value || 0) / 100); recompute(); }));
+      return;
+    }
     const slot = (title, list) => list.length ? `<div class="mslotlbl">${title}</div>` + list.map(r=>`
       <div class="mrow">
         <label for="rate-${r.replace(/\W+/g,'-')}"><i style="background:${RARITY_COLOR[r]||'#9a96a8'}"></i>${esc(titleRarity(r))}</label>
@@ -464,20 +643,24 @@ window.RIPLAB = (() => {
   function loadSet(id){
     return new Promise(res => {
       const s = document.createElement('script');
-      s.src = `data/cards-${id}.js`; s.onload = res; s.onerror = res;
+      s.src = RECIPES[id] ? `assets/rip/data/rip-${id}.js?v=1` : `data/cards-${id}.js`; s.onload = res; s.onerror = res;
       document.head.appendChild(s);
     });
   }
   const ready = (async () => {
-    await Promise.all(SET_IDS.map(loadSet));
+    await Promise.all(SET_IDS.concat(EXT_IDS).map(loadSet));
     window.CARD_SETS = window.CARD_SETS || {};
     // a set is only usable if we actually have prices for it — exclude sets whose price
     // snapshot is missing (they'd compute a bogus ~$0 EV and read as a fake "0% rip").
     const coverage = (id) => { const S = window.CARD_SETS[id]; return S && S.cards.length ? S.cards.filter(c => c.priceUsd > 0).length / S.cards.length : 0; };
-    HAVE = SET_IDS.filter(id => window.CARD_SETS[id] && (window.SEALED_PRODUCTS||{})[id] && coverage(id) >= 0.5);
+    HAVE = SET_IDS.concat(EXT_IDS).filter(id => window.CARD_SETS[id] && (window.SEALED_PRODUCTS||{})[id] && coverage(id) >= 0.5);
     for (const id of HAVE) ALL[id] = analyse(id);
     HAVE = HAVE.filter(id => ALL[id].products.length);
-    $('packPick').innerHTML = HAVE.map(id => `<button class="pk" type="button" data-id="${id}" aria-pressed="false" aria-label="${esc(window.CARD_SETS[id].set.name)}" title="${esc(window.CARD_SETS[id].set.name)}"><img class="pk-art" src="assets/packs/${id}.webp" alt="" loading="lazy" decoding="async"></button>`).join('');
+    const gameOf = (id) => (RECIPES[id] ? RECIPES[id].game : 'pokemon');
+    $('packPick').innerHTML = ['pokemon', 'magic', 'lorcana', 'onepiece'].filter((g) => HAVE.some((id) => gameOf(id) === g)).map((g) =>
+      `<div class="pk-game" data-game="${g}" role="group" aria-label="${esc(GAME_NAME[g])} packs"><img class="pk-mark" src="assets/logos/${g}.png?v=79" alt="${esc(GAME_NAME[g])}"><div class="pk-row">` +
+      HAVE.filter((id) => gameOf(id) === g).map((id) => `<button class="pk" type="button" data-id="${id}" aria-pressed="false" aria-label="${esc(window.CARD_SETS[id].set.name)}" title="${esc(window.CARD_SETS[id].set.name)}"><img class="pk-art" src="assets/packs/${id}.webp?v=2" alt="" loading="lazy" decoding="async"></button>`).join('') +
+      `</div></div>`).join('');
     $('packPick').querySelectorAll('.pk').forEach(b => b.addEventListener('click', () => selectSet(b.dataset.id)));
     fitPacks();
     addEventListener('resize', () => { clearTimeout(fitPacks.t); fitPacks.t = setTimeout(fitPacks, 120); });
@@ -486,7 +669,7 @@ window.RIPLAB = (() => {
     const startId = (asked && ALL[asked]) ? asked : (HAVE.includes('sv08') ? 'sv08' : (top && top.a.id) || HAVE[0]);
     selectSet(startId, true);
     const n = Object.values(ALL).filter(a=>a.products[0] && a.products[0].roi>=1).length;
-    $('boardNote').textContent = `${HAVE.length} Pokémon sets priced · ${n} currently return more than they cost at their best product. Pull rates are community studies (not official) and prices move daily.`;
+    $('boardNote').textContent = `${HAVE.length} sets priced · ${n} currently return more than they cost at their best product. Magic’s pull rates are Wizards’ own; Pokémon, Lorcana and One Piece rates are community samples. Prices move daily.`;
     return HAVE;
   })();
 
@@ -498,12 +681,13 @@ window.RIPLAB = (() => {
   return {
     ready, current: () => CUR, select: (id) => selectSet(id), onSelect: (fn) => listeners.push(fn),
     packPrice, revPrice, net, fmt, esc, titleRarity, oneIn, pct, logoOf, RARITY_COLOR, LADDER_ORDER, oddsLinks, RARE_SLOT, REV_SLOT,
+    imgOf, priceOf, RECIPES, XCOLOR, GAME_NAME,
   };
 })();
 </script>
 <script src="vendor/three.min.js"></script>
 <script src="vendor/RoomEnvironment.js"></script>
 <script src="vendor/gsap.min.js"></script>
-<script src="rip3d.js?v=26"></script>
+<script src="rip3d.js?v=32"></script>
 </body>
 </html>

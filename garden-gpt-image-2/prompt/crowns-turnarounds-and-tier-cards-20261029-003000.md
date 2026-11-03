@@ -1,0 +1,55 @@
+# Crowns: 4 crown turnaround sheets + 4 tier card directions (GPT Image 2.5 on Higgsfield, 29 Oct)
+
+Asked by Faisal on 28 Oct night: "4 different variations of crowns... each their own image... all sides of the crown", and 4 iterations of the pricing tier cards, front only. He added 200 credits and said go ahead.
+
+Model gpt_image_2_5, quality xhigh, resolution 4k, aspect 16:9, 1 image each (7 credits each, 56 total). Balance before: 221.95.
+Reference for all 8: `docs/design/crown/video/green-2.png` (the crown Faisal liked; media f810d069-b0a8-439c-bfd1-79f78bc25457, role image_references).
+
+Why the crown sheets look like this: the sheets are meant to feed Meshy multi-image to 3D. Meshy bakes whatever reflections it sees into the paint, which is where the splotchy texture came from, so the views use soft even light, a plain grey ground, the same scale in every panel and a crown that repeats evenly all the way round.
+
+## Crown common block
+
+CROWN_COMMON:
+A professional 3D product turnaround sheet of ONE ornate royal crown, the logo object for Crowns, a premium trading-card price tracker. The sheet is a 2x2 grid of four equal panels on one seamless flat mid-grey studio background (#8A8F98), even gutters, no borders, no labels, no text. The SAME crown, with identical design, identical scale and identical centring, appears in every panel, shot with an orthographic product camera (no perspective distortion, no wide angle):
+- top-left: FRONT view at eye level, straight on.
+- top-right: RIGHT SIDE view at eye level, the crown turned exactly 90 degrees.
+- bottom-left: BACK view at eye level, the crown turned exactly 180 degrees.
+- bottom-right: THREE-QUARTER view from about 30 degrees above, so the round plan, the hollow inside and the inner wall are visible.
+Construction (it will be rebuilt as a clean 3D model): the crown is perfectly circular in plan and radially symmetric; every point, gem and setting repeats evenly all the way around 360 degrees, so the back looks like the front. Solid, chunky, clean forms with smooth bevelled edges; no thin wire filigree, no see-through holes, no floating parts, no fabric cap, no velvet, no pearls or balls on the tips. Structure from bottom to top: a polished gold bottom rim; a tall plain empty band of matte black enamel, about one third of the crown's total height, smooth and continuous all the way round (trading cards will later be placed on it in 3D, so it stays completely empty and flat); a polished gold upper rim; then the gold points rising above, with the gems.
+Materials: polished 24k yellow gold, warm and rich, highlights like #FFD24A; faceted deep royal-blue sapphires, every gem the same blue, set in thin gold bezels; matte black band.
+Lighting: soft, even studio light from large softboxes, gentle gradient reflections on the gold, no harsh specular stars, no lens flare, no glow, no reflections of rooms or windows, a soft contact shadow under each crown only. Pin-sharp focus, high detail, very clean, high-end 3D render quality.
+Reference image: a crown Faisal liked. Match its materials, gold colour, sapphire cut and the black band between gold rims.
+AVOID: text, labels, numbers, logos, watermark, rulers, arrows, measurement lines; any difference in design between panels; perspective distortion; pearls, balls or orbs on the points; gems of any colour but blue; filigree holes; velvet cap; cards; hands; mannequin; busy background; crowns cropped by the panel edges.
+
+## Crown variations (appended to CROWN_COMMON)
+
+- crown-1 Regal (closest to the reference): THIS CROWN: ten broad points evenly spaced around the crown (five visible from the front), each rising in a smooth curve to a soft rounded tip, with deep smooth U-shaped valleys between them; one elongated hexagonal sapphire centred below each point on the upper crown wall. Take the shape of the reference crown and refine it: cleaner, perfectly symmetric, slightly taller points, slightly thicker rims.
+- crown-2 Fleur-de-lis: THIS CROWN: eight points alternating two forms evenly around 360 degrees: four tall stylised fleur-de-lis (three smooth rounded petals, solid metal, no holes) and four lower pointed arches between them; a large emerald-cut rectangular sapphire at the base of each fleur-de-lis and a smaller round brilliant-cut sapphire under each arch; the upper gold rim carries a fine row of small square sapphires all the way round. A regal coronation crown, built from solid, smooth, chunky shapes.
+- crown-3 Spires: THIS CROWN: twelve tall slender pointed spires evenly spaced around 360 degrees, each ending in a sharp but slightly softened tip, with a subtle raised ridge down its centre and narrow pointed valleys between; a long vertical marquise-cut sapphire set up the face of every spire. Dramatic, tall and elegant: the spires are about as tall as the band and both rims together. Each spire is solid and sturdy, not wire-thin.
+- crown-4 Emblem: THIS CROWN: a low, wide, heavy coronet that reads instantly as an icon even at tiny logo sizes: six broad rounded crenellations, like softened castle battlements, evenly spaced around 360 degrees, each with one large cushion-cut sapphire in its centre; a thick rounded upper rim; wide, squat proportions, a bold silhouette, few but large details.
+
+## Tier card common block
+
+CARD_COMMON:
+A flat, straight-on product sheet showing the printed FRONT faces of three trading cards side by side: the three pricing tiers of Crowns, a premium price tracker for Pokemon, Magic, Lorcana and One Piece card collectors. Left to right: FREE, PREMIUM, COLLECTOR. The three cards are the same size (real 63 x 88 mm trading-card proportions, portrait, small rounded corners), evenly spaced and centred on a deep midnight-navy background (#0B1430) with a soft vignette and a gentle soft shadow under each card; no table, no hands, no perspective, no tilt. The cards climb a rarity ladder like real cards: Free is the common, Premium the holo rare, Collector the gold top rarity, and the Collector card is the most precious and striking.
+Exact text on each card (spelled exactly, crisp and legible; heavy condensed uppercase display type like Anton for names and prices, a clean geometric sans like DM Sans for the lines):
+FREE card: name "FREE"; price "$0" with a small "/mo"; lines: "Free access to the last 3 sets of every universe", "Live prices & daily USD/EUR snapshots", "Basic watchlist".
+PREMIUM card: name "PREMIUM"; price "$10" with a small "/mo"; lines: "Everything in Free", "Access to every set in every universe", "Full collection value", "Price alerts & trend charts", "Rip Lab EV calculator", "Early access to new universes".
+COLLECTOR card: name "COLLECTOR"; price "$35" with a small "/mo"; lines: "Everything in Premium", "Real-time cross-market arbitrage engine", "AI price forecasts & breakout alerts", "Portfolio analytics, P&L & CSV / API export", "Unlimited watchlists & priority data refresh", "Grading ROI & population insights", "Concierge deal-sourcing & 1:1 onboarding".
+No other text anywhere unless this set's direction names it: no brand names, no Pokemon, Magic, Lorcana or One Piece logos, no invented logos, no watermark, no signature, no set numbers, no fake small print.
+Crowns world: near-black and midnight-navy grounds, Crowns gold #FFD24A for money and the crown, a polished gold crown with faceted blue sapphires as the brand motif (the reference image shows it), real trading-card culture.
+AVOID: casino glitz, coins, slot-machine sparkle bursts, neon with no light source, purple-to-blue AI gradients, cartoon styling, misspelled or garbled text, extra text, characters or people.
+
+## Tier card directions (appended to CARD_COMMON)
+
+- cards-1 Classic frame: THIS SET: real trading-card anatomy, like a modern premium TCG card: a coloured outer border (Free: brushed silver-grey; Premium: rainbow holo foil; Collector: polished gold foil); a name bar along the top with the tier name at left and the price at right, where a card's HP would sit; a framed art window in the top half with a small piece of Crowns art (Free: the gold crown as a simple flat emblem on navy; Premium: the crown over a holo night sky; Collector: the crown in full gold radiance with blue sapphires); a text box in the lower half where each line is set like an ability, led by a small round pip in the tier's metal; a small rarity symbol bottom right (Free: a circle, Premium: a star, Collector: a tiny gold crown).
+- cards-2 Full art: THIS SET: full-art illustration cards like Special Illustration Rares: the illustration runs edge to edge across the whole face, and the text sits on translucent smoky-glass panels over it. Free: a calm painted night-blue scene in soft matte print with a small gold crown in the sky. Premium: the same world in rainbow holographic foil with fine diagonal holo lines and cosmos sparkle, a fan of glowing cards rising like a crown of light. Collector: a textured gold hyper rare, the entire face in embossed gold foil with a deep etched texture, a large gold crown with blue sapphires, text in near-black on the gold.
+- cards-3 Protection ladder: THIS SET: each tier shows its rank through how collectors protect the card. Free: a matte navy card in a thin clear penny sleeve. Premium: a holo card in a rigid clear top-loader. Collector: a gold card sealed in a premium graded slab, a thick clear acrylic case with a label strip at the top. The slab label is the only extra text allowed: it reads "COLLECTOR" and "GEM MINT 10" in clean type beside a small gold crown emblem, with no grading-company names. The plastics show realistic thickness, bevelled edges and soft reflections, all straight on.
+- cards-4 Metal: THIS SET: premium metal cards, like a high-end black card, in trading-card proportions. Free: matte midnight-navy card stock with the text printed in silver. Premium: brushed titanium with a holo-foil price and laser-etched text. Collector: solid black metal with deep-engraved gold-filled text, a raised gold crown with real inset blue sapphires near the top and a fine gold guilloche engraving pattern. The edges catch a thin bright highlight; quiet, expensive and minimal, with generous spacing.
+
+## Result (29 Oct, ~00:35)
+- All 8 came back at 3840x2160. Files: `docs/design/crown/turnarounds/crown-1-regal.png`, `crown-2-fleur.png`, `crown-3-spires.png`, `crown-4-emblem.png`; `docs/design/tiers/iterations/cards-1-classic.png`, `cards-2-fullart.png`, `cards-3-protection.png`, `cards-4-metal.png`. Comparison sheets: `crowns-1-4.jpg`, `cards-1-4.jpg`.
+- Jobs: crown 1 5d8d1828, crown 2 07e24382, crown 3 5f8f2638, cards 1 40d5c417, cards 2 3043893c, cards 3 73a752f3, cards 4 48496188.
+- Crown 4 first try (7db930eb) copied crown 1 because the reference image dominated; kept as `crown-4-first-try-repeat-of-1.png`. Redone without the reference (e335dd7e) and it came out as real battlements.
+- Card text came out spelled right on all four sets; cards 4 has a small mark inside "cross-market" on the Collector card.
+- Spent 63 credits (9 x 7). Balance 221.95 → 158.95.

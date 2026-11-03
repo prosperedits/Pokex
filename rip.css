@@ -7,13 +7,14 @@
   --hair:rgba(106,168,255,.15); --hair-2:rgba(106,168,255,.28);
   --panel:linear-gradient(180deg,rgba(14,28,64,.62),rgba(7,14,34,.66));
   --fs:clamp(16px, calc(.42vw + 6.3px), 17px);
-  --fs-sm:clamp(14px, calc(.4vw + 5.8px), 16px);
-  --fs-xs:clamp(13px, calc(.2vw + 8.9px), 14px);
+  --fs-sm:clamp(14px, calc(.3vw + 10.3px), 16px);        /* 16px from 1920 up (the median line at 1920 was 14px) */
+  --fs-xs:clamp(13px, calc(.15vw + 11.3px), 14px);
   --fs-micro:12px;
   --fs-label:clamp(15px, calc(.05vw + 14.7px), 16px);   /* sentence-case labels (Faisal, 27 Oct: no tracked-caps micro labels) */
-  --gut:clamp(16px, 3.75vw, 96px);
+  --gut:clamp(16px, 2.4vw, 60px);
   --ease:cubic-bezier(.16,1,.3,1);
   --head-h:clamp(80px, 6.2vw, 150px);
+  --pt-k:1.3;                                  /* the page title's height, in header heights (smaller where the nav is close) */
   --set-glow:#3a5bb0;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-synthesis:none}
@@ -41,8 +42,23 @@ canvas#topo{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:bloc
 .topbar.scrolled::after{opacity:1}
 .brand{display:inline-flex;align-items:center;gap:12px;text-decoration:none}
 /* the page's title: the picked "Rip a pack" lettering, in the top bar */
-.page-title{display:flex;align-items:center;height:100%;margin:0 clamp(12px,2vw,48px);min-width:0}
-.page-title img{display:block;height:calc(var(--head-h) - 10px);width:auto;max-width:100%;object-fit:contain}
+.page-title{position:absolute;left:50%;top:clamp(4px,.4vw,10px);transform:translateX(-50%);z-index:2;margin:0;pointer-events:none;
+  height:calc(var(--head-h) * var(--pt-k));transition:height .35s cubic-bezier(.16,1,.3,1)}
+.topbar.scrolled .page-title{height:calc(var(--head-h) - 12px)}
+.pt-in{position:relative;display:block;height:100%;aspect-ratio:340 / 210}
+.pt-in img{position:absolute;inset:0;width:100%;height:100%;display:block;will-change:transform}
+.pt-a{clip-path:polygon(0% 0%, 100% 0%, 100% 38%, 94% 39.4%, 88% 41%, 81% 41.4%, 75% 40%, 68% 42.6%, 62% 44%, 57% 45.2%, 52% 46.5%, 46% 47.6%, 40% 47%, 32% 48.8%, 25% 51%, 18% 51.2%, 12% 50%, 6% 50.6%, 0% 52%)}
+.pt-b{clip-path:polygon(0% 52%, 6% 50.6%, 12% 50%, 18% 51.2%, 25% 51%, 32% 48.8%, 40% 47%, 46% 47.6%, 52% 46.5%, 57% 45.2%, 62% 44%, 68% 42.6%, 75% 40%, 81% 41.4%, 88% 41%, 94% 39.4%, 100% 38%, 100% 100%, 0% 100%)}
+/* the set page's own inspect, over the Rip Lab (rip3d.js loads app.html deep-linked to the card) */
+.ins-shell{position:fixed;inset:0;z-index:200;background:rgba(3,6,16,.86);opacity:0;transition:opacity .3s}
+.ins-shell.on{opacity:1}
+.ins-shell iframe{position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .25s}
+.ins-shell.ready iframe{opacity:1}
+.ins-wait{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--dim);font-size:var(--fs)}
+.ins-shell.ready .ins-wait{opacity:0}
+/* foil shards thrown from the tear (rip3d.js makes a few, plays them once, removes them) */
+.pt-shard{position:absolute;width:clamp(8px,.7vw,16px);aspect-ratio:1 / 1.7;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);pointer-events:none;
+  background:linear-gradient(135deg,#7ee7ff,#c49bff 35%,#ffd76e 60%,#8dffc5 85%);box-shadow:0 0 6px rgba(255,255,255,.4)}
 /* the store page's logo, exactly: the turning crown (crown-spin.js sizes the width from this height) */
 .crown-spin{width:48px;height:48px;flex:none}
 .brand-crown{height:clamp(60px,5vw,90px);filter:drop-shadow(0 5px 13px rgba(0,0,0,.55))}
@@ -68,17 +84,19 @@ canvas#topo{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:bloc
 .btn.ghost:hover{border-color:rgba(255,214,102,.5);color:var(--gold)}
 .btn[hidden]{display:none}
 
+#method b,.note b{white-space:nowrap}
+
 /* ================= HERO: the pack ================= */
 /* left: every pack · centre: the set's logo over the 3D stage · right: the pack price over the pull panel */
-.rip-hero{position:relative;z-index:5;height:max(100vh,700px);display:grid;
+.rip-hero{position:relative;z-index:5;min-height:max(100vh,600px);display:grid;grid-template-rows:minmax(0,1fr);
   grid-template-columns:clamp(270px,22vw,450px) minmax(0,1fr) clamp(290px,22vw,470px);column-gap:clamp(20px,2.6vw,64px);
   grid-template-areas:"pick stage side";
   padding:calc(var(--head-h) + 8px) var(--gut) clamp(14px,1.6vw,36px)}
 .rip-hero > *{min-width:0;min-height:0}
-.picker{grid-area:pick;display:flex;flex-direction:column;justify-content:center;min-height:0}
+.picker{grid-area:pick;display:flex;flex-direction:column;justify-content:center;min-height:0;contain:size}
 .stage{grid-area:stage}
 .side{grid-area:side;display:flex;flex-direction:column;justify-content:center;gap:clamp(18px,2.4vh,36px);min-height:0}
-.side .receipt{align-self:stretch;flex:0 1 auto;min-height:0;max-height:none}
+.side .receipt{align-self:stretch;flex:none;max-height:none;overflow:visible}
 .set-name{font-family:var(--font-display);font-size:clamp(28px,2vw,44px);line-height:1.15;text-transform:uppercase}
 .set-name[hidden]{display:none}
 /* the pack price: the right column's lead number */
@@ -87,19 +105,26 @@ canvas#topo{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:bloc
 .price-hero b{font-family:var(--font-display);font-weight:400;font-size:clamp(52px,min(4.4vw,8vh),112px);line-height:1.3;color:var(--gold);letter-spacing:.005em}
 .ph-s{font-size:var(--fs-xs);color:var(--dim)}
 /* pick a pack: every pack at once, the columns chosen by script so they all fit (scrolls only if they can't) */
-.packs{--pg:clamp(6px,.55vw,14px);--cols:4;display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:var(--pg);
-  min-height:0;flex:1;padding:4px;margin:-4px;overflow:hidden}
+.packs{--pg:clamp(6px,.55vw,14px);--pkw:60px;display:flex;flex-wrap:wrap;justify-content:center;align-content:center;
+  gap:clamp(14px,1.6vh,30px) calc(var(--pg) * 3);min-height:0;flex:1;padding:4px;margin:-4px;overflow:hidden}
+/* one game: its mark, then its packs */
+.pk-game{display:flex;flex-direction:column;align-items:center;gap:clamp(7px,.6vw,14px);flex:none;max-width:100%}
+.pk-game.full{width:100%}
+.pk-mark{display:block;height:clamp(16px,1.15vw,28px);width:auto;max-width:100%;object-fit:contain}
+.pk-row{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--pg);width:100%}
 .packs.scroll{overflow-y:auto;align-content:start;scrollbar-width:thin;scrollbar-color:rgba(106,168,255,.3) transparent}
-.pk{display:block;flex:none;width:calc((100% - (var(--cols) - 1) * var(--pg)) / var(--cols));border:0;background:none;cursor:pointer;padding:0;color:inherit;transition:transform .3s var(--ease)}
+.pk{display:block;flex:none;width:var(--pkw);border:0;background:none;cursor:pointer;padding:0;color:inherit;transition:transform .3s var(--ease)}
 .pk-art{display:block;width:100%;aspect-ratio:.56;object-fit:cover;border-radius:4px;filter:saturate(.85) brightness(.8);transition:filter .25s;
   box-shadow:0 8px 18px -8px rgba(0,0,0,.85)}
 .pk:hover .pk-art{filter:none}
 .pk:hover{transform:translateY(-2px)}
 .pk[aria-pressed="true"] .pk-art{filter:none;outline:2px solid var(--gold);outline-offset:2px}
 
-.stage{position:relative;display:flex;flex-direction:column;min-height:0}
-.stage-set{display:flex;justify-content:center;align-items:flex-end;height:clamp(52px,min(4.4vw,8vh),100px);flex:none}
-.stage-logo{height:100%;width:auto;max-width:80%;object-fit:contain;filter:drop-shadow(0 6px 16px rgba(0,0,0,.5))}
+.stage{position:relative;display:flex;flex-direction:column;min-height:0;contain:size}
+.stage-set{position:absolute;top:clamp(8px,1vw,20px);right:clamp(8px,1vw,20px);z-index:2;display:flex;justify-content:flex-end;
+  height:clamp(26px,1.8vw,44px);max-width:34%;pointer-events:none}
+.stage-logo{height:100%;width:auto;max-width:min(100%,clamp(96px,7.5vw,190px));object-fit:contain;object-position:right center;filter:drop-shadow(0 3px 8px rgba(0,0,0,.6))}
+.stage-set .set-name{font-size:clamp(14px,1vw,20px);white-space:nowrap}
 .stage-logo[hidden]{display:none}
 /* a tear button that sits right by the seal (placed by rip3d.js), and a Next pill on the bottom of the card */
 .tear-btn,.next-pill{position:absolute;left:0;top:0;z-index:3;display:inline-flex;align-items:center;gap:9px;white-space:nowrap;cursor:pointer;border:0;
@@ -156,7 +181,7 @@ canvas#topo{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:bloc
 
 /* pull panel: Collectr's value-summary grammar (a label, one big value, a delta chip with arrow and unit, then the
    items behind the number as real thumbnails). The hit comes first, the pulled total against the pack is the verdict. */
-.receipt{align-self:center;max-height:100%;overflow-y:auto;scrollbar-width:thin;display:flex;flex-direction:column;gap:clamp(14px,1.6vh,24px);
+.receipt{align-self:center;display:flex;flex-direction:column;gap:clamp(14px,1.6vh,24px);
   padding:4px 0;container-type:inline-size}   /* no panel (lessons CR8): space and alignment set it apart from the stage */
 .rc-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .rc-top h2{font-family:var(--font-display);font-weight:400;font-size:clamp(24px,1.5vw,34px);text-transform:uppercase;letter-spacing:.01em;line-height:1.12}
@@ -219,7 +244,7 @@ canvas#topo{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:bloc
 .meter-l span:first-child{left:0}
 .meter-l span:last-child{color:var(--gold-lt)}
 .rest .rc-k{margin-bottom:10px}
-.mini{list-style:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(10px,1.2vh,14px) clamp(6px,.55vw,11px)}
+.mini{list-style:none;display:grid;grid-template-columns:repeat(var(--mc,5),minmax(0,1fr));gap:clamp(10px,1.2vh,14px) clamp(6px,.55vw,11px)}
 .mini li{display:flex;flex-direction:column;align-items:center;min-width:0}
 .mc{display:block;width:100%;perspective:500px;padding:0;border:0;background:none;cursor:pointer;aspect-ratio:.717;border-radius:4.5% / 3.2%;
   box-shadow:inset 0 0 0 1px rgba(234,242,255,.14);transition:transform .18s cubic-bezier(.16,1,.3,1)}
@@ -405,7 +430,8 @@ canvas#topo{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:bloc
   .mini{gap:8px 6px}
   .ms{display:none}                                          /* the foil shows on the thumbnail itself here */
   .mp{margin-top:4px}
-  .hitbox{grid-template-columns:26% minmax(0,1fr)}
+  .hitbox{grid-template-columns:22% minmax(0,1fr)}
+  .mini .mc{width:88%}
   .rc-foot{font-size:12px;line-height:1.4;padding-top:8px}
   .rc-sub{font-size:12.5px}
 }
@@ -415,22 +441,66 @@ canvas#topo{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:bloc
   .also{font-size:13px;line-height:1.4}
   .vbox{gap:8px}
   .mini{gap:6px}
+  .mini .mc{width:86%}                                       /* room for a second hit's "Also pulled" line */
   .receipt{gap:8px}
+  .side{gap:10px}
+}
+@media (min-width:981px) and (min-height:1101px) and (max-height:1340px){   /* 2560 wide in a real browser window (about 1305 tall) */
+  .price-hero b{font-size:clamp(52px,min(4.4vw,7vh),112px)}
+  .hitbox{grid-template-columns:27% minmax(0,1fr)}
+  .side{gap:clamp(14px,1.8vh,28px)}
+}
+@media (min-width:981px) and (max-height:760px){             /* short laptop windows (1366x657, 1280x720): the panel still fits one screen */
+  .rip-hero{grid-template-columns:clamp(240px,19vw,450px) minmax(0,1fr) clamp(300px,25vw,470px)}
+  .side{gap:8px}
+  .price-hero{flex-direction:row;flex-wrap:wrap;align-items:baseline;column-gap:12px;row-gap:0}
+  .price-hero b{font-size:40px;line-height:1.25;order:2}
+  .ph-k{order:1} .ph-s{order:3;flex-basis:100%}
+  .rc-big{padding:6px 0}
+  .rc-big b{font-size:32px;margin:4px 0 0}
+  .rc-sub{font-size:12px;line-height:1.35}
+  .anatomy{gap:4px}
+  .backs{height:22px}
+  .an-l b{font-size:13.5px}
+  .an-l small{font-size:12px}
+  .rc-note{font-size:12px;line-height:1.35}
+  .hitbox{grid-template-columns:19% minmax(0,1fr);padding-bottom:8px}
+  .hit-p{font-size:26px}
+  .v-row b{font-size:30px}
+  .rc-foot{font-size:11.5px;line-height:1.35;padding-top:6px}
+  .mini{gap:4px 6px}
+  .mini .mc{width:68%}                                       /* smaller thumbnails, same five-across order */
+  .mp{margin-top:2px}
+  .hitbox{grid-template-columns:16% minmax(0,1fr)}
+  .hit-info{gap:2px}
+  .side:has(#rcAlso:not([hidden])) .ph-s{display:none}       /* a second hit takes the product line's room */
+  .also{margin-top:-2px;line-height:1.35}
 }
 @media (max-width:1280px){
   .prow{grid-template-columns:72px minmax(160px,1.4fr) .8fr .8fr minmax(180px,1.5fr)}
   .prow .tag{display:none}
   .board{grid-template-columns:1fr}
 }
-@media (max-width:1100px){
+/* narrower desktops: a tighter nav and a slightly smaller title, so the centred title never meets the nav */
+@media (max-width:1500px){
+  :root{--pt-k:1.15}
+  .nav{gap:18px}
+  .nav a{font-size:14px;letter-spacing:.06em}
+  .topbar-right{gap:18px}
+}
+@media (max-width:1300px){
+  :root{--pt-k:1.05}
+}
+@media (max-width:1220px){
   .nav{display:none}
 }
 @media (max-width:980px){
   /* phones: the set and the pack first, so the whole reveal fits the first screen; then every pack; then the price and panel */
-  .rip-hero{height:auto;grid-template-columns:minmax(0,1fr);grid-template-areas:"stage" "pick" "side";row-gap:16px;padding-top:calc(var(--head-h) + 4px)}
-  .stage-set{height:48px}
+  .rip-hero{height:auto;grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-template-areas:"stage" "pick" "side";row-gap:16px;padding-top:calc(var(--head-h) + 4px)}
+  .picker,.stage{contain:none}
+  .stage-set{height:30px}
   .stage-canvas{flex:none;height:min(58svh,560px)}
-  .packs{--cols:7;--pg:6px;flex:none;overflow:visible}
+  .packs{--pg:6px;flex:none;overflow:visible}
   .price-hero{flex-direction:row;align-items:baseline;flex-wrap:wrap;column-gap:12px}
   .price-hero b{font-size:44px;order:2}
   .ph-k{order:1} .ph-s{order:3;flex-basis:100%}

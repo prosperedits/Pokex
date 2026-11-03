@@ -430,9 +430,9 @@ for (const f of readdirSync(DATA)) {
 const rows = Object.values(idx).filter(Array.isArray).flat();
 const CHASE_PK = ['30th','me05', 'me04', 'me03', 'me02.5', 'sv10.5w', 'sv10.5b', 'sv08.5'];
 const CHASE_IDX = [
-  { game: 'magic', sets: [['Reality Fracture', 'mtg-fra'], ['The Hobbit', 'mtg-hob'], ['Marvel Super Heroes', 'mtg-msh'], ['Final Fantasy', 'mtg-fin']], n: 6 },
-  { game: 'lorcana', sets: [['Hyperia City', 'lor-14'], ['Attack of the Vine!', 'lor-13'], ['Wilds Unknown', 'lor-12']], n: 5 },
-  { game: 'onepiece', sets: [["The World's Strongest Warriors", 'op-OP17']], n: 4 },
+  { game: 'magic', sets: [['Reality Fracture', 'mtg-fra'], ['The Hobbit', 'mtg-hob'], ['Marvel Super Heroes', 'mtg-msh'], ['Final Fantasy', 'mtg-fin']], n: 10 },
+  { game: 'lorcana', sets: [['Hyperia City', 'lor-14'], ['Attack of the Vine!', 'lor-13'], ['Wilds Unknown', 'lor-12']], n: 9 },
+  { game: 'onepiece', sets: [["The World's Strongest Warriors", 'op-OP17']], n: 8 },
 ];
 const chase = [];
 const pk = [];
@@ -446,7 +446,7 @@ for (const id of CHASE_PK) {
 }
 pk.sort((a, b) => b.price - a.price);
 const seenPk = new Set();
-for (const c of pk) { if (seenPk.has(c.name)) continue; seenPk.add(c.name); chase.push(c); if (seenPk.size >= 8) break; }
+for (const c of pk) { if (seenPk.has(c.name)) continue; seenPk.add(c.name); chase.push(c); if (seenPk.size >= 14) break; }   // the hero ring holds ~39 cards: enough unique chase cards that none repeat (Faisal, 29 Oct)
 for (const g of CHASE_IDX) {
   const pool = [];
   for (const [sn, id] of g.sets) for (const c of rows) if (c.sn === sn && typeof c.p === 'number' && c.img) pool.push({ c, id, sn });

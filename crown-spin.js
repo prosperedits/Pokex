@@ -3,10 +3,10 @@
 // 5 frames a second and read as laggy (Faisal, 27 Oct). Works on every element with `.crown-spin`
 // (homepage, data page) or `.lockup-crown` (app): the script sizes each one to the crown's aspect from
 // its CSS height, so pages only set a height.
-// Re-render: docs/design/crown/logo.html (frames) + scripts/make-crown-logo.py.
+// Re-render: docs/design/crown/logo-spires.html (frames; the hero's built crown 3) + scripts/make-crown-logo.py.
 (function () {
-  var SRC = 'assets/crown/crown-turn.webp?v=5';
-  var ASPECT = 1.3393;                               // 150 x 112, the crop that holds every frame of the turn
+  var SRC = 'assets/crown/crown-turn.webp?v=9';
+  var ASPECT = 1.1607;                               // 130 x 112, the crop that holds every frame of the turn
   function fit() {
     var els = document.querySelectorAll('.crown-spin, .lockup-crown');
     for (var i = 0; i < els.length; i++) {

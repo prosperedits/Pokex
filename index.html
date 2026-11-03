@@ -6,7 +6,7 @@
 <title>Crowns — Home</title>
 <link rel="icon" type="image/png" href="assets/favicon-64.png?v=2">
 <meta name="description" content="Crowns — the ultimate card tracker.">
-<script src="crown-spin.js?v=13" defer></script>
+<script src="crown-spin.js?v=17" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -77,9 +77,11 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100
 .nav-drop a:hover{background:rgba(106,168,255,.16);color:#fff}
 .nav-drop a.nd-all{color:var(--gold);margin-top:5px;border-top:1px solid rgba(106,168,255,.16);border-radius:0 0 9px 9px}
 /* Join now button (replaces the live-prices badge) */
-.join-now{display:inline-flex;align-items:center;font-family:var(--font);font-weight:700;font-size:14.5px;letter-spacing:.01em;
-  color:#10131f;background:linear-gradient(180deg,#ffe79a,#ffc63a);border-radius:30px;padding:11px 24px;text-decoration:none;cursor:none;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.5);transition:transform .2s}
+/* gold lettering like the headline's "Ultimate" (Faisal, 29 Oct: "join should be gold text, just like ultimate"), on a fine gold-edged pill */
+.join-now{display:inline-flex;align-items:center;font-family:var(--font-display);font-weight:400;font-size:18px;line-height:1;letter-spacing:.06em;text-transform:uppercase;
+  color:transparent;-webkit-text-fill-color:transparent;background:linear-gradient(176deg,#ffeebf 3%,#f6cf57 38%,#e3a92f 72%,#c98a1c 100%);
+  -webkit-background-clip:text;background-clip:text;border-radius:30px;padding:12px 24px 11px;text-decoration:none;cursor:none;
+  box-shadow:inset 0 0 0 1.5px rgba(246,207,87,.6), 0 0 22px rgba(238,184,66,.14);transition:transform .2s}
 .join-now:hover{filter:brightness(1.05)} /* motion comes from the magnetic JS, not CSS */
 .join-now:active{transform:scale(.93);transition:transform .08s}
 .live{display:inline-flex;align-items:center;gap:7px;font-family:var(--font);font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
@@ -90,9 +92,8 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100
 /* the hero ring: chase cards stand in a tilted ring around the 3D card crown (crown3d.js).
    Refs: Shaky Picks (ring around a centre), Rabo Art Collection (near cards cross in front, far ones pass behind) */
 .tape-wrap{--cw:clamp(190px,12.4vw,318px);--ch:calc(var(--cw) / .717);
-  position:relative;transform:translateY(-4vh);width:100%;height:min(96vh,1040px);display:flex;align-items:center;justify-content:center;overflow:hidden;
-  perspective:1700px;perspective-origin:50% 34%;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 13%,#000 87%,transparent);mask-image:linear-gradient(90deg,transparent,#000 13%,#000 87%,transparent)}
+  position:relative;transform:translateY(-4vh);width:100%;height:96vh;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  perspective:1700px;perspective-origin:50% 34%}   /* full height and no edge fade: the crown fills the hero (crown3d.js keeps it clear of the header, headline and ticker) */
 .tape{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d;will-change:transform;z-index:1}
 /* giant tracker emblem at the hub of the wheel (cards revolve in front of it) */
 .wheel-emblem{position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);width:min(64vw,920px);z-index:0;pointer-events:none;
@@ -125,7 +126,8 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100
 /* the front card of the ring wears the old carousel's brackets and "Inspect" (positioned from crown3d.front() each frame) */
 .crown-front{position:absolute;left:0;top:0;z-index:3;pointer-events:none;opacity:0;transition:opacity .3s}
 .crown-front.on{opacity:1}
-.crown-front .tbr{opacity:1;transform:none}
+.crown-front .tbr{opacity:1;transform:none;inset:-5px}   /* hugs the card (Faisal, 29 Oct) */
+.crown-front .tbr i{width:clamp(14px,18%,24px);height:clamp(14px,18%,24px);border-width:2.5px}
 .crown-front .tinspect{opacity:1;transform:translateX(-50%)}
 /* a clean thin edge on every card; a golden rim appears on hover */
 .tcard::after{content:'';position:absolute;inset:0;border-radius:16px;pointer-events:none;transition:opacity .3s, box-shadow .3s;opacity:.45;backface-visibility:hidden;
@@ -200,7 +202,7 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100
 @media (max-width:780px){ .ins-stage{flex-direction:column;gap:24px;padding:16px} .ins-card{width:min(62vw,300px)} .ins-info{max-width:90vw} }
 
 /* headline (left) — white, with gold only on "Ultimate" */
-.intro-copy{position:absolute;left:clamp(20px,4vw,64px);bottom:clamp(56px,9vh,104px);z-index:25;max-width:min(62vw,760px);pointer-events:none;display:flex;align-items:flex-end;gap:clamp(16px,2.2vw,38px);flex-wrap:wrap}
+.intro-copy{position:absolute;left:clamp(20px,4vw,64px);bottom:clamp(72px,16vh,240px);z-index:25;max-width:min(62vw,760px);pointer-events:none;display:flex;align-items:flex-end;gap:clamp(16px,2.2vw,38px);flex-wrap:wrap}
 .hero-kick{flex-basis:100%;font-family:var(--font);font-weight:700;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:rgba(174,197,238,.85);margin-bottom:2px;text-shadow:0 1px 8px rgba(0,0,0,.6)}
 /* per-character headline reveal (split by JS at boot; GSAP staggers them in) */
 .headline .hl-ch{display:inline-block;will-change:transform;backface-visibility:hidden}
@@ -212,6 +214,20 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100
              linear-gradient(176deg,#ffeebf 3%,#f6cf57 38%,#e3a92f 72%,#c98a1c 100%) 0 0 / 100% 100%;
   -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
   filter:drop-shadow(0 1px 1px rgba(120,75,10,.45)) drop-shadow(0 0 5px rgba(238,184,66,.25))}   /* restored: Faisal preferred the original gold face and its light sweep (28 Oct) */
+/* wide screens: the crown stands centred and the headline wraps round it in two layers (Faisal, 29 Oct: "it looks better in the
+   center, and you have to somehow incorporate the text around it... even adding a little bit of layering"). "The Ultimate"
+   sits up left BEHIND the crown, so its spires pass in front of the letters as it turns; "Card Tracker" and Explore sit
+   down right IN FRONT of it. Phones and tablets keep the stacked layout below. */
+@media (min-width:1200px){
+  .tape-wrap{transform:translateY(-4vh)}
+  .intro-copy{display:contents}
+  .headline{font-size:clamp(64px,5.6vw,150px)}
+  .headline br{display:none}
+  .headline .hl-a,.headline .hl-b{position:absolute;white-space:nowrap;pointer-events:none}
+  .headline .hl-a{left:clamp(24px,3.4vw,90px);top:14vh;z-index:-1}   /* high enough that the spires only cut its foot: it still reads */
+  .headline .hl-b{right:clamp(24px,3.4vw,90px);top:73vh;z-index:25;text-align:right}   /* over the bottom rim, never over the cards */
+  .intro-copy .explore-btn{position:absolute;right:clamp(28px,3.6vw,96px);top:calc(73vh + clamp(64px,5.6vw,150px) * .96 + 18px);z-index:25}
+}
 .scrolldown{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);z-index:25;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:7px;
   font-family:var(--font);font-weight:600;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:rgba(174,197,238,.75)}
 .scrolldown .arw{font-size:15px;line-height:1}
@@ -230,17 +246,17 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100
 .spotlight-section::before{content:'';position:absolute;left:0;right:0;top:0;height:32%;z-index:1;pointer-events:none;background:linear-gradient(180deg,#0c1a3c 0%,rgba(12,26,60,.82) 30%,rgba(12,26,60,.34) 62%,transparent 100%)}
 .spotlight-section .sp-gl{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;-webkit-mask-image:linear-gradient(180deg,#000 76%,transparent 99%);mask-image:linear-gradient(180deg,#000 76%,transparent 99%)}
 .spotlight-section .sp-particles{position:absolute;inset:0;z-index:2;pointer-events:none}
-.spotlight-section .sp-stage{position:relative;min-height:calc(100vh - 46px);z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(104px,calc(52px + 6vh),170px) 16px clamp(32px,5vh,90px)}   /* the title sits just under the header: no empty band above it */
+.spotlight-section .sp-stage{position:relative;min-height:calc(100vh - 46px);z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(112px,calc(3.5vw + 66px),144px) 16px clamp(24px,3vh,64px)}   /* the title sits just under the header: no empty band above it; the whole stage fits between the header and the ticker */
 .spotlight-section .sp-title-wrap{position:relative;flex:none;filter:drop-shadow(0 14px 22px rgba(0,0,0,.55))}
 .spotlight-section .sp-title{font-family:var(--font-display);font-weight:400;font-style:italic;line-height:.94;margin:0;text-align:center;
-  font-size:clamp(52px,min(6.4vw,10vh),150px);letter-spacing:.035em;text-transform:uppercase;transform:skewX(-5deg) rotate(-2.2deg)}
+  font-size:clamp(52px,min(6.4vw,10vh,calc(14vh - 40px)),150px);letter-spacing:.035em;text-transform:uppercase;transform:skewX(-5deg) rotate(-2.2deg)}
 /* "This week's" rides above the wordmark in gold foil; "Spotlight" keeps the steel face and navy extrusion */
 .sp-title .sp-tw{display:block;font-size:.42em;letter-spacing:.07em;color:#ffd45e;margin-bottom:.1em;
   text-shadow:0 1px 0 #fff1bf,1px 1px 0 #c99328,2px 2px 0 #8d5d10,3px 3px 0 #5a3a08,4px 8px 16px rgba(0,0,0,.5)}
 .sp-title .sp-tm{display:block;color:#eef4ff;
   text-shadow:0 1px 0 #cdd9f2,0 0 22px rgba(150,180,255,.28),2px 2px 0 #3d5db8,4px 4px 0 #23368a,6px 6px 0 #16225e,8px 8px 0 #0d1540,10px 16px 30px rgba(0,0,0,.55)}
 /* the stage: the week's rising cards standing on the floor, the lead in the middle under the crown */
-.sp-row{--w:clamp(170px,min(17vw,calc(34.5vh - 94px)),440px);position:relative;display:flex;align-items:flex-end;justify-content:center;gap:clamp(22px,2.6vw,70px);margin-top:clamp(64px,8vh,120px)}
+.sp-row{--w:clamp(128px,min(17vw,calc(40vh - 176px + max(0px,(1000px - 100vh) * .04))),440px);   /* on short laptop screens the title gives up a little height to the cards */position:relative;display:flex;align-items:flex-end;justify-content:center;gap:clamp(22px,2.6vw,70px);margin-top:calc(clamp(70px,calc(5.8vh + 34px),130px) + max(0px,(100vh - 1100px) * .025))}
 .sp-c{--lit:0;--lx:50%;flex:none;width:var(--w);position:relative;border:0;background:none;padding:0;color:inherit;perspective:1400px}
 .sp-c[data-tier="1"]{width:calc(var(--w) * .8)}
 .sp-c[data-tier="2"]{width:calc(var(--w) * .66)}
@@ -248,31 +264,38 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100
 .sp-cf{display:block;position:relative;will-change:transform}
 .sp-ci{display:block;position:relative;transform-origin:50% 100%;transition:transform .55s cubic-bezier(.16,1,.3,1)}
 .sp-c:hover .sp-ci,.sp-c:focus-visible .sp-ci{transform:scale(1.08)}   /* under a spotlight, hover = bigger, never brighter (CR9) */
-.sp-ci img{display:block;width:100%;height:auto;aspect-ratio:734/1024;object-fit:cover;border-radius:9px;box-shadow:0 24px 36px rgba(0,0,0,.5)}
-.sp-crown{position:absolute;left:50%;bottom:100%;transform:translate(-50%,-14px);height:clamp(44px,min(3.6vw,5vh),66px);z-index:4;filter:drop-shadow(0 9px 17px rgba(0,0,0,.5))}
+/* the lead grows a little less, from low on the card, and its crown (outside the scaling box) rides up with the
+   card's top edge without growing, so a hover never pushes the crown into SPOTLIGHT */
+.sp-c[data-i="0"] .sp-ci{transform-origin:50% 70%}
+.sp-c[data-i="0"]:is(:hover,:focus-visible) .sp-ci{transform:scale(1.05)}
+.sp-c[data-i="0"]:is(:hover,:focus-visible) .sp-crown{transform:translate(-50%,calc(-14px - var(--w) * 1.395 * .035))}
+.sp-ci img{display:block;width:100%;height:auto;aspect-ratio:734/1024;object-fit:cover;border-radius:4.5% / 3.2%;box-shadow:0 24px 36px rgba(0,0,0,.5)}
+.sp-crown{position:absolute;left:50%;bottom:100%;transform:translate(-50%,-14px);transition:transform .55s cubic-bezier(.16,1,.3,1);height:clamp(44px,min(4.2vw,5.8vh),84px);z-index:4;filter:drop-shadow(0 9px 17px rgba(0,0,0,.5))}
 /* the caption names whichever card is in the light */
-.sp-capwrap{flex:none;margin-top:clamp(24px,3vh,52px);min-height:clamp(120px,13vh,190px)}
-.sp-cap{text-align:center;transition:opacity .2s ease,transform .2s ease}
+.sp-capwrap{flex:none;margin-top:clamp(20px,2.6vh,52px);min-height:clamp(104px,12vh,190px)}
+.sp-cap{text-align:center;transition:opacity .2s cubic-bezier(.16,1,.3,1),transform .2s cubic-bezier(.16,1,.3,1)}
 .sp-cap.swap{opacity:0;transform:translateY(6px)}
 .sp-cap .uni-logo{display:block;width:auto;margin:0 auto 14px;filter:drop-shadow(0 2px 10px rgba(0,0,0,.4)) saturate(1.3) brightness(1.06)}
 .sp-cap .nm{display:block;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,min(3vw,4vh),52px);text-transform:uppercase;letter-spacing:.02em;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.7);line-height:1}
-.sp-cap .sp-line{display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;gap:6px 20px;margin-top:10px;font-family:var(--font-display);font-weight:400;line-height:1;font-size:clamp(26px,min(2.4vw,3.2vh),44px);font-variant-numeric:tabular-nums}
+.sp-cap .sp-line{display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;gap:6px 20px;margin-top:10px;font-family:var(--font-display);font-weight:400;line-height:1;font-size:clamp(26px,min(2.8vw,3.9vh),56px);font-variant-numeric:tabular-nums}
 .sp-cap .sp-price{color:#ffd45e;font-size:clamp(44px,min(4.4vw,6.6vh),88px);letter-spacing:.01em;text-shadow:0 3px 22px rgba(255,190,60,.25),0 2px 10px rgba(0,0,0,.5)}   /* the money is the point: big, gold */
 /* the wings: the window's 2nd and 3rd movers named beside their cards (podium order 2 · 1 · 3), so the stage uses
    its width with real numbers instead of empty floor. Rank in steel like SPOTLIGHT, then name, price and move. */
-.sp-wing{flex:0 1 auto;width:clamp(130px,14vw,370px);align-self:flex-end;height:calc(var(--w) * 1.116);padding-top:max(0px,calc(var(--w) * .558 - 75px))}   /* as tall as a side card, words hung from one line so the 2 and 3 sit level */
+.sp-wing{flex:0 1 auto;width:clamp(130px,18vw,370px);align-self:flex-end;height:calc(var(--w) * 1.116)}   /* as tall as a side card: the rank at its top edge, the words standing on the floor line (Netflix Top 10) */
 .sp-wing[data-side="l"]{text-align:end} .sp-wing[data-side="r"]{text-align:start}
-.sp-wing-in{display:flex;flex-direction:column;gap:clamp(6px,.9vh,12px);transition:opacity .2s ease,transform .2s ease}
-.sp-wing[data-side="l"] .sp-wing-in{align-items:flex-end} .sp-wing[data-side="r"] .sp-wing-in{align-items:flex-start}
+.sp-wing-in,.sp-wing-txt{display:flex;flex-direction:column;gap:clamp(9px,1.4vh,18px)}
+.sp-wing-in{height:calc(100% + var(--lift,0px));margin-top:calc(-1 * var(--lift,0px));justify-content:flex-end;transition:opacity .2s cubic-bezier(.16,1,.3,1),transform .2s cubic-bezier(.16,1,.3,1)}   /* --lift (set in JS, same on both wings) raises both ranks together when either wing's words need more height than its card */
+.sp-wing[data-side="l"] :is(.sp-wing-in,.sp-wing-txt){align-items:flex-end} .sp-wing[data-side="r"] :is(.sp-wing-in,.sp-wing-txt){align-items:flex-start}
 .sp-wing-in.swap{opacity:0;transform:translateY(6px)}
-.sp-wing-n{display:block;font-family:var(--font-display);font-weight:400;font-style:italic;line-height:.84;letter-spacing:0;color:#eef4ff;font-size:clamp(60px,min(5.6vw,8.6vh),132px);margin-bottom:.06em;
+.sp-wing-n{display:block;font-family:var(--font-display);font-weight:400;font-style:italic;line-height:.8;letter-spacing:0;color:#eef4ff;font-size:clamp(58px,min(5.8vw,9vh,calc(12.6vh - 36px)),136px);margin-bottom:auto;   /* 90% of SPOTLIGHT's size at every screen; the auto margin keeps it on the card's top edge and, if the words need the room, lifts it instead of pushing the words off the floor */
   text-shadow:0 1px 0 #cdd9f2,2px 2px 0 #3d5db8,4px 4px 0 #23368a,6px 6px 0 #16225e,8px 12px 24px rgba(0,0,0,.55)}
 .sp-wing-nm{display:block;max-width:100%;font-family:var(--font-display);font-weight:400;text-transform:uppercase;letter-spacing:.02em;color:#fff;line-height:1.02;text-wrap:balance;overflow-wrap:break-word;
   font-size:clamp(20px,min(2vw,2.9vh),42px);text-shadow:0 2px 12px rgba(0,0,0,.7)}
-.sp-wing-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;font-family:var(--font-display);font-weight:400;line-height:1;font-size:clamp(20px,min(2vw,2.9vh),42px);font-variant-numeric:tabular-nums;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.sp-wing-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;font-family:var(--font-display);font-weight:400;line-height:1;font-size:clamp(18px,min(1.5vw,2.2vh),32px);font-variant-numeric:tabular-nums;text-shadow:0 2px 10px rgba(0,0,0,.6)}
 .sp-wing[data-side="l"] .sp-wing-line{justify-content:flex-end}
 .sp-wing-pr{color:#fff;white-space:nowrap} .sp-wing-mv{white-space:nowrap} .sp-wing-mv.up{color:#46e08a} .sp-wing-mv.down{color:#ff6b6b}
-.sp-wing-set{display:block;font-size:16px;line-height:1.3;color:#b6c4e2;text-wrap:balance}
+.sp-wing-set{display:block;font-size:clamp(14px,1.9vh,16px);line-height:1.3;color:#b6c4e2;text-wrap:balance}
+.sp-wing-span{font-family:var(--font);font-weight:600;font-size:16px;letter-spacing:0;color:#c9d6ee;white-space:nowrap;text-shadow:none}
 .sp-kick-logo{display:block;height:1.5em;width:auto;max-width:min(560px,80vw);margin:0 auto .12em;object-fit:contain;transform:skewX(5deg) rotate(2.2deg);filter:drop-shadow(0 6px 16px rgba(0,0,0,.5))}   /* undo the title's slant: the set logo stands straight */
 .sp-kick-logo[data-k^="op-"]{height:.9em;filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 6px 16px rgba(0,0,0,.5))}
 .sp-cap .sp-move.up{color:#46e08a} .sp-cap .sp-move.down{color:#ff6b6b}
@@ -281,11 +304,11 @@ canvas#topo{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100
 .spotlight-section::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:150px;pointer-events:none;z-index:4;
   background:linear-gradient(180deg,transparent,rgba(12,26,60,.7) 62%,#0c1a3c 100%)}
 @media(max-width:1500px){ .sp-c[data-tier="2"]{display:none} }
-@media(max-width:860px){ .spotlight-section,.spotlight-section .sp-stage{min-height:0} .sp-c[data-tier="1"],.sp-wing{display:none} .sp-c{--w:clamp(170px,46vw,240px)} .sp-row{margin-top:64px} }
+@media(max-width:860px){ .spotlight-section,.spotlight-section .sp-stage{min-height:0} .sp-c[data-tier="1"],.sp-wing{display:none} .sp-c{--w:clamp(170px,46vw,240px)} .sp-row{margin-top:80px} .sp-capwrap{min-height:clamp(150px,12vh,190px)} }   /* room for the longest caption, so the tabs never jump under the finger */
 
 /* the new sets' logos under the caption switch what's in the spotlight */
-.sp-sets{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:clamp(18px,2.8vw,60px);margin-top:clamp(14px,2vh,30px);max-width:min(1600px,94vw)}
-.sp-set{position:relative;height:clamp(54px,4.4vw,84px);display:flex;align-items:center;justify-content:center;padding:0 4px 16px;border:0;background:none;color:#fff;opacity:.8;transition:opacity .2s ease,transform .3s cubic-bezier(.16,1,.3,1)}
+.sp-sets{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:clamp(18px,2.8vw,60px);margin-top:clamp(10px,1.4vh,30px);max-width:min(1600px,94vw)}
+.sp-set{position:relative;height:clamp(54px,4.4vw,84px);display:flex;align-items:center;justify-content:center;padding:0 4px 16px;border:0;background:none;color:#fff;opacity:.8;transition:opacity .2s cubic-bezier(.16,1,.3,1),transform .3s cubic-bezier(.16,1,.3,1)}
 .sp-set img{max-height:100%;max-width:min(250px,40vw);object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45))}
 .sp-set[data-k^="op-"] img{max-height:58%;max-width:min(380px,70vw);filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 4px 10px rgba(0,0,0,.45))}
 .sp-set span{font-family:var(--font-display);font-size:clamp(22px,1.8vw,34px);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
@@ -366,6 +389,7 @@ h2.ih2 .lk2{color:var(--blue-bright)}
 
 /* pricing: Faisal picked option A, the rarity cards (27 Oct; docs/design/tiers/option-a.html, direction.md "Pricing tiers").
    Free = a basic common, Premium = a holographic full art, Collector = a gold hyper-rare full art (Faisal, 27 Oct).
+   28 Oct: rebuilt as set 2, the full art (Faisal: keep the art, better type, price under the card).
    Classes are tc- prefixed so nothing else on the page collides.
    The key light enters up and left (the side every shadow and foil highlight answers to) and is back to the page navy
    before the right and bottom edges. */
@@ -379,89 +403,113 @@ h2.ih2 .lk2{color:var(--blue-bright)}
 .tc-tiers{display:grid;grid-template-columns:minmax(0,26fr) minmax(0,74fr);gap:clamp(40px,5vw,140px);align-items:center;width:100%;max-width:2300px;margin:0 auto}
 
 .tc-head h2{font-family:var(--font);font-weight:700;font-size:clamp(32px,3.1vw,84px);line-height:1.08;letter-spacing:-.012em;color:#fff;text-wrap:balance}
+/* the persuasive word gets the emphasis (Faisal, 28 Oct: "less should be italicized... some sort of emphasis to make it
+   pop"): DM Sans's real italic in the hero's ULTIMATE gold face. The padding gives the slanted ink room inside the
+   clipped gold, and the negative margin gives that room back to the line */
+.tc-head h2 .tc-less{display:inline-block;padding:0 .1em;margin:0 -.1em;font-style:italic;
+  background:linear-gradient(176deg,#ffeebf 3%,#f6cf57 38%,#e3a92f 72%,#c98a1c 100%);-webkit-background-clip:text;background-clip:text;
+  color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 1px 1px rgba(120,75,10,.45)) drop-shadow(0 0 5px rgba(238,184,66,.25))}
 
 /* the hand: three cards of one size on one floor (Faisal: the three prices must be the same size), so every
    cqi measure below is the same number of pixels on every card */
 .tc-hand{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(24px,2.4vw,64px);align-items:end;list-style:none}
 .tc-hand > li{position:relative;display:flex;min-width:0}
-.tc-tier{display:block;width:100%;text-align:center}
-.tc-tier .tc-card{text-align:left;margin-bottom:clamp(34px,2vw,48px)}
-/* the button is the one link; its hit area stretches over the whole card so the card is clickable too */
+/* a tier is the card, then its price and button on the page under it. Each tier is a size container, so the price
+   is sized from the card's own width and sits on the same baseline under all three cards */
+.tc-tier{position:relative;display:block;width:100%;text-align:center;container-type:inline-size}
+/* the button is the one link; its hit area stretches over the whole tier so the card is clickable too */
 .tc-cta::after{content:'';position:absolute;inset:0;border-radius:14px}
 .tc-cta:focus-visible{outline:none}
 .tc-hand > li:has(.tc-cta:focus-visible) .tc-card{outline:2px solid var(--blue-bright);outline-offset:8px}
 .tc-hand > li:has(.tc-cta:focus-visible) .tc-cta{box-shadow:inset 0 0 0 1.5px rgba(234,242,255,.55),0 0 0 2px var(--tc-ground),0 0 0 4px var(--blue-bright)}
 
-/* ---------- the card object: a printed border (CSS) around a full-art face. The faces were designed on Higgsfield
-   (GPT Image 2.5; briefs in garden-gpt-image-2/prompt/pricing-card-*.md) and carry no text: the name, price, lines
-   and rarity mark are real HTML set into the zones each face leaves for them, so spelling stays exact and readable. */
-.tc-card{position:relative;display:flex;flex-direction:column;width:100%;aspect-ratio:734/1024;border-radius:4.5% / 3.2%;padding:3.6%;
-  container-type:inline-size;transform-origin:50% 90%;transition:transform .18s var(--tc-ease);
+/* ---------- the card: a full-art face, edge to edge, in real 63x88 proportions. Faisal picked set 2, the full art
+   (28 Oct; docs/design/tiers/iterations/cards-2-fullart.png). The faces are text-free (fullart/*-art.png); the name and
+   perks are real HTML on a glass text box over each face's quiet lower art, and the price sits under the card on the
+   page ("not on the card itself... under it, it shows the price") ---------- */
+.tc-card{position:relative;display:block;width:100%;aspect-ratio:734/1024;border-radius:4.6% / 3.3%;overflow:hidden;isolation:isolate;
+  container-type:inline-size;background:var(--tc-ground);text-align:left;transform-origin:50% 90%;transition:transform .18s var(--tc-ease);
   /* contact shadow, thrown down and to the right by the key light up and to the left */
-  box-shadow:0 2px 0 rgba(255,255,255,.1) inset, 14px 22px 28px -18px rgba(1,4,16,.9), 5px 9px 14px -8px rgba(1,4,16,.55)}
-.tc-face{position:relative;flex:1 0 auto;border-radius:4px;overflow:hidden;isolation:isolate;background:#0c1a3c}
-/* the art is 1360x2048; it and the type layer share one box, centred in the face (the face trims ~2.8% top and
-   bottom), so every zone below is a % of the art itself */
-.tc-img,.tc-layer{position:absolute;left:0;top:50%;width:100%;aspect-ratio:1360/2048;transform:translateY(-50%)}
-.tc-img{display:block;height:auto}
-.tc-layer{--nt:4%;--nb:10%;--nl:4%;--nr:4%;--tt:55%;--tb:90%;--tl:5%;--tr:5%;--base:48.5%}
-/* card name: a bold condensed card title, centred in its bar both ways */
-.tc-name{position:absolute;top:var(--nt);height:calc(var(--nb) - var(--nt));left:var(--nl);right:var(--nr);margin:0;
-  display:flex;align-items:center;justify-content:center;text-align:center;
-  font-family:'Barlow Condensed',var(--font);font-weight:700;font-size:6.2cqi;line-height:1;letter-spacing:.01em;color:#fff;
-  text-shadow:0 1px 0 rgba(0,0,0,.35)}
-/* the price: one size and one baseline (48.5% down the art) on every card. The row's bottom edge sits .055em under
-   the baseline, where Anton's $ ends; its box hugs Anton's ink (digits rise .86em) instead of the 1.51em content area */
-.tc-price{position:absolute;left:0;right:0;bottom:calc(100% - var(--base) - .055em);margin:0;display:flex;align-items:baseline;justify-content:center;
-  gap:.06em;font-size:23.6cqi;line-height:.96;white-space:nowrap}
-.tc-amt{display:inline-block;line-height:.96;overflow:clip;overflow-clip-margin:24px;font-family:var(--font-display);font-weight:400;
-  font-size:1em;letter-spacing:-.01em;color:#fff;text-shadow:0 .03em 0 rgba(4,8,24,.4)}
-.tc-per{font-family:'Barlow Condensed',var(--font);font-weight:600;font-size:.24em;letter-spacing:.01em}
-/* rules text, set like a card's ability text: condensed, tight, each line led by an energy pip in the tier's metal */
-.tc-rules{position:absolute;left:var(--tl);right:var(--tr);top:var(--tt);height:calc(var(--tb) - var(--tt));list-style:none;margin:0;padding:3cqi 4cqi;
-  font-family:'Barlow Condensed',var(--font);font-weight:500;font-size:max(14px,4.3cqi);line-height:1.18;letter-spacing:.005em}
-.tc-rules li{position:relative;margin:.55cqi 0;padding-left:1.45em;text-wrap:pretty}
-.tc-rules li::before{content:'';position:absolute;left:.1em;top:.59em;width:.62em;height:.62em;margin-top:-.31em;border-radius:50%;
-  background:var(--pip);box-shadow:0 0 0 1px var(--pip-ring),0 1px 1px rgba(0,0,0,.45)}
-/* the carry line reads as reminder text: italic, no pip, a hairline under it */
-.tc-rules li.tc-carry{padding-left:0;font-style:italic;border-bottom:1px solid var(--tc-rule);padding-bottom:1.1cqi;margin-bottom:1cqi}
+  box-shadow:14px 22px 28px -18px rgba(1,4,16,.9),5px 9px 14px -8px rgba(1,4,16,.55)}
+/* each tier's art is its one <img> (src + srcset in the markup). --art-fit nudges a face whose busy part runs into the
+   shared text-box line; it is tuned per art file, so reset it to none when that tier's art is swapped */
+.tc-img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;transform:var(--art-fit,none)}
+/* the printed edge: a hairline cut edge that catches the key light up and to the left */
+.tc-card::after{content:'';position:absolute;inset:0;z-index:3;border-radius:inherit;padding:max(1px,.3cqi);pointer-events:none;
+  background:linear-gradient(152deg,rgba(255,255,255,.72),rgba(255,255,255,.14) 32%,rgba(255,255,255,.05) 64%,rgba(255,255,255,.3));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}
+/* the text box: one template on all three cards, as in set 2. Its top is one shared line, so the three names sit on
+   one line; it runs down to the card's bottom margin and may grow into that margin rather than clip. Glass over the
+   lower art, tinted per tier, with a fine gold rule for its edge.
+   The real-reference faces (28 Oct) give the crown the upper 55 to 57% of the card, so the line sits at 56% on big
+   cards. Smaller cards keep a 16px text floor, so their text takes more of the card and the line rises over the
+   crown's lower rim (52%, then 48% on small phones) instead of clipping */
+.tc-glass{--top:56%;--side:6cqi;--foot:6cqi;position:absolute;left:var(--side);right:var(--side);top:var(--top);
+  min-height:calc(100% - var(--top) - var(--foot));z-index:2;display:flex;flex-direction:column;padding:4cqi 4.8cqi 3.6cqi;border-radius:3cqi;
+  background:var(--glass);-webkit-backdrop-filter:blur(var(--blur,14px)) saturate(var(--sat,1.25));backdrop-filter:blur(var(--blur,14px)) saturate(var(--sat,1.25));
+  box-shadow:inset 0 0 0 var(--edge-w,1px) var(--edge),inset 0 1px 0 var(--edge-top),0 12px 30px -14px rgba(0,0,0,.55)}
+/* the card name: Anton caps, centred, in the tier's metal, the same faces the page's headline and SPOTLIGHT wordmark
+   use (silver with an extrusion, gold foil, navy ink stamped into the gold). text-indent = letter-spacing, so the ink
+   sits on the true centre */
+.tc-name{flex:none;margin:0 0 2cqi;text-align:center;font-family:var(--font-display);font-weight:400;font-size:10.5cqi;line-height:.9;
+  letter-spacing:.035em;text-indent:.035em;text-transform:uppercase;
+  background:var(--face);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:var(--face-fx)}
+/* the perks, set like a card's rules text: condensed, each line led by an energy pip in the tier's metal. The list is
+   centred in the room the box leaves under the name; like a real card, the card with more text sets it tighter */
+.tc-rules{flex:1 0 auto;display:flex;flex-direction:column;justify-content:center;margin:0;padding:0;list-style:none;
+  font-family:'Barlow Condensed',var(--font);font-weight:500;font-size:max(16px,3.8cqi);line-height:1.18;letter-spacing:.012em;color:var(--txt)}
+.tc-rules li{position:relative;padding-left:1.25em;text-wrap:pretty}
+.tc-rules li + li{margin-top:.34em}
+.tc-rules li::before{content:'';position:absolute;left:.02em;top:.35em;width:.48em;height:.48em;transform:rotate(45deg);
+  background:var(--pip);box-shadow:0 0 0 1px var(--pip-ring)}
+/* the carry line reads as reminder text: italic, centred under the name, set apart by space, not a rule */
+.tc-rules li.tc-carry{padding-left:0;margin-bottom:.55em;text-align:center;font-style:italic;font-size:max(15px,.94em);color:var(--carry)}
+.tc-rules li.tc-carry + li{margin-top:0}
 .tc-rules li.tc-carry::before{content:none}
-.tc-mark{position:absolute;display:block;transform:translate(-50%,-50%)}
+.tc-common .tc-rules{justify-content:flex-start;padding-top:2cqi}
+.tc-common .tc-rules li + li{margin-top:.7em}
+.tc-crown .tc-name{margin-bottom:1.4cqi}
+.tc-crown .tc-rules li + li{margin-top:.18em}
+.tc-crown .tc-rules li.tc-carry{margin-bottom:.4em}
+/* cards under 420px wide (laptops, phones): the text keeps its 16px floor, so the box widens its measure and rises */
+@container (max-width:419px){
+  .tc-glass{--top:52%;--side:4.6cqi;--foot:4.6cqi;padding:3.8cqi 4.4cqi 3.4cqi}
+}
+/* small phones (a card under 340px): a 15px floor, and the box rises again so Collector's seven lines fit */
+@container (max-width:339px){
+  .tc-glass{--top:48%}
+  .tc-rules{font-size:15px}
+  .tc-rules li.tc-carry{font-size:14.5px}
+}
+/* ---------- free: the common, a painted forest with the crown on a mossy stone. Forest-green smoked glass over the
+   grass, a silver name ---------- */
+.tc-common{--face:linear-gradient(180deg,#fff 12%,#e8ece4 55%,#b7c0b2 100%);
+  --face-fx:drop-shadow(0 .02em 0 #4d6b45) drop-shadow(0 .045em 0 #1c3019) drop-shadow(0 .1em .16em rgba(0,10,0,.55));
+  --glass:linear-gradient(180deg,rgba(16,38,20,.52),rgba(9,24,13,.7));--edge:rgba(232,196,104,.42);--edge-top:rgba(255,236,190,.34);
+  --txt:#eef4e6;--carry:#bccdb2;--pip:linear-gradient(135deg,#f6f8fc,#9aa7be);--pip-ring:rgba(0,0,0,.3)}
+/* ---------- premium: the stained-glass holo, deep blue glass over the lower window, a gold-foil name. The crown's
+   ring ends at 55%, so the art is lifted 1% (scale 1.02 covers the lift, so no edge shows) ---------- */
+.tc-rare{--art-fit:translateY(-1%) scale(1.02);--face:linear-gradient(176deg,#ffeebf 3%,#f6cf57 38%,#e3a92f 72%,#c98a1c 100%);
+  --face-fx:drop-shadow(0 .02em 0 #8d5d10) drop-shadow(0 .04em 0 #4a2f06) drop-shadow(0 .1em .16em rgba(4,2,30,.6));
+  --glass:linear-gradient(180deg,rgba(12,22,80,.5),rgba(6,12,48,.7));--edge:rgba(232,196,104,.46);--edge-top:rgba(255,236,190,.38);
+  --txt:#eef1ff;--carry:#b8c4f0;--pip:linear-gradient(135deg,#fff3c4,#f2c040 50%,#b9831f);--pip-ring:rgba(60,35,0,.45)}
+/* ---------- collector: the engraved gold top rarity in a filigree frame. Its framed field (57 to 86%) is too short
+   for seven lines at a readable size, so the text sits on a frosted gold plate set inside the frame's side borders,
+   in dark ink; the name is navy ink stamped into the gold, the pips are the crown's sapphires ---------- */
+.tc-crown{--face:linear-gradient(180deg,#1c2b5e,#0a1331);--face-fx:drop-shadow(0 .018em 0 rgba(255,246,214,.8));
+  --glass:linear-gradient(180deg,rgba(236,206,120,.66),rgba(210,170,74,.64));--blur:10px;--sat:1.05;
+  --edge:rgba(110,70,6,.6);--edge-w:1.5px;--edge-top:rgba(255,248,215,.75);
+  --txt:#1a1508;--carry:#4f3d10;--pip:linear-gradient(135deg,#a8d4ff,#2f6fe8 55%,#13358a);--pip-ring:rgba(120,80,10,.7)}
 
-/* ---------- free: the common. Printed silver border, plain matte navy face ---------- */
-.tc-common .tc-card, .tc-rare .tc-card{background:linear-gradient(158deg,#eef1f6,#c3cad7)}
-.tc-common .tc-layer{--nt:4.05%;--nb:10.4%;--nl:4%;--nr:4%;--tt:53.1%;--tb:89.4%;--tl:4.2%;--tr:4.2%;--tc-rule:rgba(190,206,240,.24);
-  --pip:linear-gradient(150deg,#f4f7fb,#8e9ab0);--pip-ring:rgba(0,0,0,.3);color:#dbe5f7}
-.tc-common .tc-per{color:#b7c6e4}
-.tc-common .tc-rules li{margin:1.4cqi 0}
-.tc-common .tc-dot{left:91%;top:94.2%}
-
-/* ---------- premium: the holographic full art (same printed border) ---------- */
-.tc-rare .tc-layer{--nt:3.4%;--nb:9.9%;--nl:3.7%;--nr:4.4%;--tt:61.3%;--tb:89.6%;--tl:5.8%;--tr:6.2%;--tc-rule:rgba(200,214,255,.26);
-  --pip:radial-gradient(circle at 35% 30%,#fff3c4,#ffd24a 45%,#c9902a);--pip-ring:rgba(60,35,0,.5);color:#eef2ff}
-.tc-rare .tc-amt{color:var(--gold);text-shadow:0 .03em 0 rgba(3,8,40,.5)}
-.tc-rare .tc-per{color:#ffe9a8}
-.tc-rare .tc-rules li.tc-carry{color:#b9c6ee}
-.tc-rare .tc-star{left:91.5%;top:93.6%}
-
-/* ---------- collector: the gold hyper-rare full art, refractor edge. The crown is the art, so the face's own
-   sapphire corner is its mark ---------- */
-.tc-crown .tc-card{background:linear-gradient(160deg,#fff3c4 0%,#f2b8d8 20%,#b9f0dc 40%,#f6d77a 58%,#c98f2a 82%,#a8711d 100%)}
-.tc-crown .tc-layer{--nt:2.7%;--nb:7.6%;--nl:8.8%;--nr:8.8%;--tt:57.3%;--tb:91.4%;--tl:7.5%;--tr:7.7%;--tc-rule:rgba(255,236,190,.3);
-  --pip:radial-gradient(circle at 35% 30%,#bfe0ff,#3b82ff 50%,#123a8f);--pip-ring:#ffd24a;color:#fff1cf}
-.tc-crown .tc-name{font-size:4.6cqi;color:#241603;text-shadow:0 1px 0 rgba(255,240,200,.45)}
-.tc-crown .tc-amt{color:#fff4cf;text-shadow:0 .03em 0 rgba(60,32,0,.6)}
-.tc-crown .tc-per{color:#fbe7b0;text-shadow:0 1px 1px rgba(50,25,0,.6)}
-.tc-crown .tc-rules li{text-shadow:0 1px 1px rgba(50,25,0,.55)}
-.tc-crown .tc-rules li.tc-carry{color:#f1d79a}
-
-/* rarity marks step up in metal: silver circle, silver-foil star (the collector's is the art's sapphire) */
-.tc-mark.tc-dot{width:max(12px,4.2cqi);height:max(12px,4.2cqi);border-radius:50%;background:linear-gradient(150deg,#f4f7fb,#8e9ab0);box-shadow:0 0 0 1px rgba(0,0,0,.3)}
-.tc-mark.tc-star{width:max(18px,6.6cqi);height:max(18px,6.6cqi);background:linear-gradient(150deg,#fff 0%,#b8c3d6 45%,#e8d9ff 60%,#9fd8ff 100%);
-  clip-path:polygon(50% 0%,61.8% 35.4%,100% 38.2%,69.1% 61.8%,79.4% 100%,50% 76.4%,20.6% 100%,30.9% 61.8%,0% 38.2%,38.2% 35.4%)}
-
-/* ---------- the action under each card ---------- */
-.tc-cta{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 34px;border-radius:999px;
+/* ---------- under the card: the price, then the button. One size and one baseline on every tier ---------- */
+.tc-price{display:flex;align-items:baseline;justify-content:center;margin:6cqi 0 4.6cqi;white-space:nowrap}
+/* the unit is a zero-width box whose text hangs to the right, and the figure carries the same 1.2cqi on its left,
+   so the figure alone sits on the card's centre line, over the button */
+.tc-amt{flex:none;margin-left:1.2cqi;font-family:var(--font-display);font-weight:400;font-size:15cqi;line-height:.96;letter-spacing:.005em;color:#fff}
+.tc-per{flex:none;width:0;margin-left:1.2cqi;text-align:left;font-family:var(--font);font-weight:600;font-size:max(14px,4.2cqi);letter-spacing:.01em;color:var(--dim)}
+.tc-rare .tc-amt{color:var(--gold)}
+.tc-cta{display:inline-flex;align-items:center;justify-content:center;min-width:min(100%,11.5em);min-height:52px;padding:0 34px;border-radius:999px;
   font-weight:700;font-size:clamp(16px,.72vw,18px);letter-spacing:.005em;white-space:nowrap;text-decoration:none}
 .tc-cta.tc-ghost{color:var(--ink);box-shadow:inset 0 0 0 1.5px rgba(234,242,255,.55)}
 .tc-cta.tc-gold{color:#10131f;background:var(--gold)}
@@ -471,13 +519,30 @@ h2.ih2 .lk2{color:var(--blue-bright)}
 }
 
 /* before the deal (set by the script only when it will play) */
-.tc-pre .tc-card, .tc-pre .tc-cta{opacity:0}
+.tc-pre .tc-card, .tc-pre .tc-buy{opacity:0}
 
-/* laptop: heading on top so the cards keep their size (and their 63x88 shape) */
-@media (max-width:1700px){
+/* wide screens: the section fills the screen under the header, its content centred between header and ticker */
+@media (min-width:1920px){
+  .pricing{min-height:calc(100svh - 96px);display:grid;align-content:center;padding-block:24px 70px}
+}
+/* laptop: heading on top so the cards keep their size (and their 63x88 shape). Runs to 1919px: below 1920 the side
+   heading's column would leave the cards smaller than a 1440 laptop's */
+@media (max-width:1919px){
   .pricing{padding-block:clamp(40px,3.4vw,56px) clamp(56px,5vw,80px)}
   .tc-tiers{grid-template-columns:1fr;gap:clamp(20px,2vw,32px)}
   .tc-head h2{font-size:clamp(30px,3.4vw,52px);max-width:24ch}
+}
+/* laptop with three cards across: the cards are sized from the screen's height (360px floor) so the nav's Pricing
+   jump shows every card, price and button between the header and the ticker; the heading starts on the first card,
+   on one line, and the gap under it grows with the screen so a hovered card never meets it */
+@media (min-width:1200px) and (max-width:1919px){
+  .pricing{padding-block:22px 56px}
+  .tc-tiers{gap:clamp(32px,4.2vh,56px)}
+  .tc-head h2{font-size:clamp(30px,2.6vw,44px);max-width:none}
+  .tc-head h2 br{display:none}
+  .tc-head,.tc-hand{width:100%;margin-inline:auto;
+    max-width:max(3 * 360px + 2 * clamp(24px,2.4vw,64px),calc((100svh - 440px) * .717 * 3 + 2 * clamp(24px,2.4vw,64px)))}
+  .tc-price{margin:4cqi 0 3.6cqi}
 }
 /* tablet: the single column is centred, heading with it */
 @media (min-width:761px) and (max-width:1199px){
@@ -602,7 +667,7 @@ h2.ih2 .lk2{color:var(--blue-bright)}
         <div class="tape" id="tape" hidden></div>
       </div>
       <div class="intro-copy">
-        <h1 class="headline">The <span class="em">Ultimate</span><br>Card Tracker</h1>
+        <h1 class="headline"><span class="hl-a">The <span class="em">Ultimate</span></span><br><span class="hl-b">Card Tracker</span></h1>
         <a class="explore-btn" href="app.html">Explore <span aria-hidden="true">&rarr;</span></a>
       </div>
     </section>
@@ -632,79 +697,78 @@ h2.ih2 .lk2{color:var(--blue-bright)}
          lands sooner — P: don't make them scroll through it to reach the offer -->
     <section class="pricing" id="pricing" aria-labelledby="pricing-title">
       <!-- card text face for the pricing cards (names, rules text, /mo) -->
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,500&display=swap">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,500&family=DM+Sans:ital,wght@1,700&display=swap">
       <div class="tc-tiers">
         <header class="tc-head">
-          <h2 id="pricing-title">Track free.<br>Go deeper for less than a&nbsp;booster.</h2>
+          <!-- true at $10/mo: a booster pack is more than $3.34 in every game we track (Faisal, 29 Oct: fix the copy) -->
+          <h2 id="pricing-title">Track free. <br>Go deeper for <em class="tc-less">less</em> than three boosters a&nbsp;month.</h2>
         </header>
 
         <ol class="tc-hand">
           <li class="tc-common">
             <div class="tc-tier">
               <article class="tc-card">
-                <div class="tc-face">
-                  <img class="tc-img" src="assets/pricing/tier-free-600.webp" srcset="assets/pricing/tier-free-600.webp 600w, assets/pricing/tier-free-1000.webp 1000w" sizes="(max-width:1199px) min(372px, 86vw), 21vw" width="600" height="904" alt="" loading="lazy" decoding="async">
-                  <div class="tc-layer">
-                    <h3 class="tc-name">Free</h3>
-                    <p class="tc-price"><span class="tc-amt">$0</span><span class="tc-per">/mo</span></p>
-                    <ul class="tc-rules">
-                      <li>Free access to the last 3 sets of every universe</li>
-                      <li>Live prices &amp; daily USD/EUR snapshots</li>
-                      <li>Basic watchlist</li>
-                    </ul>
-                    <span class="tc-mark tc-dot" role="img" aria-label="Common"></span>
-                  </div>
+                <img class="tc-img" src="assets/pricing/tier-free-real-600.webp" srcset="assets/pricing/tier-free-real-600.webp 600w, assets/pricing/tier-free-real-1000.webp 1000w" sizes="(max-width:1199px) min(420px, 94vw), (max-width:1919px) 30vw, 20vw" width="600" height="804" alt="" fetchpriority="low" decoding="async">
+                <div class="tc-glass">
+                  <h3 class="tc-name">Free</h3>
+                  <ul class="tc-rules">
+                    <li>Free access to the last 3 sets of every universe</li>
+                    <li>Live prices &amp; daily USD/EUR snapshots</li>
+                    <li>Basic watchlist</li>
+                  </ul>
                 </div>
               </article>
-              <a class="tc-cta tc-ghost" href="app.html">Start free</a>
+              <div class="tc-buy">
+                <p class="tc-price"><span class="tc-amt">$0</span><span class="tc-per">/mo</span></p>
+                <a class="tc-cta tc-ghost" href="app.html">Start free</a>
+              </div>
             </div>
           </li>
 
           <li class="tc-rare">
             <div class="tc-tier">
               <article class="tc-card">
-                <div class="tc-face">
-                  <img class="tc-img" src="assets/pricing/tier-premium-600.webp" srcset="assets/pricing/tier-premium-600.webp 600w, assets/pricing/tier-premium-1000.webp 1000w" sizes="(max-width:1199px) min(372px, 86vw), 21vw" width="600" height="904" alt="" loading="lazy" decoding="async">
-                  <div class="tc-layer">
-                    <h3 class="tc-name">Premium</h3>
-                    <p class="tc-price"><span class="tc-amt">$10</span><span class="tc-per">/mo</span></p>
-                    <ul class="tc-rules">
-                      <li class="tc-carry">Everything in Free</li>
-                      <li>Access to every set in every universe</li>
-                      <li>Full collection value</li>
-                      <li>Price alerts &amp; trend charts</li>
-                      <li>Rip Lab EV calculator</li>
-                      <li>Early access to new universes</li>
-                    </ul>
-                    <span class="tc-mark tc-star" role="img" aria-label="Rare"></span>
-                  </div>
+                <img class="tc-img" src="assets/pricing/tier-premium-real-600.webp" srcset="assets/pricing/tier-premium-real-600.webp 600w, assets/pricing/tier-premium-real-1000.webp 1000w" sizes="(max-width:1199px) min(420px, 94vw), (max-width:1919px) 30vw, 20vw" width="600" height="804" alt="" fetchpriority="low" decoding="async">
+                <div class="tc-glass">
+                  <h3 class="tc-name">Premium</h3>
+                  <ul class="tc-rules">
+                    <li class="tc-carry">Everything in Free</li>
+                    <li>Access to every set in every universe</li>
+                    <li>Full collection value</li>
+                    <li>Price alerts &amp; trend charts</li>
+                    <li>Rip Lab EV calculator</li>
+                    <li>Early access to new universes</li>
+                  </ul>
                 </div>
               </article>
-              <a class="tc-cta tc-gold" href="app.html">Get Premium</a>
+              <div class="tc-buy">
+                <p class="tc-price"><span class="tc-amt">$10</span><span class="tc-per">/mo</span></p>
+                <a class="tc-cta tc-gold" href="app.html">Get Premium</a>
+              </div>
             </div>
           </li>
 
           <li class="tc-crown">
             <div class="tc-tier">
               <article class="tc-card">
-                <div class="tc-face">
-                  <img class="tc-img" src="assets/pricing/tier-collector-600.webp" srcset="assets/pricing/tier-collector-600.webp 600w, assets/pricing/tier-collector-1000.webp 1000w" sizes="(max-width:1199px) min(372px, 86vw), 21vw" width="600" height="904" alt="" loading="lazy" decoding="async">
-                  <div class="tc-layer">
-                    <h3 class="tc-name">Collector</h3>
-                    <p class="tc-price"><span class="tc-amt">$35</span><span class="tc-per">/mo</span></p>
-                    <ul class="tc-rules">
-                      <li class="tc-carry">Everything in Premium</li>
-                      <li>Real-time cross-market arbitrage engine</li>
-                      <li>AI price forecasts &amp; breakout alerts</li>
-                      <li>Portfolio analytics, P&amp;L &amp; CSV&nbsp;/&nbsp;API export</li>
-                      <li>Unlimited watchlists &amp;&nbsp;priority data refresh</li>
-                      <li>Grading ROI &amp; population insights</li>
-                      <li>Concierge deal-sourcing &amp;&nbsp;1:1&nbsp;onboarding</li>
-                    </ul>
-                  </div>
+                <img class="tc-img" src="assets/pricing/tier-collector-real-600.webp" srcset="assets/pricing/tier-collector-real-600.webp 600w, assets/pricing/tier-collector-real-1000.webp 1000w" sizes="(max-width:1199px) min(420px, 94vw), (max-width:1919px) 30vw, 20vw" width="600" height="804" alt="" fetchpriority="low" decoding="async">
+                <div class="tc-glass">
+                  <h3 class="tc-name">Collector</h3>
+                  <ul class="tc-rules">
+                    <li class="tc-carry">Everything in Premium</li>
+                    <li>Real-time cross-market arbitrage engine</li>
+                    <li>AI price forecasts &amp; breakout alerts</li>
+                    <li>Portfolio analytics, P&amp;L &amp; CSV&nbsp;/&nbsp;API export</li>
+                    <li>Unlimited watchlists &amp;&nbsp;priority data refresh</li>
+                    <li>Grading ROI &amp; population insights</li>
+                    <li>Concierge deal-sourcing &amp;&nbsp;1:1&nbsp;onboarding</li>
+                  </ul>
                 </div>
               </article>
-              <a class="tc-cta tc-ghost" href="app.html">Get Collector</a>
+              <div class="tc-buy">
+                <p class="tc-price"><span class="tc-amt">$35</span><span class="tc-per">/mo</span></p>
+                <a class="tc-cta tc-ghost" href="app.html">Get Collector</a>
+              </div>
             </div>
           </li>
         </ol>
@@ -768,8 +832,10 @@ h2.ih2 .lk2{color:var(--blue-bright)}
   <script src="data/home-trending.js?v=6"></script>  <!-- real 30-day movers, regenerated by every data refresh -->
   <script src="vendor/three.min.js"></script>
   <script src="vendor/GLTFLoader.js"></script>
+  <script src="vendor/RGBELoader.js"></script>        <!-- three r147 examples/js: loads the gems' HDR studio -->
+  <script src="vendor/three-mesh-bvh.umd.js"></script>  <!-- three-mesh-bvh 0.5.23 (MIT): traces light inside the cut stones -->
   <script src="vendor/RoomEnvironment.js"></script>
-  <script src="crown3d.js?v=34"></script>
+  <script src="crown3d.js?v=63"></script>
   <script src="vendor/gsap.min.js"></script>
   <script src="vendor/ScrollTrigger.min.js"></script>
   <script>
@@ -806,13 +872,14 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
       const money = (p) => (p >= 1000 ? fmt0(p) : '$' + p.toFixed(2));
       const uniLogo = (g, base) => `<img class="uni-logo" data-g="${g}" src="assets/logos/${g}.png?v=79" alt="${GL[g] || g}" style="height:${Math.round(base * (LHEM[g] || 1.5))}px">`;
-      const cardName = (n) => String(n).replace(/\.([A-Z])\./g, ' $1. ').replace(/([a-z])\.([A-Z])/g, '$1 $2');   // dotGG writes "Rocks.D.Xebec"; the card says "Rocks D. Xebec"
+      const cardName = (n) => String(n).replace(/\.([A-Z])\./g, ' $1. ').replace(/([a-z])\.([A-Z])/g, '$1 $2')   // dotGG writes "Rocks.D.Xebec"; the card says "Rocks D. Xebec"
+        .replace(/\s*◇/g, ' Prism Star');   // the ◇ mark isn't in Anton (it drew as a stray fallback diamond); the hobby writes it out, "Darkrai Prism Star"
       // what's in the spotlight: the cards trending most this week, this month or this year, across every game (P).
       // A window shows up as a tab once scripts/build-home-trending.mjs has real data for it.
       const WIN = [
-        { k: 'week', label: "This week's", tab: 'This week', list: HT.spotlight, field: 'week', span: 'in 7 days' },
-        { k: 'month', label: "This month's", tab: 'This month', list: HT.spotlightMonth, field: 'month', span: 'in 30 days' },
-        { k: 'year', label: "This year's", tab: 'This year', list: HT.spotlightYear, field: 'year', span: 'in a year' },
+        { k: 'week', label: 'This week’s', tab: 'This week', list: HT.spotlight, field: 'week', span: 'in 7 days' },
+        { k: 'month', label: 'This month’s', tab: 'This month', list: HT.spotlightMonth, field: 'month', span: 'in 30 days' },
+        { k: 'year', label: 'This year’s', tab: 'This year', list: HT.spotlightYear, field: 'year', span: 'in a year' },
       ];
       const groups = WIN.map((w) => ({ k: w.k, label: w.label, tab: w.tab,
         picks: (w.list || []).filter((c) => c && c.img).slice(0, 3).map((c) => ({ ...c, name: cardName(c.name), move: c[w.field] != null ? c[w.field] : (w.k === 'week' ? c.pct : null),
@@ -821,69 +888,102 @@ h2.ih2 .lk2{color:var(--blue-bright)}
           // say the real span: the long view starts at the oldest snapshot we hold (26 Jun), not a full year
           span: w.k === 'year' && c.from ? 'since ' + new Date(c.from + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : c.days && c.days !== 7 ? 'in ' + c.days + ' days' : w.span })) }))
         .filter((g) => g.picks.length >= 3);
-      if (!groups.length) groups.push({ k: 'week', label: "This week's", tab: 'This week', picks: [cotmLead, cotmLead, cotmLead] });
+      if (!groups.length) groups.push({ k: 'week', label: 'This week’s', tab: 'This week', picks: [cotmLead, cotmLead, cotmLead] });
       let picks = groups[0].picks;
       // left, centre, right: the lead in the middle under the crown
       const row = $('#spRow'), cap = $('#spCap');
       // the wings name the 2nd and 3rd cards beside them (rank, name, price, move); the move's span is only
       // spelled out when it differs from the lead's, which the caption already says
+      // the set line names the print too ("· Parallel"), so one card in two windows at two prices reads as two prints
+      const WJ = String.fromCharCode(0x2060);   // a word joiner after each hyphen keeps "-The Best-" from breaking at the hyphen
+      const setLine = (c) => [c.setName ? esc(c.setName).replace(/-(?=\S)/g, '-' + WJ) : '', c.variant ? esc(c.variant) : ''].filter(Boolean).join(' · ');
+      const label = (c) => c.name + (c.variant ? ', ' + c.variant : '');
       const wingHTML = (c) => {
         if (!c || c === picks[0]) return '';
         const v = c.move, up = v >= 0;
-        return (c.rank ? `<span class="sp-wing-n">${c.rank}</span>` : '') + `<span class="sp-wing-nm">${esc(c.name)}</span><span class="sp-wing-line">`
+        return (c.rank ? `<span class="sp-wing-n">${c.rank}</span>` : '') + `<span class="sp-wing-txt"><span class="sp-wing-nm">${esc(c.name)}</span><span class="sp-wing-line">`
           + (c.price != null ? `<span class="sp-wing-pr">${money(c.price)}</span>` : '')
           + (v != null ? `<span class="sp-wing-mv ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(v).toFixed(1)}%</span>` : '')
-          + `</span>${c.span && c.span !== picks[0].span ? `<span class="sp-wing-set">${esc(c.span)}</span>` : ''}${c.setName ? `<span class="sp-wing-set">${esc(c.setName)}</span>` : ''}`;
+          + (c.span && c.span !== picks[0].span ? `<small class="sp-wing-span">${esc(c.span)}</small>` : '')
+          + `</span>${setLine(c) ? `<span class="sp-wing-set">${setLine(c)}</span>` : ''}</span>`;
       };
       const wingEl = (i, side) => `<div class="sp-wing" data-i="${i}" data-side="${side}"><div class="sp-wing-in">${wingHTML(picks[i])}</div></div>`;
+      // the crown sits outside the hover's scaling box (.sp-ci) so it rides the lead's top edge without growing
       row.innerHTML = wingEl(1, 'l') + [[1, 1], [0, 0], [2, 1]].map(([i, tier]) => {
         const c = picks[i] || picks[0];
-        return `<button class="sp-c" type="button" data-i="${i}" data-tier="${tier}" data-cursor="Inspect" aria-label="${esc(c.name)}">`
-          + `<span class="sp-cf"><span class="sp-ci">${i === 0 ? '<span class="crown-spin sp-crown" aria-hidden="true"></span>' : ''}`
-          + `<img src="${esc(c.img)}" alt="${esc(c.name)}"></span></span></button>`;
+        return `<button class="sp-c" type="button" data-i="${i}" data-tier="${tier}" data-cursor="Inspect" aria-label="${esc(label(c))}">`
+          + `<span class="sp-cf">${i === 0 ? '<span class="crown-spin sp-crown" aria-hidden="true"></span>' : ''}<span class="sp-ci">`
+          + `<img src="${esc(c.img)}" alt="${esc(label(c))}"></span></span></button>`;
       }).join('') + wingEl(2, 'r');
-      const seats = [...row.querySelectorAll('.sp-c')], wings = [...row.querySelectorAll('.sp-wing')], wingT = [];
+      const seats = [...row.querySelectorAll('.sp-c')], wings = [...row.querySelectorAll('.sp-wing')];
+      let wingTok = null;
+      // both ranks stay level: when either wing's words need more height than its card, both ranks rise by the same amount
+      const levelWings = () => {
+        const need = wings.map((wg) => {
+          const inner = wg.firstElementChild, n = inner.querySelector('.sp-wing-n'), t = inner.querySelector('.sp-wing-txt');
+          if (!n || !t || !wg.offsetHeight) return 0;
+          return n.offsetHeight + (parseFloat(getComputedStyle(inner).rowGap) || 0) + t.offsetHeight - wg.clientHeight;
+        });
+        const lift = Math.ceil(Math.max(0, ...need));
+        wings.forEach((wg) => wg.style.setProperty('--lift', lift + 'px'));
+      };
+      levelWings();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(levelWings);
+      if (window.ResizeObserver) new ResizeObserver(() => levelWings()).observe(row);
+      // the flip's depth is set once, long (about 11x the lead's width, so the near edge grows under 5% and stays
+      // under the crown), and only rotateY is tweened: tweening the perspective itself grew it up from 0 and
+      // ballooned every card over the title on the first tab change
+      if (window.gsap) gsap.set(seats.map((b) => b.querySelector('img')), { transformPerspective: 4600 });
       seats.forEach((b) => b.addEventListener('click', () => { const c = picks[+b.dataset.i]; if (c) flyToInspect(c, b.querySelector('img')); }));
       const capHTML = (c) => {
         const v = c.move, up = v >= 0;
         return `<span class="nm">${esc(c.name)}</span><span class="sp-line">`
           + (c.price != null ? `<span class="sp-price">${money(c.price)}</span>` : '')
           + (v != null ? `<span class="sp-move ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(v).toFixed(1)}%<small>${c.span || ''}</small></span>` : '')
-          + `</span>${c.setName ? `<span class="sp-set-name">${esc(c.setName)}</span>` : ''}`;
+          + `</span>${setLine(c) ? `<span class="sp-set-name">${setLine(c)}</span>` : ''}`;
       };
-      let swapT = 0;
-      const show = (animate) => {   // the caption names the card in the middle
-        clearTimeout(swapT);
+      // words change with their own card: never before it has turned edge-on, never before its new art has decoded
+      const after = (ms, ready) => Promise.all([new Promise((r) => setTimeout(r, ms)), ready]);
+      let capTok = 0;
+      const show = (animate, ready) => {   // the caption names the card in the middle
+        const tok = ++capTok;
         if (!animate) { cap.innerHTML = capHTML(picks[0]); return; }
         cap.classList.add('swap');
-        swapT = setTimeout(() => { cap.innerHTML = capHTML(picks[0]); cap.classList.remove('swap'); }, 220);
+        after(330, ready).then(() => { if (tok !== capTok) return; cap.innerHTML = capHTML(picks[0]); cap.classList.remove('swap'); });   // the lead is edge-on at 90 ms delay + 240 ms
       };
       show(false);
+      // every window's art is fetched and decoded as the section comes near, so a first tab change never waits on the network
+      const warm = () => groups.forEach((g) => g.picks.forEach((c) => { const im = new Image(); im.decoding = 'async'; im.src = c.img; if (im.decode) im.decode().catch(() => {}); }));
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); warm(); } }, { rootMargin: '100% 0px' });
+        io.observe(row);
+      } else warm();
       const fill = (list) => {   // each card flips edge-on, takes the new art once it has decoded, and flips back in, left to right
         picks = list;
+        const readyOf = {};
         seats.forEach((b, n) => {
           const c = picks[+b.dataset.i], im = b.querySelector('img');
           if (!c) { b.hidden = true; return; }
-          b.hidden = false; b.setAttribute('aria-label', c.name);
+          b.hidden = false; b.setAttribute('aria-label', label(c));
           const next = new Image(); next.src = c.img;
-          const ready = (next.decode ? next.decode() : Promise.resolve()).catch(() => {});
+          const ready = readyOf[b.dataset.i] = (next.decode ? next.decode() : Promise.resolve()).catch(() => {});
           const delay = n * 90;
-          if (!window.gsap) { ready.then(() => { im.src = c.img; im.alt = c.name; }); return; }
-          gsap.to(im, { rotateY: 90, transformPerspective: 900, duration: 0.24, delay: delay / 1000, ease: 'power2.in', overwrite: true, onComplete: () => {
+          if (!window.gsap) { ready.then(() => { im.src = c.img; im.alt = label(c); }); return; }
+          gsap.to(im, { rotateY: 90, duration: 0.24, delay: delay / 1000, ease: 'power2.in', overwrite: true, onComplete: () => {
             ready.then(() => {
               if (picks[+b.dataset.i] !== c) return;
-              im.src = c.img; im.alt = c.name;
-              gsap.fromTo(im, { rotateY: -90, transformPerspective: 900 }, { rotateY: 0, duration: 0.55, ease: 'expo.out' });
+              im.src = c.img; im.alt = label(c);
+              gsap.fromTo(im, { rotateY: -90 }, { rotateY: 0, duration: 0.55, ease: 'expo.out' });
             });
           } });
         });
-        // each wing fades its words over as its card turns (left with the first flip, right with the last)
-        wings.forEach((wg, k) => {
-          const inner = wg.firstElementChild;
-          inner.classList.add('swap'); clearTimeout(wingT[k]);
-          wingT[k] = setTimeout(() => { inner.innerHTML = wingHTML(picks[+wg.dataset.i]); inner.classList.remove('swap'); }, 220 + (wg.dataset.side === 'r' ? 180 : 0));
-        });
-        show(true);
+        // both wings fade out; once they're invisible both take their new words (so the ranks are levelled once, with
+        // nothing visible moving), and each fades back in as its own card turns (left with the first flip, right with the last)
+        const tok = wingTok = {};
+        wings.forEach((wg) => wg.firstElementChild.classList.add('swap'));
+        setTimeout(() => { if (wingTok !== tok) return; wings.forEach((wg) => { wg.firstElementChild.innerHTML = wingHTML(picks[+wg.dataset.i]); }); levelWings(); }, 210);
+        wings.forEach((wg) => after(220 + (wg.dataset.side === 'r' ? 180 : 0), readyOf[wg.dataset.i]).then(() => { if (wingTok === tok) wg.firstElementChild.classList.remove('swap'); }));
+        show(true, readyOf['0']);
       };
       // the windows as tabs under the caption: pick one and the cards flip to what's trending over it
       const setsEl = $('#spSets'), kicker = $('.sp-title .sp-tw');
@@ -900,21 +1000,23 @@ h2.ih2 .lk2{color:var(--blue-bright)}
 
     // ---- pricing: the deal, once, when the hand first shows. Wide screens: the three cards sit stacked as a deck on the
     // Free slot, Free on top; Free settles, then Premium and Collector slide out from under it to their slots,
-    // 110 ms apart, and each button appears as its card lands. Phones: each card settles as it scrolls in.
+    // 110 ms apart, and each price and button appears as its card lands. Phones: each card settles as it scrolls in.
     // Crowns runs full motion by default (owner's call, see app.js); ?motion=reduced opts out.
     (() => {
       if (new URLSearchParams(location.search).get('motion') === 'reduced') return;
       const E = 'cubic-bezier(.16,1,.3,1)';
       const hand = document.querySelector('.tc-hand');
-      const lis = [...hand.children], cards = lis.map(l => l.querySelector('.tc-card')), ctas = lis.map(l => l.querySelector('.tc-cta'));
+      const lis = [...hand.children], cards = lis.map(l => l.querySelector('.tc-card')), ctas = lis.map(l => l.querySelector('.tc-buy'));
       const narrow = () => matchMedia('(max-width:1199px)').matches;
       hand.classList.add('tc-pre');
+      // wait (at most 1.5 s) for the faces to decode, so the deck never deals blank cards
+      const decoded = imgs => Promise.race([Promise.all(imgs.map(i => i.decode().catch(() => {}))), new Promise(r => setTimeout(r, 1500))]);
 
       const deal = () => {
         const r = cards.map(c => c.getBoundingClientRect()), deck = r[0];
         hand.classList.remove('tc-pre');
         cards.forEach((c, i) => {
-          const lean = matchMedia('(max-width:1700px)').matches ? 24 : -36;   // stacked layout: lean into the page, clear of the edge
+          const lean = matchMedia('(max-width:1919px)').matches ? 24 : -36;   // stacked layout: lean into the page, clear of the edge
           const dx = (deck.left + deck.width / 2) - (r[i].left + r[i].width / 2) + lean;
           const dy = deck.bottom - r[i].bottom + 14;
           const s = (deck.width / r[i].width) * .94;
@@ -925,7 +1027,7 @@ h2.ih2 .lk2{color:var(--blue-bright)}
         });
       };
       const settle = li => {
-        const c = li.querySelector('.tc-card'), b = li.querySelector('.tc-cta');
+        const c = li.querySelector('.tc-card'), b = li.querySelector('.tc-buy');
         c.style.opacity = b.style.opacity = '';
         c.animate([{ transform: 'translateY(24px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 550, easing: E, fill: 'backwards' });
         b.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: 200, easing: E, fill: 'backwards' });
@@ -933,11 +1035,11 @@ h2.ih2 .lk2{color:var(--blue-bright)}
 
       if (narrow()) {
         hand.classList.remove('tc-pre');
-        lis.forEach(li => { li.querySelector('.tc-card').style.opacity = '0'; li.querySelector('.tc-cta').style.opacity = '0'; });
-        const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); settle(e.target); } }), { threshold: .2 });
+        lis.forEach(li => { li.querySelector('.tc-card').style.opacity = '0'; li.querySelector('.tc-buy').style.opacity = '0'; });
+        const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); decoded([e.target.querySelector('.tc-img')]).then(() => settle(e.target)); } }), { threshold: .2 });
         lis.forEach(li => io.observe(li));
       } else {
-        const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); deal(); } }, { threshold: .55 });
+        const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); decoded(cards.map(c => c.querySelector('.tc-img'))).then(deal); } }, { threshold: .55 });
         io.observe(hand);
       }
     })();
@@ -1022,7 +1124,14 @@ h2.ih2 .lk2{color:var(--blue-bright)}
     addEventListener('resize', sizeWheel);
     sizeWheel();
     // the live 3D crown (gold refractor cards on a black band), turned by the cursor
-    const CROWN_CARDS = ALL.filter((c) => c.local);   // chase cards with a same-origin copy (WebGL needs it)
+    // chase cards with a same-origin copy (WebGL needs it), dealt round the four games in turn so every game shows on the
+    // ring and no card repeats (Faisal, 29 Oct: "the cards in the crown are repeating"; the ring holds ~30, the list 41)
+    const CROWN_CARDS = (() => {
+      const by = {}; ALL.filter((c) => c.local).forEach((c) => (by[c.game] = by[c.game] || []).push(c));
+      const lists = Object.values(by), out = [], n = lists.reduce((s, l) => s + l.length, 0);
+      for (let i = 0; out.length < n; i++) lists.forEach((l) => { if (l[i]) out.push(l[i]); });
+      return out;
+    })();
     const crown3d = (crownEl && window.CrownMark) ? window.CrownMark.mount(crownEl, {
       // the crown Faisal picked (27 Oct): the regal ten-point crown with brilliant-cut sapphires (Meshy from
       // docs/design/crown/shape-b2.png), made symmetric from its best point and cleaned (scripts/crown-symmetrize.py,
@@ -1030,10 +1139,21 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       pixelRatio: Math.min(1.75, devicePixelRatio || 1), spin: 0.07,
       // the crown is a Higgsfield turntable video (green keyed out live in crown3d.js), turning on its own;
       // the real 3D chase cards ride a belt round its black band, in front of it and hidden behind it
-      video: { src: 'assets/crown/crown-turn.mp4?v=1', width: 2.0, y: 0.54, roll: 0.15 },
+      // band/eye are measured from the video (its band's centre and radius in the frame, and the camera that filmed it),
+      // so the ring (radius in band radii) sits on the band's ellipse; roll leans crown and ring together (left down, right up)
+      // Faisal, 28 Oct night: no video, a real 3D crown at the video's size. Crown 3 (Spires) of docs/design/crown/turnarounds/,
+      // built exactly in Blender (scripts/crown-build.py; Meshy's mesh of it came back with thin, wavy spires), filmed by the
+      // video's camera so it lands at the same size
+      glb: { src: 'assets/crown/crown-spires.glb?v=8', roll: 0.15, eye: { dist: 5.2, elev: 0.1354 }, gemEnv: 'assets/env/studio_small_09_1k.hdr' },   // further back than the video's 3.66: the tall spires bent at that range; framing keeps the on-screen size
       cards: CROWN_CARDS.map((c) => ({ src: c.local })), cardBack: 'assets/card-back.webp?v=6',
-      orbit: { r: 0.9, y: 0.32, h: 0.33, spacing: 1.04, tilt: -0.12, roll: 0.15, crownTurn: 0 },   // below the sapphires, over the band
-      light: 'arcade', envI: 1.3, camera: [[0, 0.95, 3.9], [0, 0.6, 0]], exposure: 1.3,
+      // the cards ride the black band between its gold rims (Faisal: the rims must show), in band radii: 1.06 out (clear of the
+      // rims' rolls at 1.056), 0.30 tall on the 0.364 band (grown 29 Oct, Faisal: the cards bigger and more visible) so a
+      // little black shows above and below; the crown turns a little slower than the ring
+      orbit: { r: 1.06, y: 0, h: 0.30, spacing: 1.03, crownTurn: 0.55 },
+      frame: innerWidth >= 1200
+        ? { under: '.topbar', floor: '.ticker', pad: 24, shift: 0 }   // wide: centred, the headline layers round it (Faisal, 29 Oct)
+        : { under: '.topbar', over: ['.headline', '.explore-btn'], floor: '.ticker', pad: 24, gap: 40, shift: 0.2 },   // narrow: beside (never over) the stacked headline   // as big as the hero allows: under the header, beside (never over) the headline, above the ticker
+      light: 'arcade', envI: 1.3, exposure: 1.05,
     }) : null;
     // drag turns the crown; a click (no drag) on a front card opens it; hover names the card
     const cap = $('#crownCap'), crownFront = $('#crownFront');

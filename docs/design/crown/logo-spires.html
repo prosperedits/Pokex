@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Crown logo frames</title>
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style>
+</head><body>
+<canvas id="c" style="width:288px;height:224px"></canvas>
+<script src="../../../vendor/three.min.js"></script>
+<script src="../../../vendor/GLTFLoader.js"></script>
+<script src="../../../vendor/RGBELoader.js"></script>
+<script src="../../../vendor/three-mesh-bvh.umd.js"></script>
+<script src="../../../crown3d.js?v=63"></script>
+<script>
+  // The header logo from the hero's crown (Faisal, 28 Oct: "logo on the top left also needs to change"): crown 3, built in
+  // Blender (scripts/crown-build.py), alone, upright, a little from above. window.__frame(i, n) poses frame i of one turn;
+  // scripts/make-crown-logo.py stitches the frames.
+  const o = {
+    pixelRatio: 1, capture: true, light: 'arcade', exposure: 1.05, envI: 1.3, yaw: 0,
+    glb: { src: '../../../assets/crown/crown-spires.glb?v=8', roll: 0, eye: { dist: 6, elev: 0.32 }, gemEnv: '../../../assets/env/studio_small_09_1k.hdr' },
+    onload: () => setTimeout(() => { window.__ready = true; }, 2500),   // time for the gems' HDR studio
+  };
+  const crown = CrownMark.mount(document.getElementById('c'), o);
+  window.__frame = (i, n) => { o.yaw = (i / n) * Math.PI * 2; crown.render(1000, 0, 0); return true; };
+</script>
+</body></html>
