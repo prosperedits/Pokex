@@ -6,7 +6,7 @@
 <title>Crowns — Home</title>
 <link rel="icon" type="image/png" href="assets/favicon-64.png?v=2">
 <meta name="description" content="Crowns — the ultimate card tracker.">
-<script src="crown-spin.js?v=19" defer></script>
+<script src="crown-spin.js?v=20" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -829,7 +829,7 @@ h2.ih2 .lk2{color:var(--blue-bright)}
   <script src="vendor/RGBELoader.js"></script>        <!-- three r147 examples/js: loads the gems' HDR studio -->
   <script src="vendor/three-mesh-bvh.umd.js"></script>  <!-- three-mesh-bvh 0.5.23 (MIT): traces light inside the cut stones -->
   <script src="vendor/RoomEnvironment.js"></script>
-  <script src="crown3d.js?v=72"></script>
+  <script src="crown3d.js?v=73"></script>
   <script src="vendor/gsap.min.js"></script>
   <script src="vendor/ScrollTrigger.min.js"></script>
   <script>
@@ -1138,7 +1138,7 @@ h2.ih2 .lk2{color:var(--blue-bright)}
       // Faisal, 28 Oct night: no video, a real 3D crown at the video's size. Crown 3 (Spires) of docs/design/crown/turnarounds/,
       // built exactly in Blender (scripts/crown-build.py; Meshy's mesh of it came back with thin, wavy spires), filmed by the
       // video's camera so it lands at the same size
-      glb: { src: 'assets/crown/crown-spires.glb?v=10', roll: 0.15, eye: { dist: 5.2, elev: 0.1354 }, gemEnv: 'assets/env/studio_small_09_1k.hdr', emboss: 'assets/crown/emboss-logos.png?v=2' },   // further back than the video's 3.66: the tall spires bent at that range; framing keeps the on-screen size
+      glb: { src: 'assets/crown/crown-spires.glb?v=10', roll: 0.15, eye: { dist: 5.2, elev: 0.1354 }, gemEnv: 'assets/env/studio_small_09_1k.hdr', emboss: 'assets/crown/emboss-logos.png?v=3' },   // further back than the video's 3.66: the tall spires bent at that range; framing keeps the on-screen size
       cards: CROWN_CARDS.map((c) => ({ src: c.local })),   // no card backs: on the wider ring they read as a dark ledge at both ends
       // the cards ride the black band between its gold rolls (Faisal: the rims must show), in band radii. The crown was widened to
       // meet the ring (2 Nov, DR in scripts/crown-build.py), so the band sits just behind the cards: 1.205 out, each card bent to

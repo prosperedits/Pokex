@@ -330,13 +330,13 @@
             '    } }' : ''))
           .replace('#include <roughnessmap_fragment>', (logos ?
             'float lSlot = (atan(-vW.z, vW.x) - uTurn) / 0.5235988, lK = floor(lSlot);\n' +
-            'vec2 lq = vec2((lSlot - lK - 0.5) * 0.5235988 * 1.22 / 0.38 + 0.5, (vW.y - 0.48) / 0.19 + 0.5);\n' +
+            'vec2 lq = vec2((lSlot - lK - 0.5) * 0.5235988 * 1.22 / 0.40 + 0.5, (vW.y - 0.48) / 0.20 + 0.5);\n' +
             'float lIn = step(0.0, lq.x) * step(lq.x, 1.0) * step(0.0, lq.y) * step(lq.y, 1.0);\n' +
             'vec2 lc = vec2((mod(lK, 4.0) + clamp(lq.x, 0.0, 1.0)) / 4.0, clamp(lq.y, 0.0, 1.0));\n' +
             'vec2 lSlope = lIn * 3.0 * vec2(texture2D(uLogos, lc + vec2(0.0005, 0.0)).r - texture2D(uLogos, lc - vec2(0.0005, 0.0)).r,\n' +
             '  texture2D(uLogos, lc + vec2(0.0, 0.004)).r - texture2D(uLogos, lc - vec2(0.0, 0.004)).r);\n' : '') +
             '#include <roughnessmap_fragment>\n' +
-            (logos ? 'roughnessFactor += 0.14 * lIn * smoothstep(0.02, 0.5, texture2D(uLogos, lc).r);\n' : '') +
+            (logos ? 'roughnessFactor += 0.12 * smoothstep(0.0, 0.5, length(lSlope));\n' : '') +   // satin on the slopes only: the letter tops stay polished
             '  { vec3 q = vW * 9.0;\n' +
             '    float wander = sin(q.x * 1.3 + sin(q.y * 1.7)) * sin(q.y * 1.1 + sin(q.z * 1.9)) * sin(q.z * 1.4 + sin(q.x * 1.2));\n' +
             '    roughnessFactor = clamp(roughnessFactor + wander * 0.05, 0.08, 1.0); }')
@@ -345,6 +345,12 @@
             '    float out_ = dot(wn, normalize(vec3(vW.x, 0.0, vW.z)));\n' +
             '    float ao = mix(0.5, 1.0, smoothstep(-0.45, 0.1, out_));\n' +                      // inside the crown
             '    if (vW.y > 0.33) ao *= mix(0.7, 1.0, smoothstep(0.33, 0.52, vW.y));\n' +          // the wall where it meets the rim
+            // the logos read the way a coin does: a dark antiqued recess hugging each letter, the raised tops bright (Faisal, 2 Nov:
+            // "a little hard to read"). Edges alone can't carry it: a flat letter top mirrors the same room as the wall around it
+            (logos ?
+            '    float lH = texture2D(uLogos, lc).r * lIn, lWide = texture2D(uLogos, lc, 4.0).r * lIn;\n' +
+            '    float lField = smoothstep(0.02, 0.35, lWide) * (1.0 - smoothstep(0.2, 0.55, lH));\n' +
+            '    if (out_ > 0.2) ao *= (1.0 - 0.62 * lField) * (1.0 + 0.18 * lH);\n' : '') +
             '    outgoingLight *= ao; }\n' +
             '#include <output_fragment>');
       };

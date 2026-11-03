@@ -13,7 +13,7 @@ from PIL import Image, ImageFilter
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CW, CH = 1024, 512   # one cell; a cell's shape is the logo's 0.38 x 0.19 patch on the wall
 MARGIN = 0.05
-BEVEL = 7.0          # px of blur at cell scale: a wide, rounded shoulder. Mirror gold shows every step, so a tight bevel reads as jagged (P, 2 Nov)
+BEVEL = 3.5          # px of blur at cell scale: crisp enough to read, soft enough not to shimmer. 2.6 read jagged on mirror gold, 7 read melted (P, 2 Nov)
 
 
 def load(name):
